@@ -8,7 +8,7 @@ import {
 } from "../consts/paths";
 import { join } from "path";
 
-const BIOME_VERSION = "1.4.1";
+const BIOME_VERSION = "2.3.13";
 
 export const isInstalled = () => {
   console.log(

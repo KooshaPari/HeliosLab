@@ -580,11 +580,13 @@ export const Editor = ({ currentTabId }: { currentTabId: string }) => {
           // todo: handle failed write
           return;
         }
-
-        // Auto-format on save disabled - use command palette to format manually
-        // electrobun.rpc?.send("formatFile", {
-        //   path: model.uri.path,
-        // });
+        
+        const biomeExtensions = ['.js', '.jsx', '.ts', '.tsx', '.mjs', '.cjs', '.mts', '.cts', '.json', '.jsonc', '.css', '.html', '.graphql', '.gql'];
+        if (biomeExtensions.some(ext => model.uri.path.endsWith(ext))) {
+          electrobun.rpc?.send("formatFile", {
+            path: model.uri.path,
+          });
+        }
 
         setState(
           produce((_state: AppState) => {
