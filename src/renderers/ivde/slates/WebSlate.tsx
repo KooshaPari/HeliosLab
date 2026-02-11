@@ -69,6 +69,10 @@ const colabPreloadScript = `
     if (e.key === 'Tab' && e.ctrlKey) {
       shouldForward = true;
     }
+    // Cmd+F - find in page
+    if (e.key === 'f' && e.metaKey && !e.shiftKey && !e.ctrlKey) {
+      shouldForward = true;
+    }
     // Note: Cmd+W and Cmd+Shift+W are now handled by the application menu
     // and should NOT be forwarded from the webview to avoid double-firing
     // Escape/Enter - for dialogs (but don't prevent default so they still work in websites)
@@ -211,7 +215,10 @@ export const WebSlate = ({
   const partition = `persist:sites:${state.workspace.id}:${renderer()}`;
   // YYY - any was Electron.WebviewTag
   let webviewRef: any | undefined;
+  let findInputRef: HTMLInputElement | undefined;
   const [isWebviewReady, setIsWebviewReady] = createSignal(false);
+  const [showFindBar, setShowFindBar] = createSignal(false);
+  const [findQuery, setFindQuery] = createSignal("");
 
   // Keep webview off-screen briefly so the native OOPIF doesn't flash
   // white at the wrong position during creation. The module-level
@@ -234,6 +241,66 @@ export const WebSlate = ({
 
   const onClickHome = () => {
     webviewRef.src = initialUrl;
+  };
+
+  const toggleFindBar = () => {
+    if (showFindBar()) {
+      closeFindBar();
+    } else {
+      setShowFindBar(true);
+      webviewRef?.addMaskSelector(".webslate-find-bar");
+      requestAnimationFrame(() => {
+        webviewRef?.syncDimensions(true);
+        // todo: focusing the input doesn't work when the OOPIF has native focus.
+        // Needs a native focusHost/blur API on BrowserView to transfer focus back.
+        findInputRef?.focus();
+        findInputRef?.select();
+      });
+    }
+  };
+
+  const closeFindBar = () => {
+    setShowFindBar(false);
+    setFindQuery("");
+    webviewRef?.stopFindInPage();
+    webviewRef?.removeMaskSelector(".webslate-find-bar");
+    requestAnimationFrame(() => {
+      webviewRef?.syncDimensions(true);
+    });
+  };
+
+  const handleFindInput = (query: string) => {
+    setFindQuery(query);
+    if (query) {
+      webviewRef?.findInPage(query, { forward: true });
+    } else {
+      webviewRef?.stopFindInPage();
+    }
+  };
+
+  const findNext = () => {
+    const q = findQuery();
+    if (q) webviewRef?.findInPage(q, { forward: true });
+  };
+
+  const findPrev = () => {
+    const q = findQuery();
+    if (q) webviewRef?.findInPage(q, { forward: false });
+  };
+
+  const handleFindKeyDown = (e: KeyboardEvent) => {
+    if (e.key === 'Enter' || (e.key === 'g' && e.metaKey)) {
+      e.preventDefault();
+      if (e.shiftKey) {
+        findPrev();
+      } else {
+        findNext();
+      }
+    }
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      closeFindBar();
+    }
   };
 
   const onCreatePreloadScript = async () => {
@@ -707,7 +774,6 @@ console.log('Preload script loaded for:', window.location.href);
   // reloadIgnoringCache
   // open devtools
   // context menues
-  // find in page
   // capturePage
   // showDefinitionForSelection
 
@@ -800,7 +866,16 @@ console.log('Preload script loaded for:', window.location.href);
   };
 
   return (
-    <div style="display: flex; flex-direction: column; height: 100%; position: relative;">
+    <div style="display: flex; flex-direction: column; height: 100%; position: relative;" onKeyDown={(e) => {
+      if (e.key === 'f' && e.metaKey && !e.shiftKey && !e.ctrlKey) {
+        e.preventDefault();
+        toggleFindBar();
+      }
+      if (e.key === 'Escape' && showFindBar()) {
+        e.preventDefault();
+        closeFindBar();
+      }
+    }}>
       <div style="display: flex; box-sizing: border-box; gap: 5px; padding: 10px; min-height: 40px;height: 40px; width: 100%;overflow-x:hidden;">
         <button
           class="browser-btn"
@@ -992,6 +1067,103 @@ console.log('Preload script loaded for:', window.location.href);
           </button>
         </Show>
       </div>
+
+      {/* Find in page bar - floats over top-right of webview, masked out of OOPIF */}
+      <Show when={showFindBar()}>
+        <div
+          class="webslate-find-bar"
+          style={{
+            position: "absolute",
+            top: "44px",
+            right: "8px",
+            "z-index": "100",
+            display: "flex",
+            gap: "4px",
+            "align-items": "center",
+            padding: "6px 10px",
+            background: "#2d2d2d",
+            "border-radius": "6px",
+            border: "1px solid #444",
+            "box-shadow": "0 2px 8px rgba(0,0,0,0.4)",
+          }}
+        >
+          <input
+            ref={findInputRef}
+            type="text"
+            placeholder="Find in page..."
+            value={findQuery()}
+            onInput={(e) => handleFindInput(e.currentTarget.value)}
+            onKeyDown={handleFindKeyDown}
+            style={{
+              padding: "4px 8px",
+              "border-radius": "4px",
+              border: "1px solid #555",
+              "background-color": "#1e1e1e",
+              color: "#ddd",
+              "font-size": "13px",
+              width: "200px",
+              outline: "none",
+            }}
+          />
+          <button
+            onClick={findPrev}
+            type="button"
+            title="Previous match (Shift+Enter)"
+            style={{
+              background: "#3a3a3a",
+              border: "1px solid #555",
+              "border-radius": "4px",
+              cursor: "pointer",
+              padding: "4px 6px",
+              display: "flex",
+              "align-items": "center",
+              "justify-content": "center",
+            }}
+          >
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path d="M6 9.5V2.5M6 2.5L2.5 6M6 2.5L9.5 6" stroke="#ccc" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <button
+            onClick={findNext}
+            type="button"
+            title="Next match (Enter)"
+            style={{
+              background: "#3a3a3a",
+              border: "1px solid #555",
+              "border-radius": "4px",
+              cursor: "pointer",
+              padding: "4px 6px",
+              display: "flex",
+              "align-items": "center",
+              "justify-content": "center",
+            }}
+          >
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path d="M6 2.5V9.5M6 9.5L2.5 6M6 9.5L9.5 6" stroke="#ccc" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <button
+            onClick={closeFindBar}
+            type="button"
+            title="Close (Escape)"
+            style={{
+              background: "#3a3a3a",
+              border: "1px solid #555",
+              "border-radius": "4px",
+              cursor: "pointer",
+              padding: "4px 6px",
+              display: "flex",
+              "align-items": "center",
+              "justify-content": "center",
+            }}
+          >
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+              <path d="M1.5 1.5L8.5 8.5M8.5 1.5L1.5 8.5" stroke="#999" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+      </Show>
 
       {/* Error overlay - shown when page fails to load */}
       <Show when={loadError()}>
@@ -1314,8 +1486,18 @@ console.log('Preload script loaded for:', window.location.href);
             }
 
             // Keyboard shortcuts forwarded from webview
-            // This allows Ctrl+Tab/Ctrl+Shift+Tab to work even when the webview OOPIF has focus
+            // This allows Ctrl+Tab/Ctrl+Shift+Tab and Cmd+F to work even when the webview OOPIF has focus
             if (msg?.type === 'colab:keydown') {
+              // Handle Cmd+F locally for find-in-page
+              if (msg.key === 'f' && msg.metaKey && !msg.shiftKey && !msg.ctrlKey) {
+                toggleFindBar();
+                return;
+              }
+              // Handle Escape to close find bar
+              if (msg.key === 'Escape' && showFindBar()) {
+                closeFindBar();
+                return;
+              }
               // Dispatch a synthetic keyboard event to the document so it bubbles up
               // to the global keydown handler in index.tsx
               const syntheticEvent = new KeyboardEvent('keydown', {
