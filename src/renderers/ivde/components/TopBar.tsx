@@ -212,6 +212,7 @@ const CommandPalette = ({ setOpen }: { setOpen: (value: boolean) => void }) => {
   >([]);
 
   const [selectedIndex, setSelectedIndex] = createSignal(0);
+  let lastQuery = "";
 
   // Flatten all items into a single array for navigation - needs to be a memo for reactivity
   const getAllItems = createMemo(() => {
@@ -481,8 +482,11 @@ const CommandPalette = ({ setOpen }: { setOpen: (value: boolean) => void }) => {
     resetOpenTabs();
     filterCommands();
 
-    // Reset selected index when items change
-    setSelectedIndex(0);
+    // Only reset selected index when the query changes, not when results stream in
+    if (query !== lastQuery) {
+      lastQuery = query;
+      setSelectedIndex(0);
+    }
   });
 
   let input: HTMLInputElement;
@@ -492,8 +496,13 @@ const CommandPalette = ({ setOpen }: { setOpen: (value: boolean) => void }) => {
       // trigger webview rapid sync so show animation plays smoothly
       document
         .querySelectorAll("electrobun-webview")
-        .forEach((el) => el?.syncDimensions());
+        .forEach((el) => el?.syncDimensions(true));
       input?.focus();
+    } else {
+      // remove the mask cutout when closing
+      document
+        .querySelectorAll("electrobun-webview")
+        .forEach((el) => el?.syncDimensions(true));
     }
   });
 

@@ -936,6 +936,7 @@ const canQuitAndInstall = () => {
 
 let findAllProcesses: (Subprocess | null)[] = [];
 let findFilesProcesses: (Subprocess | null)[] = [];
+let findFilesTimeout: ReturnType<typeof setTimeout> | undefined;
 
 const updateTrayMenu = () => {
   const workspaces = db.collection("workspaces").query()?.data || {};
@@ -1550,8 +1551,13 @@ const createWindow = (workspaceId: string, window?: WindowConfigType, offset?: {
             return [];
           }
 
-          // Add a timeout for fast typers to finish typing
-          setTimeout(() => {
+          // Cancel previous debounce timeout
+          if (findFilesTimeout) {
+            clearTimeout(findFilesTimeout);
+          }
+
+          // Debounce: wait for fast typers to finish typing
+          findFilesTimeout = setTimeout(() => {
             findFilesProcesses.forEach((process) => {
               process?.kill();
             });

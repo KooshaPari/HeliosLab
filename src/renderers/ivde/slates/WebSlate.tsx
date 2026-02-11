@@ -1288,6 +1288,7 @@ console.log('Preload script loaded for:', window.location.href);
         {/* @ts-ignore */}
         <electrobun-webview
           data-type="webslate"
+          masks=".webview-overlay"
           renderer={renderer()}
           style={{
             width: `calc(100% - 4px)`,
