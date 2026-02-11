@@ -738,31 +738,33 @@ const Update = () => {
     state.update.error?.message || "Update failed. Please download manually.";
 
   const buttonLabel = () => {
-    const version = updateInfo()?.version || "";
-
     if (hasError()) {
       return "Update Failed";
     }
 
     if (isReady()) {
-      return `Update Installed: Click to Restart ${version} - ${updateInfo().hash}`;
+      return "Restart to Update";
     }
 
-    return `Installing Update ${version} - ${updateInfo().hash}`;
+    return "Installing Update…";
   };
 
   const buttonTitle = () => {
+    const version = updateInfo()?.version;
+
     if (hasError()) {
       return updateErrorMessage();
-    } else if (isReady()) {
-      return "Will automatically update at next restart";
+    }
+
+    if (isReady()) {
+      return version ? `Click to restart and update to v${version}` : "Click to restart and update";
     }
 
     if (state.update.status === "update-not-downloaded") {
       return "Download failed, retrying shortly";
     }
 
-    return "Fetching update…";
+    return version ? `Downloading v${version}…` : "Downloading update…";
   };
 
   const onClick = () => {
