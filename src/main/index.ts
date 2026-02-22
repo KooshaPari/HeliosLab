@@ -1091,7 +1091,7 @@ const createWindow = (workspaceId: string, window?: WindowConfigType, offset?: {
           id: `${workspace.id}.${Date.now()}`,
           ui: {
             showSidebar: true,
-            sidebarWidth: 200,
+            sidebarWidth: 250,
           },
           position: {
             x: baseX,
