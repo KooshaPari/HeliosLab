@@ -138,6 +138,10 @@ import { terminalManager } from "./utils/terminalManager";
 // import { terminalManagerPty as terminalManager } from "./utils/terminalManagerPty";
 import { getFaviconForUrl } from "./utils/urlUtils";
 import { pluginManager, searchPlugins, getPackageInfo } from "./plugins";
+import { bootstrapHelios, getHeliosRuntime } from "../helios/bridge/helios-main-bootstrap";
+
+/** When true, helios terminal-first mode is active and editor surfaces are excluded */
+const HELIOS_MODE = process.env.HELIOS_SURFACE_EDITOR !== "true";
 
 const localInfo = await Updater.getLocallocalInfo();
 
@@ -2834,6 +2838,20 @@ const createWindow = (
 				pluginGetPendingSlateRenders: ({ instanceId }) => {
 					return pluginManager.getAndClearPendingSlateRenders(instanceId);
 				},
+
+				// Helios RPC handlers — only active when HELIOS_MODE is true
+				...(HELIOS_MODE ? {
+					heliosRequest: async ({ method, payload }: { method: string; payload: Record<string, unknown> }) => {
+						const helios = getHeliosRuntime();
+						if (!helios) return { ok: false, error: "helios runtime not initialized" };
+						return helios.bridge.handleRequest(method, payload);
+					},
+					heliosGetState: () => {
+						const helios = getHeliosRuntime();
+						if (!helios) return { lanes: {}, sessions: {}, terminals: {} };
+						return helios.bus.getState();
+					},
+				} : {}),
 			},
 
 			messages: {
@@ -2984,6 +3002,11 @@ const createWindow = (
 			},
 		},
 	});
+	// Bootstrap helios runtime when in helios mode
+	if (HELIOS_MODE) {
+		bootstrapHelios(workspaceId);
+	}
+
 	console.log("---->1 creating main window");
 	const mainWindow = new BrowserWindow({
 		titleBarStyle: "hiddenInset",
@@ -2995,7 +3018,7 @@ const createWindow = (
 		},
 		renderer: "cef",
 		// url: "https://colab.sh",
-		url: "views://ivde/index.html",
+		url: HELIOS_MODE ? "views://helios/index.html" : "views://ivde/index.html",
 		rpc: WorkspaceRPC,
 		// syncRpc: {},
 		// titleBarStyle: "hiddenInset",
