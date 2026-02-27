@@ -930,6 +930,18 @@ export type WorkspaceRPC = {
         params: void;
         response: any;
       };
+      heliosGetMetrics: {
+        params: void;
+        response: any;
+      };
+      heliosTerminalInput: {
+        params: { terminalId: string; data: string };
+        response: { ok: boolean };
+      };
+      heliosTerminalResize: {
+        params: { terminalId: string; cols: number; rows: number };
+        response: { ok: boolean };
+      };
     };
     messages: {
       removeProjectDirectoryWatcher: {
@@ -1121,6 +1133,10 @@ export type WorkspaceRPC = {
       "helios:event": {
         event: any;
         state: any;
+      };
+      "helios:terminal-data": {
+        terminalId: string;
+        data: string;
       };
     };
   }>;

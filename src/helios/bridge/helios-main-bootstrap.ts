@@ -8,11 +8,17 @@
 import { InMemoryLocalBus } from "../runtime/protocol/bus";
 import { createBusRpcBridge, type BusRpcBridge } from "./bus-rpc-bridge";
 import { loadSettings, type HeliosSettings } from "./persistence";
+import { RuntimeMetrics } from "../runtime/diagnostics/metrics";
+import { HeliosTerminalBridge } from "./terminal-bridge";
+import { createToolDispatch } from "./tool-dispatch";
+import { createA2ADispatch } from "./a2a-dispatch";
 
 export type HeliosRuntime = {
   bus: InstanceType<typeof InMemoryLocalBus>;
   bridge: BusRpcBridge;
   settings: HeliosSettings;
+  metrics: RuntimeMetrics;
+  termBridge: HeliosTerminalBridge;
   dispose(): void;
 };
 
@@ -22,19 +28,33 @@ let instance: HeliosRuntime | null = null;
  * Bootstrap the helios runtime for a workspace.
  * Idempotent — returns the existing instance if already bootstrapped.
  */
-export function bootstrapHelios(workspaceId: string): HeliosRuntime {
+export function bootstrapHelios(workspaceId: string, windowId?: string): HeliosRuntime {
   if (instance) return instance;
 
   const bus = new InMemoryLocalBus();
-  const bridge = createBusRpcBridge(bus, workspaceId);
+  const metrics = new RuntimeMetrics();
+  const termBridge = new HeliosTerminalBridge();
   const settings = loadSettings();
+
+  const bridge = createBusRpcBridge({
+    bus,
+    workspaceId,
+    dispatchTool: createToolDispatch(),
+    dispatchA2A: createA2ADispatch(),
+    metrics,
+    termBridge,
+    windowId,
+  });
 
   instance = {
     bus,
     bridge,
     settings,
+    metrics,
+    termBridge,
     dispose() {
       bridge.dispose();
+      termBridge.dispose();
       instance = null;
     },
   };

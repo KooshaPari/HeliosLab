@@ -40,10 +40,9 @@
     .center {
       background: #0f0f23;
       padding: 16px;
-      overflow-y: auto;
+      overflow: hidden;
       display: flex;
-      align-items: center;
-      justify-content: center;
+      flex-direction: column;
     }
     .right-rail {
       background: #1a1a2e;
@@ -149,6 +148,30 @@
     .lane-transport { color: #888; }
     .lane-session { color: #6a9; }
     .lane-updated { color: #555; font-size: 10px; }
+    .terminal-container {
+      width: 100%;
+      height: 100%;
+      background: #0a0a1a;
+      border: 1px solid #2a2a4a;
+      border-radius: 4px;
+      outline: none;
+      cursor: text;
+      display: flex;
+      flex-direction: column;
+    }
+    .terminal-container:focus { border-color: #5a5a8a; }
+    .terminal-output {
+      flex: 1;
+      padding: 8px 12px;
+      font-family: "SF Mono", "Fira Code", "Cascadia Code", "JetBrains Mono", monospace;
+      font-size: 13px;
+      line-height: 1.4;
+      color: #c8c8e8;
+      white-space: pre-wrap;
+      word-break: break-all;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
   </style>
 </head>
 <body>

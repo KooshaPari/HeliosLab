@@ -2858,6 +2858,21 @@ const createWindow = (
 					heliosGetAudit: () => {
 						return getRecentAudit(50);
 					},
+					heliosGetMetrics: () => {
+						const helios = getHeliosRuntime();
+						if (!helios) return { samples: [], summaries: [] };
+						return helios.metrics.getReport();
+					},
+					heliosTerminalInput: ({ terminalId, data }: { terminalId: string; data: string }) => {
+						const helios = getHeliosRuntime();
+						if (!helios) return { ok: false };
+						return { ok: helios.termBridge.sendInput(terminalId, data) };
+					},
+					heliosTerminalResize: ({ terminalId, cols, rows }: { terminalId: string; cols: number; rows: number }) => {
+						const helios = getHeliosRuntime();
+						if (!helios) return { ok: false };
+						return { ok: helios.termBridge.resize(terminalId, cols, rows) };
+					},
 				} : {}),
 			},
 
@@ -3011,7 +3026,7 @@ const createWindow = (
 	});
 	// Bootstrap helios runtime when in helios mode
 	if (HELIOS_MODE) {
-		bootstrapHelios(workspaceId);
+		bootstrapHelios(workspaceId, windowId);
 	}
 
 	console.log("---->1 creating main window");
