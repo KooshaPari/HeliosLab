@@ -910,6 +910,18 @@ export type WorkspaceRPC = {
           description: string;
         }>;
       };
+      // Helios runtime RPC (active when HELIOS_SURFACE_EDITOR != "true")
+      heliosRequest: {
+        params: {
+          method: string;
+          payload: Record<string, unknown>;
+        };
+        response: any;
+      };
+      heliosGetState: {
+        params: void;
+        response: any;
+      };
     };
     messages: {
       removeProjectDirectoryWatcher: {
@@ -975,18 +987,6 @@ export type WorkspaceRPC = {
       track: {
         event: keyof typeof track;
         properties?: any;
-      };
-      // Helios runtime RPC (active when HELIOS_SURFACE_EDITOR != "true")
-      heliosRequest: {
-        params: {
-          method: string;
-          payload: Record<string, unknown>;
-        };
-        response: any;
-      };
-      heliosGetState: {
-        params: void;
-        response: any;
       };
     };
   }>;
