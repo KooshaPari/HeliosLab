@@ -922,6 +922,14 @@ export type WorkspaceRPC = {
         params: void;
         response: any;
       };
+      heliosGetLanes: {
+        params: void;
+        response: any;
+      };
+      heliosGetAudit: {
+        params: void;
+        response: any;
+      };
     };
     messages: {
       removeProjectDirectoryWatcher: {

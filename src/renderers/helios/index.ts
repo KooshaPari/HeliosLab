@@ -163,7 +163,40 @@ async function doRefreshState() {
   } catch (e: any) {
     addLog(`state.refresh error: ${e?.message ?? e}`, false);
   }
+  // Also load persisted data
+  await loadPersistedData();
   render();
+}
+
+// ── Persisted Data ─────────────────────────────────────
+
+type PersistedLane = {
+  laneId: string;
+  state: string;
+  transport: string;
+  sessionId: string | null;
+  terminalId: string | null;
+  lastUpdated: string;
+};
+
+type AuditEntry = {
+  timestamp: string;
+  action: string;
+  detail: string;
+};
+
+let persistedLanes: PersistedLane[] = [];
+let auditEntries: AuditEntry[] = [];
+
+async function loadPersistedData() {
+  try {
+    const lanes = await electrobun.rpc?.request.heliosGetLanes();
+    if (Array.isArray(lanes)) persistedLanes = lanes;
+  } catch { /* ignore */ }
+  try {
+    const audit = await electrobun.rpc?.request.heliosGetAudit();
+    if (Array.isArray(audit)) auditEntries = audit.slice(0, 20);
+  } catch { /* ignore */ }
 }
 
 // ── DOM helpers ────────────────────────────────────────
@@ -235,10 +268,31 @@ function render() {
 
   // Center — surface content
   const center = el("div", "center");
+  center.style.display = "block";
+  center.style.alignItems = "";
+  center.style.justifyContent = "";
+
   if (activeTab === "terminal" && ids.terminalId) {
-    center.appendChild(el("div", "surface-ready", `Terminal ${ids.terminalId} ready — native embed in Phase 3`));
-  } else if (activeTab === "session" && ids.sessionId) {
-    center.appendChild(el("div", "surface-ready", `Session ${ids.sessionId} active`));
+    const termBox = el("div", "surface-ready");
+    termBox.textContent = `Terminal ${ids.terminalId} ready — native embed in Phase 3`;
+    center.appendChild(termBox);
+  } else if (activeTab === "session") {
+    // Show persisted lanes table
+    center.appendChild(el("div", "section-title", "Persisted Lanes"));
+    if (persistedLanes.length === 0) {
+      center.appendChild(el("div", "empty-state", "No persisted lanes — run lifecycle to create one"));
+    } else {
+      const table = el("div", "lane-table");
+      for (const lane of persistedLanes) {
+        const row = el("div", "lane-row");
+        row.appendChild(el("span", "lane-id", lane.laneId.slice(0, 12)));
+        row.appendChild(el("span", "lane-transport", lane.transport));
+        row.appendChild(el("span", "lane-session", lane.sessionId ? lane.sessionId.slice(0, 12) : "—"));
+        row.appendChild(el("span", "lane-updated", lane.lastUpdated.slice(11, 19)));
+        table.appendChild(row);
+      }
+      center.appendChild(table);
+    }
   } else {
     center.appendChild(el("div", "empty-state", `${activeTab} surface — ${ids.laneId ? "lifecycle active" : "run Create Lane to start"}`));
   }
@@ -257,6 +311,19 @@ function render() {
     logContainer.appendChild(el("div", "log-empty", "No events yet"));
   }
   rightRail.appendChild(logContainer);
+
+  // Audit trail
+  if (auditEntries.length > 0) {
+    rightRail.appendChild(el("div", "section-title mt", "Audit Trail"));
+    const auditContainer = el("div", "event-log");
+    for (const entry of auditEntries.slice(0, 10)) {
+      const row = el("div", "log-entry");
+      row.appendChild(el("span", "log-ts", entry.timestamp.slice(11, 19)));
+      row.appendChild(el("span", "log-label", `${entry.action}: ${entry.detail.slice(0, 40)}`));
+      auditContainer.appendChild(row);
+    }
+    rightRail.appendChild(auditContainer);
+  }
 
   rightRail.appendChild(el("div", "section-title mt", "Diagnostics"));
   for (const [label, value] of [
@@ -290,4 +357,8 @@ function render() {
   root.appendChild(layout);
 }
 
-document.addEventListener("DOMContentLoaded", render);
+document.addEventListener("DOMContentLoaded", async () => {
+  render();
+  await loadPersistedData();
+  render();
+});

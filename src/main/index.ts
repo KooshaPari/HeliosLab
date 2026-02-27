@@ -139,6 +139,7 @@ import { terminalManager } from "./utils/terminalManager";
 import { getFaviconForUrl } from "./utils/urlUtils";
 import { pluginManager, searchPlugins, getPackageInfo } from "./plugins";
 import { bootstrapHelios, getHeliosRuntime } from "../helios/bridge/helios-main-bootstrap";
+import { getLanesForWorkspace, getRecentAudit } from "../helios/bridge/persistence";
 
 /** When true, helios terminal-first mode is active and editor surfaces are excluded */
 const HELIOS_MODE = process.env.HELIOS_SURFACE_EDITOR !== "true";
@@ -2850,6 +2851,12 @@ const createWindow = (
 						const helios = getHeliosRuntime();
 						if (!helios) return { lanes: {}, sessions: {}, terminals: {} };
 						return helios.bus.getState();
+					},
+					heliosGetLanes: () => {
+						return getLanesForWorkspace(workspaceId);
+					},
+					heliosGetAudit: () => {
+						return getRecentAudit(50);
 					},
 				} : {}),
 			},
