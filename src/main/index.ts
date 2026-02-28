@@ -2873,6 +2873,16 @@ const createWindow = (
 						if (!helios) return { ok: false };
 						return { ok: helios.termBridge.resize(terminalId, cols, rows) };
 					},
+					heliosRendererCapabilities: async () => {
+						const helios = getHeliosRuntime();
+						if (!helios) return null;
+						return helios.bridge.handleRequest("renderer.capabilities", {});
+					},
+					heliosRendererSwitch: async ({ targetEngine }: { targetEngine: string }) => {
+						const helios = getHeliosRuntime();
+						if (!helios) return null;
+						return helios.bridge.handleRequest("renderer.switch", { target_engine: targetEngine });
+					},
 				} : {}),
 			},
 

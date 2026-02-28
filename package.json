@@ -17,7 +17,8 @@
 		"push:patch": "npm version prepatch --preid=canary && git push origin main --tags",
 		"push:minor": "npm version preminor --preid=canary && git push origin main --tags",
 		"push:major": "npm version premajor --preid=canary && git push origin main --tags",
-		"push:stable": "npm version patch && git push origin main --tags"
+		"push:stable": "npm version patch && git push origin main --tags",
+		"test": "vitest run"
 	},
 	"repository": {
 		"type": "git",
@@ -58,6 +59,7 @@
 	},
 	"devDependencies": {
 		"@types/bun": "^1.1.0",
-		"typescript": "^5.4.5"
+		"typescript": "^5.4.5",
+		"vitest": "^4.0.18"
 	}
 }

@@ -60,6 +60,14 @@ let xtermMounted = false;
 type MetricSummary = { metric: string; unit: string; count: number; min: number; max: number; p50: number; p95: number; latest: number };
 let metricsSummaries: MetricSummary[] = [];
 
+// Renderer capabilities cache
+type RendererCapabilities = { active_engine: string; available_engines: string[]; hot_swap_supported: boolean };
+let rendererCaps: RendererCapabilities | null = null;
+
+// Chat messages
+type ChatMessage = { role: "user" | "system"; text: string; ts: string };
+let chatMessages: ChatMessage[] = [];
+
 const TABS: ActiveTab[] = ["terminal", "agent", "session", "chat", "project"];
 
 // ── RPC Setup ──────────────────────────────────────────
@@ -293,6 +301,55 @@ async function loadMetrics() {
   } catch { /* ignore */ }
 }
 
+async function loadRendererCaps() {
+  try {
+    const res = await electrobun.rpc?.request.heliosRendererCapabilities();
+    if (res?.result) rendererCaps = res.result as RendererCapabilities;
+  } catch { /* ignore */ }
+}
+
+async function doRendererSwitch(engine: string) {
+  if (busy) return;
+  busy = true;
+  render();
+  try {
+    const res = await electrobun.rpc?.request.heliosRendererSwitch({ targetEngine: engine });
+    addLog(`renderer.switch → ${engine}`, res?.status === "ok");
+    await loadRendererCaps();
+  } catch (e: any) {
+    addLog(`renderer.switch error: ${e?.message ?? e}`, false);
+  }
+  busy = false;
+  render();
+}
+
+async function doAgentRun(prompt: string) {
+  if (busy) return;
+  busy = true;
+  render();
+  try {
+    const res = await electrobun.rpc?.request.heliosRequest({
+      method: "agent.run",
+      payload: { prompt },
+    });
+    addLog("agent.run", res?.status === "ok");
+    if (res?.error) {
+      chatMessages.push({ role: "system", text: `agent: ${res.error.message}`, ts: new Date().toISOString().slice(11, 19) });
+    }
+  } catch (e: any) {
+    addLog(`agent.run error: ${e?.message ?? e}`, false);
+    chatMessages.push({ role: "system", text: `error: ${e?.message ?? e}`, ts: new Date().toISOString().slice(11, 19) });
+  }
+  busy = false;
+  render();
+}
+
+function addChatMessage(text: string) {
+  chatMessages.push({ role: "user", text, ts: new Date().toISOString().slice(11, 19) });
+  if (chatMessages.length > 100) chatMessages.shift();
+  doAgentRun(text);
+}
+
 // ── DOM helpers ────────────────────────────────────────
 
 function el(tag: string, cls?: string, text?: string): HTMLElement {
@@ -396,8 +453,111 @@ function render() {
       }
       center.appendChild(table);
     }
-  } else {
-    center.appendChild(el("div", "empty-state", `${activeTab} surface — ${ids.laneId ? "lifecycle active" : "run Create Lane to start"}`));
+  } else if (activeTab === "agent") {
+    center.appendChild(el("div", "section-title", "Agent Delegation"));
+    const statusCard = el("div", "card");
+    statusCard.appendChild(el("div", "card-label", "A2A Boundary"));
+    statusCard.appendChild(el("div", "card-value", "not configured — connect an A2A or ACP endpoint in settings"));
+    center.appendChild(statusCard);
+
+    center.appendChild(el("div", "section-title mt", "Available Methods"));
+    for (const m of ["agent.run", "agent.cancel"]) {
+      const row = el("div", "card");
+      row.appendChild(el("div", "card-label", m));
+      row.appendChild(el("div", "card-value", "stub — returns A2A_NOT_CONFIGURED"));
+      center.appendChild(row);
+    }
+
+    center.appendChild(el("div", "section-title mt", "Tool Interop Adapters"));
+    for (const [name, methods] of [
+      ["Upterm", "share.upterm.start / stop"],
+      ["Tmate", "share.tmate.start / stop"],
+      ["ZMX", "zmx.checkpoint / restore"],
+    ] as const) {
+      const row = el("div", "card");
+      row.appendChild(el("div", "card-label", name));
+      row.appendChild(el("div", "card-value", methods));
+      center.appendChild(row);
+    }
+  } else if (activeTab === "chat") {
+    center.appendChild(el("div", "section-title", "Agent Chat"));
+
+    const chatLog = el("div", "chat-log");
+    if (chatMessages.length === 0) {
+      chatLog.appendChild(el("div", "empty-state", "Send a message to interact with the agent boundary"));
+    } else {
+      for (const msg of chatMessages) {
+        const row = el("div", `chat-msg chat-${msg.role}`);
+        row.appendChild(el("span", "log-ts", msg.ts));
+        row.appendChild(el("span", "chat-text", msg.text));
+        chatLog.appendChild(row);
+      }
+    }
+    center.appendChild(chatLog);
+
+    const inputRow = el("div", "chat-input-row");
+    const input = document.createElement("input");
+    input.type = "text";
+    input.className = "chat-input";
+    input.placeholder = "Send a command to agent boundary...";
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && input.value.trim()) {
+        addChatMessage(input.value.trim());
+        input.value = "";
+      }
+    });
+    inputRow.appendChild(input);
+    const sendBtn = btn("Send", () => {
+      if (input.value.trim()) {
+        addChatMessage(input.value.trim());
+        input.value = "";
+      }
+    }, busy);
+    sendBtn.className = "btn chat-send-btn";
+    inputRow.appendChild(sendBtn);
+    center.appendChild(inputRow);
+  } else if (activeTab === "project") {
+    center.appendChild(el("div", "section-title", "Workspace"));
+    const wsCard = el("div", "card");
+    wsCard.appendChild(el("div", "card-label", "Workspace ID"));
+    wsCard.appendChild(el("div", "card-value", ids.workspaceId ?? "—"));
+    center.appendChild(wsCard);
+
+    if (rendererCaps) {
+      center.appendChild(el("div", "section-title mt", "Renderer Engine"));
+      const engineCard = el("div", "card");
+      engineCard.appendChild(el("div", "card-label", "Active Engine"));
+      engineCard.appendChild(el("div", "card-value", rendererCaps.active_engine));
+      center.appendChild(engineCard);
+
+      const availCard = el("div", "card");
+      availCard.appendChild(el("div", "card-label", "Available"));
+      availCard.appendChild(el("div", "card-value", rendererCaps.available_engines.join(", ")));
+      center.appendChild(availCard);
+
+      center.appendChild(el("div", "section-title mt", "Switch Engine"));
+      for (const engine of rendererCaps.available_engines) {
+        const isActive = engine === rendererCaps.active_engine;
+        center.appendChild(btn(
+          `${engine}${isActive ? " (active)" : ""}`,
+          () => doRendererSwitch(engine),
+          busy || isActive,
+        ));
+      }
+    } else {
+      center.appendChild(el("div", "empty-state mt", "Run lifecycle to load renderer capabilities"));
+    }
+
+    center.appendChild(el("div", "section-title mt", "Multiplexer Adapters"));
+    for (const [name, desc] of [
+      ["PAR", "git worktree lane management (par CLI)"],
+      ["Zellij", "terminal session multiplexer (zellij CLI)"],
+    ] as const) {
+      const row = el("div", "card");
+      row.appendChild(el("div", "card-label", name));
+      row.appendChild(el("div", "card-value", desc));
+      center.appendChild(row);
+    }
   }
 
   // Right rail — event log + diagnostics
@@ -473,7 +633,6 @@ function render() {
 
 document.addEventListener("DOMContentLoaded", async () => {
   render();
-  await loadPersistedData();
-  await loadMetrics();
+  await Promise.all([loadPersistedData(), loadMetrics(), loadRendererCaps()]);
   render();
 });

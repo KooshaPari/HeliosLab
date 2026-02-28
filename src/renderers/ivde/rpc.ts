@@ -942,6 +942,14 @@ export type WorkspaceRPC = {
         params: { terminalId: string; cols: number; rows: number };
         response: { ok: boolean };
       };
+      heliosRendererCapabilities: {
+        params: void;
+        response: any;
+      };
+      heliosRendererSwitch: {
+        params: { targetEngine: string };
+        response: any;
+      };
     };
     messages: {
       removeProjectDirectoryWatcher: {
