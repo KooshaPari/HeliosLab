@@ -8,6 +8,10 @@
 
 import { Electroview } from "electrobun/view";
 import type { WorkspaceRPC } from "../ivde/rpc";
+import { Terminal } from "@xterm/xterm";
+import { FitAddon } from "@xterm/addon-fit";
+import { WebLinksAddon } from "@xterm/addon-web-links";
+// xterm.css loaded via <link> in index.html
 
 // ── State ──────────────────────────────────────────────
 
@@ -47,9 +51,10 @@ let eventLog: EventLogEntry[] = [];
 let activeTab: ActiveTab = "terminal";
 let busy = false;
 
-// Terminal output buffer
-let terminalOutput = "";
-const MAX_TERMINAL_CHARS = 100_000;
+// xterm.js instance (persists across re-renders)
+let xterm: Terminal | null = null;
+let fitAddon: FitAddon | null = null;
+let xtermMounted = false;
 
 // Metrics cache
 type MetricSummary = { metric: string; unit: string; count: number; min: number; max: number; p50: number; p95: number; latest: number };
@@ -75,12 +80,9 @@ const rpc = Electroview.defineRPC<WorkspaceRPC>({
         render();
       },
       "helios:terminal-data": (data: { terminalId: string; data: string }) => {
-        terminalOutput += data.data;
-        // Cap buffer size
-        if (terminalOutput.length > MAX_TERMINAL_CHARS) {
-          terminalOutput = terminalOutput.slice(-MAX_TERMINAL_CHARS);
+        if (xterm) {
+          xterm.write(data.data);
         }
-        renderTerminalOutput();
       },
     },
   },
@@ -155,7 +157,7 @@ async function doSpawnTerminal() {
       },
     });
     ids.terminalId = res?.result?.terminal_id ?? null;
-    terminalOutput = "";
+    if (xterm) xterm.clear();
     addLog("terminal.spawn", res?.status === "ok");
   } catch (e: any) {
     addLog(`terminal.spawn error: ${e?.message ?? e}`, false);
@@ -185,41 +187,72 @@ async function doRefreshState() {
   render();
 }
 
-// ── Terminal Input ─────────────────────────────────────
+// ── xterm.js Setup ────────────────────────────────────
 
-function setupTerminalInput(container: HTMLElement) {
-  container.tabIndex = 0;
-  container.addEventListener("keydown", (e) => {
-    if (!ids.terminalId) return;
+function ensureXterm(): Terminal {
+  if (xterm) return xterm;
 
-    let data = "";
-    if (e.key === "Enter") data = "\r";
-    else if (e.key === "Backspace") data = "\x7f";
-    else if (e.key === "Tab") { data = "\t"; e.preventDefault(); }
-    else if (e.key === "Escape") data = "\x1b";
-    else if (e.key === "ArrowUp") data = "\x1b[A";
-    else if (e.key === "ArrowDown") data = "\x1b[B";
-    else if (e.key === "ArrowRight") data = "\x1b[C";
-    else if (e.key === "ArrowLeft") data = "\x1b[D";
-    else if (e.ctrlKey && e.key === "c") data = "\x03";
-    else if (e.ctrlKey && e.key === "d") data = "\x04";
-    else if (e.ctrlKey && e.key === "l") data = "\x0c";
-    else if (e.ctrlKey && e.key === "u") data = "\x15";
-    else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey) data = e.key;
-    else return;
-
-    e.preventDefault();
-    electrobun.rpc?.request.heliosTerminalInput({ terminalId: ids.terminalId, data });
+  xterm = new Terminal({
+    theme: {
+      background: "#0a0a1a",
+      foreground: "#c8c8e8",
+      cursor: "#7b8cde",
+      selectionBackground: "#3a3a6a",
+      black: "#1a1a2e",
+      red: "#e05555",
+      green: "#5adb5a",
+      yellow: "#e8a838",
+      blue: "#7b8cde",
+      magenta: "#b07acc",
+      cyan: "#5ac8c8",
+      white: "#e0e0e0",
+    },
+    fontFamily: '"SF Mono", "Fira Code", "Cascadia Code", "JetBrains Mono", monospace',
+    fontSize: 13,
+    lineHeight: 1.2,
+    cursorBlink: true,
+    allowProposedApi: true,
   });
 
-  // Handle paste
-  container.addEventListener("paste", (e) => {
-    if (!ids.terminalId) return;
-    const text = e.clipboardData?.getData("text");
-    if (text) {
-      electrobun.rpc?.request.heliosTerminalInput({ terminalId: ids.terminalId, data: text });
+  fitAddon = new FitAddon();
+  xterm.loadAddon(fitAddon);
+  xterm.loadAddon(new WebLinksAddon());
+
+  // Forward input to main process
+  xterm.onData((data) => {
+    if (ids.terminalId) {
+      electrobun.rpc?.request.heliosTerminalInput({ terminalId: ids.terminalId, data });
     }
   });
+
+  // Forward resize
+  xterm.onResize(({ cols, rows }) => {
+    if (ids.terminalId) {
+      electrobun.rpc?.request.heliosTerminalResize({ terminalId: ids.terminalId, cols, rows });
+    }
+  });
+
+  return xterm;
+}
+
+function mountXterm(container: HTMLElement) {
+  const term = ensureXterm();
+  if (!xtermMounted) {
+    term.open(container);
+    xtermMounted = true;
+  }
+  requestAnimationFrame(() => {
+    fitAddon?.fit();
+  });
+}
+
+function disposeXterm() {
+  if (xterm) {
+    xterm.dispose();
+    xterm = null;
+    fitAddon = null;
+    xtermMounted = false;
+  }
 }
 
 // ── Persisted Data ─────────────────────────────────────
@@ -280,17 +313,6 @@ function btn(label: string, onClick: () => void, disabled = false): HTMLElement 
 
 // ── Render helpers ────────────────────────────────────
 
-function stripAnsi(str: string): string {
-  return str.replace(/\x1b\[[0-9;]*[a-zA-Z]/g, "").replace(/\r/g, "");
-}
-
-function renderTerminalOutput() {
-  const termEl = document.getElementById("terminal-output");
-  if (!termEl) return;
-  termEl.textContent = stripAnsi(terminalOutput);
-  termEl.scrollTop = termEl.scrollHeight;
-}
-
 // ── Render ─────────────────────────────────────────────
 
 function render() {
@@ -346,24 +368,13 @@ function render() {
   if (activeTab === "terminal") {
     if (ids.terminalId) {
       const termContainer = el("div", "terminal-container");
-      const termOutput = el("pre", "terminal-output");
-      termOutput.id = "terminal-output";
-      termOutput.textContent = stripAnsi(terminalOutput);
-      termContainer.appendChild(termOutput);
-      setupTerminalInput(termContainer);
+      termContainer.id = "xterm-container";
       center.appendChild(termContainer);
 
-      // Auto-focus and set up resize
+      // Mount xterm after DOM insertion
       requestAnimationFrame(() => {
-        termContainer.focus();
-        // Send initial resize based on container dimensions
-        const charWidth = 7.8; // approximate monospace char width at 13px
-        const lineHeight = 18.2; // approximate line height at 13px * 1.4
-        const cols = Math.floor(termOutput.clientWidth / charWidth);
-        const rows = Math.floor(termOutput.clientHeight / lineHeight);
-        if (ids.terminalId && cols > 0 && rows > 0) {
-          electrobun.rpc?.request.heliosTerminalResize({ terminalId: ids.terminalId, cols, rows });
-        }
+        const container = document.getElementById("xterm-container");
+        if (container) mountXterm(container);
       });
     } else {
       center.appendChild(el("div", "empty-state", ids.laneId ? "Run Spawn Terminal to open a pty" : "Run Full Lifecycle to start"));

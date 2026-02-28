@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>helios</title>
+  <link rel="stylesheet" href="../ivde/xterm.css" />
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body, #root { height: 100%; width: 100%; overflow: hidden; }
@@ -154,24 +155,10 @@
       background: #0a0a1a;
       border: 1px solid #2a2a4a;
       border-radius: 4px;
-      outline: none;
-      cursor: text;
-      display: flex;
-      flex-direction: column;
+      overflow: hidden;
     }
-    .terminal-container:focus { border-color: #5a5a8a; }
-    .terminal-output {
-      flex: 1;
-      padding: 8px 12px;
-      font-family: "SF Mono", "Fira Code", "Cascadia Code", "JetBrains Mono", monospace;
-      font-size: 13px;
-      line-height: 1.4;
-      color: #c8c8e8;
-      white-space: pre-wrap;
-      word-break: break-all;
-      overflow-y: auto;
-      overflow-x: hidden;
-    }
+    .terminal-container .xterm { height: 100%; padding: 4px; }
+    .terminal-container .xterm-viewport { overflow-y: auto !important; }
   </style>
 </head>
 <body>
