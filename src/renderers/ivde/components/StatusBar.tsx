@@ -107,6 +107,8 @@ export const StatusBar = () => {
       </div>
       <div style={{ "flex-grow": 1 }} />
       <div style={{ display: "flex", height: "18px", "align-items": "center" }}>
+        <Helios />
+        <span>|</span>
         <For each={rightPluginItems()}>
           {(item) => (
             <>
@@ -517,6 +519,77 @@ const Plugins = () => {
       title="Open Plugins"
     >
       Plugins
+    </div>
+  );
+};
+
+const Helios = () => {
+  const [heliosState, setHeliosState] = createSignal<{
+    lane?: string;
+    session?: string;
+    terminal?: string;
+  } | null>(null);
+
+  const checkHeliosState = async () => {
+    try {
+      const state = await electrobun.rpc?.request.heliosGetState();
+      setHeliosState(state || null);
+    } catch (error) {
+      console.warn("Failed to fetch helios state:", error);
+      setHeliosState(null);
+    }
+  };
+
+  onMount(() => {
+    checkHeliosState();
+    const interval = setInterval(checkHeliosState, 5000); // Poll every 5 seconds
+    return () => clearInterval(interval);
+  });
+
+  const isActive = () => {
+    const state = heliosState();
+    return state && (state.lane || state.session);
+  };
+
+  const getStatusColor = () => {
+    return isActive() ? "#51cf66" : "#666"; // Green if active, gray if idle
+  };
+
+  const getStatusText = () => {
+    return isActive() ? "Helios: active" : "Helios: idle";
+  };
+
+  const getLaneTooltip = () => {
+    const state = heliosState();
+    if (state?.lane) {
+      return `Lane: ${state.lane}`;
+    }
+    return undefined;
+  };
+
+  return (
+    <div
+      style={{
+        margin: "0 5px",
+        color: getStatusColor(),
+        cursor: "default",
+        "white-space": "nowrap",
+        "font-size": "11px",
+        display: "flex",
+        "align-items": "center",
+        gap: "4px",
+      }}
+      title={getLaneTooltip()}
+    >
+      <div
+        style={{
+          width: "8px",
+          height: "8px",
+          "border-radius": "50%",
+          "background-color": getStatusColor(),
+        }}
+      />
+      <span>{getStatusText()}</span>
     </div>
   );
 };

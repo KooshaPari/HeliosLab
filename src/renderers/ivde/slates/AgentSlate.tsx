@@ -123,7 +123,9 @@ export const AgentSlate = ({ node, tabId }: { node?: CachedFileType; tabId: stri
     try {
       const result = await electrobun.rpc?.request.llamaListModels();
       if (result?.ok && result.models) {
-        setAvailableModels(result.models);
+        // Add helios-agent as an available model option
+        const models = [{ name: "helios-agent", path: "helios-runtime" }, ...result.models];
+        setAvailableModels(models);
       }
     } catch (error) {
       console.error("Error loading models:", error);
@@ -367,68 +369,104 @@ export const AgentSlate = ({ node, tabId }: { node?: CachedFileType; tabId: stri
       // Reload context file before each message to ensure latest content
       await reloadContextFile();
 
-      // Convert conversation history to a proper prompt format
-      // Only include recent history to avoid token limits and repetition issues
-      const recentHistory = newHistory.slice(-6); // Keep last 6 messages (3 exchanges)
+      let responseText = "";
 
-      let conversationPrompt = "";
+      // Check if using helios agent
+      if (selectedModel() === "helios-agent") {
+        // Route through helios runtime
+        try {
+          const projectPath = node.path;
 
-      // Build system prompt with context if available
-      let systemPrompt = "You are a helpful AI assistant.";
-      const context = contextContent().trim();
-      console.log("AgentSlate: Building prompt with context length:", context.length);
-      console.log("AgentSlate: Context file path:", contextFilePath);
-      console.log("AgentSlate: Full context content:", JSON.stringify(context));
+          const response = await electrobun.rpc?.request.heliosRequest({
+            method: "agent.run",
+            payload: {
+              command: "claude",
+              args: ["-p", userMessage.content],
+              cwd: projectPath,
+            },
+          });
 
-      if (context) {
-        systemPrompt += ` Here is your custom context and instructions:\n\n${context}\n\nPlease follow these instructions while being helpful and responsive.`;
-        console.log(
-          "AgentSlate: System prompt with context:",
-          systemPrompt.substring(0, 200) + "...",
-        );
+          if (response?.status === "ok" && response?.result?.stdout) {
+            responseText = response.result.stdout.trim();
+          } else if (response?.status === "error") {
+            throw new Error(response?.error?.message || "Helios agent error");
+          } else {
+            throw new Error("Invalid response from helios agent");
+          }
+        } catch (error) {
+          const errorMsg = error instanceof Error ? error.message : String(error);
+          console.error("Error with helios agent:", errorMsg);
+          throw new Error(`Helios agent error: ${errorMsg}`);
+        }
       } else {
-        console.log("AgentSlate: No context content, using default prompt");
+        // Use llama.cpp runner for regular models
+        // Convert conversation history to a proper prompt format
+        // Only include recent history to avoid token limits and repetition issues
+        const recentHistory = newHistory.slice(-6); // Keep last 6 messages (3 exchanges)
+
+        let conversationPrompt = "";
+
+        // Build system prompt with context if available
+        let systemPrompt = "You are a helpful AI assistant.";
+        const context = contextContent().trim();
+        console.log("AgentSlate: Building prompt with context length:", context.length);
+        console.log("AgentSlate: Context file path:", contextFilePath);
+        console.log("AgentSlate: Full context content:", JSON.stringify(context));
+
+        if (context) {
+          systemPrompt += ` Here is your custom context and instructions:\n\n${context}\n\nPlease follow these instructions while being helpful and responsive.`;
+          console.log(
+            "AgentSlate: System prompt with context:",
+            systemPrompt.substring(0, 200) + "...",
+          );
+        } else {
+          console.log("AgentSlate: No context content, using default prompt");
+        }
+
+        // Build conversation prompt with clear boundaries
+        conversationPrompt = `${systemPrompt}\n\n`;
+
+        // Add conversation history
+        recentHistory.slice(0, -1).forEach((msg) => {
+          if (msg.role === "user") {
+            conversationPrompt += `User: ${msg.content}\n\n`;
+          } else {
+            conversationPrompt += `Assistant: ${msg.content}\n\n`;
+          }
+        });
+
+        // Add current user message and prompt for response
+        const currentMsg = recentHistory[recentHistory.length - 1];
+        conversationPrompt += `User: ${currentMsg.content}\n\nAssistant:`;
+
+        // Send to llama.cpp runner
+        const response = await electrobun.rpc?.request.llamaCompletion({
+          model: selectedModel(),
+          prompt: conversationPrompt,
+          options: {
+            temperature: temperature(),
+            max_tokens: maxTokens(),
+            top_p: topP(),
+            repeat_penalty: repeatPenalty(),
+          },
+        });
+
+        if (response?.ok && response.response) {
+          responseText = response.response.trim();
+        } else if (response?.error) {
+          throw new Error(response.error);
+        }
       }
 
-      // Build conversation prompt with clear boundaries
-      conversationPrompt = `${systemPrompt}\n\n`;
-
-      // Add conversation history
-      recentHistory.slice(0, -1).forEach((msg) => {
-        if (msg.role === "user") {
-          conversationPrompt += `User: ${msg.content}\n\n`;
-        } else {
-          conversationPrompt += `Assistant: ${msg.content}\n\n`;
-        }
-      });
-
-      // Add current user message and prompt for response
-      const currentMsg = recentHistory[recentHistory.length - 1];
-      conversationPrompt += `User: ${currentMsg.content}\n\nAssistant:`;
-
-      // Send to llama.cpp runner
-      const response = await electrobun.rpc?.request.llamaCompletion({
-        model: selectedModel(),
-        prompt: conversationPrompt,
-        options: {
-          temperature: temperature(),
-          max_tokens: maxTokens(),
-          top_p: topP(),
-          repeat_penalty: repeatPenalty(),
-        },
-      });
-
-      if (response?.ok && response.response) {
+      if (responseText) {
         const assistantMessage: Message = {
           role: "assistant",
-          content: response.response.trim(),
+          content: responseText,
           timestamp: Date.now(),
         };
 
         const finalHistory = [...newHistory, assistantMessage];
         updateCurrentChat(finalHistory);
-      } else if (response?.error) {
-        throw new Error(response.error);
       }
     } catch (error) {
       console.error("Error generating response:", error);

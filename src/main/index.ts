@@ -2735,68 +2735,64 @@ const createWindow = (
           return pluginManager.getAndClearPendingSlateRenders(instanceId);
         },
 
-        // Helios RPC handlers — only active when HELIOS_MODE is true
-        ...(HELIOS_MODE
-          ? {
-              heliosRequest: async ({
-                method,
-                payload,
-              }: {
-                method: string;
-                payload: Record<string, unknown>;
-              }) => {
-                const helios = getHeliosRuntime();
-                if (!helios) return { ok: false, error: "helios runtime not initialized" };
-                return helios.bridge.handleRequest(method, payload);
-              },
-              heliosGetState: () => {
-                const helios = getHeliosRuntime();
-                if (!helios) return { lanes: {}, sessions: {}, terminals: {} };
-                return helios.bus.getState();
-              },
-              heliosGetLanes: () => {
-                return getLanesForWorkspace(workspaceId);
-              },
-              heliosGetAudit: () => {
-                return getRecentAudit(50);
-              },
-              heliosGetMetrics: () => {
-                const helios = getHeliosRuntime();
-                if (!helios) return { samples: [], summaries: [] };
-                return helios.metrics.getReport();
-              },
-              heliosTerminalInput: ({ terminalId, data }: { terminalId: string; data: string }) => {
-                const helios = getHeliosRuntime();
-                if (!helios) return { ok: false };
-                return { ok: helios.termBridge.sendInput(terminalId, data) };
-              },
-              heliosTerminalResize: ({
-                terminalId,
-                cols,
-                rows,
-              }: {
-                terminalId: string;
-                cols: number;
-                rows: number;
-              }) => {
-                const helios = getHeliosRuntime();
-                if (!helios) return { ok: false };
-                return { ok: helios.termBridge.resize(terminalId, cols, rows) };
-              },
-              heliosRendererCapabilities: async () => {
-                const helios = getHeliosRuntime();
-                if (!helios) return null;
-                return helios.bridge.handleRequest("renderer.capabilities", {});
-              },
-              heliosRendererSwitch: async ({ targetEngine }: { targetEngine: string }) => {
-                const helios = getHeliosRuntime();
-                if (!helios) return null;
-                return helios.bridge.handleRequest("renderer.switch", {
-                  target_engine: targetEngine,
-                });
-              },
-            }
-          : {}),
+        // Helios RPC handlers
+        heliosRequest: async ({
+          method,
+          payload,
+        }: {
+          method: string;
+          payload: Record<string, unknown>;
+        }) => {
+          const helios = getHeliosRuntime();
+          if (!helios) return { ok: false, error: "helios runtime not initialized" };
+          return helios.bridge.handleRequest(method, payload);
+        },
+        heliosGetState: () => {
+          const helios = getHeliosRuntime();
+          if (!helios) return { lanes: {}, sessions: {}, terminals: {} };
+          return helios.bus.getState();
+        },
+        heliosGetLanes: () => {
+          return getLanesForWorkspace(workspaceId);
+        },
+        heliosGetAudit: () => {
+          return getRecentAudit(50);
+        },
+        heliosGetMetrics: () => {
+          const helios = getHeliosRuntime();
+          if (!helios) return { samples: [], summaries: [] };
+          return helios.metrics.getReport();
+        },
+        heliosTerminalInput: ({ terminalId, data }: { terminalId: string; data: string }) => {
+          const helios = getHeliosRuntime();
+          if (!helios) return { ok: false };
+          return { ok: helios.termBridge.sendInput(terminalId, data) };
+        },
+        heliosTerminalResize: ({
+          terminalId,
+          cols,
+          rows,
+        }: {
+          terminalId: string;
+          cols: number;
+          rows: number;
+        }) => {
+          const helios = getHeliosRuntime();
+          if (!helios) return { ok: false };
+          return { ok: helios.termBridge.resize(terminalId, cols, rows) };
+        },
+        heliosRendererCapabilities: async () => {
+          const helios = getHeliosRuntime();
+          if (!helios) return null;
+          return helios.bridge.handleRequest("renderer.capabilities", {});
+        },
+        heliosRendererSwitch: async ({ targetEngine }: { targetEngine: string }) => {
+          const helios = getHeliosRuntime();
+          if (!helios) return null;
+          return helios.bridge.handleRequest("renderer.switch", {
+            target_engine: targetEngine,
+          });
+        },
       },
 
       messages: {
@@ -2937,10 +2933,8 @@ const createWindow = (
       },
     },
   });
-  // Bootstrap helios runtime when in helios mode
-  if (HELIOS_MODE) {
-    bootstrapHelios(workspaceId, windowId);
-  }
+  // Bootstrap helios runtime
+  bootstrapHelios(workspaceId, windowId);
 
   console.log("---->1 creating main window");
   const mainWindow = new BrowserWindow({
