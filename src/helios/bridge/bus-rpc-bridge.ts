@@ -74,14 +74,19 @@ export function createBusRpcBridge(opts: BusRpcBridgeOptions): BusRpcBridge {
       method: string,
       params: Record<string, unknown>,
     ): Promise<LocalBusEnvelope> {
+      const correlationId = crypto.randomUUID();
       const envelope: LocalBusEnvelope = {
+        id: correlationId,
         type: "command",
+        ts: new Date().toISOString(),
+        workspace_id: workspaceId,
         method,
         payload: params,
+        correlation_id: correlationId,
         meta: {
           workspace_id: workspaceId,
           session_id: (params.session_id as string) ?? null,
-          correlation_id: crypto.randomUUID(),
+          correlation_id: correlationId,
           timestamp: new Date().toISOString(),
         },
       };

@@ -12,12 +12,25 @@ export type LocalBusEnvelope = {
   type: EnvelopeType;
   ts: string;
   workspace_id?: string;
+  lane_id?: string;
   session_id?: string;
   terminal_id?: string;
+  correlation_id?: string;
   method?: string;
   topic?: string;
   payload?: Record<string, unknown>;
   status?: "ok" | "error";
   result?: Record<string, unknown> | null;
   error?: ErrorPayload | null;
+  meta?: {
+    workspace_id?: string;
+    session_id?: string;
+    correlation_id?: string;
+    timestamp?: string;
+  };
+};
+
+export type ResponseEnvelope = LocalBusEnvelope & {
+  type: "response";
+  status: "ok" | "error";
 };

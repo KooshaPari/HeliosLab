@@ -353,8 +353,18 @@ function render() {
       setupTerminalInput(termContainer);
       center.appendChild(termContainer);
 
-      // Auto-focus the terminal
-      requestAnimationFrame(() => termContainer.focus());
+      // Auto-focus and set up resize
+      requestAnimationFrame(() => {
+        termContainer.focus();
+        // Send initial resize based on container dimensions
+        const charWidth = 7.8; // approximate monospace char width at 13px
+        const lineHeight = 18.2; // approximate line height at 13px * 1.4
+        const cols = Math.floor(termOutput.clientWidth / charWidth);
+        const rows = Math.floor(termOutput.clientHeight / lineHeight);
+        if (ids.terminalId && cols > 0 && rows > 0) {
+          electrobun.rpc?.request.heliosTerminalResize({ terminalId: ids.terminalId, cols, rows });
+        }
+      });
     } else {
       center.appendChild(el("div", "empty-state", ids.laneId ? "Run Spawn Terminal to open a pty" : "Run Full Lifecycle to start"));
     }

@@ -9,24 +9,30 @@ import { terminalManager } from "../../main/utils/terminalManager";
 import { broadcastToAllWindowsInWorkspace } from "../../main/workspaceWindows";
 
 export class HeliosTerminalBridge {
-  private readonly heliosTerminals = new Map<string, { realTerminalId: string; workspaceId: string }>();
+  private readonly heliosTerminals = new Map<string, { realTerminalId: string; workspaceId: string; heliosWindowKey: string }>();
 
   /**
    * Spawn a real pty terminal and wire output to the helios renderer.
    */
   spawnTerminal(heliosTerminalId: string, workspaceId: string, windowId: string, cwd?: string): string {
+    // Use a helios-specific windowId so terminalManager.getMessageHandler
+    // resolves to our handler (it looks up terminalToWindow[id] → windowId
+    // → windowHandlers[windowId]). Using the real windowId would clobber
+    // the ivde terminal handler already registered on that key.
+    const heliosWindowKey = `helios:${windowId}`;
+
     const realId = terminalManager.createTerminal(
       cwd ?? process.cwd(),
       undefined, // default shell
       80,
       24,
-      windowId,
+      heliosWindowKey,
     );
 
-    this.heliosTerminals.set(heliosTerminalId, { realTerminalId: realId, workspaceId });
+    this.heliosTerminals.set(heliosTerminalId, { realTerminalId: realId, workspaceId, heliosWindowKey });
 
-    // Wire pty output → helios renderer via RPC broadcast
-    terminalManager.setWindowMessageHandler(`helios:${realId}`, (message: any) => {
+    // Register handler under the same key that terminalManager will look up
+    terminalManager.setWindowMessageHandler(heliosWindowKey, (message: any) => {
       if (message.type === "terminalOutput" && message.data) {
         broadcastToAllWindowsInWorkspace(workspaceId, "helios:terminal-data", {
           terminalId: heliosTerminalId,
@@ -61,7 +67,7 @@ export class HeliosTerminalBridge {
   dispose(): void {
     for (const [, entry] of this.heliosTerminals) {
       terminalManager.killTerminal(entry.realTerminalId);
-      terminalManager.removeWindowMessageHandler(`helios:${entry.realTerminalId}`);
+      terminalManager.removeWindowMessageHandler(entry.heliosWindowKey);
     }
     this.heliosTerminals.clear();
   }
