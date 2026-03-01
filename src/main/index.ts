@@ -1359,7 +1359,13 @@ const createWindow = (
           return getFaviconForUrl(url);
         },
         copy: ({ src, dest }) => {
-          return cpSync(src, dest, { recursive: true });
+          const resolvedSrc = path.resolve(src);
+          const resolvedDest = path.resolve(dest);
+          const appRoot = path.resolve(APP_PATH);
+          if (!resolvedSrc.startsWith(appRoot) || !resolvedDest.startsWith(appRoot)) {
+            throw new Error("copy: path traversal denied");
+          }
+          return cpSync(resolvedSrc, resolvedDest, { recursive: true });
         },
         gitShow: ({ repoRoot, options }) => {
           return gitShow(repoRoot, options);

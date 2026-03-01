@@ -53,9 +53,7 @@ tasks:
   quality:ci:
     desc: "CI quality gate (non-mutating PR gate)"
     cmds:
-      - bunx oxfmt --check .
-      - bunx oxlint -c .oxlintrc.json .
-      - bunx vitest run
+      - task: quality:quick
 
   quality:pre-push:
     desc: "Pre-push quality check"
@@ -65,9 +63,7 @@ tasks:
   quality:release-lint:
     desc: "Release lint check"
     cmds:
-      - bunx oxfmt --check .
-      - bunx oxlint -c .oxlintrc.json .
-      - bunx vitest run
+      - task: quality:quick
       - echo "Release lint passed"
 
   check:
