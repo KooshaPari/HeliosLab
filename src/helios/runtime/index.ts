@@ -5,6 +5,6 @@ export function createRuntime() {
   return {
     bus,
     getState: () => bus.getState(),
-    getEvents: () => bus.getEvents()
+    getEvents: () => bus.getEvents(),
   };
 }

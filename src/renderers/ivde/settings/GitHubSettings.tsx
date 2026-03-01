@@ -1,15 +1,6 @@
-import {
-  type JSXElement,
-  createSignal,
-  onMount,
-  Show,
-} from "solid-js";
+import { type JSXElement, createSignal, onMount, Show } from "solid-js";
 import { state, setState, updateSyncedAppSettings } from "../store";
-import {
-  SettingsPaneSaveClose,
-  SettingsPaneFormSection,
-  SettingsPaneField,
-} from "./forms";
+import { SettingsPaneSaveClose, SettingsPaneFormSection, SettingsPaneField } from "./forms";
 import { electrobun } from "../init";
 
 export const GitHubSettings = (): JSXElement => {
@@ -26,7 +17,10 @@ export const GitHubSettings = (): JSXElement => {
   const [gitName, setGitName] = createSignal("");
   const [gitEmail, setGitEmail] = createSignal("");
   const [hasKeychainHelper, setHasKeychainHelper] = createSignal(false);
-  const [keychainCredentials, setKeychainCredentials] = createSignal<{ hasCredentials: boolean; username?: string }>({ hasCredentials: false });
+  const [keychainCredentials, setKeychainCredentials] = createSignal<{
+    hasCredentials: boolean;
+    username?: string;
+  }>({ hasCredentials: false });
 
   // GitHub credentials input state
   const [usernameInput, setUsernameInput] = createSignal("");
@@ -74,17 +68,17 @@ export const GitHubSettings = (): JSXElement => {
     setStatusMessage("Verifying token...");
 
     try {
-      const response = await fetch('https://api.github.com/user', {
+      const response = await fetch("https://api.github.com/user", {
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/vnd.github.v3+json',
-          'User-Agent': 'Colab-IDE/1.0.0',
+          Authorization: `Bearer ${token}`,
+          Accept: "application/vnd.github.v3+json",
+          "User-Agent": "Colab-IDE/1.0.0",
         },
       });
 
       if (response.ok) {
         const userData = await response.json();
-        const scopes = response.headers.get('X-OAuth-Scopes')?.split(', ') || [];
+        const scopes = response.headers.get("X-OAuth-Scopes")?.split(", ") || [];
 
         setUserInfo(userData);
         setUsernameInput(userData.login);
@@ -196,15 +190,14 @@ export const GitHubSettings = (): JSXElement => {
   const openTokenPage = (e: Event) => {
     e.preventDefault();
     setState("githubAuth", {
-      authUrl: "https://github.com/settings/tokens/new?scopes=repo,read:user,read:org&description=Colab%20IDE",
+      authUrl:
+        "https://github.com/settings/tokens/new?scopes=repo,read:user,read:org&description=Colab%20IDE",
       resolver: () => setState("githubAuth", { authUrl: null, resolver: null }),
     });
   };
 
   return (
-    <div
-      style="background: #404040; color: #d9d9d9; height: 100vh; overflow: hidden; display: flex; flex-direction: column;"
-    >
+    <div style="background: #404040; color: #d9d9d9; height: 100vh; overflow: hidden; display: flex; flex-direction: column;">
       <form onSubmit={onSubmit} style="height: 100%; display: flex; flex-direction: column;">
         <SettingsPaneSaveClose label="Git & GitHub" />
 
@@ -277,7 +270,8 @@ export const GitHubSettings = (): JSXElement => {
                         Use a Classic PAT
                       </div>
                       <div style="font-size: 11px; color: #999; line-height: 1.4;">
-                        Fine-grained PATs may not work for push/pull. Create a <strong>Classic</strong> token with <code>repo</code> scope.
+                        Fine-grained PATs may not work for push/pull. Create a{" "}
+                        <strong>Classic</strong> token with <code>repo</code> scope.
                       </div>
                       <a
                         href="#"
@@ -335,7 +329,8 @@ export const GitHubSettings = (): JSXElement => {
                   <Show when={!hasKeychainHelper()}>
                     <SettingsPaneField label="">
                       <div style="background: #3d2020; border: 1px solid #5a3030; padding: 12px; border-radius: 4px; font-size: 11px; color: #ff9999;">
-                        macOS Keychain helper not available. Install Xcode Command Line Tools to enable secure credential storage.
+                        macOS Keychain helper not available. Install Xcode Command Line Tools to
+                        enable secure credential storage.
                       </div>
                     </SettingsPaneField>
                   </Show>
@@ -355,31 +350,34 @@ export const GitHubSettings = (): JSXElement => {
                       <span style="font-size: 14px; font-weight: 500; color: #d9d9d9;">
                         {userInfo()?.name || userInfo()?.login}
                       </span>
-                      <span style="font-size: 12px; color: #999;">
-                        @{userInfo()?.login}
-                      </span>
+                      <span style="font-size: 12px; color: #999;">@{userInfo()?.login}</span>
                     </div>
                   </div>
 
                   <div style="display: flex; flex-direction: column; gap: 8px; padding-top: 12px; border-top: 1px solid #444;">
                     <div style="display: flex; align-items: center; gap: 8px;">
-                      <div style={{
-                        width: "8px",
-                        height: "8px",
-                        "border-radius": "50%",
-                        background: "#51cf66",
-                      }}></div>
+                      <div
+                        style={{
+                          width: "8px",
+                          height: "8px",
+                          "border-radius": "50%",
+                          background: "#51cf66",
+                        }}
+                      ></div>
                       <span style="font-size: 11px; color: #999;">
-                        {userInfo()?.public_repos || 0} public repos, {userInfo()?.private_repos || 0} private repos
+                        {userInfo()?.public_repos || 0} public repos,{" "}
+                        {userInfo()?.private_repos || 0} private repos
                       </span>
                     </div>
                     <div style="display: flex; align-items: center; gap: 8px;">
-                      <div style={{
-                        width: "8px",
-                        height: "8px",
-                        "border-radius": "50%",
-                        background: keychainCredentials().hasCredentials ? "#51cf66" : "#ffa500",
-                      }}></div>
+                      <div
+                        style={{
+                          width: "8px",
+                          height: "8px",
+                          "border-radius": "50%",
+                          background: keychainCredentials().hasCredentials ? "#51cf66" : "#ffa500",
+                        }}
+                      ></div>
                       <span style="font-size: 11px; color: #999;">
                         {keychainCredentials().hasCredentials
                           ? "Push/pull credentials stored in Keychain"

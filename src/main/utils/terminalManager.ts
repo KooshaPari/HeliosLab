@@ -15,7 +15,7 @@ export interface TerminalSession {
 }
 
 interface PtyMessage {
-  type: 'spawn' | 'input' | 'resize' | 'shutdown' | 'get_cwd';
+  type: "spawn" | "input" | "resize" | "shutdown" | "get_cwd";
   spawn?: {
     shell: string;
     cwd: string;
@@ -32,7 +32,7 @@ interface PtyMessage {
 }
 
 interface PtyResponse {
-  type: 'ready' | 'data' | 'error' | 'cwd_update';
+  type: "ready" | "data" | "error" | "cwd_update";
   data?: string;
   error_msg?: string;
 }
@@ -43,7 +43,7 @@ type PluginCommandExecutor = (
   commandLine: string,
   terminalId: string,
   cwd: string,
-  write: (text: string) => void
+  write: (text: string) => void,
 ) => Promise<boolean>;
 
 // Built-in command handler type (for edit command, etc.)
@@ -51,7 +51,7 @@ type BuiltinCommandHandler = (
   args: string[],
   terminalId: string,
   cwd: string,
-  write: (text: string) => void
+  write: (text: string) => void,
 ) => Promise<boolean>;
 
 class TerminalManager {
@@ -96,10 +96,7 @@ class TerminalManager {
   /**
    * Set the plugin command handlers for intercepting terminal input
    */
-  setPluginCommandHandlers(
-    checker: PluginCommandChecker,
-    executor: PluginCommandExecutor
-  ) {
+  setPluginCommandHandlers(checker: PluginCommandChecker, executor: PluginCommandExecutor) {
     this.pluginCommandChecker = checker;
     this.pluginCommandExecutor = executor;
   }
@@ -136,9 +133,9 @@ class TerminalManager {
    */
   private parseEditArgs(argsString: string): string[] {
     const args: string[] = [];
-    let current = '';
+    let current = "";
     let inQuote = false;
-    let quoteChar = '';
+    let quoteChar = "";
 
     for (const char of argsString) {
       if (!inQuote && (char === '"' || char === "'")) {
@@ -146,11 +143,11 @@ class TerminalManager {
         quoteChar = char;
       } else if (inQuote && char === quoteChar) {
         inQuote = false;
-        quoteChar = '';
-      } else if (!inQuote && char === ' ') {
+        quoteChar = "";
+      } else if (!inQuote && char === " ") {
         if (current) {
           args.push(current);
-          current = '';
+          current = "";
         }
       } else {
         current += char;
@@ -162,12 +159,22 @@ class TerminalManager {
     return args;
   }
 
-  createTerminal(cwd: string = process.cwd(), shell?: string, cols: number = 80, rows: number = 24, windowId?: string): string {
+  createTerminal(
+    cwd: string = process.cwd(),
+    shell?: string,
+    cols: number = 80,
+    rows: number = 24,
+    windowId?: string,
+  ): string {
     const terminalId = randomUUID();
 
     // Determine shell
-    const defaultShell = process.platform === "win32" ? "cmd.exe" :
-                        process.platform === "darwin" ? "/bin/zsh" : "/bin/bash";
+    const defaultShell =
+      process.platform === "win32"
+        ? "cmd.exe"
+        : process.platform === "darwin"
+          ? "/bin/zsh"
+          : "/bin/bash";
     const terminalShell = shell || process.env.SHELL || defaultShell;
 
     // console.log(`Creating PTY terminal ${terminalId} with shell: ${terminalShell}, cwd: ${cwd}, windowId: ${windowId}`);
@@ -191,7 +198,7 @@ class TerminalManager {
       shell: terminalShell,
       ready: false,
       currentCwd: cwd, // Initialize with the starting directory
-      inputBuffer: '', // Buffer for plugin command detection
+      inputBuffer: "", // Buffer for plugin command detection
     };
 
     // Track which window owns this terminal
@@ -224,13 +231,13 @@ class TerminalManager {
 
     // Send spawn message to PTY binary
     this.sendPtyMessage(terminalId, {
-      type: 'spawn',
+      type: "spawn",
       spawn: {
         shell: terminalShell,
         cwd: cwd,
         cols: cols,
         rows: rows,
-      }
+      },
     });
 
     return terminalId;
@@ -241,7 +248,7 @@ class TerminalManager {
     if (!terminal) return;
 
     try {
-      const jsonMessage = JSON.stringify(message) + '\n';
+      const jsonMessage = JSON.stringify(message) + "\n";
       terminal.process.stdin.write(jsonMessage);
     } catch (error) {
       console.error("Error sending PTY message:", error);
@@ -263,7 +270,7 @@ class TerminalManager {
       // Read stdout (JSON messages from PTY binary)
       (async () => {
         try {
-          let buffer = '';
+          let buffer = "";
           while (true) {
             const { done, value } = await stdoutReader.read();
             if (done) break;
@@ -272,8 +279,8 @@ class TerminalManager {
             buffer += text;
 
             // Process complete JSON lines
-            const lines = buffer.split('\n');
-            buffer = lines.pop() || ''; // Keep incomplete line in buffer
+            const lines = buffer.split("\n");
+            buffer = lines.pop() || ""; // Keep incomplete line in buffer
 
             for (const line of lines) {
               if (line.trim()) {
@@ -288,7 +295,7 @@ class TerminalManager {
           }
         } catch (error) {
           // Ignore errors when reader is cancelled during cleanup
-          if (!(error instanceof Error && error.name === 'AbortError')) {
+          if (!(error instanceof Error && error.name === "AbortError")) {
             console.error("Error reading PTY stdout:", error);
           }
         }
@@ -306,12 +313,11 @@ class TerminalManager {
           }
         } catch (error) {
           // Ignore errors when reader is cancelled during cleanup
-          if (!(error instanceof Error && error.name === 'AbortError')) {
+          if (!(error instanceof Error && error.name === "AbortError")) {
             console.error("Error reading PTY stderr:", error);
           }
         }
       })();
-
     } catch (error) {
       console.error("Error setting up PTY output readers:", error);
     }
@@ -338,12 +344,12 @@ class TerminalManager {
     // console.log(`PTY ${terminalId} response:`, response);
 
     switch (response.type) {
-      case 'ready':
+      case "ready":
         terminal.ready = true;
         // console.log(`PTY terminal ${terminalId} is ready`);
         break;
 
-      case 'data':
+      case "data":
         if (response.data) {
           messageHandler?.({
             type: "terminalOutput",
@@ -353,14 +359,14 @@ class TerminalManager {
         }
         break;
 
-      case 'cwd_update':
+      case "cwd_update":
         if (response.data) {
           // Update the stored current working directory
           terminal.currentCwd = response.data;
         }
         break;
 
-      case 'error':
+      case "error":
         console.error(`PTY error for ${terminalId}:`, response.error_msg);
         messageHandler?.({
           type: "terminalOutput",
@@ -390,7 +396,7 @@ class TerminalManager {
       // But pasted content should never contain EOF (\x04) as it can accidentally close the shell
       if (data.length > 1) {
         // Remove \x04 (Ctrl+D/EOF) from pasted content to prevent accidental shell exit
-        data = data.replace(/\x04/g, '');
+        data = data.replace(/\x04/g, "");
         // If filtering removed all content, nothing to send
         if (data.length === 0) {
           return true;
@@ -400,7 +406,7 @@ class TerminalManager {
 
       // Check for built-in and plugin command interception
       // Handle special characters
-      if (data === '\r' || data === '\n') {
+      if (data === "\r" || data === "\n") {
         // Enter pressed - check if buffer matches a built-in or plugin command
         const commandLine = terminal.inputBuffer.trim();
 
@@ -408,13 +414,13 @@ class TerminalManager {
         const editArgs = this.checkEditCommand(commandLine);
         if (editArgs && editArgs.length > 0 && this.editCommandHandler) {
           // Clear the buffer
-          terminal.inputBuffer = '';
+          terminal.inputBuffer = "";
 
           // Echo newline to terminal
           messageHandler?.({
             type: "terminalOutput",
             terminalId,
-            data: '\r\n',
+            data: "\r\n",
           });
 
           // Execute edit command
@@ -430,8 +436,8 @@ class TerminalManager {
           this.editCommandHandler(editArgs, terminalId, cwd, write).then(() => {
             // Show a new prompt after command completes
             this.sendPtyMessage(terminalId, {
-              type: 'input',
-              input: { data: '' }
+              type: "input",
+              input: { data: "" },
             });
           });
 
@@ -444,13 +450,13 @@ class TerminalManager {
 
           if (pluginCommand) {
             // Clear the buffer
-            terminal.inputBuffer = '';
+            terminal.inputBuffer = "";
 
             // Echo newline to terminal
             messageHandler?.({
               type: "terminalOutput",
               terminalId,
-              data: '\r\n',
+              data: "\r\n",
             });
 
             // Execute plugin command and stream output
@@ -467,8 +473,8 @@ class TerminalManager {
               // Show a new prompt after command completes
               // Send empty input to trigger shell prompt
               this.sendPtyMessage(terminalId, {
-                type: 'input',
-                input: { data: '' }
+                type: "input",
+                input: { data: "" },
               });
             });
 
@@ -477,16 +483,16 @@ class TerminalManager {
         }
 
         // Not a built-in or plugin command, clear buffer and send to PTY
-        terminal.inputBuffer = '';
-      } else if (data === '\x7f' || data === '\b') {
+        terminal.inputBuffer = "";
+      } else if (data === "\x7f" || data === "\b") {
         // Backspace - remove last char from buffer
         terminal.inputBuffer = terminal.inputBuffer.slice(0, -1);
-      } else if (data === '\x03') {
+      } else if (data === "\x03") {
         // Ctrl+C - clear buffer
-        terminal.inputBuffer = '';
-      } else if (data === '\x15') {
+        terminal.inputBuffer = "";
+      } else if (data === "\x15") {
         // Ctrl+U - clear line/buffer
-        terminal.inputBuffer = '';
+        terminal.inputBuffer = "";
       } else if (data.length === 1 && data.charCodeAt(0) >= 32) {
         // Regular printable character - add to buffer
         terminal.inputBuffer += data;
@@ -500,20 +506,20 @@ class TerminalManager {
       if (data.length <= MAX_CHUNK_SIZE) {
         // Small input, send directly
         this.sendPtyMessage(terminalId, {
-          type: 'input',
+          type: "input",
           input: {
-            data: data
-          }
+            data: data,
+          },
         });
       } else {
         // Large input (paste), chunk it to avoid StreamTooLong error
         for (let i = 0; i < data.length; i += MAX_CHUNK_SIZE) {
           const chunk = data.slice(i, i + MAX_CHUNK_SIZE);
           this.sendPtyMessage(terminalId, {
-            type: 'input',
+            type: "input",
             input: {
-              data: chunk
-            }
+              data: chunk,
+            },
           });
         }
       }
@@ -529,14 +535,14 @@ class TerminalManager {
     // console.log(`Resizing PTY terminal ${terminalId}: ${cols}x${rows}`);
     const terminal = this.terminals.get(terminalId);
     if (!terminal) return false;
-    
+
     try {
       this.sendPtyMessage(terminalId, {
-        type: 'resize',
+        type: "resize",
         resize: {
           cols: cols,
-          rows: rows
-        }
+          rows: rows,
+        },
       });
       return true;
     } catch (error) {
@@ -557,7 +563,7 @@ class TerminalManager {
 
       // Send shutdown message to PTY binary
       this.sendPtyMessage(terminalId, {
-        type: 'shutdown'
+        type: "shutdown",
       });
 
       // Give PTY time to cleanup, then kill the process
@@ -594,7 +600,7 @@ class TerminalManager {
 
         // Send shutdown message to each PTY
         this.sendPtyMessage(terminal.id, {
-          type: 'shutdown'
+          type: "shutdown",
         });
 
         // Kill the process after a short delay
@@ -620,10 +626,10 @@ class TerminalManager {
 
     // Send a get_cwd message to the PTY binary to get the current directory
     try {
-      this.sendPtyMessage(terminalId, { type: 'get_cwd' });
+      this.sendPtyMessage(terminalId, { type: "get_cwd" });
 
       // Wait a bit for the response
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       // Return the current tracked CWD
       return terminal.currentCwd || terminal.cwd;

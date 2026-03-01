@@ -45,7 +45,7 @@ export const jsonToSBPL = (profile: SandboxProfile): string => {
 export const runCommandWithSandbox = (
   profile: SandboxProfile,
   command: string,
-  args: string[]
+  args: string[],
 ): void => {
   const sbpl = jsonToSBPL(profile);
   const sandboxCommand = ["sandbox-exec", "-p", sbpl, command, ...args];
@@ -60,7 +60,7 @@ export const sandboxSpawn = (
   profile: SandboxProfile,
   command: string,
   args: string[],
-  options: any = {}
+  options: any = {},
 ) => {
   const sbpl = jsonToSBPL(profile);
 

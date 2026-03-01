@@ -3,7 +3,16 @@ import type { LaneSpec, ParAdapter } from "./adapter";
 
 export class ParCommandAdapter implements ParAdapter {
   async createLane(spec: LaneSpec): Promise<{ worktreePath: string }> {
-    const args = ["lane", "create", "--lane", spec.laneId, "--repo", spec.repoPath, "--branch", spec.branchName];
+    const args = [
+      "lane",
+      "create",
+      "--lane",
+      spec.laneId,
+      "--repo",
+      spec.repoPath,
+      "--branch",
+      spec.branchName,
+    ];
     const result = await execCommand("par", args);
     if (result.code !== 0) throw new Error(`par lane create failed: ${result.stderr}`);
     return { worktreePath: result.stdout.trim() };

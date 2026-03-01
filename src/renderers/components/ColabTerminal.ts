@@ -9,8 +9,8 @@
  *
  *   // Get reference and run commands
  *   const terminal = document.querySelector('colab-terminal');
- *   terminal.run('npm install');
- *   terminal.run('npm run dev');
+ *   terminal.run('bun install');
+ *   terminal.run('bun run dev');
  *
  * Attributes:
  *   - cwd: Working directory for the terminal (required)
@@ -41,7 +41,11 @@ declare global {
         request: {
           createTerminal: (params: { cwd: string; shell?: string }) => Promise<string>;
           writeToTerminal: (params: { terminalId: string; data: string }) => Promise<boolean>;
-          resizeTerminal: (params: { terminalId: string; cols: number; rows: number }) => Promise<boolean>;
+          resizeTerminal: (params: {
+            terminalId: string;
+            cols: number;
+            rows: number;
+          }) => Promise<boolean>;
           killTerminal: (params: { terminalId: string }) => Promise<boolean>;
         };
       };
@@ -66,11 +70,11 @@ export class ColabTerminal extends HTMLElement {
   private boundHandleExit: ((event: Event) => void) | null = null;
 
   // Properties that can be set directly (for frameworks like SolidJS/React)
-  private _cwd: string = '/';
+  private _cwd: string = "/";
   private _shell: string | undefined = undefined;
 
   static get observedAttributes() {
-    return ['cwd', 'shell'];
+    return ["cwd", "shell"];
   }
 
   // Property getters/setters for cwd
@@ -78,7 +82,7 @@ export class ColabTerminal extends HTMLElement {
     return this._cwd;
   }
   set cwd(value: string) {
-    this._cwd = value || '/';
+    this._cwd = value || "/";
   }
 
   // Property getters/setters for shell
@@ -91,7 +95,7 @@ export class ColabTerminal extends HTMLElement {
 
   constructor() {
     super();
-    this.attachShadow({ mode: 'open' });
+    this.attachShadow({ mode: "open" });
   }
 
   connectedCallback() {
@@ -107,9 +111,9 @@ export class ColabTerminal extends HTMLElement {
     if (oldValue === newValue) return;
 
     // Sync attributes to properties
-    if (name === 'cwd') {
-      this._cwd = newValue || '/';
-    } else if (name === 'shell') {
+    if (name === "cwd") {
+      this._cwd = newValue || "/";
+    } else if (name === "shell") {
       this._shell = newValue || undefined;
     }
   }
@@ -118,7 +122,7 @@ export class ColabTerminal extends HTMLElement {
     if (!this.shadowRoot) return;
 
     // Add xterm.js CSS
-    const style = document.createElement('style');
+    const style = document.createElement("style");
     style.textContent = `
       :host {
         display: block;
@@ -269,8 +273,8 @@ export class ColabTerminal extends HTMLElement {
     this.shadowRoot.appendChild(style);
 
     // Create container
-    this.container = document.createElement('div');
-    this.container.className = 'terminal-container';
+    this.container = document.createElement("div");
+    this.container.className = "terminal-container";
     this.shadowRoot.appendChild(this.container);
   }
 
@@ -280,16 +284,16 @@ export class ColabTerminal extends HTMLElement {
 
     // Use properties (set via property or attribute)
     // Also check getAttribute as fallback for when attributes are set directly in HTML
-    const cwd = this._cwd || this.getAttribute('cwd') || '/';
-    const shell = this._shell || this.getAttribute('shell') || undefined;
+    const cwd = this._cwd || this.getAttribute("cwd") || "/";
+    const shell = this._shell || this.getAttribute("shell") || undefined;
 
-    console.log('[ColabTerminal] initTerminal with cwd:', cwd);
+    console.log("[ColabTerminal] initTerminal with cwd:", cwd);
 
     try {
       // Create terminal in main process via RPC
       const electrobun = window.electrobun;
       if (!electrobun?.rpc) {
-        console.error('[ColabTerminal] electrobun RPC not available');
+        console.error("[ColabTerminal] electrobun RPC not available");
         return;
       }
 
@@ -299,7 +303,7 @@ export class ColabTerminal extends HTMLElement {
       });
 
       if (!terminalId) {
-        console.error('[ColabTerminal] Failed to create terminal');
+        console.error("[ColabTerminal] Failed to create terminal");
         return;
       }
 
@@ -331,18 +335,18 @@ export class ColabTerminal extends HTMLElement {
           // Only open if Alt or Cmd/Meta is held
           if (event.altKey || event.metaKey) {
             event.preventDefault();
-            window.open(uri, '_blank');
+            window.open(uri, "_blank");
           }
         },
         {
           hover: (event: MouseEvent, uri: string, range) => {
             // Remove any existing tooltip first
-            document.querySelector('.colab-link-tooltip')?.remove();
+            document.querySelector(".colab-link-tooltip")?.remove();
 
             // Show tooltip explaining how to open the link
-            const tooltip = document.createElement('div');
-            tooltip.className = 'colab-link-tooltip';
-            tooltip.textContent = `⌘+click or ⌥+click to open: ${uri.length > 50 ? uri.slice(0, 50) + '...' : uri}`;
+            const tooltip = document.createElement("div");
+            tooltip.className = "colab-link-tooltip";
+            tooltip.textContent = `⌘+click or ⌥+click to open: ${uri.length > 50 ? uri.slice(0, 50) + "..." : uri}`;
             tooltip.style.cssText = `
               position: fixed;
               left: ${event.clientX + 10}px;
@@ -362,9 +366,9 @@ export class ColabTerminal extends HTMLElement {
           },
           leave: () => {
             // Remove tooltip when mouse leaves the link
-            document.querySelector('.colab-link-tooltip')?.remove();
+            document.querySelector(".colab-link-tooltip")?.remove();
           },
-        }
+        },
       );
       this.terminal.loadAddon(webLinksAddon);
 
@@ -413,34 +417,39 @@ export class ColabTerminal extends HTMLElement {
           this.terminal.write(customEvent.detail.data);
         }
       };
-      window.addEventListener('terminalOutput', this.boundHandleOutput);
+      window.addEventListener("terminalOutput", this.boundHandleOutput);
 
       // Listen for terminal exit
       this.boundHandleExit = (event: Event) => {
         const customEvent = event as CustomEvent<{ terminalId: string; exitCode: number }>;
         if (customEvent.detail.terminalId === this.terminalId) {
-          this.terminal?.write(`\r\n\x1b[90mProcess exited with code ${customEvent.detail.exitCode}\x1b[0m\r\n`);
-          this.dispatchEvent(new CustomEvent('terminal-exit', {
-            detail: { exitCode: customEvent.detail.exitCode },
-            bubbles: true,
-          }));
+          this.terminal?.write(
+            `\r\n\x1b[90mProcess exited with code ${customEvent.detail.exitCode}\x1b[0m\r\n`,
+          );
+          this.dispatchEvent(
+            new CustomEvent("terminal-exit", {
+              detail: { exitCode: customEvent.detail.exitCode },
+              bubbles: true,
+            }),
+          );
         }
       };
-      window.addEventListener('terminalExit', this.boundHandleExit);
+      window.addEventListener("terminalExit", this.boundHandleExit);
 
       // Dispatch ready event
-      this.dispatchEvent(new CustomEvent('terminal-ready', {
-        detail: { terminalId },
-        bubbles: true,
-      }));
+      this.dispatchEvent(
+        new CustomEvent("terminal-ready", {
+          detail: { terminalId },
+          bubbles: true,
+        }),
+      );
 
       // Process any queued commands after shell is ready
       setTimeout(() => {
         this.processQueue();
       }, 100);
-
     } catch (error) {
-      console.error('[ColabTerminal] Failed to initialize:', error);
+      console.error("[ColabTerminal] Failed to initialize:", error);
     }
   }
 
@@ -465,10 +474,10 @@ export class ColabTerminal extends HTMLElement {
   private cleanup() {
     // Remove event listeners
     if (this.boundHandleOutput) {
-      window.removeEventListener('terminalOutput', this.boundHandleOutput);
+      window.removeEventListener("terminalOutput", this.boundHandleOutput);
     }
     if (this.boundHandleExit) {
-      window.removeEventListener('terminalExit', this.boundHandleExit);
+      window.removeEventListener("terminalExit", this.boundHandleExit);
     }
 
     // Kill terminal process
@@ -496,7 +505,7 @@ export class ColabTerminal extends HTMLElement {
    * Adds a newline automatically. Commands are queued if terminal isn't ready yet.
    */
   run(command: string) {
-    this.commandQueue.push(command + '\n');
+    this.commandQueue.push(command + "\n");
     this.processQueue();
   }
 
@@ -539,7 +548,7 @@ export class ColabTerminal extends HTMLElement {
 
 // Register the web component
 export function registerColabTerminal() {
-  if (!customElements.get('colab-terminal')) {
-    customElements.define('colab-terminal', ColabTerminal);
+  if (!customElements.get("colab-terminal")) {
+    customElements.define("colab-terminal", ColabTerminal);
   }
 }

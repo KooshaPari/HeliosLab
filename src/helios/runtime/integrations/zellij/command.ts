@@ -8,7 +8,16 @@ export class ZellijCommandAdapter implements ZellijAdapter {
   }
 
   async openPane(sessionName: string, command: string): Promise<void> {
-    const result = await execCommand("zellij", ["--session", sessionName, "action", "new-pane", "--", "sh", "-lc", command]);
+    const result = await execCommand("zellij", [
+      "--session",
+      sessionName,
+      "action",
+      "new-pane",
+      "--",
+      "sh",
+      "-lc",
+      command,
+    ]);
     if (result.code !== 0) throw new Error(`zellij open pane failed: ${result.stderr}`);
   }
 

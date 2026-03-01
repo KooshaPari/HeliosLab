@@ -29,11 +29,7 @@ export const clearFocusedWindow = (workspaceId: string, windowId: string) => {
 
 export const getFocusedWindow = () => focusedWindowInfo;
 
-export const broadcastToAllWindowsInWorkspace = (
-  workspaceId: string,
-  type: string,
-  data: any
-) => {
+export const broadcastToAllWindowsInWorkspace = (workspaceId: string, type: string, data: any) => {
   const activeWorkspaceWindows = workspaceWindows[workspaceId];
 
   for (const windowId in activeWorkspaceWindows) {
@@ -53,7 +49,7 @@ export const broadcastToWindow = (
   workspaceId: string,
   windowId: string,
   type: string,
-  data: any
+  data: any,
 ) => {
   const activeWorkspaceWindows = workspaceWindows[workspaceId];
   const { win } = activeWorkspaceWindows[windowId];

@@ -25,24 +25,24 @@ const IV_LENGTH = 12;
 async function deriveKey(passphrase: string, salt: Uint8Array): Promise<CryptoKey> {
   const encoder = new TextEncoder();
   const passphraseKey = await crypto.subtle.importKey(
-    'raw',
+    "raw",
     encoder.encode(passphrase),
-    'PBKDF2',
+    "PBKDF2",
     false,
-    ['deriveBits', 'deriveKey']
+    ["deriveBits", "deriveKey"],
   );
 
   return crypto.subtle.deriveKey(
     {
-      name: 'PBKDF2',
+      name: "PBKDF2",
       salt,
       iterations: PBKDF2_ITERATIONS,
-      hash: 'SHA-256',
+      hash: "SHA-256",
     },
     passphraseKey,
-    { name: 'AES-GCM', length: 256 },
+    { name: "AES-GCM", length: 256 },
     false,
-    ['encrypt', 'decrypt']
+    ["encrypt", "decrypt"],
   );
 }
 
@@ -51,7 +51,7 @@ async function deriveKey(passphrase: string, salt: Uint8Array): Promise<CryptoKe
  */
 function arrayBufferToBase64(buffer: ArrayBuffer): string {
   const bytes = new Uint8Array(buffer);
-  let binary = '';
+  let binary = "";
   for (let i = 0; i < bytes.length; i++) {
     binary += String.fromCharCode(bytes[i]);
   }
@@ -75,7 +75,7 @@ function base64ToUint8Array(base64: string): Uint8Array {
  */
 export async function encryptSettings(
   data: unknown,
-  passphrase: string
+  passphrase: string,
 ): Promise<EncryptedPayload> {
   // Generate random salt and IV
   const salt = crypto.getRandomValues(new Uint8Array(SALT_LENGTH));
@@ -87,11 +87,7 @@ export async function encryptSettings(
   // Encrypt the data
   const encoder = new TextEncoder();
   const plaintext = encoder.encode(JSON.stringify(data));
-  const ciphertext = await crypto.subtle.encrypt(
-    { name: 'AES-GCM', iv },
-    key,
-    plaintext
-  );
+  const ciphertext = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, plaintext);
 
   return {
     v: ENCRYPTION_VERSION,
@@ -106,7 +102,7 @@ export async function encryptSettings(
  */
 export async function decryptSettings<T = unknown>(
   payload: EncryptedPayload,
-  passphrase: string
+  passphrase: string,
 ): Promise<T> {
   if (payload.v !== ENCRYPTION_VERSION) {
     throw new Error(`Unsupported encryption version: ${payload.v}`);
@@ -122,17 +118,13 @@ export async function decryptSettings<T = unknown>(
 
   // Decrypt the data
   try {
-    const plaintext = await crypto.subtle.decrypt(
-      { name: 'AES-GCM', iv },
-      key,
-      ciphertext
-    );
+    const plaintext = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, ciphertext);
 
     const decoder = new TextDecoder();
     return JSON.parse(decoder.decode(plaintext)) as T;
   } catch (error) {
     // AES-GCM will throw if the passphrase is wrong (authentication tag mismatch)
-    throw new Error('Decryption failed. Wrong passphrase?');
+    throw new Error("Decryption failed. Wrong passphrase?");
   }
 }
 
@@ -141,7 +133,7 @@ export async function decryptSettings<T = unknown>(
  */
 export async function verifyPassphrase(
   payload: EncryptedPayload,
-  passphrase: string
+  passphrase: string,
 ): Promise<boolean> {
   try {
     await decryptSettings(payload, passphrase);

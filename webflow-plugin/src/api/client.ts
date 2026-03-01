@@ -8,10 +8,10 @@
  * - CMS operations
  */
 
-import type { PluginAPI } from '../../../src/main/plugins/types';
-import type { StorageManager, WebflowAuth, SiteInfo } from '../storage/manager';
+import type { PluginAPI } from "../../../src/main/plugins/types";
+import type { StorageManager, WebflowAuth, SiteInfo } from "../storage/manager";
 
-const API_BASE = 'https://api.webflow.com/v2';
+const API_BASE = "https://api.webflow.com/v2";
 
 export interface WebflowSite {
   id: string;
@@ -52,8 +52,8 @@ export interface WebflowAsset {
 
 export interface CustomCodeBlock {
   id: string;
-  location: 'header' | 'footer';
-  type: 'inline' | 'external';
+  location: "header" | "footer";
+  type: "inline" | "external";
   value: string;
 }
 
@@ -96,21 +96,17 @@ export class WebflowClient {
   /**
    * Make an authenticated API request
    */
-  private async request<T>(
-    method: string,
-    path: string,
-    body?: unknown
-  ): Promise<T> {
+  private async request<T>(method: string, path: string, body?: unknown): Promise<T> {
     const token = await this.getToken();
     const url = `${API_BASE}${path}`;
 
     const headers: Record<string, string> = {
       Authorization: `Bearer ${token}`,
-      Accept: 'application/json',
+      Accept: "application/json",
     };
 
     if (body) {
-      headers['Content-Type'] = 'application/json';
+      headers["Content-Type"] = "application/json";
     }
 
     const response = await fetch(url, {
@@ -135,7 +131,7 @@ export class WebflowClient {
    * List all sites accessible with the current token
    */
   async listSites(): Promise<WebflowSite[]> {
-    const response = await this.request<{ sites: WebflowSite[] }>('GET', '/sites');
+    const response = await this.request<{ sites: WebflowSite[] }>("GET", "/sites");
     return response.sites;
   }
 
@@ -143,14 +139,14 @@ export class WebflowClient {
    * Get a specific site by ID
    */
   async getSite(siteId: string): Promise<WebflowSite> {
-    return this.request<WebflowSite>('GET', `/sites/${siteId}`);
+    return this.request<WebflowSite>("GET", `/sites/${siteId}`);
   }
 
   /**
    * Publish a site
    */
   async publishSite(siteId: string, domains?: string[]): Promise<void> {
-    await this.request('POST', `/sites/${siteId}/publish`, { domains });
+    await this.request("POST", `/sites/${siteId}/publish`, { domains });
   }
 
   // ============================================================================
@@ -161,10 +157,7 @@ export class WebflowClient {
    * List all pages for a site
    */
   async listPages(siteId: string): Promise<WebflowPage[]> {
-    const response = await this.request<{ pages: WebflowPage[] }>(
-      'GET',
-      `/sites/${siteId}/pages`
-    );
+    const response = await this.request<{ pages: WebflowPage[] }>("GET", `/sites/${siteId}/pages`);
     return response.pages;
   }
 
@@ -172,7 +165,7 @@ export class WebflowClient {
    * Get a specific page
    */
   async getPage(pageId: string): Promise<WebflowPage> {
-    return this.request<WebflowPage>('GET', `/pages/${pageId}`);
+    return this.request<WebflowPage>("GET", `/pages/${pageId}`);
   }
 
   // ============================================================================
@@ -184,8 +177,8 @@ export class WebflowClient {
    */
   async listAssets(siteId: string): Promise<WebflowAsset[]> {
     const response = await this.request<{ assets: WebflowAsset[] }>(
-      'GET',
-      `/sites/${siteId}/assets`
+      "GET",
+      `/sites/${siteId}/assets`,
     );
     return response.assets;
   }
@@ -197,9 +190,9 @@ export class WebflowClient {
   async createAssetUploadUrl(
     siteId: string,
     fileName: string,
-    fileHash: string
+    fileHash: string,
   ): Promise<{ uploadUrl: string; uploadDetails: Record<string, string> }> {
-    return this.request('POST', `/sites/${siteId}/assets`, {
+    return this.request("POST", `/sites/${siteId}/assets`, {
       fileName,
       fileHash,
     });
@@ -215,11 +208,11 @@ export class WebflowClient {
     siteId: string,
     filePath: string,
     fileContent: Uint8Array,
-    fileName: string
+    fileName: string,
   ): Promise<WebflowAsset> {
     // Calculate file hash (MD5 base64)
     const buffer = fileContent.buffer as ArrayBuffer;
-    const hashBuffer = await crypto.subtle.digest('MD5', buffer);
+    const hashBuffer = await crypto.subtle.digest("MD5", buffer);
     const hashArray = new Uint8Array(hashBuffer);
     const fileHash = btoa(String.fromCharCode(...hashArray));
 
@@ -227,7 +220,7 @@ export class WebflowClient {
     const { uploadUrl, uploadDetails } = await this.createAssetUploadUrl(
       siteId,
       fileName,
-      fileHash
+      fileHash,
     );
 
     // Create form data for upload
@@ -235,11 +228,11 @@ export class WebflowClient {
     for (const [key, value] of Object.entries(uploadDetails)) {
       formData.append(key, value);
     }
-    formData.append('file', new Blob([buffer]), fileName);
+    formData.append("file", new Blob([buffer]), fileName);
 
     // Upload to S3
     const uploadResponse = await fetch(uploadUrl, {
-      method: 'POST',
+      method: "POST",
       body: formData,
     });
 
@@ -251,7 +244,7 @@ export class WebflowClient {
     const assets = await this.listAssets(siteId);
     const uploadedAsset = assets.find((a) => a.originalFileName === fileName);
     if (!uploadedAsset) {
-      throw new Error('Asset upload succeeded but asset not found in list');
+      throw new Error("Asset upload succeeded but asset not found in list");
     }
 
     return uploadedAsset;
@@ -268,7 +261,7 @@ export class WebflowClient {
     headCode?: string;
     footerCode?: string;
   }> {
-    return this.request('GET', `/sites/${siteId}/custom_code`);
+    return this.request("GET", `/sites/${siteId}/custom_code`);
   }
 
   /**
@@ -276,9 +269,9 @@ export class WebflowClient {
    */
   async updateSiteCustomCode(
     siteId: string,
-    code: { headCode?: string; footerCode?: string }
+    code: { headCode?: string; footerCode?: string },
   ): Promise<void> {
-    await this.request('PUT', `/sites/${siteId}/custom_code`, code);
+    await this.request("PUT", `/sites/${siteId}/custom_code`, code);
   }
 
   /**
@@ -288,7 +281,7 @@ export class WebflowClient {
     headCode?: string;
     footerCode?: string;
   }> {
-    return this.request('GET', `/pages/${pageId}/custom_code`);
+    return this.request("GET", `/pages/${pageId}/custom_code`);
   }
 
   /**
@@ -296,9 +289,9 @@ export class WebflowClient {
    */
   async updatePageCustomCode(
     pageId: string,
-    code: { headCode?: string; footerCode?: string }
+    code: { headCode?: string; footerCode?: string },
   ): Promise<void> {
-    await this.request('PUT', `/pages/${pageId}/custom_code`, code);
+    await this.request("PUT", `/pages/${pageId}/custom_code`, code);
   }
 
   // ============================================================================
@@ -308,22 +301,26 @@ export class WebflowClient {
   /**
    * List registered scripts for a site
    */
-  async listScripts(siteId: string): Promise<Array<{
-    id: string;
-    displayName: string;
-    hostedLocation: string;
-    integrityHash?: string;
-    canCopy: boolean;
-    version: string;
-  }>> {
-    const response = await this.request<{ registeredScripts: Array<{
+  async listScripts(siteId: string): Promise<
+    Array<{
       id: string;
       displayName: string;
       hostedLocation: string;
       integrityHash?: string;
       canCopy: boolean;
       version: string;
-    }> }>('GET', `/sites/${siteId}/registered_scripts`);
+    }>
+  > {
+    const response = await this.request<{
+      registeredScripts: Array<{
+        id: string;
+        displayName: string;
+        hostedLocation: string;
+        integrityHash?: string;
+        canCopy: boolean;
+        version: string;
+      }>;
+    }>("GET", `/sites/${siteId}/registered_scripts`);
     return response.registeredScripts;
   }
 
@@ -337,9 +334,9 @@ export class WebflowClient {
       hostedLocation: string;
       integrityHash?: string;
       version: string;
-    }
+    },
   ): Promise<{ id: string }> {
-    return this.request('POST', `/sites/${siteId}/registered_scripts`, script);
+    return this.request("POST", `/sites/${siteId}/registered_scripts`, script);
   }
 
   // ============================================================================

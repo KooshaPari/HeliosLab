@@ -1,11 +1,7 @@
 import { readdir, stat } from "node:fs/promises";
 import { join, relative, sep } from "node:path";
 
-type EnvKey =
-  | "R2_ENDPOINT"
-  | "R2_ACCESS_KEY_ID"
-  | "R2_SECRET_ACCESS_KEY"
-  | "R2_BUCKET";
+type EnvKey = "R2_ENDPOINT" | "R2_ACCESS_KEY_ID" | "R2_SECRET_ACCESS_KEY" | "R2_BUCKET";
 
 const requiredEnv = (key: EnvKey): string => {
   const value = process.env[key];
@@ -75,11 +71,9 @@ async function main() {
     return;
   }
 
-  const concurrencyEnv = 5;//Number(process.env.R2_UPLOAD_CONCURRENCY);
+  const concurrencyEnv = 5; //Number(process.env.R2_UPLOAD_CONCURRENCY);
   const concurrency =
-    Number.isFinite(concurrencyEnv) && concurrencyEnv > 0
-      ? Math.floor(concurrencyEnv)
-      : 5;
+    Number.isFinite(concurrencyEnv) && concurrencyEnv > 0 ? Math.floor(concurrencyEnv) : 5;
 
   console.log(`➡️  Uploading ${files.length} files with concurrency ${concurrency}`);
 
@@ -94,11 +88,7 @@ async function main() {
 
     console.log(`  • ${key} (${size} bytes)`);
 
-    await client.write(
-      key,
-      file,
-      file.type ? { type: file.type } : undefined,
-    );
+    await client.write(key, file, file.type ? { type: file.type } : undefined);
 
     uploadedCount += 1;
   };
@@ -118,9 +108,7 @@ async function main() {
     }
   };
 
-  await Promise.all(
-    Array.from({ length: Math.min(concurrency, files.length) }, () => worker()),
-  );
+  await Promise.all(Array.from({ length: Math.min(concurrency, files.length) }, () => worker()));
 
   if (failedCount > 0) {
     console.error(`❌ ${failedCount} file(s) failed to upload.`);

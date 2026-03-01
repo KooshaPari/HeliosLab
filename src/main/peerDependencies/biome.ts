@@ -16,7 +16,7 @@ export const isInstalled = () => {
     BIOME_BINARY_PATH,
     existsSync(BIOME_BINARY_PATH),
     getVersion(),
-    BIOME_VERSION
+    BIOME_VERSION,
   );
   return existsSync(BIOME_BINARY_PATH) && getVersion() === BIOME_VERSION;
 };
@@ -34,9 +34,7 @@ export const getVersion = (forceRefetch = false) => {
   }
 
   try {
-    const packageJson = JSON.parse(
-      readFileSync(join(BIOME_PACKAGE_PATH, "package.json"), "utf8")
-    );
+    const packageJson = JSON.parse(readFileSync(join(BIOME_PACKAGE_PATH, "package.json"), "utf8"));
     _version = packageJson.version;
     return _version;
   } catch (e) {
@@ -55,15 +53,9 @@ export const install = () => {
     `@biomejs/biome@${BIOME_VERSION}`,
   ]);
 
-  const biomeFolder =
-    process.arch === "x64" ? "cli-darwin-x64" : "cli-darwin-arm64";
+  const biomeFolder = process.arch === "x64" ? "cli-darwin-x64" : "cli-darwin-arm64";
 
-  const installedBiomeBinaryPath = join(
-    BUN_DEPS_FOLDER,
-    "@biomejs",
-    biomeFolder,
-    "biome"
-  );
+  const installedBiomeBinaryPath = join(BUN_DEPS_FOLDER, "@biomejs", biomeFolder, "biome");
   if (existsSync(BIOME_BINARY_PATH)) {
     unlinkSync(BIOME_BINARY_PATH);
   }

@@ -22,5 +22,5 @@ export const METHODS = [
   "zmx.restore",
   "lane.create",
   "lane.attach",
-  "lane.cleanup"
+  "lane.cleanup",
 ] as const;

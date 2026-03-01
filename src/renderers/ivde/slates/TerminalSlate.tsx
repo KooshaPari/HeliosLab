@@ -12,7 +12,7 @@ export const TerminalSlate = ({ tabId }: { tabId: string }) => {
   const tab = () => getWindow()?.tabs[tabId] as TerminalTabType | undefined;
   const [terminalId, setTerminalId] = createSignal<string | null>(null);
   const [currentDir, setCurrentDir] = createSignal<string | null>(null);
-  
+
   let terminalElement: HTMLDivElement | undefined;
   let searchInputRef: HTMLInputElement | undefined;
   let terminal: Terminal | null = null;
@@ -44,11 +44,11 @@ export const TerminalSlate = ({ tabId }: { tabId: string }) => {
               // Store the current directory in the tab for the title
               (win.tabs[tabId] as any).currentDir = cwd;
             }
-          })
+          }),
         );
       }
     } catch (error) {
-      console.error('Failed to get terminal cwd:', error);
+      console.error("Failed to get terminal cwd:", error);
     }
   };
 
@@ -79,9 +79,9 @@ export const TerminalSlate = ({ tabId }: { tabId: string }) => {
           if (win && win.tabs[tabId]) {
             win.tabs[tabId].terminalId = id;
           }
-        })
+        }),
       );
-      
+
       // Initial update of current directory
       setTimeout(updateCurrentDir, 1000);
 
@@ -100,25 +100,25 @@ export const TerminalSlate = ({ tabId }: { tabId: string }) => {
 
       fitAddon = new FitAddon();
       terminal.loadAddon(fitAddon);
-      
+
       // Add web links addon - require Alt+click or Cmd+click to open URLs
       const webLinksAddon = new WebLinksAddon(
         (event: MouseEvent, uri: string) => {
           // Only open if Alt or Cmd/Meta is held
           if (event.altKey || event.metaKey) {
             event.preventDefault();
-            openNewTabForNode('__COLAB_INTERNAL__/web', false, { focusNewTab: true, url: uri });
+            openNewTabForNode("__COLAB_INTERNAL__/web", false, { focusNewTab: true, url: uri });
           }
         },
         {
           hover: (event: MouseEvent, uri: string, range) => {
             // Remove any existing tooltip first
-            document.querySelector('.colab-link-tooltip')?.remove();
+            document.querySelector(".colab-link-tooltip")?.remove();
 
             // Show tooltip explaining how to open the link
-            const tooltip = document.createElement('div');
-            tooltip.className = 'colab-link-tooltip';
-            tooltip.textContent = `⌘+click or ⌥+click to open: ${uri.length > 50 ? uri.slice(0, 50) + '...' : uri}`;
+            const tooltip = document.createElement("div");
+            tooltip.className = "colab-link-tooltip";
+            tooltip.textContent = `⌘+click or ⌥+click to open: ${uri.length > 50 ? uri.slice(0, 50) + "..." : uri}`;
             tooltip.style.cssText = `
               position: fixed;
               left: ${event.clientX + 10}px;
@@ -138,9 +138,9 @@ export const TerminalSlate = ({ tabId }: { tabId: string }) => {
           },
           leave: () => {
             // Remove tooltip when mouse leaves the link
-            document.querySelector('.colab-link-tooltip')?.remove();
+            document.querySelector(".colab-link-tooltip")?.remove();
           },
-        }
+        },
       );
       terminal.loadAddon(webLinksAddon);
 
@@ -162,33 +162,33 @@ export const TerminalSlate = ({ tabId }: { tabId: string }) => {
       // Handle custom keyboard shortcuts
       terminal.attachCustomKeyEventHandler((event) => {
         // Cmd+Enter or Shift+Enter: Multi-line command continuation with backslash
-        if (event.key === 'Enter' && (event.metaKey || event.shiftKey) && !event.ctrlKey) {
+        if (event.key === "Enter" && (event.metaKey || event.shiftKey) && !event.ctrlKey) {
           event.preventDefault();
           if (terminalId()) {
             electrobun.rpc?.request.writeToTerminal({
               terminalId: terminalId()!,
-              data: ' \\\n', // Backslash for line continuation, then newline
+              data: " \\\n", // Backslash for line continuation, then newline
             });
           }
           return false;
         }
 
         // Cmd+K: Clear terminal
-        if (event.key === 'k' && event.metaKey && !event.shiftKey && !event.ctrlKey) {
+        if (event.key === "k" && event.metaKey && !event.shiftKey && !event.ctrlKey) {
           event.preventDefault();
           terminal?.clear();
           // Also send clear command to the shell
           if (terminalId()) {
             electrobun.rpc?.request.writeToTerminal({
               terminalId: terminalId()!,
-              data: '\x0c', // Form feed character (clear screen)
+              data: "\x0c", // Form feed character (clear screen)
             });
           }
           return false;
         }
 
         // Cmd+F: Open search
-        if (event.key === 'f' && event.metaKey && !event.shiftKey && !event.ctrlKey) {
+        if (event.key === "f" && event.metaKey && !event.shiftKey && !event.ctrlKey) {
           event.preventDefault();
           setShowSearch(true);
           setTimeout(() => searchInputRef?.focus(), 0);
@@ -196,7 +196,7 @@ export const TerminalSlate = ({ tabId }: { tabId: string }) => {
         }
 
         // Escape: Close search
-        if (event.key === 'Escape' && showSearch()) {
+        if (event.key === "Escape" && showSearch()) {
           event.preventDefault();
           setShowSearch(false);
           setSearchQuery("");
@@ -206,7 +206,7 @@ export const TerminalSlate = ({ tabId }: { tabId: string }) => {
         }
 
         // Cmd+G: Find next, Cmd+Shift+G: Find previous
-        if (event.key === 'g' && event.metaKey && showSearch() && searchQuery()) {
+        if (event.key === "g" && event.metaKey && showSearch() && searchQuery()) {
           event.preventDefault();
           if (event.shiftKey) {
             searchAddon?.findPrevious(searchQuery(), { caseSensitive: false, regex: false });
@@ -229,7 +229,7 @@ export const TerminalSlate = ({ tabId }: { tabId: string }) => {
           });
 
           // Check for cwd change after user presses Enter (debounced)
-          if (data === '\r' || data === '\n') {
+          if (data === "\r" || data === "\n") {
             if (cwdUpdateTimeout) {
               clearTimeout(cwdUpdateTimeout);
             }
@@ -263,7 +263,6 @@ export const TerminalSlate = ({ tabId }: { tabId: string }) => {
       onCleanup(() => {
         resizeObserver.disconnect();
       });
-
     } catch (error) {
       console.error("Failed to initialize terminal:", error);
     }
@@ -289,13 +288,13 @@ export const TerminalSlate = ({ tabId }: { tabId: string }) => {
     };
 
     // Listen for terminal messages via CustomEvents
-    window.addEventListener('terminalOutput', handleTerminalOutput as EventListener);
-    window.addEventListener('terminalExit', handleTerminalExit as EventListener);
+    window.addEventListener("terminalOutput", handleTerminalOutput as EventListener);
+    window.addEventListener("terminalExit", handleTerminalExit as EventListener);
 
     onCleanup(() => {
       // Remove event listeners
-      window.removeEventListener('terminalOutput', handleTerminalOutput as EventListener);
-      window.removeEventListener('terminalExit', handleTerminalExit as EventListener);
+      window.removeEventListener("terminalOutput", handleTerminalOutput as EventListener);
+      window.removeEventListener("terminalExit", handleTerminalExit as EventListener);
 
       // Clear pending cwd update
       if (cwdUpdateTimeout) {
@@ -324,14 +323,14 @@ export const TerminalSlate = ({ tabId }: { tabId: string }) => {
   };
 
   const handleSearchKeyDown = (e: KeyboardEvent) => {
-    if (e.key === 'Enter' || (e.key === 'g' && e.metaKey)) {
+    if (e.key === "Enter" || (e.key === "g" && e.metaKey)) {
       e.preventDefault();
       if (e.shiftKey) {
         searchAddon?.findPrevious(searchQuery(), { caseSensitive: false, regex: false });
       } else {
         searchAddon?.findNext(searchQuery(), { caseSensitive: false, regex: false });
       }
-    } else if (e.key === 'Escape') {
+    } else if (e.key === "Escape") {
       setShowSearch(false);
       setSearchQuery("");
       searchAddon?.clearDecorations();
@@ -380,7 +379,9 @@ export const TerminalSlate = ({ tabId }: { tabId: string }) => {
             }}
           />
           <button
-            onClick={() => searchAddon?.findPrevious(searchQuery(), { caseSensitive: false, regex: false })}
+            onClick={() =>
+              searchAddon?.findPrevious(searchQuery(), { caseSensitive: false, regex: false })
+            }
             style={{
               padding: "4px 8px",
               "border-radius": "4px",
@@ -393,7 +394,9 @@ export const TerminalSlate = ({ tabId }: { tabId: string }) => {
             ↑
           </button>
           <button
-            onClick={() => searchAddon?.findNext(searchQuery(), { caseSensitive: false, regex: false })}
+            onClick={() =>
+              searchAddon?.findNext(searchQuery(), { caseSensitive: false, regex: false })
+            }
             style={{
               padding: "4px 8px",
               "border-radius": "4px",

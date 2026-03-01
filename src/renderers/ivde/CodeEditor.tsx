@@ -35,7 +35,6 @@ import type { ParsedResponseType } from "../../shared/types/types";
 
 let currentRequestId = 0;
 
-
 // import "monaco-editor/editor.main.css";
 // import TypeScriptIcon from "../../../assets/file-icons/TypeScript.svg";
 
@@ -60,9 +59,7 @@ monaco.editor.defineTheme("darkPlus", {
 
 const editors: { [id: string]: monaco.editor.IStandaloneCodeEditor } = {};
 
-const tsSeverityToMonacoSeverity = (
-  severity: "error" | "warning" | "suggestion" | string
-) => {
+const tsSeverityToMonacoSeverity = (severity: "error" | "warning" | "suggestion" | string) => {
   switch (severity) {
     case "error":
       return MarkerSeverity.Error;
@@ -86,8 +83,8 @@ createEffect(
     () => state.ui.showSidebar,
     () => {
       reSizeEditors();
-    }
-  )
+    },
+  ),
 );
 
 monaco.languages.register({
@@ -149,10 +146,15 @@ monaco.languages.typescript.typescriptDefaults.setModeConfiguration({
 });
 
 // Register plugin completion provider for all languages
-const pluginCompletionLanguages = ['typescript', 'javascript', 'typescriptreact', 'javascriptreact'];
-pluginCompletionLanguages.forEach(lang => {
+const pluginCompletionLanguages = [
+  "typescript",
+  "javascript",
+  "typescriptreact",
+  "javascriptreact",
+];
+pluginCompletionLanguages.forEach((lang) => {
   monaco.languages.registerCompletionItemProvider(lang, {
-    triggerCharacters: ['.', '(', '"', "'", '`', '<', '/', '@', '#'],
+    triggerCharacters: [".", "(", '"', "'", "`", "<", "/", "@", "#"],
     provideCompletionItems: async (model, position, context, token) => {
       try {
         const lineText = model.getLineContent(position.lineNumber);
@@ -173,19 +175,19 @@ pluginCompletionLanguages.forEach(lang => {
         }
 
         const kindMap: Record<string, monaco.languages.CompletionItemKind> = {
-          'function': monaco.languages.CompletionItemKind.Function,
-          'snippet': monaco.languages.CompletionItemKind.Snippet,
-          'text': monaco.languages.CompletionItemKind.Text,
-          'keyword': monaco.languages.CompletionItemKind.Keyword,
-          'variable': monaco.languages.CompletionItemKind.Variable,
-          'class': monaco.languages.CompletionItemKind.Class,
-          'method': monaco.languages.CompletionItemKind.Method,
-          'property': monaco.languages.CompletionItemKind.Property,
+          function: monaco.languages.CompletionItemKind.Function,
+          snippet: monaco.languages.CompletionItemKind.Snippet,
+          text: monaco.languages.CompletionItemKind.Text,
+          keyword: monaco.languages.CompletionItemKind.Keyword,
+          variable: monaco.languages.CompletionItemKind.Variable,
+          class: monaco.languages.CompletionItemKind.Class,
+          method: monaco.languages.CompletionItemKind.Method,
+          property: monaco.languages.CompletionItemKind.Property,
         };
 
         const suggestions: monaco.languages.CompletionItem[] = completions.map((item, index) => ({
           label: item.label,
-          kind: kindMap[item.kind || 'snippet'] || monaco.languages.CompletionItemKind.Snippet,
+          kind: kindMap[item.kind || "snippet"] || monaco.languages.CompletionItemKind.Snippet,
           insertText: item.insertText,
           insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
           detail: item.detail,
@@ -201,7 +203,7 @@ pluginCompletionLanguages.forEach(lang => {
 
         return { suggestions };
       } catch (error) {
-        console.error('Failed to get plugin completions:', error);
+        console.error("Failed to get plugin completions:", error);
         return { suggestions: [] };
       }
     },
@@ -276,13 +278,7 @@ export const Editor = ({ currentTabId }: { currentTabId: string }) => {
   const windowId = state.windowId;
   const workspaceId = state.workspace.id;
 
-  const sendTsServerRequest = ({
-    command,
-    args,
-  }: {
-    command: string;
-    args: any;
-  }) => {
+  const sendTsServerRequest = ({ command, args }: { command: string; args: any }) => {
     const model = editor.getModel();
     if (model) {
       electrobun.rpc?.send("tsServerRequest", {
@@ -312,7 +308,7 @@ export const Editor = ({ currentTabId }: { currentTabId: string }) => {
         editor,
         handleTsServerResponse,
       };
-    })
+    }),
   );
 
   const onResize = () => {
@@ -353,10 +349,8 @@ export const Editor = ({ currentTabId }: { currentTabId: string }) => {
     // has just changed
     //github.com/microsoft/TypeScript/blob/97147915ab667a52e31ac743843786cbc9049559/src/server/protocol.ts#L1875-L1896
 
-    const closedFiles =
-      prevModel?.getLanguageId() === "typescript" ? [prevModel.uri.path] : [];
-    const openFiles =
-      model.getLanguageId() === "typescript" ? [model.uri.path] : [];
+    const closedFiles = prevModel?.getLanguageId() === "typescript" ? [prevModel.uri.path] : [];
+    const openFiles = model.getLanguageId() === "typescript" ? [model.uri.path] : [];
 
     const wasTypescript = prevModel?.getLanguageId() === "typescript";
     const isTypescript = model.getLanguageId() === "typescript";
@@ -410,15 +404,7 @@ export const Editor = ({ currentTabId }: { currentTabId: string }) => {
 
       // when editing a file
       model.onDidChangeContent((e) => {
-        const {
-          changes,
-          isFlush,
-          isEolChange,
-          isRedoing,
-          isUndoing,
-          versionId,
-          eol,
-        } = e;
+        const { changes, isFlush, isEolChange, isRedoing, isUndoing, versionId, eol } = e;
         const model = editor.getModel();
 
         if (!model) {
@@ -427,10 +413,7 @@ export const Editor = ({ currentTabId }: { currentTabId: string }) => {
 
         const content = model.getValue();
 
-        if (
-          _currentTab.path.endsWith(".ts") ||
-          _currentTab.path.endsWith(".tsx")
-        ) {
+        if (_currentTab.path.endsWith(".ts") || _currentTab.path.endsWith(".tsx")) {
           const activeTab = getCurrentTab();
 
           // Note: We only send changes for the active tab, otherwise if you have multiple tabs
@@ -468,7 +451,7 @@ export const Editor = ({ currentTabId }: { currentTabId: string }) => {
                 _node.isDirty = isNowDirty;
               }
             }
-          })
+          }),
         );
       }),
     ];
@@ -477,7 +460,7 @@ export const Editor = ({ currentTabId }: { currentTabId: string }) => {
 
     // Apply selection if this tab was opened with a specific line/column
     const tabWithSelection = currentTab();
-    if (tabWithSelection && 'selection' in tabWithSelection && tabWithSelection.selection) {
+    if (tabWithSelection && "selection" in tabWithSelection && tabWithSelection.selection) {
       const selection = tabWithSelection.selection as monaco.IRange;
       // Use setTimeout to ensure the editor is fully ready
       setTimeout(() => {
@@ -517,8 +500,8 @@ export const Editor = ({ currentTabId }: { currentTabId: string }) => {
       inlayHints: {},
       readOnly: isReadOnly,
       // Enable inline suggestions for AI but try to limit TypeScript's role
-      inlineSuggest: { 
-        enabled: true,        
+      inlineSuggest: {
+        enabled: true,
       },
       suggest: {
         preview: false,
@@ -581,9 +564,24 @@ export const Editor = ({ currentTabId }: { currentTabId: string }) => {
           // todo: handle failed write
           return;
         }
-        
-        const biomeExtensions = ['.js', '.jsx', '.ts', '.tsx', '.mjs', '.cjs', '.mts', '.cts', '.json', '.jsonc', '.css', '.html', '.graphql', '.gql'];
-        if (biomeExtensions.some(ext => model.uri.path.endsWith(ext))) {
+
+        const biomeExtensions = [
+          ".js",
+          ".jsx",
+          ".ts",
+          ".tsx",
+          ".mjs",
+          ".cjs",
+          ".mts",
+          ".cts",
+          ".json",
+          ".jsonc",
+          ".css",
+          ".html",
+          ".graphql",
+          ".gql",
+        ];
+        if (biomeExtensions.some((ext) => model.uri.path.endsWith(ext))) {
           electrobun.rpc?.send("formatFile", {
             path: model.uri.path,
           });
@@ -597,17 +595,13 @@ export const Editor = ({ currentTabId }: { currentTabId: string }) => {
               _node.isDirty = false;
               _node.persistedContent = value;
             }
-          })
+          }),
         );
       },
     });
 
     monaco.editor.registerEditorOpener({
-      openCodeEditor: async (
-        _,
-        uri: monaco.Uri,
-        selectionOrPosition: monaco.IRange
-      ) => {
+      openCodeEditor: async (_, uri: monaco.Uri, selectionOrPosition: monaco.IRange) => {
         const { path } = uri;
         const { startLineNumber, startColumn } = selectionOrPosition;
 
@@ -640,241 +634,260 @@ export const Editor = ({ currentTabId }: { currentTabId: string }) => {
         if (_node?.type === "file") {
           _node.editors[uniqueId] = editor;
         }
-      })
+      }),
     );
     // editors[uniqueId] = editor;
     window.addEventListener("resize", onResize);
 
     if (_currentTab.path.endsWith(".ts") || _currentTab.path.endsWith(".tsx")) {
+      providerDisposables.push(
+        monaco.languages.registerHoverProvider("typescript", {
+          provideHover: function (model, position) {
+            // Note: since this is a global provider it will be triggered
+            // along with all the other CodeEditor providers registered
+            if (model.uri.path !== _currentTab.path) {
+              return;
+            }
 
-      providerDisposables.push(monaco.languages.registerHoverProvider("typescript", {
-        provideHover: function (model, position) {
-          // Note: since this is a global provider it will be triggered
-          // along with all the other CodeEditor providers registered
-          if (model.uri.path !== _currentTab.path) {
-            return;
-          }
-
-          return new Promise((resolve) => {
-            if (hoverProviderResolver) {
-              hoverProviderResolver({
-                contents: [
-                  {
-                    value: "",
-                    /*              
+            return new Promise((resolve) => {
+              if (hoverProviderResolver) {
+                hoverProviderResolver({
+                  contents: [
+                    {
+                      value: "",
+                      /*
               readonly isTrusted?: boolean | MarkdownStringTrustedOptions;
               readonly supportThemeIcons?: boolean;
               readonly supportHtml?: boolean;
               readonly baseUri?: UriComponents; 
               */
-                  },
-                ],
+                    },
+                  ],
+                });
+              }
+
+              // We omit range to get around a monaco bug
+              hoverProviderResolver = resolve as HoverResolverType;
+
+              sendTsServerRequest({
+                command: "quickinfo",
+                args: {
+                  file: model.uri.path,
+                  line: position.lineNumber,
+                  offset: position.column,
+                },
               });
-            }
-
-            // We omit range to get around a monaco bug
-            hoverProviderResolver = resolve as HoverResolverType;
-
-            sendTsServerRequest({
-              command: "quickinfo",
-              args: {
-                file: model.uri.path,
-                line: position.lineNumber,
-                offset: position.column,
-              },
             });
-          });
-        },
-      }));
+          },
+        }),
+      );
 
-      providerDisposables.push(monaco.languages.registerDefinitionProvider("typescript", {
-        provideDefinition: function (model, position, token) {
-          return new Promise((resolve) => {
-            if (definitionProviderResolver) {
-              definitionProviderResolver();
-            }
+      providerDisposables.push(
+        monaco.languages.registerDefinitionProvider("typescript", {
+          provideDefinition: function (model, position, token) {
+            return new Promise((resolve) => {
+              if (definitionProviderResolver) {
+                definitionProviderResolver();
+              }
 
-            // We omit range to get around a monaco bug
-            definitionProviderResolver = resolve;
+              // We omit range to get around a monaco bug
+              definitionProviderResolver = resolve;
 
-            const filePath = model.uri.path;
-            const offset = position.column;
+              const filePath = model.uri.path;
+              const offset = position.column;
 
-            const line = position.lineNumber;
+              const line = position.lineNumber;
 
-            sendTsServerRequest({
-              command: "findSourceDefinition",
-              args: {
-                file: filePath,
-                line,
-                offset,
-              },
+              sendTsServerRequest({
+                command: "findSourceDefinition",
+                args: {
+                  file: filePath,
+                  line,
+                  offset,
+                },
+              });
             });
-          });
-        },
-      }));
+          },
+        }),
+      );
 
       // Register AI inline completion provider for grey text suggestions
-      const languagesToRegister = ["typescript", "javascript", "typescriptreact", "javascriptreact"];
-      languagesToRegister.forEach(lang => {
-        providerDisposables.push(monaco.languages.registerInlineCompletionsProvider(lang, {
-        provideInlineCompletions: async function (model, position, context, token) {
-          
-          // Note: since this is a global provider it will be triggered
-          // along with all the other CodeEditor providers registered
-          if (model.uri.path !== _currentTab.path) {
-            console.log("❌ Wrong file path, skipping AI completion");
-            return { items: [] };
-          }
+      const languagesToRegister = [
+        "typescript",
+        "javascript",
+        "typescriptreact",
+        "javascriptreact",
+      ];
+      languagesToRegister.forEach((lang) => {
+        providerDisposables.push(
+          monaco.languages.registerInlineCompletionsProvider(lang, {
+            provideInlineCompletions: async function (model, position, context, token) {
+              // Note: since this is a global provider it will be triggered
+              // along with all the other CodeEditor providers registered
+              if (model.uri.path !== _currentTab.path) {
+                console.log("❌ Wrong file path, skipping AI completion");
+                return { items: [] };
+              }
 
-          // Always provide AI completions - don't skip for TypeScript
+              // Always provide AI completions - don't skip for TypeScript
 
-          // Allow both automatic and manual triggers for AI completions
+              // Allow both automatic and manual triggers for AI completions
 
-          try {
-            // Build context for AI inline completion
-            const lineStartOffset = model.getOffsetAt({ lineNumber: position.lineNumber, column: 1 });
-            const currentOffset = model.getOffsetAt(position);
-            const totalLength = model.getValueLength();
-            
-            // Get prefix (before cursor) - last ~1000 chars for context
-            const prefixStart = Math.max(0, currentOffset - 1000);
-            const codePrefix = model.getValueInRange({
-              startLineNumber: 1,
-              startColumn: 1,
-              endLineNumber: position.lineNumber,
-              endColumn: position.column,
-            }).slice(prefixStart - (currentOffset - position.column + 1));
+              try {
+                // Build context for AI inline completion
+                const lineStartOffset = model.getOffsetAt({
+                  lineNumber: position.lineNumber,
+                  column: 1,
+                });
+                const currentOffset = model.getOffsetAt(position);
+                const totalLength = model.getValueLength();
 
-            // Get suffix (after cursor) - next ~500 chars for context
-            const suffixEnd = Math.min(totalLength, currentOffset + 500);
-            const codeSuffix = model.getValueInRange({
-              startLineNumber: position.lineNumber,
-              startColumn: position.column,
-              endLineNumber: model.getLineCount(),
-              endColumn: model.getLineMaxColumn(model.getLineCount()),
-            }).slice(0, suffixEnd - currentOffset);
+                // Get prefix (before cursor) - last ~1000 chars for context
+                const prefixStart = Math.max(0, currentOffset - 1000);
+                const codePrefix = model
+                  .getValueInRange({
+                    startLineNumber: 1,
+                    startColumn: 1,
+                    endLineNumber: position.lineNumber,
+                    endColumn: position.column,
+                  })
+                  .slice(prefixStart - (currentOffset - position.column + 1));
 
-            // Generate request ID and track latest request
-            const requestId = ++currentRequestId;
-            
-            // Get AI inline completions
-            const aiResponse = await aiCompletionService.getInlineCompletions({
-              prefix: codePrefix,
-              suffix: codeSuffix,
-              language: "typescript",
-              filename: model.uri.path,
-              position: position,
-              triggerCharacter: context.triggerKind === monaco.languages.InlineCompletionTriggerKind.Automatic ? undefined : undefined,
-            });
-            
-            // Check if this is still the latest request
-            if (requestId !== currentRequestId) {
-              return { items: [] };
-            }
+                // Get suffix (after cursor) - next ~500 chars for context
+                const suffixEnd = Math.min(totalLength, currentOffset + 500);
+                const codeSuffix = model
+                  .getValueInRange({
+                    startLineNumber: position.lineNumber,
+                    startColumn: position.column,
+                    endLineNumber: model.getLineCount(),
+                    endColumn: model.getLineMaxColumn(model.getLineCount()),
+                  })
+                  .slice(0, suffixEnd - currentOffset);
 
-            // if (aiResponse.items?.length > 0) {
-            //   console.log("First inline completion item:", aiResponse.items[0]);
-            //   // Create custom AI completion overlay
-            //   setTimeout(() => {
-            //     try {
-            //       // Calculate what the user has already typed on the current line
-            //       const currentLine = model.getLineContent(position.lineNumber);
-            //       const textBeforeCursor = currentLine.substring(0, position.column - 1);
-                  
-            //       // Get the AI completion text
-            //       const fullCompletion = aiResponse.items[0].insertText;
-                  
-            //       // Find what part of the completion is actually new
-            //       let remainingCompletion = fullCompletion;
-                  
-            //       // Get the last partial word the user is typing
-            //       const lastWordMatch = textBeforeCursor.match(/(\w+)$/);
-            //       if (lastWordMatch) {
-            //         const lastPartialWord = lastWordMatch[1];
-            //         const reconstructed = lastPartialWord + fullCompletion;
-                    
-            //         console.log("Last partial word:", lastPartialWord);
-            //         console.log("AI completion:", fullCompletion);
-            //         console.log("Reconstructed:", reconstructed);
-                    
-            //         // Advanced overlap detection: try different overlap lengths
-            //         let overlapLength = 0;
-                    
-            //         // Method 1: Check if AI completion starts with the partial word
-            //         if (fullCompletion.toLowerCase().startsWith(lastPartialWord.toLowerCase())) {
-            //           overlapLength = lastPartialWord.length;
-            //           console.log("Direct prefix match found");
-            //         } else {
-            //           // Method 2: Check for character overlap at the junction
-            //           for (let i = 1; i <= Math.min(lastPartialWord.length, fullCompletion.length); i++) {
-            //             const partialSuffix = lastPartialWord.slice(-i);
-            //             const completionPrefix = fullCompletion.slice(0, i);
-            //             if (partialSuffix.toLowerCase() === completionPrefix.toLowerCase()) {
-            //               overlapLength = i;
-            //             }
-            //           }
-                      
-            //           // Method 3: Check if reconstruction forms known words
-            //           if (overlapLength === 0) {
-            //             const commonWords = ['console', 'function', 'const', 'class', 'import', 'export', 'return', 'document'];
-            //             for (const word of commonWords) {
-            //               if (reconstructed.toLowerCase().startsWith(word.toLowerCase()) && 
-            //                   lastPartialWord.length < word.length && 
-            //                   word.startsWith(lastPartialWord.toLowerCase())) {
-            //                 // Calculate exact overlap needed for this word
-            //                 // For "c" + "onsole" -> "console", we want to keep "onsole" (no overlap removal)
-            //                 const expectedRemaining = word.substring(lastPartialWord.length);
-            //                 if (fullCompletion.toLowerCase().startsWith(expectedRemaining.toLowerCase())) {
-            //                   overlapLength = 0; // Don't remove anything, the AI gave us exactly what we need
-            //                   console.log(`Perfect completion for word: ${word}, keeping full AI response`);
-            //                 } else {
-            //                   overlapLength = lastPartialWord.length;
-            //                   console.log(`Partial overlap for word: ${word}`);
-            //                 }
-            //                 break;
-            //               }
-            //             }
-            //           }
-            //         }
-                    
-            //         if (overlapLength > 0) {
-            //           remainingCompletion = fullCompletion.substring(overlapLength);
-            //           console.log(`Removing ${overlapLength} characters of overlap. Remaining: "${remainingCompletion}"`);
-            //         } else {
-            //           console.log("No overlap detected, using full completion");
-            //           remainingCompletion = fullCompletion;
-            //         }
-            //       }
-                  
-            //       console.log("Text before cursor:", textBeforeCursor);
-            //       console.log("Full AI completion:", fullCompletion);
-            //       console.log("Remaining completion:", remainingCompletion);
-                  
-            //       // Only show if we have a meaningful remaining completion
-            //       if (remainingCompletion.length > 0 && remainingCompletion !== fullCompletion && remainingCompletion.trim().length > 0) {
-            //         console.log("✅ Showing remaining completion overlay");
-            //         showAICompletionOverlay(editor, position, remainingCompletion);
-            //       } else if (fullCompletion.length > 0) {
-            //         console.log("✅ Showing full completion overlay (no partial word)");
-            //         showAICompletionOverlay(editor, position, fullCompletion);
-            //       } else {
-            //         console.log("❌ No overlay shown - conditions not met");
-            //       }
-            //     } catch (e) {
-            //       console.log("Failed to show AI completion overlay:", e);
-            //     }
-            //   }, 50);
-            // }
-            return aiResponse;
-          } catch (error) {
-            return { items: [] };
-          }
-        },
-        freeInlineCompletions: function (completions) {
-          // Nothing to clean up
-        },
-      }));
+                // Generate request ID and track latest request
+                const requestId = ++currentRequestId;
+
+                // Get AI inline completions
+                const aiResponse = await aiCompletionService.getInlineCompletions({
+                  prefix: codePrefix,
+                  suffix: codeSuffix,
+                  language: "typescript",
+                  filename: model.uri.path,
+                  position: position,
+                  triggerCharacter:
+                    context.triggerKind === monaco.languages.InlineCompletionTriggerKind.Automatic
+                      ? undefined
+                      : undefined,
+                });
+
+                // Check if this is still the latest request
+                if (requestId !== currentRequestId) {
+                  return { items: [] };
+                }
+
+                // if (aiResponse.items?.length > 0) {
+                //   console.log("First inline completion item:", aiResponse.items[0]);
+                //   // Create custom AI completion overlay
+                //   setTimeout(() => {
+                //     try {
+                //       // Calculate what the user has already typed on the current line
+                //       const currentLine = model.getLineContent(position.lineNumber);
+                //       const textBeforeCursor = currentLine.substring(0, position.column - 1);
+
+                //       // Get the AI completion text
+                //       const fullCompletion = aiResponse.items[0].insertText;
+
+                //       // Find what part of the completion is actually new
+                //       let remainingCompletion = fullCompletion;
+
+                //       // Get the last partial word the user is typing
+                //       const lastWordMatch = textBeforeCursor.match(/(\w+)$/);
+                //       if (lastWordMatch) {
+                //         const lastPartialWord = lastWordMatch[1];
+                //         const reconstructed = lastPartialWord + fullCompletion;
+
+                //         console.log("Last partial word:", lastPartialWord);
+                //         console.log("AI completion:", fullCompletion);
+                //         console.log("Reconstructed:", reconstructed);
+
+                //         // Advanced overlap detection: try different overlap lengths
+                //         let overlapLength = 0;
+
+                //         // Method 1: Check if AI completion starts with the partial word
+                //         if (fullCompletion.toLowerCase().startsWith(lastPartialWord.toLowerCase())) {
+                //           overlapLength = lastPartialWord.length;
+                //           console.log("Direct prefix match found");
+                //         } else {
+                //           // Method 2: Check for character overlap at the junction
+                //           for (let i = 1; i <= Math.min(lastPartialWord.length, fullCompletion.length); i++) {
+                //             const partialSuffix = lastPartialWord.slice(-i);
+                //             const completionPrefix = fullCompletion.slice(0, i);
+                //             if (partialSuffix.toLowerCase() === completionPrefix.toLowerCase()) {
+                //               overlapLength = i;
+                //             }
+                //           }
+
+                //           // Method 3: Check if reconstruction forms known words
+                //           if (overlapLength === 0) {
+                //             const commonWords = ['console', 'function', 'const', 'class', 'import', 'export', 'return', 'document'];
+                //             for (const word of commonWords) {
+                //               if (reconstructed.toLowerCase().startsWith(word.toLowerCase()) &&
+                //                   lastPartialWord.length < word.length &&
+                //                   word.startsWith(lastPartialWord.toLowerCase())) {
+                //                 // Calculate exact overlap needed for this word
+                //                 // For "c" + "onsole" -> "console", we want to keep "onsole" (no overlap removal)
+                //                 const expectedRemaining = word.substring(lastPartialWord.length);
+                //                 if (fullCompletion.toLowerCase().startsWith(expectedRemaining.toLowerCase())) {
+                //                   overlapLength = 0; // Don't remove anything, the AI gave us exactly what we need
+                //                   console.log(`Perfect completion for word: ${word}, keeping full AI response`);
+                //                 } else {
+                //                   overlapLength = lastPartialWord.length;
+                //                   console.log(`Partial overlap for word: ${word}`);
+                //                 }
+                //                 break;
+                //               }
+                //             }
+                //           }
+                //         }
+
+                //         if (overlapLength > 0) {
+                //           remainingCompletion = fullCompletion.substring(overlapLength);
+                //           console.log(`Removing ${overlapLength} characters of overlap. Remaining: "${remainingCompletion}"`);
+                //         } else {
+                //           console.log("No overlap detected, using full completion");
+                //           remainingCompletion = fullCompletion;
+                //         }
+                //       }
+
+                //       console.log("Text before cursor:", textBeforeCursor);
+                //       console.log("Full AI completion:", fullCompletion);
+                //       console.log("Remaining completion:", remainingCompletion);
+
+                //       // Only show if we have a meaningful remaining completion
+                //       if (remainingCompletion.length > 0 && remainingCompletion !== fullCompletion && remainingCompletion.trim().length > 0) {
+                //         console.log("✅ Showing remaining completion overlay");
+                //         showAICompletionOverlay(editor, position, remainingCompletion);
+                //       } else if (fullCompletion.length > 0) {
+                //         console.log("✅ Showing full completion overlay (no partial word)");
+                //         showAICompletionOverlay(editor, position, fullCompletion);
+                //       } else {
+                //         console.log("❌ No overlay shown - conditions not met");
+                //       }
+                //     } catch (e) {
+                //       console.log("Failed to show AI completion overlay:", e);
+                //     }
+                //   }, 50);
+                // }
+                return aiResponse;
+              } catch (error) {
+                return { items: [] };
+              }
+            },
+            freeInlineCompletions: function (completions) {
+              // Nothing to clean up
+            },
+          }),
+        );
       });
     }
 
@@ -918,9 +931,7 @@ export const Editor = ({ currentTabId }: { currentTabId: string }) => {
           {(part, i) => {
             if (i() === 0) {
               // project name
-              return (
-                <span style="margin-right: 5px; color: #60a1d0 ">{part}:</span>
-              );
+              return <span style="margin-right: 5px; color: #60a1d0 ">{part}:</span>;
             } else {
               return (
                 <span style="margin-right: 5px">
@@ -944,7 +955,7 @@ const convertTsServerDiagnosticsToMonacoMarkers = (
   diagnostics:
     | ts.server.protocol.Diagnostic[]
     | ts.server.protocol.DiagnosticWithLinePosition[]
-    | ts.server.protocol.CompletionEntry[]
+    | ts.server.protocol.CompletionEntry[],
 ) => {
   if (!diagnostics) {
     return [];
@@ -991,7 +1002,7 @@ const convertTsServerDiagnosticsToMonacoMarkers = (
 // functions that interface with monaco
 const diagnoseErrors = (
   model: monaco.editor.ITextModel,
-  sendTsServerRequest: (params: any) => void
+  sendTsServerRequest: (params: any) => void,
 ) => {
   if (model.getLanguageId() === "typescript") {
     checkTypescriptForErrors(model, sendTsServerRequest);
@@ -1026,11 +1037,7 @@ const _diagnostics: {
 const updateMarkers = (model: monaco.editor.ITextModel) => {
   const { suggestions, syntactic, semantic } = _diagnostics;
 
-  monaco.editor.setModelMarkers(model, "custom", [
-    ...suggestions,
-    ...syntactic,
-    ...semantic,
-  ]);
+  monaco.editor.setModelMarkers(model, "custom", [...suggestions, ...syntactic, ...semantic]);
 };
 // functions that interface with tsServer
 // https://github.com/microsoft/TypeScript/blob/main/src/server/protocol.ts
@@ -1039,7 +1046,7 @@ let diagnosticsDebounceTimer: ReturnType<typeof setTimeout> | null = null;
 
 const checkTypescriptForErrors = async (
   model: monaco.editor.ITextModel,
-  sendTsServerRequest: (params: any) => void
+  sendTsServerRequest: (params: any) => void,
 ) => {
   // Debounce diagnostics so file content can render before CPU-heavy tsserver work starts.
   // Also avoids tsserver dropping requests when three arrive simultaneously.
@@ -1087,7 +1094,6 @@ const checkTypescriptForErrors = async (
   }, 500);
 };
 
-
 type HoverResolverType =
   | undefined
   | (({ contents }: { contents: monaco.IMarkdownString[] }) => void);
@@ -1101,9 +1107,7 @@ let definitionProviderResolver;
 //   text: "",
 // };
 
-function getTagBody(
-  tag: ts.server.protocol.JSDocTagInfo
-): Array<string> | undefined {
+function getTagBody(tag: ts.server.protocol.JSDocTagInfo): Array<string> | undefined {
   if (tag.name === "template") {
     const parts = tag.text;
     if (parts && typeof parts !== "string") {
@@ -1125,18 +1129,14 @@ function getTagBody(
   }
 }
 
-function asPlainText(
-  parts: string | ts.server.protocol.SymbolDisplayPart[]
-): string {
+function asPlainText(parts: string | ts.server.protocol.SymbolDisplayPart[]): string {
   if (typeof parts === "string") {
     return parts;
   }
   return parts.map((part) => part.text).join("");
 }
 
-function getTagBodyText(
-  tag: ts.server.protocol.JSDocTagInfo
-): string | undefined {
+function getTagBodyText(tag: ts.server.protocol.JSDocTagInfo): string | undefined {
   if (!tag.text) {
     return undefined;
   }
@@ -1157,14 +1157,10 @@ function getTagBodyText(
       text = asPlainText(tag.text);
 
       // check for caption tags, fix for #79704
-      const captionTagMatches = text.match(
-        /<caption>(.*?)<\/caption>\s*(\r\n|\n)/
-      );
+      const captionTagMatches = text.match(/<caption>(.*?)<\/caption>\s*(\r\n|\n)/);
       if (captionTagMatches && captionTagMatches.index === 0) {
         return (
-          captionTagMatches[1] +
-          "\n" +
-          makeCodeblock(text.substr(captionTagMatches[0].length))
+          captionTagMatches[1] + "\n" + makeCodeblock(text.substr(captionTagMatches[0].length))
         );
       } else {
         return makeCodeblock(text);
@@ -1205,9 +1201,7 @@ const tagToMarkdown = (tag: ts.server.protocol.JSDocTagInfo) => {
         if (!doc) {
           return label;
         }
-        return (
-          label + (doc.match(/\r\n|\n/g) ? "  \n" + doc : ` \u2014 ${doc}`)
-        );
+        return label + (doc.match(/\r\n|\n/g) ? "  \n" + doc : ` \u2014 ${doc}`);
       }
       break;
     }
@@ -1236,7 +1230,7 @@ const tagToMarkdown = (tag: ts.server.protocol.JSDocTagInfo) => {
 const handleDiagnosticResponse = (
   parsedResponse: ParsedResponseType,
   model: monaco.editor.ITextModel,
-  sendTsServerRequest: (params: any) => void
+  sendTsServerRequest: (params: any) => void,
 ) => {
   // NOTE: tsserver trigger send data events where a response spans multiple events. You can also
   // have another response added to the end of the last part of the previous response

@@ -6,6 +6,7 @@
  */
 
 import db from "../../main/goldfishdb/db";
+import type { BusLaneState } from "../runtime/protocol/bus";
 
 // ── Settings ───────────────────────────────────────────
 
@@ -26,7 +27,8 @@ export function loadSettings(): HeliosSettings {
   if (data.length > 0) {
     settingsDocId = data[0].id;
     return {
-      rendererEngine: (data[0].rendererEngine as "ghostty" | "rio") ?? DEFAULT_SETTINGS.rendererEngine,
+      rendererEngine:
+        (data[0].rendererEngine as "ghostty" | "rio") ?? DEFAULT_SETTINGS.rendererEngine,
       hotSwapPreferred: data[0].hotSwapPreferred ?? DEFAULT_SETTINGS.hotSwapPreferred,
     };
   }
@@ -76,7 +78,11 @@ export function upsertLane(lane: Omit<PersistedLane, "id">): PersistedLane {
       state: lane.state,
       lastUpdated: lane.lastUpdated,
     });
-    return { ...updated, sessionId: updated.sessionId ?? null, terminalId: updated.terminalId ?? null } as PersistedLane;
+    return {
+      ...updated,
+      sessionId: updated.sessionId ?? null,
+      terminalId: updated.terminalId ?? null,
+    } as PersistedLane;
   }
 
   const doc = db.collection("helios_lanes").insert({
@@ -88,7 +94,11 @@ export function upsertLane(lane: Omit<PersistedLane, "id">): PersistedLane {
     state: lane.state,
     lastUpdated: lane.lastUpdated,
   });
-  return { ...doc, sessionId: doc.sessionId ?? null, terminalId: doc.terminalId ?? null } as PersistedLane;
+  return {
+    ...doc,
+    sessionId: doc.sessionId ?? null,
+    terminalId: doc.terminalId ?? null,
+  } as PersistedLane;
 }
 
 export function getLanesForWorkspace(workspaceId: string): PersistedLane[] {
@@ -146,4 +156,57 @@ export function getRecentAudit(limit = 50): Array<{
       sessionId: d.sessionId ?? null,
       detail: d.detail,
     }));
+}
+
+// ── Session Snapshots ───────────────────────────
+
+export type SessionSnapshot = BusLaneState;
+
+export function saveSessionSnapshot(workspaceId: string, lanes: SessionSnapshot[]): void {
+  try {
+    const { data } = db.collection("helios_session_snapshots").query();
+    const existing = data.find((d) => d.workspaceId === workspaceId);
+
+    const snapshotData = {
+      workspaceId,
+      lanes: JSON.stringify(lanes),
+      timestamp: new Date().toISOString(),
+    };
+
+    if (existing) {
+      db.collection("helios_session_snapshots").update(existing.id, snapshotData);
+    } else {
+      db.collection("helios_session_snapshots").insert(snapshotData);
+    }
+  } catch {
+    // Silently fail to avoid disrupting workflow
+  }
+}
+
+export function loadSessionSnapshot(workspaceId: string): SessionSnapshot[] | null {
+  try {
+    const { data } = db.collection("helios_session_snapshots").query();
+    const snapshot = data.find((d) => d.workspaceId === workspaceId);
+
+    if (!snapshot || !snapshot.lanes) {
+      return null;
+    }
+
+    return JSON.parse(snapshot.lanes) as SessionSnapshot[];
+  } catch {
+    return null;
+  }
+}
+
+export function clearSessionSnapshot(workspaceId: string): void {
+  try {
+    const { data } = db.collection("helios_session_snapshots").query();
+    const snapshot = data.find((d) => d.workspaceId === workspaceId);
+
+    if (snapshot) {
+      db.collection("helios_session_snapshots").remove(snapshot.id);
+    }
+  } catch {
+    // Silently fail
+  }
 }

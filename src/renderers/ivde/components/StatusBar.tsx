@@ -11,7 +11,7 @@ interface PluginStatusBarItem {
   tooltip?: string;
   color?: string;
   priority?: number;
-  alignment?: 'left' | 'right';
+  alignment?: "left" | "right";
   pluginName: string;
   hasSettings: boolean;
 }
@@ -28,7 +28,7 @@ export const StatusBar = () => {
           setPluginItems(items);
         }
       } catch (err) {
-        console.warn('Failed to fetch plugin status bar items:', err);
+        console.warn("Failed to fetch plugin status bar items:", err);
       }
     };
 
@@ -37,13 +37,15 @@ export const StatusBar = () => {
     return () => clearInterval(interval);
   });
 
-  const leftPluginItems = () => pluginItems()
-    .filter(item => item.alignment === 'left')
-    .sort((a, b) => (b.priority || 0) - (a.priority || 0));
+  const leftPluginItems = () =>
+    pluginItems()
+      .filter((item) => item.alignment === "left")
+      .sort((a, b) => (b.priority || 0) - (a.priority || 0));
 
-  const rightPluginItems = () => pluginItems()
-    .filter(item => item.alignment !== 'left')
-    .sort((a, b) => (b.priority || 0) - (a.priority || 0));
+  const rightPluginItems = () =>
+    pluginItems()
+      .filter((item) => item.alignment !== "left")
+      .sort((a, b) => (b.priority || 0) - (a.priority || 0));
 
   return (
     <div
@@ -72,15 +74,27 @@ export const StatusBar = () => {
                   color: item.color || "#999",
                   cursor: item.hasSettings ? "pointer" : "default",
                 }}
-                title={item.hasSettings ? `${item.tooltip || item.text} (click to configure)` : item.tooltip}
+                title={
+                  item.hasSettings
+                    ? `${item.tooltip || item.text} (click to configure)`
+                    : item.tooltip
+                }
                 onClick={() => {
                   if (item.hasSettings) {
                     // Toggle: close if already open for this plugin, otherwise open
-                    const currentData = state.settingsPane.data as { pluginName?: string } | undefined;
-                    if (state.settingsPane.type === "plugin-settings" && currentData?.pluginName === item.pluginName) {
+                    const currentData = state.settingsPane.data as
+                      | { pluginName?: string }
+                      | undefined;
+                    if (
+                      state.settingsPane.type === "plugin-settings" &&
+                      currentData?.pluginName === item.pluginName
+                    ) {
                       setState("settingsPane", { type: "", data: {} });
                     } else {
-                      setState("settingsPane", { type: "plugin-settings", data: { pluginName: item.pluginName } });
+                      setState("settingsPane", {
+                        type: "plugin-settings",
+                        data: { pluginName: item.pluginName },
+                      });
                     }
                   }
                 }}
@@ -93,6 +107,8 @@ export const StatusBar = () => {
       </div>
       <div style={{ "flex-grow": 1 }} />
       <div style={{ display: "flex", height: "18px", "align-items": "center" }}>
+        <Helios />
+        <span>|</span>
         <For each={rightPluginItems()}>
           {(item) => (
             <>
@@ -102,15 +118,27 @@ export const StatusBar = () => {
                   color: item.color || "#999",
                   cursor: item.hasSettings ? "pointer" : "default",
                 }}
-                title={item.hasSettings ? `${item.tooltip || item.text} (click to configure)` : item.tooltip}
+                title={
+                  item.hasSettings
+                    ? `${item.tooltip || item.text} (click to configure)`
+                    : item.tooltip
+                }
                 onClick={() => {
                   if (item.hasSettings) {
                     // Toggle: close if already open for this plugin, otherwise open
-                    const currentData = state.settingsPane.data as { pluginName?: string } | undefined;
-                    if (state.settingsPane.type === "plugin-settings" && currentData?.pluginName === item.pluginName) {
+                    const currentData = state.settingsPane.data as
+                      | { pluginName?: string }
+                      | undefined;
+                    if (
+                      state.settingsPane.type === "plugin-settings" &&
+                      currentData?.pluginName === item.pluginName
+                    ) {
                       setState("settingsPane", { type: "", data: {} });
                     } else {
-                      setState("settingsPane", { type: "plugin-settings", data: { pluginName: item.pluginName } });
+                      setState("settingsPane", {
+                        type: "plugin-settings",
+                        data: { pluginName: item.pluginName },
+                      });
                     }
                   }
                 }}
@@ -155,43 +183,25 @@ const Colab = () => {
 };
 
 const Bun = () => {
-  return (
-    <div style={{ margin: "0 5px" }}>
-      Bun v{state.peerDependencies.bun.version}
-    </div>
-  );
+  return <div style={{ margin: "0 5px" }}>Bun v{state.peerDependencies.bun.version}</div>;
 };
 
 const Typescript = () => {
   return (
-    <div style={{ margin: "0 5px" }}>
-      Typescript v{state.peerDependencies.typescript.version}
-    </div>
+    <div style={{ margin: "0 5px" }}>Typescript v{state.peerDependencies.typescript.version}</div>
   );
 };
 
 const Biome = () => {
-  return (
-    <div style={{ margin: "0 5px" }}>
-      Biome v{state.peerDependencies.biome.version}
-    </div>
-  );
+  return <div style={{ margin: "0 5px" }}>Biome v{state.peerDependencies.biome.version}</div>;
 };
 
 const Git = () => {
-  return (
-    <div style={{ margin: "0 5px" }}>
-      Git v{state.peerDependencies.git.version}
-    </div>
-  );
+  return <div style={{ margin: "0 5px" }}>Git v{state.peerDependencies.git.version}</div>;
 };
 
 const Homebrew = () => {
-  return (
-    <div style={{ margin: "0 5px" }}>
-      Homebrew
-    </div>
-  );
+  return <div style={{ margin: "0 5px" }}>Homebrew</div>;
 };
 
 const Workspace = () => {
@@ -230,7 +240,7 @@ const Llama = () => {
       if (result?.ok) {
         const modelCount = result.models.length;
         const modelAvailable = modelCount > 0;
-        
+
         setLlamaStatus({
           version: "bundled",
           isRunning: true,
@@ -285,33 +295,33 @@ const Llama = () => {
 
   const getStatusText = () => {
     const status = llamaStatus();
-    
+
     if (status.isPending) {
       return "llama.cpp (setting up...)";
     }
-    
+
     if (!status.isInstalled || !status.isRunning) {
       return "llama.cpp (not running)";
     }
-    
+
     if (!status.modelAvailable) {
       return "llama.cpp (model missing)";
     }
-    
-    return `llama.cpp v${status.version || 'unknown'} (${status.modelCount} models)`;
+
+    return `llama.cpp v${status.version || "unknown"} (${status.modelCount} models)`;
   };
 
   const getStatusColor = () => {
     const status = llamaStatus();
-    
+
     if (status.isPending) {
       return "#ffa500"; // Orange for pending
     }
-    
+
     if (!status.isInstalled || !status.isRunning || !status.modelAvailable) {
       return "#ff6b6b"; // Red for issues
     }
-    
+
     return "#51cf66"; // Green for ready
   };
 
@@ -322,27 +332,27 @@ const Llama = () => {
   };
 
   return (
-    <div 
-      style={{ 
-        margin: "0 5px", 
+    <div
+      style={{
+        margin: "0 5px",
         color: getStatusColor(),
         cursor: "pointer",
         display: "flex",
         "align-items": "center",
-        gap: "4px"
+        gap: "4px",
       }}
       onClick={handleLlamaClick}
       title="Click to open llama.cpp settings"
     >
       {shouldShowSpinner() && (
-        <div 
+        <div
           style={{
             width: "10px",
             height: "10px",
             border: "1px solid #666",
             "border-top": "1px solid #fff",
             "border-radius": "50%",
-            animation: "spin 1s linear infinite"
+            animation: "spin 1s linear infinite",
           }}
         />
       )}
@@ -390,10 +400,14 @@ const GitHub = () => {
         color: getStatusColor(),
         cursor: "pointer",
         "white-space": "nowrap", // Prevent wrapping
-        "font-size": "11px"
+        "font-size": "11px",
       }}
       onClick={handleGitHubClick}
-      title={isConnected() ? "GitHub connected - click to open settings" : "GitHub not connected - click to connect"}
+      title={
+        isConnected()
+          ? "GitHub connected - click to open settings"
+          : "GitHub not connected - click to connect"
+      }
     >
       {getStatusText()}
     </div>
@@ -434,10 +448,14 @@ const ColabCloud = () => {
         color: getStatusColor(),
         cursor: "pointer",
         "white-space": "nowrap",
-        "font-size": "11px"
+        "font-size": "11px",
       }}
       onClick={handleColabCloudClick}
-      title={isConnected() ? "Colab Cloud connected - click to open settings" : "Colab Cloud - click to login"}
+      title={
+        isConnected()
+          ? "Colab Cloud connected - click to open settings"
+          : "Colab Cloud - click to login"
+      }
     >
       {getStatusText()}
     </div>
@@ -468,7 +486,7 @@ const AnalyticsConsent = () => {
           color: "#ffa500", // Orange to indicate action needed
           cursor: "pointer",
           "white-space": "nowrap",
-          "font-size": "11px"
+          "font-size": "11px",
         }}
         onClick={handleAnalyticsClick}
         title="Click to enable analytics and help improve Colab"
@@ -495,12 +513,83 @@ const Plugins = () => {
         color: "#999",
         cursor: "pointer",
         "white-space": "nowrap",
-        "font-size": "11px"
+        "font-size": "11px",
       }}
       onClick={handlePluginsClick}
       title="Open Plugins"
     >
       Plugins
+    </div>
+  );
+};
+
+const Helios = () => {
+  const [heliosState, setHeliosState] = createSignal<{
+    lane?: string;
+    session?: string;
+    terminal?: string;
+  } | null>(null);
+
+  const checkHeliosState = async () => {
+    try {
+      const state = await electrobun.rpc?.request.heliosGetState();
+      setHeliosState(state || null);
+    } catch (error) {
+      console.warn("Failed to fetch helios state:", error);
+      setHeliosState(null);
+    }
+  };
+
+  onMount(() => {
+    checkHeliosState();
+    const interval = setInterval(checkHeliosState, 5000); // Poll every 5 seconds
+    return () => clearInterval(interval);
+  });
+
+  const isActive = () => {
+    const state = heliosState();
+    return state && (state.lane || state.session);
+  };
+
+  const getStatusColor = () => {
+    return isActive() ? "#51cf66" : "#666"; // Green if active, gray if idle
+  };
+
+  const getStatusText = () => {
+    return isActive() ? "Helios: active" : "Helios: idle";
+  };
+
+  const getLaneTooltip = () => {
+    const state = heliosState();
+    if (state?.lane) {
+      return `Lane: ${state.lane}`;
+    }
+    return undefined;
+  };
+
+  return (
+    <div
+      style={{
+        margin: "0 5px",
+        color: getStatusColor(),
+        cursor: "default",
+        "white-space": "nowrap",
+        "font-size": "11px",
+        display: "flex",
+        "align-items": "center",
+        gap: "4px",
+      }}
+      title={getLaneTooltip()}
+    >
+      <div
+        style={{
+          width: "8px",
+          height: "8px",
+          "border-radius": "50%",
+          "background-color": getStatusColor(),
+        }}
+      />
+      <span>{getStatusText()}</span>
     </div>
   );
 };

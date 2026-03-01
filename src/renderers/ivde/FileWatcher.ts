@@ -24,10 +24,7 @@ const pendingNodeRequests: { [path: string]: boolean } = {};
 
 // doesn't cache the node, useful inside setState(produce(_state => {const _node = _getNode(path, _state)})) blocks
 
-export const _getNode = (
-  path?: string,
-  _state: AppState = state
-): CachedFileType | undefined => {
+export const _getNode = (path?: string, _state: AppState = state): CachedFileType | undefined => {
   if (!path) {
     return;
   }
@@ -55,7 +52,12 @@ export const _getNode = (
     let templateNode: CachedFileType;
 
     // Browser and agent templates are directory nodes with slates
-    if (templateId === "browser" || templateId === "browser-chromium" || templateId === "browser-webkit" || templateId === "agent") {
+    if (
+      templateId === "browser" ||
+      templateId === "browser-chromium" ||
+      templateId === "browser-webkit" ||
+      templateId === "agent"
+    ) {
       templateNode = {
         name: templateId,
         type: "dir",
@@ -139,11 +141,7 @@ export const createModel = async (absolutePath: string) => {
   // addExtraLib or create a model for those files for type hinting to work.
   let model = monaco.editor.getModel(monaco.Uri.parse(absolutePath));
   if (!model) {
-    model = monaco.editor.createModel(
-      contents,
-      language,
-      monaco.Uri.parse(absolutePath)
-    );
+    model = monaco.editor.createModel(contents, language, monaco.Uri.parse(absolutePath));
 
     // maybe multiple editors can share the same model that the user has actually opened?
     setState(
@@ -154,7 +152,7 @@ export const createModel = async (absolutePath: string) => {
           node.persistedContent = contents;
           node.isCached = true; // Mark file as loaded so external changes trigger editor updates
         }
-      })
+      }),
     );
   }
 
@@ -230,10 +228,10 @@ const extensionsToLanguages: Record<string, string> = {
 
 // Special filenames that should use specific languages
 const filenameToLanguage: Record<string, string> = {
-  "Dockerfile": "dockerfile",
-  "Makefile": "shell",
-  "Gemfile": "ruby",
-  "Rakefile": "ruby",
+  Dockerfile: "dockerfile",
+  Makefile: "shell",
+  Gemfile: "ruby",
+  Rakefile: "ruby",
   ".gitignore": "ini",
   ".dockerignore": "ini",
   ".env": "ini",

@@ -1,16 +1,7 @@
-import {
-  type JSXElement,
-  For,
-  Show,
-  createSignal,
-  createEffect,
-  onMount,
-} from "solid-js";
+import { type JSXElement, For, Show, createSignal, createEffect, onMount } from "solid-js";
 import { setState, openNewTabForNode } from "../store";
 import { electrobun } from "../init";
-import {
-  SettingsPaneFormSection,
-} from "./forms";
+import { SettingsPaneFormSection } from "./forms";
 
 interface SearchResultItem {
   name: string;
@@ -38,7 +29,7 @@ interface InstalledPlugin {
 
 interface EntitlementSummary {
   category: string;
-  level: 'low' | 'medium' | 'high';
+  level: "low" | "medium" | "high";
   icon: string;
   label: string;
   description: string;
@@ -47,7 +38,9 @@ interface EntitlementSummary {
 export const PluginMarketplace = (): JSXElement => {
   const [searchResults, setSearchResults] = createSignal<SearchResultItem[]>([]);
   const [installedPlugins, setInstalledPlugins] = createSignal<InstalledPlugin[]>([]);
-  const [pluginEntitlements, setPluginEntitlements] = createSignal<Record<string, EntitlementSummary[]>>({});
+  const [pluginEntitlements, setPluginEntitlements] = createSignal<
+    Record<string, EntitlementSummary[]>
+  >({});
   const [expandedEntitlements, setExpandedEntitlements] = createSignal<string | null>(null);
   const [searchQuery, setSearchQuery] = createSignal("");
   const [loading, setLoading] = createSignal(false);
@@ -64,7 +57,9 @@ export const PluginMarketplace = (): JSXElement => {
       const entitlements: Record<string, EntitlementSummary[]> = {};
       for (const plugin of plugins || []) {
         try {
-          const pluginEntitlements = await electrobun.rpc?.request.pluginGetEntitlements({ pluginName: plugin.name });
+          const pluginEntitlements = await electrobun.rpc?.request.pluginGetEntitlements({
+            pluginName: plugin.name,
+          });
           if (pluginEntitlements && pluginEntitlements.length > 0) {
             entitlements[plugin.name] = pluginEntitlements;
           }
@@ -222,7 +217,8 @@ export const PluginMarketplace = (): JSXElement => {
       >
         <h1
           style={{
-            "font-family": "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+            "font-family":
+              "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
             "font-weight": "400",
             margin: "0",
             "font-size": "20px",
@@ -270,7 +266,8 @@ export const PluginMarketplace = (): JSXElement => {
             padding: "10px 20px",
             background: activeTab() === "browse" ? "#404040" : "transparent",
             border: "none",
-            "border-bottom": activeTab() === "browse" ? "2px solid #0073e6" : "2px solid transparent",
+            "border-bottom":
+              activeTab() === "browse" ? "2px solid #0073e6" : "2px solid transparent",
             color: activeTab() === "browse" ? "#fff" : "#999",
             cursor: "pointer",
             "font-size": "12px",
@@ -284,7 +281,8 @@ export const PluginMarketplace = (): JSXElement => {
             padding: "10px 20px",
             background: activeTab() === "installed" ? "#404040" : "transparent",
             border: "none",
-            "border-bottom": activeTab() === "installed" ? "2px solid #0073e6" : "2px solid transparent",
+            "border-bottom":
+              activeTab() === "installed" ? "2px solid #0073e6" : "2px solid transparent",
             color: activeTab() === "installed" ? "#fff" : "#999",
             cursor: "pointer",
             "font-size": "12px",
@@ -524,9 +522,7 @@ export const PluginMarketplace = (): JSXElement => {
                     <Show when={ext.author}>
                       <span>by {ext.author}</span>
                     </Show>
-                    <span>
-                      {new Date(ext.date).toLocaleDateString()}
-                    </span>
+                    <span>{new Date(ext.date).toLocaleDateString()}</span>
                   </div>
                 </div>
               )}
@@ -645,17 +641,30 @@ export const PluginMarketplace = (): JSXElement => {
                       "margin-top": "4px",
                     }}
                   >
-                    <For each={pluginEntitlements()[plugin.name]?.slice(0, expandedEntitlements() === plugin.name ? undefined : 3)}>
+                    <For
+                      each={pluginEntitlements()[plugin.name]?.slice(
+                        0,
+                        expandedEntitlements() === plugin.name ? undefined : 3,
+                      )}
+                    >
                       {(ent) => (
                         <span
                           style={{
                             "font-size": "10px",
                             padding: "2px 6px",
                             "border-radius": "3px",
-                            background: ent.level === 'high' ? '#3d2020' :
-                                       ent.level === 'medium' ? '#3d3520' : '#203520',
-                            color: ent.level === 'high' ? '#ff8080' :
-                                   ent.level === 'medium' ? '#ffc080' : '#80ff80',
+                            background:
+                              ent.level === "high"
+                                ? "#3d2020"
+                                : ent.level === "medium"
+                                  ? "#3d3520"
+                                  : "#203520",
+                            color:
+                              ent.level === "high"
+                                ? "#ff8080"
+                                : ent.level === "medium"
+                                  ? "#ffc080"
+                                  : "#80ff80",
                             display: "flex",
                             "align-items": "center",
                             gap: "4px",
@@ -669,9 +678,11 @@ export const PluginMarketplace = (): JSXElement => {
                     </For>
                     <Show when={(pluginEntitlements()[plugin.name]?.length || 0) > 3}>
                       <button
-                        onClick={() => setExpandedEntitlements(
-                          expandedEntitlements() === plugin.name ? null : plugin.name
-                        )}
+                        onClick={() =>
+                          setExpandedEntitlements(
+                            expandedEntitlements() === plugin.name ? null : plugin.name,
+                          )
+                        }
                         style={{
                           background: "transparent",
                           border: "none",
@@ -710,16 +721,19 @@ export const PluginMarketplace = (): JSXElement => {
                     <input
                       type="checkbox"
                       checked={plugin.enabled}
-                      onChange={(e) =>
-                        handleToggleEnabled(plugin.name, e.currentTarget.checked)
-                      }
+                      onChange={(e) => handleToggleEnabled(plugin.name, e.currentTarget.checked)}
                       style={{ cursor: "pointer" }}
                     />
                     Enabled
                   </label>
                   <div style={{ flex: "1" }} />
                   <button
-                    onClick={() => setState("settingsPane", { type: "plugin-settings", data: { pluginName: plugin.name } })}
+                    onClick={() =>
+                      setState("settingsPane", {
+                        type: "plugin-settings",
+                        data: { pluginName: plugin.name },
+                      })
+                    }
                     style={{
                       background: "transparent",
                       color: "#0073e6",

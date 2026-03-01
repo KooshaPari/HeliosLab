@@ -1,0 +1,72 @@
+version: "3"
+
+tasks:
+  dev:
+    desc: "Run development server"
+    cmds:
+      - bun run dev
+
+  build:
+    desc: "Build stable release"
+    cmds:
+      - bun run build:stable
+
+  test:
+    desc: "Run test suite"
+    cmds:
+      - bunx vitest run
+
+  setup:
+    desc: "Setup project dependencies and initialization"
+    cmds:
+      - bun install && bun run setup
+
+  quality:fmt:
+    desc: "Format code with oxfmt (mutating)"
+    cmds:
+      - bunx oxfmt --write .
+
+  quality:lint:
+    desc: "Lint code with oxlint"
+    cmds:
+      - bunx oxlint -c .oxlintrc.json .
+
+  quality:test:
+    desc: "Run tests"
+    cmds:
+      - bunx vitest run
+
+  quality:
+    desc: "Run full quality gate (format, lint, test - mutating)"
+    cmds:
+      - task: quality:fmt
+      - task: quality:lint
+      - task: quality:test
+
+  quality:quick:
+    desc: "Quick quality check (readonly - no mutations)"
+    cmds:
+      - bunx oxfmt --check .
+      - bunx oxlint -c .oxlintrc.json .
+      - bunx vitest run
+
+  quality:ci:
+    desc: "CI quality gate (non-mutating PR gate)"
+    cmds:
+      - task: quality:quick
+
+  quality:pre-push:
+    desc: "Pre-push quality check"
+    cmds:
+      - task: quality:quick
+
+  quality:release-lint:
+    desc: "Release lint check"
+    cmds:
+      - task: quality:quick
+      - echo "Release lint passed"
+
+  check:
+    desc: "Alias for quality gate"
+    cmds:
+      - task: quality

@@ -3,9 +3,9 @@
  * Handles gathering, uploading, and downloading syncable settings
  */
 
-import { state, setState, updateSyncedAppSettings } from '../store';
-import { encryptSettings, decryptSettings, type EncryptedPayload } from './settingsSyncEncryption';
-import { electrobun } from '../init';
+import { state, setState, updateSyncedAppSettings } from "../store";
+import { encryptSettings, decryptSettings, type EncryptedPayload } from "./settingsSyncEncryption";
+import { electrobun } from "../init";
 
 /**
  * Schema for synced settings
@@ -63,9 +63,9 @@ const SCHEMA_VERSION = 1;
  */
 function getApiBaseUrl(): string {
   const channel = state.buildVars.channel;
-  if (channel === 'dev') return 'http://127.0.0.1:8788';
-  if (channel === 'canary') return 'https://canary-cloud.blackboard.sh';
-  return 'https://cloud.blackboard.sh';
+  if (channel === "dev") return "http://127.0.0.1:8788";
+  if (channel === "canary") return "https://canary-cloud.blackboard.sh";
+  return "https://cloud.blackboard.sh";
 }
 
 /**
@@ -85,14 +85,14 @@ export async function gatherSyncableSettings(): Promise<SyncedSettings> {
   const github = state.appSettings.github?.accessToken
     ? {
         accessToken: state.appSettings.github.accessToken,
-        username: state.appSettings.github.username || '',
+        username: state.appSettings.github.username || "",
         connectedAt: state.appSettings.github.connectedAt || 0,
         scopes: state.appSettings.github.scopes || [],
       }
     : undefined;
 
   // Get API tokens from goldfishdb via RPC
-  let tokens: SyncedSettings['tokens'] = [];
+  let tokens: SyncedSettings["tokens"] = [];
   try {
     const tokensResult = await (electrobun.rpc as any)?.request.getTokens?.();
     if (tokensResult?.ok && Array.isArray(tokensResult.tokens)) {
@@ -104,11 +104,11 @@ export async function gatherSyncableSettings(): Promise<SyncedSettings> {
       }));
     }
   } catch (error) {
-    console.warn('Failed to get tokens for sync:', error);
+    console.warn("Failed to get tokens for sync:", error);
   }
 
   // Get installed plugins via RPC
-  let plugins: SyncedSettings['plugins'] = [];
+  let plugins: SyncedSettings["plugins"] = [];
   try {
     const pluginsResult = await (electrobun.rpc as any)?.request.pluginGetInstalled?.();
     if (Array.isArray(pluginsResult)) {
@@ -116,7 +116,9 @@ export async function gatherSyncableSettings(): Promise<SyncedSettings> {
         // Get plugin settings if any
         let settings: Record<string, unknown> | undefined;
         try {
-          const settingsResult = await (electrobun.rpc as any)?.request.pluginGetSettingsValues?.({ pluginName: plugin.name });
+          const settingsResult = await (electrobun.rpc as any)?.request.pluginGetSettingsValues?.({
+            pluginName: plugin.name,
+          });
           if (settingsResult && Object.keys(settingsResult).length > 0) {
             settings = settingsResult;
           }
@@ -133,7 +135,7 @@ export async function gatherSyncableSettings(): Promise<SyncedSettings> {
       }
     }
   } catch (error) {
-    console.warn('Failed to get plugins for sync:', error);
+    console.warn("Failed to get plugins for sync:", error);
   }
 
   return {
@@ -152,7 +154,7 @@ export async function gatherSyncableSettings(): Promise<SyncedSettings> {
 export async function applySyncedSettings(settings: SyncedSettings): Promise<void> {
   // Apply llama settings
   if (settings.llama) {
-    setState('appSettings', 'llama', {
+    setState("appSettings", "llama", {
       ...state.appSettings.llama,
       ...settings.llama,
     });
@@ -160,7 +162,7 @@ export async function applySyncedSettings(settings: SyncedSettings): Promise<voi
 
   // Apply GitHub settings
   if (settings.github) {
-    setState('appSettings', 'github', {
+    setState("appSettings", "github", {
       accessToken: settings.github.accessToken,
       username: settings.github.username,
       connectedAt: settings.github.connectedAt,
@@ -175,7 +177,7 @@ export async function applySyncedSettings(settings: SyncedSettings): Promise<voi
         await (electrobun.rpc as any)?.request.setToken?.(token);
       }
     } catch (error) {
-      console.warn('Failed to apply tokens:', error);
+      console.warn("Failed to apply tokens:", error);
     }
   }
 
@@ -189,18 +191,28 @@ export async function applySyncedSettings(settings: SyncedSettings): Promise<voi
 
         if (!isInstalled) {
           // Install the plugin
-          await (electrobun.rpc as any)?.request.pluginInstall?.({ packageName: plugin.name, version: plugin.version });
+          await (electrobun.rpc as any)?.request.pluginInstall?.({
+            packageName: plugin.name,
+            version: plugin.version,
+          });
         }
 
         // Apply plugin settings if any
         if (plugin.settings) {
           for (const [key, value] of Object.entries(plugin.settings)) {
-            await (electrobun.rpc as any)?.request.pluginSetSettingValue?.({ pluginName: plugin.name, key, value });
+            await (electrobun.rpc as any)?.request.pluginSetSettingValue?.({
+              pluginName: plugin.name,
+              key,
+              value,
+            });
           }
         }
 
         // Set enabled state
-        await (electrobun.rpc as any)?.request.pluginSetEnabled?.({ packageName: plugin.name, enabled: plugin.enabled });
+        await (electrobun.rpc as any)?.request.pluginSetEnabled?.({
+          packageName: plugin.name,
+          enabled: plugin.enabled,
+        });
       } catch (error) {
         console.warn(`Failed to sync plugin ${plugin.name}:`, error);
       }
@@ -214,10 +226,12 @@ export async function applySyncedSettings(settings: SyncedSettings): Promise<voi
 /**
  * Upload settings to Colab Cloud
  */
-export async function uploadSettings(passphrase: string): Promise<{ success: boolean; error?: string }> {
+export async function uploadSettings(
+  passphrase: string,
+): Promise<{ success: boolean; error?: string }> {
   const accessToken = state.appSettings.colabCloud?.accessToken;
   if (!accessToken) {
-    return { success: false, error: 'Not logged in to Colab Cloud' };
+    return { success: false, error: "Not logged in to Colab Cloud" };
   }
 
   try {
@@ -229,10 +243,10 @@ export async function uploadSettings(passphrase: string): Promise<{ success: boo
 
     // Upload to server
     const response = await fetch(`${getApiBaseUrl()}/api/sync/settings`, {
-      method: 'PUT',
+      method: "PUT",
       headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({ encryptedPayload }),
     });
@@ -240,42 +254,44 @@ export async function uploadSettings(passphrase: string): Promise<{ success: boo
     const data = await response.json();
 
     if (!response.ok) {
-      return { success: false, error: data.error || 'Upload failed' };
+      return { success: false, error: data.error || "Upload failed" };
     }
 
     return { success: true };
   } catch (error) {
-    console.error('Settings upload error:', error);
-    return { success: false, error: error instanceof Error ? error.message : 'Upload failed' };
+    console.error("Settings upload error:", error);
+    return { success: false, error: error instanceof Error ? error.message : "Upload failed" };
   }
 }
 
 /**
  * Download and apply settings from Colab Cloud
  */
-export async function downloadSettings(passphrase: string): Promise<{ success: boolean; error?: string }> {
+export async function downloadSettings(
+  passphrase: string,
+): Promise<{ success: boolean; error?: string }> {
   const accessToken = state.appSettings.colabCloud?.accessToken;
   if (!accessToken) {
-    return { success: false, error: 'Not logged in to Colab Cloud' };
+    return { success: false, error: "Not logged in to Colab Cloud" };
   }
 
   try {
     // Download from server
     const response = await fetch(`${getApiBaseUrl()}/api/sync/settings`, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        'Authorization': `Bearer ${accessToken}`,
+        Authorization: `Bearer ${accessToken}`,
       },
     });
 
     const result = await response.json();
 
     if (!response.ok) {
-      return { success: false, error: result.error || 'Download failed' };
+      return { success: false, error: result.error || "Download failed" };
     }
 
     if (!result.exists) {
-      return { success: false, error: 'No settings found in cloud' };
+      return { success: false, error: "No settings found in cloud" };
     }
 
     // Decrypt with passphrase
@@ -284,7 +300,7 @@ export async function downloadSettings(passphrase: string): Promise<{ success: b
     try {
       settings = await decryptSettings<SyncedSettings>(encryptedPayload, passphrase);
     } catch (decryptError) {
-      return { success: false, error: 'Wrong passphrase' };
+      return { success: false, error: "Wrong passphrase" };
     }
 
     // Apply settings
@@ -292,8 +308,8 @@ export async function downloadSettings(passphrase: string): Promise<{ success: b
 
     return { success: true };
   } catch (error) {
-    console.error('Settings download error:', error);
-    return { success: false, error: error instanceof Error ? error.message : 'Download failed' };
+    console.error("Settings download error:", error);
+    return { success: false, error: error instanceof Error ? error.message : "Download failed" };
   }
 }
 
@@ -316,14 +332,14 @@ export async function getSyncStatus(): Promise<{
 }> {
   const accessToken = state.appSettings.colabCloud?.accessToken;
   if (!accessToken) {
-    return { hasSyncedSettings: false, error: 'Not logged in' };
+    return { hasSyncedSettings: false, error: "Not logged in" };
   }
 
   try {
     const response = await fetch(`${getApiBaseUrl()}/api/sync/status`, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        'Authorization': `Bearer ${accessToken}`,
+        Authorization: `Bearer ${accessToken}`,
       },
     });
 
@@ -335,6 +351,6 @@ export async function getSyncStatus(): Promise<{
 
     return data;
   } catch (error) {
-    return { hasSyncedSettings: false, error: 'Failed to fetch status' };
+    return { hasSyncedSettings: false, error: "Failed to fetch status" };
   }
 }

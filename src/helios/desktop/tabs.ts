@@ -20,14 +20,18 @@ const TAB_TITLES: Record<ActiveTab, string> = {
   agent: "Agent",
   session: "Session",
   chat: "Chat",
-  project: "Project"
+  project: "Project",
 };
 
 function deriveTabState(state: ActiveContextState): TabViewState {
   if (state.operations.error) {
     return "error";
   }
-  if (state.operations.lane === "loading" || state.operations.session === "loading" || state.operations.terminal === "loading") {
+  if (
+    state.operations.lane === "loading" ||
+    state.operations.session === "loading" ||
+    state.operations.terminal === "loading"
+  ) {
     return "loading";
   }
   if (!state.workspaceId || !state.laneId || !state.sessionId) {
@@ -59,8 +63,8 @@ export function buildTabSurface(state: ActiveContextState, tab: ActiveTab): TabS
     context: selectActiveContext(state),
     diagnostics: {
       resolvedTransport: state.diagnostics.resolvedTransport,
-      degradedReason: state.diagnostics.degradedReason
-    }
+      degradedReason: state.diagnostics.degradedReason,
+    },
   };
 }
 
@@ -70,7 +74,6 @@ export function buildAllTabSurfaces(state: ActiveContextState): Record<ActiveTab
     agent: buildTabSurface(state, "agent"),
     session: buildTabSurface(state, "session"),
     chat: buildTabSurface(state, "chat"),
-    project: buildTabSurface(state, "project")
+    project: buildTabSurface(state, "project"),
   };
 }
-

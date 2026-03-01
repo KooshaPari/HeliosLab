@@ -1,16 +1,6 @@
-import {
-  existsSync,
-  readFileSync,
-  renameSync,
-  symlinkSync,
-  unlinkSync,
-} from "fs";
+import { existsSync, readFileSync, renameSync, symlinkSync, unlinkSync } from "fs";
 import { execSpawnSync } from "../utils/processUtils";
-import {
-  BUN_BINARY_PATH,
-  TYPESCRIPT_PACKAGE_PATH,
-  TSSERVER_PATH,
-} from "../consts/paths";
+import { BUN_BINARY_PATH, TYPESCRIPT_PACKAGE_PATH, TSSERVER_PATH } from "../consts/paths";
 import { join } from "path";
 
 const TYPESCRIPT_VERSION = "5.3.3";
@@ -33,7 +23,7 @@ export const getVersion = (forceRefetch = false) => {
 
   try {
     const packageJson = JSON.parse(
-      readFileSync(join(TYPESCRIPT_PACKAGE_PATH, "package.json"), "utf8")
+      readFileSync(join(TYPESCRIPT_PACKAGE_PATH, "package.json"), "utf8"),
     );
     _version = packageJson.version;
     return _version;
@@ -56,11 +46,7 @@ export const install = () => {
   // invalidate the cache
   getVersion(true);
 
-  const installedTsserverPath = join(
-    TYPESCRIPT_PACKAGE_PATH,
-    "lib",
-    "tsserver.js"
-  );
+  const installedTsserverPath = join(TYPESCRIPT_PACKAGE_PATH, "lib", "tsserver.js");
   if (existsSync(TSSERVER_PATH)) {
     unlinkSync(TSSERVER_PATH);
   }

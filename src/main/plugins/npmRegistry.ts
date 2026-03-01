@@ -4,10 +4,10 @@
  * Searches npm for packages with the "colab-plugin" keyword
  */
 
-import type { NpmPackageInfo, NpmSearchResult, PluginManifest } from './types';
+import type { NpmPackageInfo, NpmSearchResult, PluginManifest } from "./types";
 
-const NPM_REGISTRY_URL = 'https://registry.npmjs.org';
-const NPM_SEARCH_URL = 'https://registry.npmjs.org/-/v1/search';
+const NPM_REGISTRY_URL = "https://registry.npmjs.org";
+const NPM_SEARCH_URL = "https://registry.npmjs.org/-/v1/search";
 
 // ============================================================================
 // Search
@@ -41,17 +41,15 @@ export async function searchPlugins(options: SearchOptions = {}): Promise<{
   results: SearchResultItem[];
   total: number;
 }> {
-  const { query = '', size = 20, from = 0 } = options;
+  const { query = "", size = 20, from = 0 } = options;
 
   // Always include colab-plugin keyword in search
-  const searchQuery = query
-    ? `${query} keywords:colab-plugin`
-    : 'keywords:colab-plugin';
+  const searchQuery = query ? `${query} keywords:colab-plugin` : "keywords:colab-plugin";
 
   const url = new URL(NPM_SEARCH_URL);
-  url.searchParams.set('text', searchQuery);
-  url.searchParams.set('size', String(Math.min(size, 250)));
-  url.searchParams.set('from', String(from));
+  url.searchParams.set("text", searchQuery);
+  url.searchParams.set("size", String(Math.min(size, 250)));
+  url.searchParams.set("from", String(from));
 
   const response = await fetch(url.toString());
 
@@ -69,7 +67,7 @@ export async function searchPlugins(options: SearchOptions = {}): Promise<{
     keywords: obj.package.keywords,
     date: obj.package.date,
     score: obj.score.final,
-    hasColabPlugin: obj.package.keywords?.includes('colab-plugin') ?? false,
+    hasColabPlugin: obj.package.keywords?.includes("colab-plugin") ?? false,
   }));
 
   // If there's a search query, filter results to only include packages where
@@ -78,13 +76,9 @@ export async function searchPlugins(options: SearchOptions = {}): Promise<{
   if (query) {
     const lowerQuery = query.toLowerCase();
     results = results.filter((pkg) => {
-      const searchableText = [
-        pkg.name,
-        pkg.description,
-        ...(pkg.keywords || []),
-      ]
+      const searchableText = [pkg.name, pkg.description, ...(pkg.keywords || [])]
         .filter(Boolean)
-        .join(' ')
+        .join(" ")
         .toLowerCase();
       return searchableText.includes(lowerQuery);
     });
@@ -103,8 +97,11 @@ export async function searchPlugins(options: SearchOptions = {}): Promise<{
 /**
  * Get detailed package information from npm
  */
-export async function getPackageInfo(packageName: string, version?: string): Promise<NpmPackageInfo | null> {
-  const versionPath = version ? `/${version}` : '/latest';
+export async function getPackageInfo(
+  packageName: string,
+  version?: string,
+): Promise<NpmPackageInfo | null> {
+  const versionPath = version ? `/${version}` : "/latest";
   const url = `${NPM_REGISTRY_URL}/${encodeURIComponent(packageName)}${versionPath}`;
 
   const response = await fetch(url);
@@ -128,7 +125,7 @@ export async function getPackageInfo(packageName: string, version?: string): Pro
     repository: data.repository,
     homepage: data.homepage,
     license: data.license,
-    'colab-plugin': data['colab-plugin'],
+    "colab-plugin": data["colab-plugin"],
   };
 }
 
@@ -154,8 +151,8 @@ export async function getPackageVersions(packageName: string): Promise<string[]>
   const versions = Object.keys(data.versions || {});
   return versions.sort((a, b) => {
     // Simple semver comparison - could use a proper library
-    const [aMajor, aMinor, aPatch] = a.split('.').map(Number);
-    const [bMajor, bMinor, bPatch] = b.split('.').map(Number);
+    const [aMajor, aMinor, aPatch] = a.split(".").map(Number);
+    const [bMajor, bMinor, bPatch] = b.split(".").map(Number);
     if (bMajor !== aMajor) return bMajor - aMajor;
     if (bMinor !== aMinor) return bMinor - aMinor;
     return bPatch - aPatch;
@@ -165,7 +162,10 @@ export async function getPackageVersions(packageName: string): Promise<string[]>
 /**
  * Validate that a package is a valid Colab plugin
  */
-export async function validatePlugin(packageName: string, version?: string): Promise<{
+export async function validatePlugin(
+  packageName: string,
+  version?: string,
+): Promise<{
   valid: boolean;
   manifest?: PluginManifest;
   error?: string;
@@ -174,22 +174,22 @@ export async function validatePlugin(packageName: string, version?: string): Pro
     const info = await getPackageInfo(packageName, version);
 
     if (!info) {
-      return { valid: false, error: 'Package not found' };
+      return { valid: false, error: "Package not found" };
     }
 
     // Check for colab-plugin field
-    if (!info['colab-plugin']) {
-      return { valid: false, error: 'Package does not have a colab-plugin configuration' };
+    if (!info["colab-plugin"]) {
+      return { valid: false, error: "Package does not have a colab-plugin configuration" };
     }
 
     // Check for colab-plugin keyword (soft requirement)
-    if (!info.keywords?.includes('colab-plugin')) {
+    if (!info.keywords?.includes("colab-plugin")) {
       console.warn(`Package ${packageName} is missing "colab-plugin" keyword`);
     }
 
     return {
       valid: true,
-      manifest: info['colab-plugin'],
+      manifest: info["colab-plugin"],
     };
   } catch (error) {
     return {
@@ -208,7 +208,7 @@ export async function validatePlugin(packageName: string, version?: string): Pro
  */
 export async function getPopularPlugins(limit = 10): Promise<SearchResultItem[]> {
   const result = await searchPlugins({
-    query: '',
+    query: "",
     size: limit,
   });
 
@@ -221,7 +221,7 @@ export async function getPopularPlugins(limit = 10): Promise<SearchResultItem[]>
  */
 export async function getRecentPlugins(limit = 10): Promise<SearchResultItem[]> {
   const result = await searchPlugins({
-    query: '',
+    query: "",
     size: 50, // Fetch more to sort
   });
 

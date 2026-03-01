@@ -77,7 +77,9 @@ export const PluginSlate = (props: PluginSlateProps) => {
   const [isLoading, setIsLoading] = createSignal(true);
   const [error, setError] = createSignal<string | null>(null);
   const [useHtmlRendering, setUseHtmlRendering] = createSignal(false);
-  const [pendingRenders, setPendingRenders] = createSignal<Array<{ html?: string; script?: string }>>([]);
+  const [pendingRenders, setPendingRenders] = createSignal<
+    Array<{ html?: string; script?: string }>
+  >([]);
 
   let mountRef: HTMLDivElement | undefined;
   let htmlMountRef: HTMLDivElement | undefined;
@@ -95,7 +97,10 @@ export const PluginSlate = (props: PluginSlateProps) => {
     if (!htmlMountRef || renders.length === 0 || !currentInstanceId) return;
 
     for (const renderData of renders) {
-      console.log(`[PluginSlate] Applying render:`, { html: renderData.html?.substring(0, 100), hasScript: !!renderData.script });
+      console.log(`[PluginSlate] Applying render:`, {
+        html: renderData.html?.substring(0, 100),
+        hasScript: !!renderData.script,
+      });
       if (renderData.html !== undefined) {
         htmlMountRef.innerHTML = renderData.html;
 
@@ -138,7 +143,9 @@ export const PluginSlate = (props: PluginSlateProps) => {
   };
 
   // Handler for HTML-based slate rendering from plugins
-  const handleSlateRender = (event: CustomEvent<{ instanceId: string; html?: string; script?: string }>) => {
+  const handleSlateRender = (
+    event: CustomEvent<{ instanceId: string; html?: string; script?: string }>,
+  ) => {
     const { instanceId: eventInstanceId, html, script } = event.detail;
     const currentInstanceId = instanceId();
 
@@ -193,7 +200,7 @@ export const PluginSlate = (props: PluginSlateProps) => {
     if (htmlMode) {
       console.log(`[PluginSlate] Using HTML-based rendering for slate: ${props.slateInfo.id}`);
       // Listen for slateRender events
-      window.addEventListener('slateRender', handleSlateRender as EventListener);
+      window.addEventListener("slateRender", handleSlateRender as EventListener);
     }
 
     try {
@@ -233,7 +240,7 @@ export const PluginSlate = (props: PluginSlateProps) => {
               instanceId={newInstanceId}
             />
           ),
-          mountRef
+          mountRef,
         );
       }
     } catch (e) {
@@ -246,7 +253,7 @@ export const PluginSlate = (props: PluginSlateProps) => {
   onCleanup(async () => {
     // Remove event listener for HTML mode
     if (useHtmlRendering()) {
-      window.removeEventListener('slateRender', handleSlateRender as EventListener);
+      window.removeEventListener("slateRender", handleSlateRender as EventListener);
     }
 
     // Dispose the rendered component
@@ -257,7 +264,7 @@ export const PluginSlate = (props: PluginSlateProps) => {
 
     // Notify the plugin that the slate is unmounting
     const currentInstanceId = instanceId();
-    if (currentInstanceId && !currentInstanceId.startsWith('local-')) {
+    if (currentInstanceId && !currentInstanceId.startsWith("local-")) {
       try {
         await electrobun.rpc?.request.pluginUnmountSlate({
           instanceId: currentInstanceId,
@@ -271,44 +278,42 @@ export const PluginSlate = (props: PluginSlateProps) => {
   return (
     <div class="plugin-slate" style={{ height: "100%", overflow: "auto" }}>
       <Show when={isLoading()}>
-        <div style={{
-          display: "flex",
-          "align-items": "center",
-          "justify-content": "center",
-          height: "100%",
-          color: "var(--text-secondary)",
-        }}>
+        <div
+          style={{
+            display: "flex",
+            "align-items": "center",
+            "justify-content": "center",
+            height: "100%",
+            color: "var(--text-secondary)",
+          }}
+        >
           Loading {props.slateInfo.name}...
         </div>
       </Show>
 
       <Show when={error()}>
-        <div style={{
-          display: "flex",
-          "flex-direction": "column",
-          "align-items": "center",
-          "justify-content": "center",
-          height: "100%",
-          color: "var(--error)",
-          padding: "20px",
-        }}>
+        <div
+          style={{
+            display: "flex",
+            "flex-direction": "column",
+            "align-items": "center",
+            "justify-content": "center",
+            height: "100%",
+            color: "var(--error)",
+            padding: "20px",
+          }}
+        >
           <div style={{ "font-weight": "bold", "margin-bottom": "10px" }}>
             Error loading {props.slateInfo.name}
           </div>
-          <div style={{ color: "var(--text-secondary)", "font-size": "12px" }}>
-            {error()}
-          </div>
+          <div style={{ color: "var(--text-secondary)", "font-size": "12px" }}>{error()}</div>
         </div>
       </Show>
 
       <Show when={!isLoading() && !error()}>
         {/* SolidJS component mount point */}
         <Show when={!useHtmlRendering()}>
-          <div
-            ref={mountRef}
-            class="plugin-slate-mount"
-            style={{ height: "100%" }}
-          />
+          <div ref={mountRef} class="plugin-slate-mount" style={{ height: "100%" }} />
         </Show>
         {/* HTML-based rendering mount point */}
         <Show when={useHtmlRendering()}>

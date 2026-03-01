@@ -33,15 +33,15 @@ export const GitHubStatus = (): JSXElement => {
   };
 
   return (
-    <div 
-      style={{ 
-        margin: "0 5px", 
+    <div
+      style={{
+        margin: "0 5px",
         color: getStatusColor(),
         cursor: "pointer",
         display: "flex",
         "align-items": "center",
         gap: "4px",
-        "font-size": "11px"
+        "font-size": "11px",
       }}
       onClick={handleGitHubClick}
       title="Click to open GitHub integration settings"

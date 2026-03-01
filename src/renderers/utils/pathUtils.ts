@@ -29,9 +29,7 @@ export const delimiter = ":";
 
 export function assertPath(path) {
   if (typeof path !== "string") {
-    throw new TypeError(
-      "Path must be a string. Received " + JSON.stringify(path)
-    );
+    throw new TypeError("Path must be a string. Received " + JSON.stringify(path));
   }
 }
 
@@ -101,8 +99,7 @@ export function normalizeStringPosix(path, allowAboveRoot) {
 
 function _format(sep, pathObject) {
   var dir = pathObject.dir || pathObject.root;
-  var base =
-    pathObject.base || (pathObject.name || "") + (pathObject.ext || "");
+  var base = pathObject.base || (pathObject.name || "") + (pathObject.ext || "");
   if (!dir) {
     return base;
   }
@@ -428,8 +425,7 @@ export function extname(path) {
 export function format(pathObject) {
   if (pathObject === null || typeof pathObject !== "object") {
     throw new TypeError(
-      'The "pathObject" argument must be of type Object. Received type ' +
-        typeof pathObject
+      'The "pathObject" argument must be of type Object. Received type ' + typeof pathObject,
     );
   }
   return _format("/", pathObject);
@@ -497,8 +493,7 @@ export function parse(path) {
     (preDotState === 1 && startDot === end - 1 && startDot === startPart + 1)
   ) {
     if (end !== -1) {
-      if (startPart === 0 && isAbsolute)
-        ret.base = ret.name = path.slice(1, end);
+      if (startPart === 0 && isAbsolute) ret.base = ret.name = path.slice(1, end);
       else ret.base = ret.name = path.slice(startPart, end);
     }
   } else {

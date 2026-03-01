@@ -113,7 +113,9 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
   const [loading, setLoading] = createSignal(true);
   const [connected, setConnected] = createSignal(false);
   const [sites, setSites] = createSignal<WebflowSite[]>([]);
-  const [config, setConfig] = createSignal<DevLinkConfig | CodeComponentsConfig | CloudProjectConfig | null>(null);
+  const [config, setConfig] = createSignal<
+    DevLinkConfig | CodeComponentsConfig | CloudProjectConfig | null
+  >(null);
   const [error, setError] = createSignal<string | null>(null);
   const [pullRunning, setPullRunning] = createSignal(false);
   const [statusRunning, setStatusRunning] = createSignal(false);
@@ -137,7 +139,7 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
   interface StoredToken {
     id: string;
     token: string;
-    type: 'oauth' | 'site' | 'workspace';
+    type: "oauth" | "site" | "workspace";
     status: string;
     siteId?: string;
     workspaceId?: string;
@@ -150,16 +152,16 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
   const checkConnection = async (): Promise<string | null> => {
     try {
       // Check for tokens in plugin state (new OAuth flow)
-      const tokens = await electrobun.rpc?.request.pluginGetStateValue({
+      const tokens = (await electrobun.rpc?.request.pluginGetStateValue({
         pluginName: PLUGIN_NAME,
-        key: 'tokens',
-      }) as StoredToken[] | undefined;
+        key: "tokens",
+      })) as StoredToken[] | undefined;
 
-      console.log('[WebflowSlate] tokens from state:', tokens);
+      console.log("[WebflowSlate] tokens from state:", tokens);
 
       if (tokens && Array.isArray(tokens)) {
-        setAllTokens(tokens.filter(t => t.status === 'valid'));
-        const validToken = tokens.find((t) => t.status === 'valid');
+        setAllTokens(tokens.filter((t) => t.status === "valid"));
+        const validToken = tokens.find((t) => t.status === "valid");
         if (validToken?.token) {
           setConnected(true);
           return validToken.token;
@@ -183,7 +185,7 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
   const getWorkspaceToken = (): string | null => {
     const tokens = allTokens();
     // Prefer workspace or oauth tokens (they have workspace access)
-    const workspaceToken = tokens.find(t => t.type === 'workspace' || t.type === 'oauth');
+    const workspaceToken = tokens.find((t) => t.type === "workspace" || t.type === "oauth");
     return workspaceToken?.token || null;
   };
 
@@ -192,7 +194,7 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
     const tokens = allTokens();
     // If siteId specified, try to find a token for that site
     if (siteId) {
-      const siteToken = tokens.find(t => t.type === 'site' && t.siteId === siteId);
+      const siteToken = tokens.find((t) => t.type === "site" && t.siteId === siteId);
       if (siteToken) return siteToken.token;
     }
     // Otherwise return any valid token (oauth/workspace tokens can access sites too)
@@ -202,12 +204,12 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
   // Load sites from plugin state (fetched by the plugin from main process)
   const loadSitesFromState = async () => {
     try {
-      const sitesFromState = await electrobun.rpc?.request.pluginGetStateValue({
+      const sitesFromState = (await electrobun.rpc?.request.pluginGetStateValue({
         pluginName: PLUGIN_NAME,
-        key: 'sites',
-      }) as WebflowSite[] | undefined;
+        key: "sites",
+      })) as WebflowSite[] | undefined;
 
-      console.log('[WebflowSlate] sites from plugin state:', sitesFromState?.length);
+      console.log("[WebflowSlate] sites from plugin state:", sitesFromState?.length);
       if (sitesFromState && Array.isArray(sitesFromState)) {
         setSites(sitesFromState);
       }
@@ -219,11 +221,11 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
   // Update config file with new site
   const updateConfigSite = async (site: WebflowSite, token: string) => {
     if (!props.node?.path) {
-      console.error('[WebflowSlate] updateConfigSite: no node path');
+      console.error("[WebflowSlate] updateConfigSite: no node path");
       return;
     }
 
-    console.log('[WebflowSlate] updateConfigSite:', site.displayName, 'path:', props.node.path);
+    console.log("[WebflowSlate] updateConfigSite:", site.displayName, "path:", props.node.path);
 
     try {
       const newConfig = {
@@ -234,25 +236,25 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
       };
 
       const jsonContent = JSON.stringify(newConfig, null, 2);
-      console.log('[WebflowSlate] Writing config to:', props.node.path);
-      console.log('[WebflowSlate] JSON content:', jsonContent);
+      console.log("[WebflowSlate] Writing config to:", props.node.path);
+      console.log("[WebflowSlate] JSON content:", jsonContent);
 
       const result = await electrobun.rpc?.request.writeFile({
         path: props.node.path,
         value: jsonContent,
       });
 
-      console.log('[WebflowSlate] writeFile result:', JSON.stringify(result));
+      console.log("[WebflowSlate] writeFile result:", JSON.stringify(result));
 
       if (result?.success) {
         setConfig(newConfig as any);
-        console.log('[WebflowSlate] Config saved successfully');
+        console.log("[WebflowSlate] Config saved successfully");
 
         // Also create/update webflow.json with the devlink structure the CLI expects
         await ensureWebflowJson(newConfig as DevLinkConfig);
       } else {
-        console.error('[WebflowSlate] writeFile failed:', result?.error);
-        setError('Failed to save configuration: ' + (result?.error || 'unknown error'));
+        console.error("[WebflowSlate] writeFile failed:", result?.error);
+        setError("Failed to save configuration: " + (result?.error || "unknown error"));
       }
 
       // Refresh sync status after changing site
@@ -268,7 +270,7 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
     const projectRoot = getProjectRoot();
     if (!projectRoot) return;
 
-    const webflowJsonPath = projectRoot + '/webflow.json';
+    const webflowJsonPath = projectRoot + "/webflow.json";
 
     // Read existing webflow.json if it exists
     let existing: any = {};
@@ -286,7 +288,7 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
       ...existing,
       devlink: {
         ...(existing.devlink || {}),
-        rootDir: cfg.componentsPath || './devlink',
+        rootDir: cfg.componentsPath || "./devlink",
       },
     };
 
@@ -295,12 +297,12 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
       value: JSON.stringify(webflowConfig, null, 2),
     });
 
-    console.log('[WebflowSlate] Created/updated webflow.json');
+    console.log("[WebflowSlate] Created/updated webflow.json");
   };
 
   // Ensure telemetry is pre-configured in webflow.json to skip CLI prompts
   const ensureTelemetryConfig = async (projectRoot: string) => {
-    const webflowJsonPath = projectRoot + '/webflow.json';
+    const webflowJsonPath = projectRoot + "/webflow.json";
 
     // Read existing webflow.json if it exists
     let existing: any = {};
@@ -336,7 +338,7 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
       value: JSON.stringify(webflowConfig, null, 2),
     });
 
-    console.log('[WebflowSlate] Pre-configured telemetry in webflow.json');
+    console.log("[WebflowSlate] Pre-configured telemetry in webflow.json");
   };
 
   // Load config file content
@@ -372,11 +374,11 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
     }
 
     try {
-      const result = await electrobun.rpc?.request.execSpawnSync({
+      const result = (await electrobun.rpc?.request.execSpawnSync({
         cmd,
         args,
         opts: { cwd },
-      }) as ExecResult | string;
+      })) as ExecResult | string;
 
       // Handle both old string format and new object format
       if (typeof result === "string") {
@@ -402,18 +404,22 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
   };
 
   // Run a terminal command with additional environment variables
-  const runCommandWithEnv = async (cmd: string, args: string[], env: Record<string, string>): Promise<string> => {
+  const runCommandWithEnv = async (
+    cmd: string,
+    args: string[],
+    env: Record<string, string>,
+  ): Promise<string> => {
     const cwd = getProjectRoot();
     if (!cwd) {
       throw new Error("Could not determine project directory");
     }
 
     try {
-      const result = await electrobun.rpc?.request.execSpawnSync({
+      const result = (await electrobun.rpc?.request.execSpawnSync({
         cmd,
         args,
         opts: { cwd, env },
-      }) as ExecResult | string;
+      })) as ExecResult | string;
 
       // Handle both old string format and new object format
       if (typeof result === "string") {
@@ -439,18 +445,23 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
   };
 
   // Run a terminal command with env vars and stdin input (for answering prompts)
-  const runCommandWithEnvAndInput = async (cmd: string, args: string[], env: Record<string, string>, input: string): Promise<string> => {
+  const runCommandWithEnvAndInput = async (
+    cmd: string,
+    args: string[],
+    env: Record<string, string>,
+    input: string,
+  ): Promise<string> => {
     const cwd = getProjectRoot();
     if (!cwd) {
       throw new Error("Could not determine project directory");
     }
 
     try {
-      const result = await electrobun.rpc?.request.execSpawnSync({
+      const result = (await electrobun.rpc?.request.execSpawnSync({
         cmd,
         args,
         opts: { cwd, env, input },
-      }) as ExecResult | string;
+      })) as ExecResult | string;
 
       // Handle both old string format and new object format
       if (typeof result === "string") {
@@ -487,7 +498,7 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
   const openSettings = () => {
     setState("settingsPane", {
       type: "plugin-settings",
-      data: { pluginName: PLUGIN_NAME }
+      data: { pluginName: PLUGIN_NAME },
     });
   };
 
@@ -512,19 +523,17 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
       await ensureWebflowJson(cfg);
 
       // Run sync with env vars for credentials
-      const result = await runCommandWithEnv("bun", [
-        "x", "webflow", "devlink", "sync",
-      ], {
+      const result = await runCommandWithEnv("bun", ["x", "webflow", "devlink", "sync"], {
         WEBFLOW_SITE_ID: siteId,
         WEBFLOW_SITE_API_TOKEN: token,
         // Disable telemetry prompt
-        WEBFLOW_TELEMETRY: 'false',
-        DO_NOT_TRACK: '1',
+        WEBFLOW_TELEMETRY: "false",
+        DO_NOT_TRACK: "1",
       });
 
       // Check if sync was successful - look for ERROR: prefix which indicates actual errors
       // (not just "error" appearing in log file paths)
-      if (result && !result.includes('ERROR:')) {
+      if (result && !result.includes("ERROR:")) {
         setSyncStatus("synced");
       } else {
         setSyncStatus("error");
@@ -544,9 +553,9 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
 
     try {
       const cfg = config() as DevLinkConfig;
-      const componentsPath = cfg?.componentsPath || './devlink';
+      const componentsPath = cfg?.componentsPath || "./devlink";
       const projectRoot = getProjectRoot();
-      const fullPath = projectRoot + '/' + componentsPath.replace('./', '');
+      const fullPath = projectRoot + "/" + componentsPath.replace("./", "");
 
       // Check if the devlink folder exists
       const exists = await electrobun.rpc?.request.exists({ path: fullPath });
@@ -558,36 +567,36 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
       if (exists) {
         // List files in devlink folder using ls command
         try {
-          const lsResult = await electrobun.rpc?.request.execSpawnSync({
+          const lsResult = (await electrobun.rpc?.request.execSpawnSync({
             cmd: "ls",
             args: ["-1", fullPath],
             opts: {},
-          }) as ExecResult | string | undefined;
+          })) as ExecResult | string | undefined;
 
           // Handle both old string format and new object format
-          const lsOutput = typeof lsResult === 'string' ? lsResult : lsResult?.stdout || '';
+          const lsOutput = typeof lsResult === "string" ? lsResult : lsResult?.stdout || "";
           if (lsOutput) {
-            const allFiles = lsOutput.split('\n').filter(Boolean);
-            localFiles = allFiles.filter(f =>
-              f.endsWith('.tsx') || f.endsWith('.jsx') || f.endsWith('.js')
+            const allFiles = lsOutput.split("\n").filter(Boolean);
+            localFiles = allFiles.filter(
+              (f) => f.endsWith(".tsx") || f.endsWith(".jsx") || f.endsWith(".js"),
             );
-            localComponentCount = localFiles.filter(f =>
-              !f.startsWith('index') && !f.startsWith('_')
+            localComponentCount = localFiles.filter(
+              (f) => !f.startsWith("index") && !f.startsWith("_"),
             ).length;
           }
         } catch (e) {
-          console.error('[WebflowSlate] Error listing devlink dir:', e);
+          console.error("[WebflowSlate] Error listing devlink dir:", e);
         }
       }
 
       // Get site info for lastPublished date
       const siteId = cfg?.siteId;
       let siteLastPublished: Date | null = null;
-      let siteName = cfg?.siteName || 'Unknown';
+      let siteName = cfg?.siteName || "Unknown";
 
       if (siteId) {
         const sitesData = sites();
-        const site = sitesData.find(s => s.id === siteId);
+        const site = sitesData.find((s) => s.id === siteId);
         if (site) {
           siteName = site.displayName;
           if (site.lastPublished) {
@@ -611,17 +620,17 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
         output += `\x1b[33m⚠ No components synced yet.\x1b[0m\r\n`;
         output += `Click "Pull Components" to sync your Webflow components.\r\n`;
       } else {
-        output += `\x1b[32m✓ ${localComponentCount} component${localComponentCount !== 1 ? 's' : ''} synced locally\x1b[0m\r\n\r\n`;
+        output += `\x1b[32m✓ ${localComponentCount} component${localComponentCount !== 1 ? "s" : ""} synced locally\x1b[0m\r\n\r\n`;
 
         // List first few components
         const componentNames = localFiles
-          .filter(f => !f.startsWith('index') && !f.startsWith('_'))
+          .filter((f) => !f.startsWith("index") && !f.startsWith("_"))
           .slice(0, 8)
-          .map(f => f.replace(/\.(tsx|jsx|js)$/, ''));
+          .map((f) => f.replace(/\.(tsx|jsx|js)$/, ""));
 
         if (componentNames.length > 0) {
           output += `Components:\r\n`;
-          componentNames.forEach(name => {
+          componentNames.forEach((name) => {
             output += `  • ${name}\r\n`;
           });
           if (localComponentCount > 8) {
@@ -676,12 +685,14 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
       // First, ensure telemetry is pre-configured in webflow.json to skip prompts
       await ensureTelemetryConfig(cwd);
 
-      setCommandOutput("Starting library share...\nA browser window will open for authentication if needed.");
+      setCommandOutput(
+        "Starting library share...\nA browser window will open for authentication if needed.",
+      );
 
       // Send message to plugin to run the share command (like startBrowserAuth)
       await electrobun.rpc?.request.pluginSendSettingsMessage({
         pluginName: PLUGIN_NAME,
-        message: { type: 'shareLibrary', cwd },
+        message: { type: "shareLibrary", cwd },
       });
 
       // Poll plugin state for the result
@@ -691,36 +702,38 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
       const pollForStatus = async () => {
         attempts++;
         try {
-          const status = await electrobun.rpc?.request.pluginGetStateValue({
+          const status = (await electrobun.rpc?.request.pluginGetStateValue({
             pluginName: PLUGIN_NAME,
-            key: 'shareLibraryStatus',
-          }) as { status: string; output?: string; error?: string; timestamp?: number } | undefined;
+            key: "shareLibraryStatus",
+          })) as
+            | { status: string; output?: string; error?: string; timestamp?: number }
+            | undefined;
 
-          console.log('[WebflowSlate] Share status:', status);
+          console.log("[WebflowSlate] Share status:", status);
 
           // Only process if the status is newer than when we started
           if (status && status.timestamp && status.timestamp > startTime) {
-            if (status.status === 'running') {
+            if (status.status === "running") {
               setCommandOutput("Sharing library to Webflow...\nThis may take a moment.");
-            } else if (status.status === 'success') {
+            } else if (status.status === "success") {
               // Clean up the output - remove expect noise (the 'y' responses and spawn line)
-              let output = status.output || '';
+              let output = status.output || "";
               // Remove the spawn line
-              output = output.replace(/^spawn bunx @webflow\/webflow-cli library share\n?/m, '');
+              output = output.replace(/^spawn bunx @webflow\/webflow-cli library share\n?/m, "");
               // Remove stray 'y' lines from expect auto-responses
-              output = output.replace(/^y\n/gm, '');
+              output = output.replace(/^y\n/gm, "");
               // Remove deprecation warnings
-              output = output.replace(/\(node:\d+\).*DeprecationWarning.*\n?/g, '');
-              output = output.replace(/\(Use `node --trace-deprecation.*\n?/g, '');
+              output = output.replace(/\(node:\d+\).*DeprecationWarning.*\n?/g, "");
+              output = output.replace(/\(Use `node --trace-deprecation.*\n?/g, "");
               // Clean up any double newlines
-              output = output.replace(/\n{3,}/g, '\n\n');
+              output = output.replace(/\n{3,}/g, "\n\n");
               output = output.trim();
 
               setCommandOutput(`✓ Library shared successfully!\n\n${output}`);
               setShareRunning(false);
               return; // Stop polling
-            } else if (status.status === 'error') {
-              setError(status.error || 'Failed to share library');
+            } else if (status.status === "error") {
+              setError(status.error || "Failed to share library");
               setCommandOutput(null);
               setShareRunning(false);
               return; // Stop polling
@@ -731,11 +744,13 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
           if (attempts < maxAttempts && shareRunning()) {
             setTimeout(pollForStatus, 1000);
           } else if (attempts >= maxAttempts) {
-            setCommandOutput("Share command is still running in the background.\nCheck your system notifications for results.");
+            setCommandOutput(
+              "Share command is still running in the background.\nCheck your system notifications for results.",
+            );
             setShareRunning(false);
           }
         } catch (e) {
-          console.error('[WebflowSlate] Error polling for status:', e);
+          console.error("[WebflowSlate] Error polling for status:", e);
           if (attempts < maxAttempts && shareRunning()) {
             setTimeout(pollForStatus, 1000);
           }
@@ -744,7 +759,6 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
 
       // Start polling after a short delay
       setTimeout(pollForStatus, 500);
-
     } catch (e) {
       const errMsg = e instanceof Error ? e.message : String(e);
       setError(errMsg);
@@ -769,14 +783,21 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
 
       // Bundle library for local testing
       setCommandOutput("Bundling components...\n");
-      await runCommandWithEnv("bunx", [
-        "@webflow/webflow-cli", "library", "bundle",
-        "--public-path", "http://localhost:4000/",
-        "--dev"
-      ], {
-        WEBFLOW_TELEMETRY: 'false',
-        DO_NOT_TRACK: '1',
-      });
+      await runCommandWithEnv(
+        "bunx",
+        [
+          "@webflow/webflow-cli",
+          "library",
+          "bundle",
+          "--public-path",
+          "http://localhost:4000/",
+          "--dev",
+        ],
+        {
+          WEBFLOW_TELEMETRY: "false",
+          DO_NOT_TRACK: "1",
+        },
+      );
 
       // Create a terminal and start the server
       setCommandOutput((prev) => (prev || "") + "\nStarting dev server...\n");
@@ -786,10 +807,14 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
         // Send the serve command to the terminal
         await electrobun.rpc?.request.writeToTerminal({
           terminalId,
-          data: "bunx serve -l 4000 -s dist\n"
+          data: "bunx serve -l 4000 -s dist\n",
         });
         setDevServerRunning(true);
-        setCommandOutput((prev) => (prev || "") + "\n✓ Dev server running at http://localhost:4000\n\nTo preview in Webflow Designer:\n1. Open your site in Webflow Designer\n2. Go to Apps panel → Code Components\n3. Click 'Load dev library' → http://localhost:4000\n");
+        setCommandOutput(
+          (prev) =>
+            (prev || "") +
+            "\n✓ Dev server running at http://localhost:4000\n\nTo preview in Webflow Designer:\n1. Open your site in Webflow Designer\n2. Go to Apps panel → Code Components\n3. Click 'Load dev library' → http://localhost:4000\n",
+        );
       }
     } catch (e) {
       const errMsg = e instanceof Error ? e.message : String(e);
@@ -806,7 +831,7 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
       // Send Ctrl+C to stop the server
       await electrobun.rpc?.request.writeToTerminal({
         terminalId,
-        data: "\x03" // Ctrl+C
+        data: "\x03", // Ctrl+C
       });
       // Kill the terminal
       await electrobun.rpc?.request.killTerminal({ terminalId });
@@ -863,30 +888,38 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
       // Update local config state
       setConfig(currentConfig);
     } catch (e) {
-      console.error('[WebflowSlate] Failed to update config:', e);
+      console.error("[WebflowSlate] Failed to update config:", e);
       setError(`Failed to update config: ${e instanceof Error ? e.message : String(e)}`);
     }
   };
 
   // Open Webflow Dashboard
   const openWebflowDashboard = () => {
-    openNewTabForNode('__COLAB_INTERNAL__/web', false, { focusNewTab: true, url: "https://webflow.com/dashboard" });
+    openNewTabForNode("__COLAB_INTERNAL__/web", false, {
+      focusNewTab: true,
+      url: "https://webflow.com/dashboard",
+    });
   };
 
   // Update Cloud config file with selected site
   const updateCloudConfigSite = async (site: WebflowSite, token: string) => {
     if (!props.node?.path) {
-      console.error('[WebflowSlate] updateCloudConfigSite: no node path');
+      console.error("[WebflowSlate] updateCloudConfigSite: no node path");
       return;
     }
 
-    console.log('[WebflowSlate] updateCloudConfigSite:', site.displayName, 'path:', props.node.path);
+    console.log(
+      "[WebflowSlate] updateCloudConfigSite:",
+      site.displayName,
+      "path:",
+      props.node.path,
+    );
 
     try {
       // Read current config
       const result = await electrobun.rpc?.request.readFile({ path: props.node.path });
       if (!result?.textContent) {
-        setError('Failed to read config file');
+        setError("Failed to read config file");
         return;
       }
 
@@ -903,7 +936,7 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
       };
 
       const jsonContent = JSON.stringify(newConfig, null, 2);
-      console.log('[WebflowSlate] Writing cloud config to:', props.node.path);
+      console.log("[WebflowSlate] Writing cloud config to:", props.node.path);
 
       const writeResult = await electrobun.rpc?.request.writeFile({
         path: props.node.path,
@@ -912,10 +945,10 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
 
       if (writeResult?.success) {
         setConfig(newConfig as any);
-        console.log('[WebflowSlate] Cloud config saved successfully');
+        console.log("[WebflowSlate] Cloud config saved successfully");
       } else {
-        console.error('[WebflowSlate] writeFile failed:', writeResult?.error);
-        setError('Failed to save configuration: ' + (writeResult?.error || 'unknown error'));
+        console.error("[WebflowSlate] writeFile failed:", writeResult?.error);
+        setError("Failed to save configuration: " + (writeResult?.error || "unknown error"));
       }
     } catch (e) {
       console.error("[WebflowSlate] Failed to update cloud config:", e);
@@ -954,7 +987,7 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
 
       setConfig(newConfig as any);
     } catch (e) {
-      console.error('[WebflowSlate] Failed to update cloud config field:', e);
+      console.error("[WebflowSlate] Failed to update cloud config field:", e);
       setError(`Failed to update ${key}`);
     }
   };
@@ -981,17 +1014,17 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
 
   // Initialize component
   onMount(async () => {
-    console.log('[WebflowSlate] onMount, slateType:', props.slateType);
+    console.log("[WebflowSlate] onMount, slateType:", props.slateType);
 
     const token = await checkConnection();
-    console.log('[WebflowSlate] token found:', !!token);
+    console.log("[WebflowSlate] token found:", !!token);
     if (token) {
       setAuthToken(token);
       await loadSitesFromState();
-      console.log('[WebflowSlate] sites loaded:', sites().length);
+      console.log("[WebflowSlate] sites loaded:", sites().length);
     }
     await loadConfig();
-    console.log('[WebflowSlate] config loaded:', config());
+    console.log("[WebflowSlate] config loaded:", config());
 
     if (token && props.slateType === "devlink") {
       // Check sync status for DevLink projects
@@ -1009,8 +1042,7 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
         height: "100%",
         overflow: "auto",
         padding: "20px",
-        "font-family":
-          "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+        "font-family": "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
       }}
     >
       <Show when={loading()}>
@@ -1040,7 +1072,7 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
               siteToken={(() => {
                 const cfg = config() as DevLinkConfig | null;
                 const siteId = cfg?.siteId;
-                return siteId ? (getSiteToken(siteId) || authToken()) : null;
+                return siteId ? getSiteToken(siteId) || authToken() : null;
               })()}
               onOpenSettings={openSettings}
               onChangeSite={(site) => {
@@ -1082,7 +1114,7 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
               siteToken={(() => {
                 const cfg = config() as CloudProjectConfig | null;
                 const siteId = cfg?.cloud?.siteId || cfg?.siteId;
-                return siteId ? (getSiteToken(siteId) || authToken()) : null;
+                return siteId ? getSiteToken(siteId) || authToken() : null;
               })()}
               onOpenSettings={openSettings}
               onChangeSite={(site) => {
@@ -1125,23 +1157,23 @@ const DevLinkSlateContent = (props: {
   nodePath?: string;
 }): JSXElement => {
   const [showSitePicker, setShowSitePicker] = createSignal(false);
-  const [terminalMode, setTerminalMode] = createSignal<'none' | 'sync'>('none');
+  const [terminalMode, setTerminalMode] = createSignal<"none" | "sync">("none");
   let terminalRef: ColabTerminalElement | null = null;
 
   // Get the working directory
   const getTerminalCwd = () => {
     if (props.cwd) return props.cwd;
     if (props.nodePath) {
-      const parts = props.nodePath.split('/');
+      const parts = props.nodePath.split("/");
       parts.pop();
-      return parts.join('/');
+      return parts.join("/");
     }
-    return '/';
+    return "/";
   };
 
   // Build command with env vars for site credentials
   const getEnvPrefix = () => {
-    if (!props.siteId || !props.siteToken) return '';
+    if (!props.siteId || !props.siteToken) return "";
     return `export WEBFLOW_SITE_ID="${props.siteId}" WEBFLOW_SITE_API_TOKEN="${props.siteToken}" && clear && `;
   };
 
@@ -1150,10 +1182,10 @@ const DevLinkSlateContent = (props: {
     if (!props.siteId || !props.siteToken) {
       return;
     }
-    if (terminalMode() === 'sync' && terminalRef) {
+    if (terminalMode() === "sync" && terminalRef) {
       terminalRef.run(`${getEnvPrefix()}bunx @webflow/webflow-cli devlink sync`);
     } else {
-      setTerminalMode('sync');
+      setTerminalMode("sync");
     }
   };
 
@@ -1162,7 +1194,7 @@ const DevLinkSlateContent = (props: {
     if (terminalRef) {
       terminalRef.kill();
     }
-    setTerminalMode('none');
+    setTerminalMode("none");
     terminalRef = null;
   };
 
@@ -1170,7 +1202,7 @@ const DevLinkSlateContent = (props: {
   const onTerminalRef = (el: ColabTerminalElement) => {
     terminalRef = el;
     setTimeout(() => {
-      if (terminalMode() === 'sync') {
+      if (terminalMode() === "sync") {
         el.run(`${getEnvPrefix()}bunx @webflow/webflow-cli devlink sync`);
       }
     }, 150);
@@ -1181,9 +1213,9 @@ const DevLinkSlateContent = (props: {
     if (!props.lastChecked) return null;
     const hours = props.lastChecked.getHours();
     const minutes = props.lastChecked.getMinutes();
-    const ampm = hours >= 12 ? 'pm' : 'am';
+    const ampm = hours >= 12 ? "pm" : "am";
     const hour12 = hours % 12 || 12;
-    const minuteStr = minutes.toString().padStart(2, '0');
+    const minuteStr = minutes.toString().padStart(2, "0");
     return `${hour12}:${minuteStr}${ampm}`;
   };
 
@@ -1201,7 +1233,7 @@ const DevLinkSlateContent = (props: {
   };
 
   // Get current site info from sites list
-  const currentSite = () => props.sites.find(s => s.id === props.config?.siteId);
+  const currentSite = () => props.sites.find((s) => s.id === props.config?.siteId);
 
   // Check if we need to show the site selection UI (no site selected yet)
   const needsSiteSelection = () => props.connected && props.config && !props.config.siteId;
@@ -1284,7 +1316,14 @@ const DevLinkSlateContent = (props: {
         >
           <div style={{ "text-align": "center", "margin-bottom": "16px" }}>
             <div style={{ "font-size": "32px", "margin-bottom": "8px" }}>🌐</div>
-            <h3 style={{ margin: "0 0 8px 0", color: "#fff", "font-size": "18px", "font-weight": 500 }}>
+            <h3
+              style={{
+                margin: "0 0 8px 0",
+                color: "#fff",
+                "font-size": "18px",
+                "font-weight": 500,
+              }}
+            >
               Select a Webflow Site
             </h3>
             <p style={{ margin: 0, color: "#888", "font-size": "13px" }}>
@@ -1345,7 +1384,13 @@ const DevLinkSlateContent = (props: {
                           {site.displayName}
                         </div>
                         <Show when={site.shortName && site.shortName !== site.displayName}>
-                          <div style={{ "font-size": "12px", color: "#666", "font-family": "monospace" }}>
+                          <div
+                            style={{
+                              "font-size": "12px",
+                              color: "#666",
+                              "font-family": "monospace",
+                            }}
+                          >
                             {site.shortName}
                           </div>
                         </Show>
@@ -1369,16 +1414,30 @@ const DevLinkSlateContent = (props: {
             "margin-bottom": "16px",
           }}
         >
-          <div style={{ display: "flex", "align-items": "center", "justify-content": "space-between" }}>
+          <div
+            style={{ display: "flex", "align-items": "center", "justify-content": "space-between" }}
+          >
             <div>
-              <label style={{ "font-size": "12px", color: "#888", display: "block", "margin-bottom": "4px" }}>
+              <label
+                style={{
+                  "font-size": "12px",
+                  color: "#888",
+                  display: "block",
+                  "margin-bottom": "4px",
+                }}
+              >
                 Connected Site
               </label>
               <div style={{ display: "flex", "align-items": "center", gap: "8px" }}>
                 <span style={{ "font-size": "16px", "font-weight": 500, color: "#fff" }}>
                   {currentSite()?.displayName || props.config?.siteName || "Unknown Site"}
                 </span>
-                <Show when={currentSite()?.shortName && currentSite()?.shortName !== currentSite()?.displayName}>
+                <Show
+                  when={
+                    currentSite()?.shortName &&
+                    currentSite()?.shortName !== currentSite()?.displayName
+                  }
+                >
                   <span style={{ "font-size": "12px", color: "#666", "font-family": "monospace" }}>
                     {currentSite()?.shortName}
                   </span>
@@ -1412,11 +1471,18 @@ const DevLinkSlateContent = (props: {
                 "border-top": "1px solid #333",
               }}
             >
-              <label style={{ "font-size": "12px", color: "#888", display: "block", "margin-bottom": "8px" }}>
+              <label
+                style={{
+                  "font-size": "12px",
+                  color: "#888",
+                  display: "block",
+                  "margin-bottom": "8px",
+                }}
+              >
                 Select a different site:
               </label>
               <div style={{ display: "flex", "flex-direction": "column", gap: "8px" }}>
-                <For each={props.sites.filter(s => s.id !== props.config?.siteId)}>
+                <For each={props.sites.filter((s) => s.id !== props.config?.siteId)}>
                   {(site) => (
                     <button
                       onClick={() => {
@@ -1432,15 +1498,21 @@ const DevLinkSlateContent = (props: {
                         cursor: "pointer",
                         transition: "background 0.2s",
                       }}
-                      onMouseEnter={(e) => e.currentTarget.style.background = "#333"}
-                      onMouseLeave={(e) => e.currentTarget.style.background = "#1e1e1e"}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = "#333")}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = "#1e1e1e")}
                     >
                       <div style={{ display: "flex", "align-items": "center", gap: "8px" }}>
                         <span style={{ "font-size": "14px", "font-weight": 500, color: "#fff" }}>
                           {site.displayName}
                         </span>
                         <Show when={site.shortName && site.shortName !== site.displayName}>
-                          <span style={{ "font-size": "12px", color: "#666", "font-family": "monospace" }}>
+                          <span
+                            style={{
+                              "font-size": "12px",
+                              color: "#666",
+                              "font-family": "monospace",
+                            }}
+                          >
                             {site.shortName}
                           </span>
                         </Show>
@@ -1483,7 +1555,7 @@ const DevLinkSlateContent = (props: {
             label="Sync Components"
             description="Sync latest from Webflow"
             onClick={startSync}
-            active={terminalMode() === 'sync'}
+            active={terminalMode() === "sync"}
           />
           <ActionButton
             icon="⚙"
@@ -1496,11 +1568,17 @@ const DevLinkSlateContent = (props: {
               icon="✎"
               label="Edit Config"
               description="Open in code editor"
-              onClick={() => props.nodePath && openNewTab({
-                type: "file",
-                path: props.nodePath,
-                forceEditor: true,
-              }, false)}
+              onClick={() =>
+                props.nodePath &&
+                openNewTab(
+                  {
+                    type: "file",
+                    path: props.nodePath,
+                    forceEditor: true,
+                  },
+                  false,
+                )
+              }
             />
           </Show>
         </div>
@@ -1523,7 +1601,7 @@ const DevLinkSlateContent = (props: {
         </Show>
 
         {/* PTY Terminal */}
-        <Show when={terminalMode() !== 'none'}>
+        <Show when={terminalMode() !== "none"}>
           <div
             style={{
               background: "#0a0a0a",
@@ -1589,35 +1667,37 @@ const CodeComponentsSlateContent = (props: {
   error: string | null;
   nodePath?: string;
 }): JSXElement => {
-  const [terminalMode, setTerminalMode] = createSignal<'none' | 'share' | 'dev'>('none');
+  const [terminalMode, setTerminalMode] = createSignal<"none" | "share" | "dev">("none");
   let terminalRef: ColabTerminalElement | null = null;
 
   // Get the working directory
   const getTerminalCwd = () => {
     if (props.cwd) return props.cwd;
     if (props.nodePath) {
-      const parts = props.nodePath.split('/');
+      const parts = props.nodePath.split("/");
       parts.pop();
-      return parts.join('/');
+      return parts.join("/");
     }
-    return '/';
+    return "/";
   };
 
   // Start share library in terminal
   const startShare = () => {
-    if (terminalMode() === 'share' && terminalRef) {
-      terminalRef.run('bunx @webflow/webflow-cli library share');
+    if (terminalMode() === "share" && terminalRef) {
+      terminalRef.run("bunx @webflow/webflow-cli library share");
     } else {
-      setTerminalMode('share');
+      setTerminalMode("share");
     }
   };
 
   // Start dev server in terminal
   const startDevServer = () => {
-    if (terminalMode() === 'dev' && terminalRef) {
-      terminalRef.run('bunx @webflow/webflow-cli library bundle --public-path "http://localhost:4000/" --dev && bunx serve dist -l 4000 --cors');
+    if (terminalMode() === "dev" && terminalRef) {
+      terminalRef.run(
+        'bunx @webflow/webflow-cli library bundle --public-path "http://localhost:4000/" --dev && bunx serve dist -l 4000 --cors',
+      );
     } else {
-      setTerminalMode('dev');
+      setTerminalMode("dev");
     }
   };
 
@@ -1626,7 +1706,7 @@ const CodeComponentsSlateContent = (props: {
     if (terminalRef) {
       terminalRef.kill();
     }
-    setTerminalMode('none');
+    setTerminalMode("none");
     terminalRef = null;
   };
 
@@ -1634,10 +1714,12 @@ const CodeComponentsSlateContent = (props: {
   const onTerminalRef = (el: ColabTerminalElement) => {
     terminalRef = el;
     setTimeout(() => {
-      if (terminalMode() === 'share') {
-        el.run('bunx @webflow/webflow-cli library share');
-      } else if (terminalMode() === 'dev') {
-        el.run('bunx @webflow/webflow-cli library bundle --public-path "http://localhost:4000/" --dev && bunx serve dist -l 4000 --cors');
+      if (terminalMode() === "share") {
+        el.run("bunx @webflow/webflow-cli library share");
+      } else if (terminalMode() === "dev") {
+        el.run(
+          'bunx @webflow/webflow-cli library bundle --public-path "http://localhost:4000/" --dev && bunx serve dist -l 4000 --cors',
+        );
       }
     }, 150);
   };
@@ -1746,10 +1828,10 @@ const CodeComponentsSlateContent = (props: {
               let slug = value
                 .toLowerCase()
                 .trim()
-                .replace(/\s+/g, '-')
-                .replace(/[^a-z0-9-]/g, '')
-                .replace(/-+/g, '-')
-                .replace(/^-|-$/g, '');
+                .replace(/\s+/g, "-")
+                .replace(/[^a-z0-9-]/g, "")
+                .replace(/-+/g, "-")
+                .replace(/^-|-$/g, "");
               // If empty after validation, don't save (return original to prevent empty)
               return slug || value;
             }}
@@ -1764,8 +1846,16 @@ const CodeComponentsSlateContent = (props: {
             <ConfigField label="Version" value={props.config?.version} />
           </Show>
           <div style={{ "margin-top": "12px" }}>
-            <label style={{ "font-size": "12px", color: "#888", display: "block", "margin-bottom": "8px" }}>
-              Components ({(props.config?.library?.components || props.config?.components)?.length || 0})
+            <label
+              style={{
+                "font-size": "12px",
+                color: "#888",
+                display: "block",
+                "margin-bottom": "8px",
+              }}
+            >
+              Components (
+              {(props.config?.library?.components || props.config?.components)?.length || 0})
             </label>
             <div style={{ display: "flex", gap: "8px", "flex-wrap": "wrap" }}>
               <For each={props.config?.library?.components || props.config?.components || []}>
@@ -1793,15 +1883,15 @@ const CodeComponentsSlateContent = (props: {
             label="Share Library"
             description="Publish to Webflow"
             onClick={startShare}
-            active={terminalMode() === 'share'}
+            active={terminalMode() === "share"}
             primary
           />
           <ActionButton
-            icon={terminalMode() === 'dev' ? "⏹" : "▶"}
-            label={terminalMode() === 'dev' ? "Stop Server" : "Dev Server"}
-            description={terminalMode() === 'dev' ? "Running on :4000" : "Bundle & serve"}
-            onClick={() => terminalMode() === 'dev' ? stopTerminal() : startDevServer()}
-            active={terminalMode() === 'dev'}
+            icon={terminalMode() === "dev" ? "⏹" : "▶"}
+            label={terminalMode() === "dev" ? "Stop Server" : "Dev Server"}
+            description={terminalMode() === "dev" ? "Running on :4000" : "Bundle & serve"}
+            onClick={() => (terminalMode() === "dev" ? stopTerminal() : startDevServer())}
+            active={terminalMode() === "dev"}
           />
           <ActionButton
             icon="🌐"
@@ -1835,7 +1925,7 @@ const CodeComponentsSlateContent = (props: {
         </Show>
 
         {/* PTY Terminal */}
-        <Show when={terminalMode() !== 'none'}>
+        <Show when={terminalMode() !== "none"}>
           <div
             style={{
               background: "#0a0a0a",
@@ -1856,11 +1946,11 @@ const CodeComponentsSlateContent = (props: {
               }}
             >
               <div style={{ display: "flex", "align-items": "center", gap: "8px" }}>
-                <span style={{ color: terminalMode() === 'share' ? "#a855f7" : "#60a5fa" }}>
-                  {terminalMode() === 'share' ? "↑" : "▶"}
+                <span style={{ color: terminalMode() === "share" ? "#a855f7" : "#60a5fa" }}>
+                  {terminalMode() === "share" ? "↑" : "▶"}
                 </span>
                 <span style={{ "font-size": "12px", "font-weight": 500, color: "#fff" }}>
-                  {terminalMode() === 'share' ? "Sharing Library" : "Development Server"}
+                  {terminalMode() === "share" ? "Sharing Library" : "Development Server"}
                 </span>
               </div>
               <button
@@ -1907,7 +1997,7 @@ const CloudSlateContent = (props: {
   nodePath?: string;
 }): JSXElement => {
   const [showSitePicker, setShowSitePicker] = createSignal(false);
-  const [terminalMode, setTerminalMode] = createSignal<'none' | 'deploy' | 'dev'>('none');
+  const [terminalMode, setTerminalMode] = createSignal<"none" | "deploy" | "dev">("none");
   let terminalRef: ColabTerminalElement | null = null;
 
   // Get the working directory - derive from nodePath if cwd not provided
@@ -1915,11 +2005,11 @@ const CloudSlateContent = (props: {
     if (props.cwd) return props.cwd;
     if (props.nodePath) {
       // nodePath is the config file path, get its directory
-      const parts = props.nodePath.split('/');
+      const parts = props.nodePath.split("/");
       parts.pop(); // Remove filename
-      return parts.join('/');
+      return parts.join("/");
     }
-    return '/';
+    return "/";
   };
 
   const getFrameworkIcon = () => {
@@ -1953,21 +2043,23 @@ const CloudSlateContent = (props: {
       return;
     }
     // If already in deploy mode, just run the command again
-    if (terminalMode() === 'deploy' && terminalRef) {
+    if (terminalMode() === "deploy" && terminalRef) {
       // Set env vars, clear to hide tokens, then run deploy
-      terminalRef.run(`export WEBFLOW_SITE_ID="${props.siteId}" WEBFLOW_SITE_API_TOKEN="${props.siteToken}" WEBFLOW_SKIP_UPDATE_CHECKS=true && clear && bunx @webflow/webflow-cli cloud deploy`);
+      terminalRef.run(
+        `export WEBFLOW_SITE_ID="${props.siteId}" WEBFLOW_SITE_API_TOKEN="${props.siteToken}" WEBFLOW_SKIP_UPDATE_CHECKS=true && clear && bunx @webflow/webflow-cli cloud deploy`,
+      );
     } else {
-      setTerminalMode('deploy');
+      setTerminalMode("deploy");
     }
   };
 
   // Start dev server in terminal
   const startDevServer = () => {
-    if (terminalMode() === 'dev' && terminalRef) {
+    if (terminalMode() === "dev" && terminalRef) {
       // Already running, run command again
-      terminalRef.run('bun install && bun run dev');
+      terminalRef.run("bun install && bun run dev");
     } else {
-      setTerminalMode('dev');
+      setTerminalMode("dev");
     }
   };
 
@@ -1976,7 +2068,7 @@ const CloudSlateContent = (props: {
     if (terminalRef) {
       terminalRef.kill();
     }
-    setTerminalMode('none');
+    setTerminalMode("none");
     terminalRef = null;
   };
 
@@ -1986,11 +2078,13 @@ const CloudSlateContent = (props: {
     // Run the appropriate command once terminal is ready
     // Small delay to ensure terminal is initialized
     setTimeout(() => {
-      if (terminalMode() === 'deploy' && props.siteId && props.siteToken) {
+      if (terminalMode() === "deploy" && props.siteId && props.siteToken) {
         // Set env vars, clear screen to hide tokens, then run deploy
-        el.run(`export WEBFLOW_SITE_ID="${props.siteId}" WEBFLOW_SITE_API_TOKEN="${props.siteToken}" WEBFLOW_SKIP_UPDATE_CHECKS=true && clear && bunx @webflow/webflow-cli cloud deploy`);
-      } else if (terminalMode() === 'dev') {
-        el.run('bun install && bun run dev');
+        el.run(
+          `export WEBFLOW_SITE_ID="${props.siteId}" WEBFLOW_SITE_API_TOKEN="${props.siteToken}" WEBFLOW_SKIP_UPDATE_CHECKS=true && clear && bunx @webflow/webflow-cli cloud deploy`,
+        );
+      } else if (terminalMode() === "dev") {
+        el.run("bun install && bun run dev");
       }
     }, 150);
   };
@@ -1998,7 +2092,7 @@ const CloudSlateContent = (props: {
   // Get siteId from either nested cloud config or top-level
   const getSiteId = () => props.config?.cloud?.siteId || props.config?.siteId;
   const getSiteName = () => props.config?.cloud?.siteName || props.config?.siteName;
-  const selectedSite = () => props.sites.find(s => s.id === getSiteId());
+  const selectedSite = () => props.sites.find((s) => s.id === getSiteId());
 
   return (
     <div>
@@ -2135,7 +2229,14 @@ const CloudSlateContent = (props: {
               "margin-bottom": "16px",
             }}
           >
-            <div style={{ display: "flex", "align-items": "center", "justify-content": "space-between", "margin-bottom": "16px" }}>
+            <div
+              style={{
+                display: "flex",
+                "align-items": "center",
+                "justify-content": "space-between",
+                "margin-bottom": "16px",
+              }}
+            >
               <h3
                 style={{
                   margin: 0,
@@ -2248,14 +2349,14 @@ const CloudSlateContent = (props: {
             label="Deploy"
             description={getSiteId() ? "Push to Webflow Cloud" : "Select a site first"}
             onClick={startDeploy}
-            active={terminalMode() === 'deploy'}
+            active={terminalMode() === "deploy"}
           />
           <ActionButton
-            icon={terminalMode() === 'dev' ? "⏹" : "▶"}
-            label={terminalMode() === 'dev' ? "Stop Server" : "Dev Server"}
-            description={terminalMode() === 'dev' ? "Running on :4321" : "Run locally"}
-            onClick={() => terminalMode() === 'dev' ? stopTerminal() : startDevServer()}
-            active={terminalMode() === 'dev'}
+            icon={terminalMode() === "dev" ? "⏹" : "▶"}
+            label={terminalMode() === "dev" ? "Stop Server" : "Dev Server"}
+            description={terminalMode() === "dev" ? "Running on :4321" : "Run locally"}
+            onClick={() => (terminalMode() === "dev" ? stopTerminal() : startDevServer())}
+            active={terminalMode() === "dev"}
           />
           <ActionButton
             icon="⚙"
@@ -2283,7 +2384,7 @@ const CloudSlateContent = (props: {
         </Show>
 
         {/* PTY Terminal - shows when deploy or dev mode is active */}
-        <Show when={terminalMode() !== 'none'}>
+        <Show when={terminalMode() !== "none"}>
           <div
             style={{
               background: "#0a0a0a",
@@ -2304,11 +2405,13 @@ const CloudSlateContent = (props: {
               }}
             >
               <div style={{ display: "flex", "align-items": "center", gap: "8px" }}>
-                <span style={{ color: terminalMode() === 'deploy' ? "#4ade80" : "#60a5fa" }}>
-                  {terminalMode() === 'deploy' ? "🚀" : "▶"}
+                <span style={{ color: terminalMode() === "deploy" ? "#4ade80" : "#60a5fa" }}>
+                  {terminalMode() === "deploy" ? "🚀" : "▶"}
                 </span>
                 <span style={{ "font-size": "12px", "font-weight": 500, color: "#fff" }}>
-                  {terminalMode() === 'deploy' ? "Deploying to Webflow Cloud" : "Development Server"}
+                  {terminalMode() === "deploy"
+                    ? "Deploying to Webflow Cloud"
+                    : "Development Server"}
                 </span>
               </div>
               <button
@@ -2405,11 +2508,7 @@ const DashboardSlateContent = (props: {
             gap: "16px",
           }}
         >
-          <For each={props.sites}>
-            {(site) => (
-              <SiteCard site={site} />
-            )}
-          </For>
+          <For each={props.sites}>{(site) => <SiteCard site={site} />}</For>
         </div>
       </Show>
     </div>
@@ -2473,7 +2572,9 @@ const ConnectPrompt = (props: { onOpenSettings: () => void; large?: boolean }): 
 const ConfigField = (props: { label: string; value?: string; mono?: boolean }): JSXElement => (
   <Show when={props.value}>
     <div style={{ "margin-bottom": "12px" }}>
-      <label style={{ "font-size": "12px", color: "#888", display: "block", "margin-bottom": "4px" }}>
+      <label
+        style={{ "font-size": "12px", color: "#888", display: "block", "margin-bottom": "4px" }}
+      >
         {props.label}
       </label>
       <div
@@ -2531,7 +2632,9 @@ const EditableConfigField = (props: {
 
   return (
     <div style={{ "margin-bottom": "12px" }}>
-      <label style={{ "font-size": "12px", color: "#888", display: "block", "margin-bottom": "4px" }}>
+      <label
+        style={{ "font-size": "12px", color: "#888", display: "block", "margin-bottom": "4px" }}
+      >
         {props.label}
       </label>
       <Show
@@ -2670,16 +2773,23 @@ const ActionButton = (props: {
           "margin-bottom": "4px",
         }}
       >
-        <span style={{ "font-size": "16px" }}>
-          {props.loading ? "⏳" : props.icon}
-        </span>
+        <span style={{ "font-size": "16px" }}>{props.loading ? "⏳" : props.icon}</span>
         <span
-          style={{ "font-size": "14px", "font-weight": 500, color: props.active ? "#4ade80" : "#fff" }}
+          style={{
+            "font-size": "14px",
+            "font-weight": 500,
+            color: props.active ? "#4ade80" : "#fff",
+          }}
         >
           {props.label}
         </span>
       </div>
-      <div style={{ "font-size": "12px", color: props.primary ? "rgba(255,255,255,0.7)" : props.active ? "#6ee7a0" : "#888" }}>
+      <div
+        style={{
+          "font-size": "12px",
+          color: props.primary ? "rgba(255,255,255,0.7)" : props.active ? "#6ee7a0" : "#888",
+        }}
+      >
         {props.loading ? "Running..." : props.description}
       </div>
     </button>
@@ -2745,7 +2855,7 @@ const TerminalOutputPanel = (props: {
       initTerminal();
     }
     // Subscribe to terminal output for streaming
-    window.addEventListener('terminalOutput', handleTerminalOutput as EventListener);
+    window.addEventListener("terminalOutput", handleTerminalOutput as EventListener);
   });
 
   // Update content when props change (for non-streaming output)
@@ -2774,7 +2884,7 @@ const TerminalOutputPanel = (props: {
   });
 
   onCleanup(() => {
-    window.removeEventListener('terminalOutput', handleTerminalOutput as EventListener);
+    window.removeEventListener("terminalOutput", handleTerminalOutput as EventListener);
     terminal?.dispose();
     terminal = null;
     fitAddon = null;
@@ -2865,9 +2975,7 @@ const SiteCard = (props: { site: WebflowSite }): JSXElement => (
         >
           {props.site.displayName}
         </div>
-        <div style={{ "font-size": "12px", color: "#888" }}>
-          {props.site.shortName}
-        </div>
+        <div style={{ "font-size": "12px", color: "#888" }}>{props.site.shortName}</div>
       </div>
     </div>
   </div>

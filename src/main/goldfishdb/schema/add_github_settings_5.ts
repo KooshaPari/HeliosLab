@@ -1,16 +1,7 @@
 import DB from "goldfishdb";
 
-const {
-  collection,
-  string,
-  boolean,
-  object,
-  array,
-  record,
-  number,
-  defaultOpts,
-  schema,
-} = DB.v1.schemaType;
+const { collection, string, boolean, object, array, record, number, defaultOpts, schema } =
+  DB.v1.schemaType;
 
 export const schema5 = schema({
   v: 1,
@@ -34,7 +25,7 @@ export const schema5 = schema({
                 showSidebar: boolean({ required: true, internal: false }),
                 sidebarWidth: number({ required: true, internal: false }),
               },
-              { required: true, internal: false }
+              { required: true, internal: false },
             ),
             // the window box dimensions
             position: object(
@@ -45,7 +36,7 @@ export const schema5 = schema({
                 width: number({ required: true, internal: false }),
                 height: number({ required: true, internal: false }),
               },
-              { required: true, internal: false }
+              { required: true, internal: false },
             ),
             // folder expansions in the window
             expansions: array(string(defaultOpts), {
@@ -69,12 +60,12 @@ export const schema5 = schema({
                 paneId: string({ ...defaultOpts, required: true }),
                 url: string(defaultOpts),
               },
-              { ...defaultOpts, required: true }
+              { ...defaultOpts, required: true },
             ),
           },
-          defaultOpts
+          defaultOpts,
         ),
-        { required: true, internal: false }
+        { required: true, internal: false },
       ),
     }),
     // projects
@@ -106,7 +97,7 @@ export const schema5 = schema({
           inlineEnabled: boolean({ required: false, internal: false }),
           // dropdownEnabled field removed in schema v4
         },
-        { required: false, internal: false }
+        { required: false, internal: false },
       ),
       // Added in schema v5: GitHub integration settings
       github: object(
@@ -116,7 +107,7 @@ export const schema5 = schema({
           connectedAt: number(defaultOpts),
           scopes: array(string(defaultOpts), defaultOpts),
         },
-        defaultOpts
+        defaultOpts,
       ),
     }),
     // fileMeta: collection({

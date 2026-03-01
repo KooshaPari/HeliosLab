@@ -9,8 +9,9 @@ import { schema5 } from "./schema/add_github_settings_5";
 import { schema6 } from "./schema/add_analytics_settings_6";
 import { schema7 } from "./schema/add_colab_cloud_settings_7";
 import { schema8 } from "./schema/add_helios_collections_8";
+import { schema9 } from "./schema/add_helios_session_snapshots_9";
 
-const currentSchema = schema8;
+const currentSchema = schema9;
 
 export type CurrentDocumentTypes = SchemaToDocumentTypes<typeof currentSchema>;
 
@@ -24,9 +25,10 @@ const db = new DB<typeof currentSchema>().init({
     { v: 6, schema: schema6, migrationSteps: false },
     { v: 7, schema: schema7, migrationSteps: false },
     { v: 8, schema: schema8, migrationSteps: false },
+    { v: 9, schema: schema9, migrationSteps: false },
   ],
   db_folder: COLAB_GOLDFISHDB_PATH,
-  passphrase: 'colab-dev-encryption-key'
+  passphrase: "colab-dev-encryption-key",
 });
 
 export default db;

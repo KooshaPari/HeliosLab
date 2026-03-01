@@ -1,14 +1,11 @@
-import {
-  spawnSync,
-  type SpawnSyncOptionsWithBufferEncoding,
-} from "child_process";
+import { spawnSync, type SpawnSyncOptionsWithBufferEncoding } from "child_process";
 import { BUN_PATH } from "../consts/paths";
 
 // An execSync-like wrapper around spawnSync in the ~/.colab/.bun/ folder as cwd
 export const execSpawnSync = (
   command: string,
   args: string[] = [],
-  opts: SpawnSyncOptionsWithBufferEncoding = {}
+  opts: SpawnSyncOptionsWithBufferEncoding = {},
 ): { stdout: string; stderr: string; exitCode: number | null } => {
   const result = spawnSync(command, args, {
     cwd: BUN_PATH,
@@ -16,7 +13,7 @@ export const execSpawnSync = (
     env: {
       ...process.env,
       ...opts.env,
-      CI: 'true', // Skip interactive prompts in CLIs
+      CI: "true", // Skip interactive prompts in CLIs
     },
   });
 

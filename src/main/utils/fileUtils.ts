@@ -9,10 +9,7 @@ import {
   mkdirSync,
   writeFileSync,
 } from "fs";
-import {
-  type CachedFileType,
-  type PreviewFileTreeType,
-} from "../../shared/types/types";
+import { type CachedFileType, type PreviewFileTreeType } from "../../shared/types/types";
 import { isPathSafe } from "../../shared/utils/files";
 import { Utils } from "electrobun/bun";
 import { BUN_BINARY_PATH, COLAB_ENV_PATH, FD_BINARY_PATH, RG_BINARY_PATH } from "../consts/paths";
@@ -60,9 +57,7 @@ export const readSlateConfigFile = (path: string, cacheResult = true) => {
   try {
     if (existsSync(path)) {
       if (!statSync(path)?.isFile()) {
-        throw new Error(
-          `Must give a file path (eg: to .colab.json), path given: ${path}`
-        );
+        throw new Error(`Must give a file path (eg: to .colab.json), path given: ${path}`);
       }
 
       const slateJson = readFileSync(path, "utf-8");
@@ -128,19 +123,19 @@ type FindAllInFolderResult = {
 export function findAllInFolder(
   path: string,
   query: string = "",
-  onResult: (result: FindAllInFolderResult) => void
+  onResult: (result: FindAllInFolderResult) => void,
 ): Subprocess {
   // Use bundled ripgrep for fast content search
   // ripgrep automatically respects .gitignore files
   const findAllProcess = Bun.spawn(
     [
       RG_BINARY_PATH,
-      "--line-number",       // Show line numbers
-      "--column",            // Show column numbers
-      "--no-heading",        // Don't group by file
-      "--color=never",       // No ANSI color codes
-      "--case-sensitive",    // Case sensitive (can be toggled later)
-      "--max-count=500",     // Limit to 500 matches per file (prevents massive result sets)
+      "--line-number", // Show line numbers
+      "--column", // Show column numbers
+      "--no-heading", // Don't group by file
+      "--color=never", // No ANSI color codes
+      "--case-sensitive", // Case sensitive (can be toggled later)
+      "--max-count=500", // Limit to 500 matches per file (prevents massive result sets)
       // ripgrep respects .gitignore by default
       query,
       path,
@@ -148,7 +143,7 @@ export function findAllInFolder(
     {
       stdout: "pipe",
       stderr: "pipe",
-    }
+    },
   );
 
   function processLine(line: string) {
@@ -201,7 +196,7 @@ export function findAllInFolder(
 export function findFilesInFolder(
   path: string,
   query: string = "",
-  onResult: (result: string) => void
+  onResult: (result: string) => void,
 ): Subprocess {
   // Use bundled fd (faster alternative to find) if available, otherwise fall back to find
   // fd is much faster and has better defaults for developer workflows
@@ -213,15 +208,17 @@ export function findFilesInFolder(
   const useFd = existsSync(FD_BINARY_PATH);
 
   const fdCommand = [
-    FD_BINARY_PATH,          // Use bundled fd
-    "--type", "f",           // Only files
-    "--hidden",              // Include hidden files
+    FD_BINARY_PATH, // Use bundled fd
+    "--type",
+    "f", // Only files
+    "--hidden", // Include hidden files
     // Note: Respects .gitignore by default (no --no-ignore)
-    "--exclude", ".git",     // Exclude .git
-    "--full-path",           // Search full path, not just filename
+    "--exclude",
+    ".git", // Exclude .git
+    "--full-path", // Search full path, not just filename
     // Note: fd is case-insensitive by default, no flag needed
-    fuzzyPattern,            // The fuzzy pattern
-    path,                    // Search path
+    fuzzyPattern, // The fuzzy pattern
+    path, // Search path
   ];
 
   const findCommand = [
@@ -298,21 +295,23 @@ export function findFilesInFolder(
  */
 export async function findFirstNestedGitRepo(
   searchPath: string,
-  timeoutMs: number = 5000
+  timeoutMs: number = 5000,
 ): Promise<string | null> {
   if (!existsSync(FD_BINARY_PATH)) {
-    console.error('[findFirstNestedGitRepo] fd binary not found at:', FD_BINARY_PATH);
+    console.error("[findFirstNestedGitRepo] fd binary not found at:", FD_BINARY_PATH);
     return null;
   }
 
   try {
     const fdCommand = [
       FD_BINARY_PATH,
-      "--type", "d",              // Only directories
-      "--hidden",                 // Include hidden directories
-      "--max-results", "1",       // Stop after finding first match
-      "^.git$",                   // Match .git exactly (full depth search)
-      searchPath,                 // Search path
+      "--type",
+      "d", // Only directories
+      "--hidden", // Include hidden directories
+      "--max-results",
+      "1", // Stop after finding first match
+      "^.git$", // Match .git exactly (full depth search)
+      searchPath, // Search path
     ];
 
     const proc = Bun.spawn(fdCommand, {
@@ -325,7 +324,7 @@ export async function findFirstNestedGitRepo(
     const timeoutPromise = new Promise<string>((resolve) => {
       setTimeout(() => {
         proc.kill();
-        resolve('TIMEOUT');
+        resolve("TIMEOUT");
       }, timeoutMs);
     });
 
@@ -336,15 +335,15 @@ export async function findFirstNestedGitRepo(
       await proc.exited;
     }
 
-    if (output === 'TIMEOUT') {
-      console.warn('[findFirstNestedGitRepo] Search timed out after', timeoutMs, 'ms');
+    if (output === "TIMEOUT") {
+      console.warn("[findFirstNestedGitRepo] Search timed out after", timeoutMs, "ms");
       return null;
     }
 
     const trimmedOutput = output.trim();
     return trimmedOutput ? trimmedOutput : null;
   } catch (error) {
-    console.error('[findFirstNestedGitRepo] Error:', error);
+    console.error("[findFirstNestedGitRepo] Error:", error);
     return null;
   }
 }

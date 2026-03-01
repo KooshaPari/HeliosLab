@@ -27,7 +27,7 @@
  * ✅ Utils (getUniqueNewName)
  */
 
-import type { PluginAPI, Disposable } from '../colab/src/main/plugins/types';
+import type { PluginAPI, Disposable } from "../colab/src/main/plugins/types";
 
 let electrobunModeEnabled = false;
 const disposables: Disposable[] = [];
@@ -57,7 +57,7 @@ const preloadScript = `
 // ============================================================================
 
 export async function activate(api: PluginAPI): Promise<void> {
-  api.log.info('⚡🐰 Electrobun Demo Plugin activating...');
+  api.log.info("⚡🐰 Electrobun Demo Plugin activating...");
   api.log.info(`Plugin: ${api.plugin.name} v${api.plugin.version}`);
 
   // Helper for flash messages
@@ -68,22 +68,22 @@ export async function activate(api: PluginAPI): Promise<void> {
   // --------------------------------------------------------------------------
   const preloadDisposable = api.webview.registerPreloadScript(preloadScript);
   disposables.push(preloadDisposable);
-  api.log.info('✓ Webview preload script registered');
+  api.log.info("✓ Webview preload script registered");
 
   // --------------------------------------------------------------------------
   // 2. COMMANDS: Register various commands
   // --------------------------------------------------------------------------
 
   // Enable command
-  const zapDisposable = api.commands.registerCommand('electrobun.zap', async () => {
+  const zapDisposable = api.commands.registerCommand("electrobun.zap", async () => {
     electrobunModeEnabled = true;
-    api.log.info('⚡ ZAP! Electrobun mode enabled!');
-    api.notifications.showInfo('⚡🐰 Electrobun mode ACTIVATED!');
-    flashStatus('⚡ ZAPPED! ⚡', 3000);
+    api.log.info("⚡ ZAP! Electrobun mode enabled!");
+    api.notifications.showInfo("⚡🐰 Electrobun mode ACTIVATED!");
+    flashStatus("⚡ ZAPPED! ⚡", 3000);
 
     // Demo: increment activation count in state
-    const activations = (api.state.get<number>('activationCount') || 0) + 1;
-    api.state.set('activationCount', activations);
+    const activations = (api.state.get<number>("activationCount") || 0) + 1;
+    api.state.set("activationCount", activations);
     api.log.info(`Total activations: ${activations}`);
 
     return { enabled: true, activations };
@@ -91,27 +91,27 @@ export async function activate(api: PluginAPI): Promise<void> {
   disposables.push(zapDisposable);
 
   // Disable command
-  const restDisposable = api.commands.registerCommand('electrobun.rest', async () => {
+  const restDisposable = api.commands.registerCommand("electrobun.rest", async () => {
     electrobunModeEnabled = false;
-    api.log.info('🐰 Rest mode - Electrobun sleeping');
-    api.notifications.showInfo('🐰💤 Electrobun is resting...');
-    flashStatus('🐰 Resting...', 3000);
+    api.log.info("🐰 Rest mode - Electrobun sleeping");
+    api.notifications.showInfo("🐰💤 Electrobun is resting...");
+    flashStatus("🐰 Resting...", 3000);
     return { enabled: false };
   });
   disposables.push(restDisposable);
 
   // Git status command
-  const gitStatusDisposable = api.commands.registerCommand('electrobun.showGitStatus', async () => {
+  const gitStatusDisposable = api.commands.registerCommand("electrobun.showGitStatus", async () => {
     try {
       const folders = await api.workspace.getWorkspaceFolders();
       if (folders.length === 0) {
-        api.notifications.showWarning('No workspace folder open');
+        api.notifications.showWarning("No workspace folder open");
         return;
       }
       const branch = await api.git.getBranch(folders[0].path);
       const status = await api.git.getStatus(folders[0].path);
       api.notifications.showInfo(`⚡ Branch: ${branch}`);
-      api.log.info('Git status:', status);
+      api.log.info("Git status:", status);
       return { branch, status };
     } catch (err) {
       api.notifications.showError(`Git error: ${err}`);
@@ -120,11 +120,11 @@ export async function activate(api: PluginAPI): Promise<void> {
   disposables.push(gitStatusDisposable);
 
   // Find files command
-  const findFilesDisposable = api.commands.registerCommand('electrobun.findFiles', async () => {
+  const findFilesDisposable = api.commands.registerCommand("electrobun.findFiles", async () => {
     try {
-      const files = await api.workspace.findFiles('**/*.ts');
+      const files = await api.workspace.findFiles("**/*.ts");
       api.notifications.showInfo(`⚡ Found ${files.length} TypeScript files`);
-      api.log.info('TypeScript files:', files.slice(0, 10));
+      api.log.info("TypeScript files:", files.slice(0, 10));
       return { count: files.length, sample: files.slice(0, 10) };
     } catch (err) {
       api.notifications.showError(`Find files error: ${err}`);
@@ -133,11 +133,11 @@ export async function activate(api: PluginAPI): Promise<void> {
   disposables.push(findFilesDisposable);
 
   // Shell command demo
-  const shellDisposable = api.commands.registerCommand('electrobun.runShell', async () => {
+  const shellDisposable = api.commands.registerCommand("electrobun.runShell", async () => {
     try {
       const result = await api.shell.exec('echo "⚡🐰 Hello from shell!"', { timeout: 5000 });
       api.notifications.showInfo(`Shell output: ${result.stdout.trim()}`);
-      api.log.info('Shell result:', result);
+      api.log.info("Shell result:", result);
       return result;
     } catch (err) {
       api.notifications.showError(`Shell error: ${err}`);
@@ -146,54 +146,54 @@ export async function activate(api: PluginAPI): Promise<void> {
   disposables.push(shellDisposable);
 
   // Open docs command
-  const openDocsDisposable = api.commands.registerCommand('electrobun.openDocs', async () => {
-    api.ui.openUrl('https://electrobun.dev');
-    api.notifications.showInfo('⚡ Opening Electrobun docs...');
+  const openDocsDisposable = api.commands.registerCommand("electrobun.openDocs", async () => {
+    api.ui.openUrl("https://electrobun.dev");
+    api.notifications.showInfo("⚡ Opening Electrobun docs...");
   });
   disposables.push(openDocsDisposable);
 
-  api.log.info('✓ Commands registered (6 commands)');
+  api.log.info("✓ Commands registered (6 commands)");
 
   // --------------------------------------------------------------------------
   // 3. TERMINAL: Register terminal commands
   // --------------------------------------------------------------------------
 
   // Main "zap" terminal command
-  const terminalZapDisposable = api.terminal.registerCommand('zap', async (ctx) => {
+  const terminalZapDisposable = api.terminal.registerCommand("zap", async (ctx) => {
     const { args, cwd, write } = ctx;
     const count = parseInt(args[0]) || 3;
 
-    write('\x1b[33m'); // Yellow
-    write('⚡🐰 Electrobun Terminal Command\r\n');
-    write('\x1b[0m');
-    write('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\r\n\r\n');
+    write("\x1b[33m"); // Yellow
+    write("⚡🐰 Electrobun Terminal Command\r\n");
+    write("\x1b[0m");
+    write("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\r\n\r\n");
     write(`\x1b[90mCWD: ${cwd}\x1b[0m\r\n\r\n`);
 
-    const emojis = ['⚡', '🐰', '⚡🐰', '🔌', '💡', '🚀'];
+    const emojis = ["⚡", "🐰", "⚡🐰", "🔌", "💡", "🚀"];
     for (let i = 0; i < count; i++) {
-      await new Promise(resolve => setTimeout(resolve, 150));
+      await new Promise((resolve) => setTimeout(resolve, 150));
       const emoji = emojis[i % emojis.length];
       write(`${emoji} Zap ${i + 1}!\r\n`);
     }
 
-    write('\r\n\x1b[32m✓ Electrobun zapped!\x1b[0m\r\n');
+    write("\r\n\x1b[32m✓ Electrobun zapped!\x1b[0m\r\n");
   });
   disposables.push(terminalZapDisposable);
 
   // "bunny" terminal command - shows bunny art
-  const terminalBunnyDisposable = api.terminal.registerCommand('bunny', async (ctx) => {
+  const terminalBunnyDisposable = api.terminal.registerCommand("bunny", async (ctx) => {
     const { write } = ctx;
-    write('\x1b[35m'); // Magenta
-    write('   /)  /)\r\n');
-    write('  ( ^.^ )\r\n');
+    write("\x1b[35m"); // Magenta
+    write("   /)  /)\r\n");
+    write("  ( ^.^ )\r\n");
     write('  c(")(")  \x1b[33m⚡ Electrobun!\x1b[0m\r\n\r\n');
   });
   disposables.push(terminalBunnyDisposable);
 
   // "paths" terminal command - shows bundled binary paths
-  const terminalPathsDisposable = api.terminal.registerCommand('paths', async (ctx) => {
+  const terminalPathsDisposable = api.terminal.registerCommand("paths", async (ctx) => {
     const { write } = ctx;
-    write('\x1b[36m⚡ Bundled Binary Paths:\x1b[0m\r\n\r\n');
+    write("\x1b[36m⚡ Bundled Binary Paths:\x1b[0m\r\n\r\n");
     write(`  bun:       ${api.paths.bun}\r\n`);
     write(`  git:       ${api.paths.git}\r\n`);
     write(`  fd:        ${api.paths.fd}\r\n`);
@@ -203,89 +203,91 @@ export async function activate(api: PluginAPI): Promise<void> {
   });
   disposables.push(terminalPathsDisposable);
 
-  api.log.info('✓ Terminal commands registered (zap, bunny, paths)');
+  api.log.info("✓ Terminal commands registered (zap, bunny, paths)");
 
   // --------------------------------------------------------------------------
   // 4. EDITOR: Register completion provider
   // --------------------------------------------------------------------------
 
   const completionDisposable = api.editor.registerCompletionProvider(
-    ['typescript', 'javascript', 'typescriptreact', 'javascriptreact'],
+    ["typescript", "javascript", "typescriptreact", "javascriptreact"],
     {
-      triggerCharacters: ['.'],
+      triggerCharacters: ["."],
       provideCompletions(ctx) {
-        if (!ctx.linePrefix.endsWith('console.')) {
+        if (!ctx.linePrefix.endsWith("console.")) {
           return [];
         }
 
         return [
           {
-            label: '⚡ log (zap)',
+            label: "⚡ log (zap)",
             insertText: "log('⚡ ', $1);$0",
-            detail: 'Electrobun console.log',
-            documentation: 'Insert a console.log with a lightning bolt prefix',
-            kind: 'snippet',
+            detail: "Electrobun console.log",
+            documentation: "Insert a console.log with a lightning bolt prefix",
+            kind: "snippet",
           },
           {
-            label: '🐰 log (bunny)',
+            label: "🐰 log (bunny)",
             insertText: "log('🐰 ', $1);$0",
-            detail: 'Bunny console.log',
-            documentation: 'Insert a console.log with a bunny prefix',
-            kind: 'snippet',
+            detail: "Bunny console.log",
+            documentation: "Insert a console.log with a bunny prefix",
+            kind: "snippet",
           },
           {
-            label: '⚡🐰 log (electrobun)',
+            label: "⚡🐰 log (electrobun)",
             insertText: "log('⚡🐰 ', $1);$0",
-            detail: 'Full Electrobun console.log',
-            documentation: 'Insert a console.log with electrobun prefix',
-            kind: 'snippet',
+            detail: "Full Electrobun console.log",
+            documentation: "Insert a console.log with electrobun prefix",
+            kind: "snippet",
           },
           {
-            label: '🚀 warn (launch)',
+            label: "🚀 warn (launch)",
             insertText: "warn('🚀 ', $1);$0",
-            detail: 'Launch warning',
-            documentation: 'Insert a console.warn with rocket prefix',
-            kind: 'snippet',
+            detail: "Launch warning",
+            documentation: "Insert a console.warn with rocket prefix",
+            kind: "snippet",
           },
         ];
       },
-    }
+    },
   );
   disposables.push(completionDisposable);
-  api.log.info('✓ Editor completion provider registered');
+  api.log.info("✓ Editor completion provider registered");
 
   // --------------------------------------------------------------------------
   // 5. STATUS BAR: Create dynamic status item
   // --------------------------------------------------------------------------
 
   const statusBarItem = api.statusBar.createItem({
-    id: 'electrobun-status',
-    text: '⚡🐰 Electrobun',
-    tooltip: 'Electrobun Demo Plugin (Cmd+Shift+Z to zap)',
-    color: '#ffcc00',
-    alignment: 'right',
+    id: "electrobun-status",
+    text: "⚡🐰 Electrobun",
+    tooltip: "Electrobun Demo Plugin (Cmd+Shift+Z to zap)",
+    color: "#ffcc00",
+    alignment: "right",
     priority: 100,
   });
   disposables.push(statusBarItem);
 
   flashStatus = (message: string, duration: number = 3000) => {
-    statusBarItem.update({ text: message, color: '#00ff00' });
+    statusBarItem.update({ text: message, color: "#00ff00" });
     setTimeout(() => {
       statusBarItem.update({
-        text: electrobunModeEnabled ? '⚡ ZAPPED!' : '⚡🐰 Electrobun',
-        color: electrobunModeEnabled ? '#00ff00' : api.settings.get<string>('statusBarColor') || '#ffcc00',
+        text: electrobunModeEnabled ? "⚡ ZAPPED!" : "⚡🐰 Electrobun",
+        color: electrobunModeEnabled
+          ? "#00ff00"
+          : api.settings.get<string>("statusBarColor") || "#ffcc00",
       });
     }, duration);
   };
 
   // Periodic status updates
-  const emojis = ['⚡', '🐰', '⚡🐰', '🔌', '💡'];
+  const emojis = ["⚡", "🐰", "⚡🐰", "🔌", "💡"];
   let tick = 0;
   const statusInterval = setInterval(() => {
     tick++;
-    const savedColor = api.settings.get<string>('statusBarColor') || '#ffcc00';
+    const savedColor = api.settings.get<string>("statusBarColor") || "#ffcc00";
     if (electrobunModeEnabled) {
-      statusBarItem.update({ text: `⚡ ZAPPED! (${tick})`, color: '#00ff00' });
+      statusBarItem.update({ text: `⚡ ZAPPED! (${tick})`, color: "#00ff00" });
     } else {
       const emoji = emojis[tick % emojis.length];
       statusBarItem.update({ text: `${emoji} Electrobun (${tick})`, color: savedColor });
@@ -293,7 +295,7 @@ export async function activate(api: PluginAPI): Promise<void> {
   }, 5000);
   disposables.push({ dispose: () => clearInterval(statusInterval) });
 
-  api.log.info('✓ Status bar item created');
+  api.log.info("✓ Status bar item created");
 
   // --------------------------------------------------------------------------
   // 6. FILE DECORATIONS: Mark files with badges
@@ -302,33 +304,33 @@ export async function activate(api: PluginAPI): Promise<void> {
   const decorationDisposable = api.fileDecorations.registerProvider({
     provideDecoration(filePath) {
       // TypeScript files get a lightning bolt
-      if (filePath.endsWith('.ts') || filePath.endsWith('.tsx')) {
+      if (filePath.endsWith(".ts") || filePath.endsWith(".tsx")) {
         return {
-          badge: '⚡',
-          badgeColor: '#ffcc00',
-          tooltip: 'TypeScript file - electrified!',
+          badge: "⚡",
+          badgeColor: "#ffcc00",
+          tooltip: "TypeScript file - electrified!",
         };
       }
       // JavaScript files get a bunny
-      if (filePath.endsWith('.js') || filePath.endsWith('.jsx')) {
+      if (filePath.endsWith(".js") || filePath.endsWith(".jsx")) {
         return {
-          badge: '🐰',
-          tooltip: 'JavaScript file - bunny approved!',
+          badge: "🐰",
+          tooltip: "JavaScript file - bunny approved!",
         };
       }
       // .bunny files get special treatment
-      if (filePath.endsWith('.bunny')) {
+      if (filePath.endsWith(".bunny")) {
         return {
-          badge: '⚡🐰',
-          badgeColor: '#ff6b6b',
-          tooltip: 'Electrobun file!',
+          badge: "⚡🐰",
+          badgeColor: "#ff6b6b",
+          tooltip: "Electrobun file!",
         };
       }
       return undefined;
     },
   });
   disposables.push(decorationDisposable);
-  api.log.info('✓ File decoration provider registered');
+  api.log.info("✓ File decoration provider registered");
 
   // --------------------------------------------------------------------------
   // 7. CONTEXT MENU: Add menu items
@@ -336,13 +338,13 @@ export async function activate(api: PluginAPI): Promise<void> {
 
   const contextMenuDisposable = api.contextMenu.registerItem(
     {
-      id: 'electrify-file',
-      label: '⚡ Electrify this file',
-      context: 'both',
-      shortcutHint: 'Cmd+Shift+E',
+      id: "electrify-file",
+      label: "⚡ Electrify this file",
+      context: "both",
+      shortcutHint: "Cmd+Shift+E",
     },
     async (ctx) => {
-      api.log.info(`Electrify requested for: ${ctx.filePath || 'selection'}`);
+      api.log.info(`Electrify requested for: ${ctx.filePath || "selection"}`);
 
       // Demo: if it's a file, try to read it and show stats in status bar
       if (ctx.filePath) {
@@ -350,9 +352,9 @@ export async function activate(api: PluginAPI): Promise<void> {
           const exists = await api.workspace.exists(ctx.filePath);
           if (exists) {
             const content = await api.workspace.readFile(ctx.filePath);
-            const lines = content.split('\n').length;
+            const lines = content.split("\n").length;
             const chars = content.length;
-            const fileName = ctx.filePath.split('/').pop() || 'file';
+            const fileName = ctx.filePath.split("/").pop() || "file";
 
             // Flash the stats in the status bar
             flashStatus(`⚡ ${fileName}: ${lines} lines, ${chars} chars`, 4000);
@@ -371,34 +373,34 @@ export async function activate(api: PluginAPI): Promise<void> {
       } else {
         flashStatus(`⚡ Nothing selected`, 2000);
       }
-    }
+    },
   );
   disposables.push(contextMenuDisposable);
 
   // Context menu item to create a .bunny file
   const createBunnyDisposable = api.contextMenu.registerItem(
     {
-      id: 'create-bunny-file',
-      label: '🐰 Create .bunny file',
-      context: 'fileTree',
+      id: "create-bunny-file",
+      label: "🐰 Create .bunny file",
+      context: "fileTree",
     },
     async (ctx) => {
       // Get the directory path - if a file is selected, use its parent directory
-      let dirPath = ctx.filePath || '';
+      let dirPath = ctx.filePath || "";
 
       if (dirPath) {
         // Use shell to check if it's a directory
         try {
           const result = await api.shell.exec(`test -d "${dirPath}" && echo "dir" || echo "file"`);
-          const isDir = result.stdout.trim() === 'dir';
+          const isDir = result.stdout.trim() === "dir";
           if (!isDir) {
             // It's a file, get the parent directory
-            dirPath = dirPath.substring(0, dirPath.lastIndexOf('/'));
+            dirPath = dirPath.substring(0, dirPath.lastIndexOf("/"));
           }
         } catch {
           // If shell fails, fall back to extension check
-          if (dirPath.includes('.') && !dirPath.endsWith('/')) {
-            dirPath = dirPath.substring(0, dirPath.lastIndexOf('/'));
+          if (dirPath.includes(".") && !dirPath.endsWith("/")) {
+            dirPath = dirPath.substring(0, dirPath.lastIndexOf("/"));
           }
         }
       }
@@ -411,12 +413,12 @@ export async function activate(api: PluginAPI): Promise<void> {
       }
 
       if (!dirPath) {
-        api.notifications.showError('No directory selected');
+        api.notifications.showError("No directory selected");
         return;
       }
 
       // Get a unique filename
-      const fileName = api.utils.getUniqueNewName(dirPath, 'hello.bunny');
+      const fileName = api.utils.getUniqueNewName(dirPath, "hello.bunny");
       const filePath = `${dirPath}/${fileName}`;
 
       // Create the file with some default content
@@ -441,74 +443,74 @@ Created: ${new Date().toLocaleString()}
         api.notifications.showError(`Failed to create file: ${err}`);
         api.log.error(`Failed to create bunny file: ${err}`);
       }
-    }
+    },
   );
   disposables.push(createBunnyDisposable);
 
-  api.log.info('✓ Context menu items registered');
+  api.log.info("✓ Context menu items registered");
 
   // --------------------------------------------------------------------------
   // 8. KEYBINDINGS: Register keyboard shortcuts
   // --------------------------------------------------------------------------
 
   const keybindingDisposable = api.keybindings.register({
-    key: 'cmd+shift+z',
-    command: 'electrobun.zap',
-    when: 'global',
+    key: "cmd+shift+z",
+    command: "electrobun.zap",
+    when: "global",
   });
   disposables.push(keybindingDisposable);
-  api.log.info('✓ Keyboard shortcut registered (Cmd+Shift+Z)');
+  api.log.info("✓ Keyboard shortcut registered (Cmd+Shift+Z)");
 
   // --------------------------------------------------------------------------
   // 9. SETTINGS: Register settings schema
   // --------------------------------------------------------------------------
 
   const settingsDisposable = api.settings.registerSchema({
-    title: '⚡🐰 Electrobun Settings',
-    description: 'Configure the Electrobun Demo Plugin',
+    title: "⚡🐰 Electrobun Settings",
+    description: "Configure the Electrobun Demo Plugin",
     fields: [
       {
-        key: 'autoZap',
-        label: 'Auto-Zap on Load',
-        type: 'boolean',
+        key: "autoZap",
+        label: "Auto-Zap on Load",
+        type: "boolean",
         default: false,
-        description: 'Automatically enable electrobun mode when the plugin loads',
+        description: "Automatically enable electrobun mode when the plugin loads",
       },
       {
-        key: 'zapCount',
-        label: 'Default Zap Count',
-        type: 'number',
+        key: "zapCount",
+        label: "Default Zap Count",
+        type: "number",
         default: 3,
         min: 1,
         max: 20,
         step: 1,
-        description: 'Default number of zaps for the terminal command',
+        description: "Default number of zaps for the terminal command",
       },
       {
-        key: 'statusBarColor',
-        label: 'Status Bar Color',
-        type: 'color',
-        default: '#ffcc00',
-        description: 'Color for the electrobun status bar indicator',
+        key: "statusBarColor",
+        label: "Status Bar Color",
+        type: "color",
+        default: "#ffcc00",
+        description: "Color for the electrobun status bar indicator",
       },
       {
-        key: 'bunnyStyle',
-        label: 'Bunny Style',
-        type: 'select',
-        default: 'cute',
-        description: 'Choose your preferred bunny aesthetic',
+        key: "bunnyStyle",
+        label: "Bunny Style",
+        type: "select",
+        default: "cute",
+        description: "Choose your preferred bunny aesthetic",
         options: [
-          { label: '🐰 Cute', value: 'cute' },
-          { label: '🐇 Classic', value: 'classic' },
-          { label: '⚡🐰 Electrified', value: 'electrified' },
+          { label: "🐰 Cute", value: "cute" },
+          { label: "🐇 Classic", value: "classic" },
+          { label: "⚡🐰 Electrified", value: "electrified" },
         ],
       },
       {
-        key: 'secretToken',
-        label: 'Demo Secret Token',
-        type: 'secret',
-        placeholder: 'Enter a secret token (demo only)',
-        description: 'This demonstrates the secret field type - masked input',
+        key: "secretToken",
+        label: "Demo Secret Token",
+        type: "secret",
+        placeholder: "Enter a secret token (demo only)",
+        description: "This demonstrates the secret field type - masked input",
       },
     ],
   });
@@ -518,42 +520,42 @@ Created: ${new Date().toLocaleString()}
   const settingsChangeDisposable = api.settings.onChange((key, value) => {
     api.log.info(`Setting changed: ${key} = ${value}`);
 
-    if (key === 'statusBarColor') {
+    if (key === "statusBarColor") {
       statusBarItem.update({ color: value as string });
     }
 
-    if (key === 'autoZap' && value === true && !electrobunModeEnabled) {
+    if (key === "autoZap" && value === true && !electrobunModeEnabled) {
       electrobunModeEnabled = true;
-      flashStatus('⚡ Auto-zapped!', 2000);
+      flashStatus("⚡ Auto-zapped!", 2000);
     }
   });
   disposables.push(settingsChangeDisposable);
 
   // Check auto-zap setting
-  const autoZap = api.settings.get<boolean>('autoZap');
+  const autoZap = api.settings.get<boolean>("autoZap");
   if (autoZap) {
     electrobunModeEnabled = true;
-    statusBarItem.update({ text: '⚡ ZAPPED!', color: '#00ff00' });
+    statusBarItem.update({ text: "⚡ ZAPPED!", color: "#00ff00" });
   }
 
-  api.log.info('✓ Settings schema registered');
+  api.log.info("✓ Settings schema registered");
 
   // --------------------------------------------------------------------------
   // 10. STATE: Demo arbitrary state storage
   // --------------------------------------------------------------------------
 
   // Initialize or increment load count
-  const loadCount = (api.state.get<number>('loadCount') || 0) + 1;
-  api.state.set('loadCount', loadCount);
-  api.state.set('lastLoadTime', new Date().toISOString());
-  api.state.set('bunnyFacts', [
-    'Bunnies can hop up to 3 feet high!',
-    'A group of bunnies is called a fluffle.',
-    'Bunnies have nearly 360-degree vision.',
+  const loadCount = (api.state.get<number>("loadCount") || 0) + 1;
+  api.state.set("loadCount", loadCount);
+  api.state.set("lastLoadTime", new Date().toISOString());
+  api.state.set("bunnyFacts", [
+    "Bunnies can hop up to 3 feet high!",
+    "A group of bunnies is called a fluffle.",
+    "Bunnies have nearly 360-degree vision.",
   ]);
 
   api.log.info(`✓ State initialized (load #${loadCount})`);
-  api.log.info('State contents:', api.state.getAll());
+  api.log.info("State contents:", api.state.getAll());
 
   // --------------------------------------------------------------------------
   // 11. EVENTS: Subscribe to file and editor changes
@@ -562,11 +564,11 @@ Created: ${new Date().toLocaleString()}
   const fileChangeDisposable = api.events.onFileChange((event) => {
     api.log.debug(`File ${event.type}: ${event.path}`);
     // Demo: track changed files in state
-    const changedFiles = api.state.get<string[]>('changedFiles') || [];
+    const changedFiles = api.state.get<string[]>("changedFiles") || [];
     if (!changedFiles.includes(event.path)) {
       changedFiles.push(event.path);
       if (changedFiles.length > 10) changedFiles.shift(); // Keep last 10
-      api.state.set('changedFiles', changedFiles);
+      api.state.set("changedFiles", changedFiles);
     }
   });
   disposables.push(fileChangeDisposable);
@@ -575,51 +577,51 @@ Created: ${new Date().toLocaleString()}
     if (editor) {
       api.log.debug(`Active editor changed: ${editor.path} (${editor.languageId})`);
     } else {
-      api.log.debug('No active editor');
+      api.log.debug("No active editor");
     }
   });
   disposables.push(editorChangeDisposable);
 
-  api.log.info('✓ Event subscriptions registered');
+  api.log.info("✓ Event subscriptions registered");
 
   // --------------------------------------------------------------------------
   // 12. SLATES: Register custom file handler for .bunny files
   // --------------------------------------------------------------------------
 
   const slateDisposable = api.slates.register({
-    id: 'bunny-viewer',
-    name: 'Bunny Viewer',
-    description: 'A custom viewer for .bunny files',
-    icon: '🐰',
-    patterns: ['*.bunny', '**/*.bunny'],
+    id: "bunny-viewer",
+    name: "Bunny Viewer",
+    description: "A custom viewer for .bunny files",
+    icon: "🐰",
+    patterns: ["*.bunny", "**/*.bunny"],
   });
   disposables.push(slateDisposable);
 
   // Handle slate mount
-  const slateMountDisposable = api.slates.onMount('bunny-viewer', async (context) => {
+  const slateMountDisposable = api.slates.onMount("bunny-viewer", async (context) => {
     api.log.info(`Bunny slate mounting for: ${context.filePath}`);
 
     // Store the file path for this instance so we can access it in event handlers
-    const instances = api.state.get<Record<string, string>>('slateInstances') || {};
+    const instances = api.state.get<Record<string, string>>("slateInstances") || {};
     instances[context.instanceId] = context.filePath;
-    api.state.set('slateInstances', instances);
+    api.state.set("slateInstances", instances);
 
     // Get the directory of the .bunny file for the terminal cwd
-    const fileDir = context.filePath.substring(0, context.filePath.lastIndexOf('/'));
+    const fileDir = context.filePath.substring(0, context.filePath.lastIndexOf("/"));
 
     // Read the file content if it exists
-    let content = '';
+    let content = "";
     try {
       content = await api.workspace.readFile(context.filePath);
     } catch (err) {
-      content = '(new bunny file)';
+      content = "(new bunny file)";
     }
 
     // Escape content for HTML
     const escapedContent = content
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;');
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
 
     // Render the slate UI with terminal
     const html = `
@@ -629,7 +631,7 @@ Created: ${new Date().toLocaleString()}
           <p style="color: #888; margin-bottom: 24px;">Viewing: ${context.filePath}</p>
 
           <div style="background: #0f0f1a; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
-            <pre id="file-content" style="margin: 0; white-space: pre-wrap; color: #a0a0a0;">${escapedContent || '(empty)'}</pre>
+            <pre id="file-content" style="margin: 0; white-space: pre-wrap; color: #a0a0a0;">${escapedContent || "(empty)"}</pre>
           </div>
 
           <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 24px;">
@@ -655,7 +657,7 @@ Created: ${new Date().toLocaleString()}
           <div style="padding: 16px; background: rgba(255,204,0,0.1); border-radius: 8px; border-left: 4px solid #ffcc00;">
             <strong style="color: #ffcc00;">🐰 Bunny Fact:</strong>
             <p style="margin: 8px 0 0 0; color: #ccc;">
-              ${(api.state.get<string[]>('bunnyFacts') || ['Bunnies are awesome!'])[Math.floor(Math.random() * 3)]}
+              ${(api.state.get<string[]>("bunnyFacts") || ["Bunnies are awesome!"])[Math.floor(Math.random() * 3)]}
             </p>
           </div>
         </div>
@@ -713,68 +715,71 @@ Created: ${new Date().toLocaleString()}
   disposables.push(slateMountDisposable);
 
   // Handle slate unmount
-  const slateUnmountDisposable = api.slates.onUnmount('bunny-viewer', (instanceId) => {
+  const slateUnmountDisposable = api.slates.onUnmount("bunny-viewer", (instanceId) => {
     api.log.info(`Bunny slate unmounting: ${instanceId}`);
 
     // Clean up the stored file path
-    const instances = api.state.get<Record<string, string>>('slateInstances') || {};
+    const instances = api.state.get<Record<string, string>>("slateInstances") || {};
     delete instances[instanceId];
-    api.state.set('slateInstances', instances);
+    api.state.set("slateInstances", instances);
   });
   disposables.push(slateUnmountDisposable);
 
   // Handle slate events
-  const slateEventDisposable = api.slates.onEvent('bunny-viewer', async (instanceId, eventType, payload) => {
-    api.log.info(`Bunny slate event: ${eventType}`, payload);
+  const slateEventDisposable = api.slates.onEvent(
+    "bunny-viewer",
+    async (instanceId, eventType, payload) => {
+      api.log.info(`Bunny slate event: ${eventType}`, payload);
 
-    if (eventType === 'appendToFile') {
-      const p = payload as { timestamp: string };
-      // Get the file path from the active instance
-      const instance = api.state.get<Record<string, string>>('slateInstances') || {};
-      const filePath = instance[instanceId];
+      if (eventType === "appendToFile") {
+        const p = payload as { timestamp: string };
+        // Get the file path from the active instance
+        const instance = api.state.get<Record<string, string>>("slateInstances") || {};
+        const filePath = instance[instanceId];
 
-      if (filePath) {
-        try {
-          // Read current content
-          let content = '';
+        if (filePath) {
           try {
-            content = await api.workspace.readFile(filePath);
-          } catch {
-            content = '';
+            // Read current content
+            let content = "";
+            try {
+              content = await api.workspace.readFile(filePath);
+            } catch {
+              content = "";
+            }
+
+            // Append new line with timestamp
+            const newLine = `\n⚡ Zapped at ${new Date(p.timestamp).toLocaleString()}`;
+            const newContent = content + newLine;
+
+            // Write back
+            await api.workspace.writeFile(filePath, newContent);
+            api.log.info(`Appended to file: ${filePath}`);
+
+            // Re-render the slate with updated content
+            const escapedContent = newContent
+              .replace(/&/g, "&amp;")
+              .replace(/</g, "&lt;")
+              .replace(/>/g, "&gt;");
+
+            // Send a message to update just the file preview (we'd need to re-render for this)
+            // For now, just log success
+            api.log.info("File updated successfully!");
+          } catch (err) {
+            api.log.error(`Failed to append to file: ${err}`);
           }
-
-          // Append new line with timestamp
-          const newLine = `\n⚡ Zapped at ${new Date(p.timestamp).toLocaleString()}`;
-          const newContent = content + newLine;
-
-          // Write back
-          await api.workspace.writeFile(filePath, newContent);
-          api.log.info(`Appended to file: ${filePath}`);
-
-          // Re-render the slate with updated content
-          const escapedContent = newContent
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;');
-
-          // Send a message to update just the file preview (we'd need to re-render for this)
-          // For now, just log success
-          api.log.info('File updated successfully!');
-        } catch (err) {
-          api.log.error(`Failed to append to file: ${err}`);
         }
       }
-    }
-  });
+    },
+  );
   disposables.push(slateEventDisposable);
 
-  api.log.info('✓ Slate registered for .bunny files');
+  api.log.info("✓ Slate registered for .bunny files");
 
   // --------------------------------------------------------------------------
   // 13. PATHS: Log available paths (for demo purposes)
   // --------------------------------------------------------------------------
 
-  api.log.info('Bundled paths available:', {
+  api.log.info("Bundled paths available:", {
     bun: api.paths.bun,
     git: api.paths.git,
     fd: api.paths.fd,
@@ -787,11 +792,11 @@ Created: ${new Date().toLocaleString()}
   // Done!
   // --------------------------------------------------------------------------
 
-  api.log.info('⚡🐰 Electrobun Demo Plugin activated! All features registered.');
-  api.log.info('Try these commands:');
-  api.log.info('  - Terminal: zap, bunny, paths');
-  api.log.info('  - Keyboard: Cmd+Shift+Z');
-  api.log.info('  - Create a .bunny file to see the custom slate');
+  api.log.info("⚡🐰 Electrobun Demo Plugin activated! All features registered.");
+  api.log.info("Try these commands:");
+  api.log.info("  - Terminal: zap, bunny, paths");
+  api.log.info("  - Keyboard: Cmd+Shift+Z");
+  api.log.info("  - Create a .bunny file to see the custom slate");
 }
 
 // ============================================================================

@@ -20,5 +20,5 @@ export const TOPICS = [
   "share.session.stopped",
   "lane.created",
   "lane.cleaned",
-  "audit.recorded"
+  "audit.recorded",
 ] as const;

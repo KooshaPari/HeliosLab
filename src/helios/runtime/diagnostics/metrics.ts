@@ -42,7 +42,11 @@ export class RuntimeMetrics {
     this.timers.set(this.timerKey(metric, key), { startAtMs: Date.now(), tags });
   }
 
-  endTimer(metric: RuntimeMetricName, key: string, tags?: Record<string, string>): RuntimeMetricSample | null {
+  endTimer(
+    metric: RuntimeMetricName,
+    key: string,
+    tags?: Record<string, string>,
+  ): RuntimeMetricSample | null {
     const timerId = this.timerKey(metric, key);
     const mark = this.timers.get(timerId);
     if (!mark) {
@@ -53,13 +57,18 @@ export class RuntimeMetrics {
     return this.record(metric, value, "ms", { ...mark.tags, ...tags });
   }
 
-  record(metric: RuntimeMetricName, value: number, unit: MetricUnit, tags?: Record<string, string>): RuntimeMetricSample {
+  record(
+    metric: RuntimeMetricName,
+    value: number,
+    unit: MetricUnit,
+    tags?: Record<string, string>,
+  ): RuntimeMetricSample {
     const sample: RuntimeMetricSample = {
       metric,
       value,
       unit,
       ts: new Date().toISOString(),
-      tags
+      tags,
     };
     this.samples.push(sample);
     return sample;
@@ -88,14 +97,14 @@ export class RuntimeMetrics {
         max: sortedValues[sortedValues.length - 1],
         p50: percentile(sortedValues, 0.5),
         p95: percentile(sortedValues, 0.95),
-        latest: items[items.length - 1].value
+        latest: items[items.length - 1].value,
       });
     }
 
     summaries.sort((a, b) => a.metric.localeCompare(b.metric));
     return {
       samples: [...this.samples],
-      summaries
+      summaries,
     };
   }
 

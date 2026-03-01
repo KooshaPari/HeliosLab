@@ -34,8 +34,7 @@ export function getFaviconForUrl(url: string): Promise<string> {
 
                 const faviconUrl =
                   faviconLink &&
-                  (faviconLink.getAttribute("href") ||
-                    faviconLink.getAttribute("content"));
+                  (faviconLink.getAttribute("href") || faviconLink.getAttribute("content"));
 
                 const withFileStripped = faviconUrl?.replace("file:///", "");
                 const fullFaviconUrl = withFileStripped?.startsWith("http")
@@ -54,7 +53,7 @@ export function getFaviconForUrl(url: string): Promise<string> {
                 faviconCache[hostname] = fullFaviconUrl;
                 resolve(fullFaviconUrl);
               },
-            }
+            },
           )
           .transform(res);
       })

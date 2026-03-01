@@ -215,7 +215,13 @@ export interface AppState {
       }
     | {
         // todo (yoav): may separate these out if they need to store metadata later
-        type: "global-settings" | "workspace-settings" | "llama-settings" | "github-settings" | "colab-cloud-settings" | "plugin-marketplace";
+        type:
+          | "global-settings"
+          | "workspace-settings"
+          | "llama-settings"
+          | "github-settings"
+          | "colab-cloud-settings"
+          | "plugin-marketplace";
         data: {};
       };
 
@@ -304,7 +310,7 @@ export interface AppState {
   openFiles: {
     [absolutePath: string]: {
       name: string;
-      type: 'file' | 'dir';
+      type: "file" | "dir";
       addedAt: number;
     };
   };
@@ -339,7 +345,7 @@ export interface AppState {
     visible: boolean;
     filename: string;
     path: string;
-    status: 'downloading' | 'completed' | 'failed';
+    status: "downloading" | "completed" | "failed";
     progress?: number; // 0-100 percentage
     error?: string;
   } | null;
@@ -492,7 +498,7 @@ export const setPreviewNodeSlateName = (newName: string) => {
       ) {
         __previewNode.slate.name = newName;
       }
-    })
+    }),
   );
 };
 
@@ -514,7 +520,7 @@ export const setPreviewNodeSlateUrl = (newUrl: string) => {
       ) {
         __previewNode.slate.url = newUrl;
       }
-    })
+    }),
   );
 };
 
@@ -536,7 +542,7 @@ export const setPreviewNodeSlateIcon = (newIcon: string) => {
       ) {
         __previewNode.slate.icon = newIcon;
       }
-    })
+    }),
   );
 };
 
@@ -558,7 +564,7 @@ export const setPreviewNodeSlateToken = (newToken: string) => {
       ) {
         __previewNode.slate.token = newToken;
       }
-    })
+    }),
   );
 };
 
@@ -580,7 +586,7 @@ export const setPreviewNodeSlateConfig = (configUpdate: Record<string, any>) => 
       ) {
         Object.assign(__previewNode.slate.config, configUpdate);
       }
-    })
+    }),
   );
 };
 
@@ -593,15 +599,12 @@ export const setPreviewNode = (newNode: PreviewFileTreeType) => {
       }
 
       _state.settingsPane.data.previewNode = newNode;
-    })
+    }),
   );
 };
 
 export const getWindow = (_state: AppState = state) => {
-  if (
-    "windows" in _state.workspace &&
-    Array.isArray(_state.workspace.windows)
-  ) {
+  if ("windows" in _state.workspace && Array.isArray(_state.workspace.windows)) {
     return _state.workspace.windows.find((w) => w.id === _state.windowId);
   }
 };
@@ -629,7 +632,7 @@ export const focusTabWithId = (tabId: string) => {
       pane.currentTabId = id;
       win.currentPaneId = paneId;
       tab.isPreview = false;
-    })
+    }),
   );
   updateSyncedState();
 };
@@ -651,7 +654,7 @@ export const walkPanesForId = (pane: PaneLayoutType, id: string) => {
 
 export const walkPanes = (
   pane: PaneLayoutType,
-  fn: (PaneLayoutType: PaneLayoutType) => boolean = (_pane) => false
+  fn: (PaneLayoutType: PaneLayoutType) => boolean = (_pane) => false,
 ): PaneLayoutType | undefined => {
   if (fn(pane)) {
     return pane;
@@ -678,7 +681,7 @@ export const getCurrentPane = (_state: AppState = state) => {
 export const openNewTab = (
   config: Omit<TabType, "id" | "paneId" | "isPreview">,
   makePreviewTab = true,
-  opts: {} | { targetPaneId: string; targetTabIndex: number } = {}
+  opts: {} | { targetPaneId: string; targetTabIndex: number } = {},
 ) => {
   let newTabId = getUniqueId();
   trackFrontend("tabOpen", {
@@ -746,7 +749,7 @@ export const openNewTab = (
         pane.tabIds.push(tabId);
       }
       pane.currentTabId = tabId;
-    })
+    }),
   );
   updateSyncedState();
 
@@ -766,7 +769,7 @@ export const openNewTabForNode = (
         targetTabIndex: number;
         url?: string;
         focusNewTab?: boolean;
-      } = { focusNewTab: true }
+      } = { focusNewTab: true },
 ) => {
   const focusNewTab = "focusNewTab" in opts ? opts.focusNewTab : true;
   const node = getNode(path);
@@ -825,12 +828,10 @@ export const openNewTabForNode = (
 
       const targetUrl = "url" in opts ? opts.url : slate?.url;
 
-      const webTabSettings =
-        slateType === "web" ? { type: "web" as const, url: targetUrl } : {};
+      const webTabSettings = slateType === "web" ? { type: "web" as const, url: targetUrl } : {};
       const agentTabSettings =
         slateType === "agent" ? { type: "agent" as const, title: slate?.name } : {};
-      const gitTabSettings =
-        slateType === "git" ? { title: slate?.name } : {};
+      const gitTabSettings = slateType === "git" ? { title: slate?.name } : {};
       const tabId = getUniqueId();
       const newPreviewTab: TabType = {
         id: tabId,
@@ -858,14 +859,14 @@ export const openNewTabForNode = (
       if (focusNewTab) {
         pane.currentTabId = tabId;
       }
-    })
+    }),
   );
   updateSyncedState();
 };
 
 export const openNewTerminalTab = (
   cwd?: string,
-  opts: {} | { targetPaneId: string; targetTabIndex: number } = {}
+  opts: {} | { targetPaneId: string; targetTabIndex: number } = {},
 ) => {
   const terminalConfig: TerminalTabType = {
     type: "terminal",
@@ -894,28 +895,24 @@ export const setNodeExpanded = (nodePath: string, isExpanded: boolean) => {
       }
 
       win.expansions = Array.from(expansionsSet);
-    })
+    }),
   );
 
   updateSyncedState();
 };
 
 export const editNodeSettings = (node: CachedFileType) => {
-  if (
-    state.settingsPane.type === "edit-node" &&
-    state.settingsPane.data.node.path === node.path
-  ) {
+  if (state.settingsPane.type === "edit-node" && state.settingsPane.data.node.path === node.path) {
     setState("settingsPane", { type: "", data: {} });
   } else {
-
     const delay = untrack(() => {
       return state.settingsPane.type ? 400 : 0;
-    })
+    });
 
     setState("settingsPane", {
       type: "",
-      data: {}
-    })        
+      data: {},
+    });
     setTimeout(async () => {
       // const nodeType = state.settingsPane.type === 'edit-node' || state.settingsPane.type === 'edit-node' && state.settingsPane.data.node.type
       if (node.type === "file") {
@@ -979,7 +976,7 @@ export const removeProjectFromColab = (projectId: string) => {
       // todo (yoav): close open tabs that belong to the project
 
       _state.settingsPane = { type: "", data: {} };
-    })
+    }),
   );
 };
 
@@ -993,12 +990,10 @@ export const removeProjectFromColab = (projectId: string) => {
 // be used inside a solid.js/immer produce block
 export const reshapeObjectReference = <T extends Record<string, any>>(
   objectReference: Record<string, unknown>,
-  newProps: T
+  newProps: T,
 ): T => {
   Object.keys(objectReference).forEach((key) => delete objectReference[key]);
-  Object.keys(newProps).forEach(
-    (key) => (objectReference[key] = newProps[key])
-  );
+  Object.keys(newProps).forEach((key) => (objectReference[key] = newProps[key]));
   return objectReference as T;
 };
 
@@ -1012,14 +1007,14 @@ export const closeTab = (tabId: string) => {
       }
 
       const tab = win.tabs[tabId];
-      
+
       // If this is a terminal tab, kill the terminal process
       if (tab.type === "terminal" && tab.terminalId) {
         electrobun.rpc?.request.killTerminal({
           terminalId: tab.terminalId,
         });
       }
-      
+
       const pane = getPaneWithId(_state, tab.paneId);
       if (pane?.type !== "pane") {
         return;
@@ -1028,15 +1023,12 @@ export const closeTab = (tabId: string) => {
       pane.tabIds = pane.tabIds.filter((id) => id !== tabId);
 
       if (pane.currentTabId === tabId) {
-        const newCurrentTabIndex = Math.max(
-          0,
-          Math.min(index, pane.tabIds.length - 1)
-        );
+        const newCurrentTabIndex = Math.max(0, Math.min(index, pane.tabIds.length - 1));
         pane.currentTabId = pane.tabIds[newCurrentTabIndex] || "";
       }
 
       delete win.tabs[tabId];
-    })
+    }),
   );
   updateSyncedState();
 };
@@ -1057,7 +1049,7 @@ export const splitPane = (
   pathToPane: PanePathType,
   direction: "row" | "column",
   cloneTab = false,
-  fromCenter = false
+  fromCenter = false,
 ) => {
   setState(
     produce((_state: AppState) => {
@@ -1102,26 +1094,21 @@ export const splitPane = (
               direction: paneToSplit.direction,
             } as LayoutContainerType);
 
-      const convertedContainer = reshapeObjectReference<LayoutContainerType>(
-        paneToSplit,
-        {
-          id: getUniqueId(),
-          type: "container",
-          direction,
-          divider: 50,
-          panes:
-            originalType === "pane" && !fromCenter
-              ? [leftChildPane, rightChildPane]
-              : [rightChildPane, leftChildPane],
-        }
-      );
+      const convertedContainer = reshapeObjectReference<LayoutContainerType>(paneToSplit, {
+        id: getUniqueId(),
+        type: "container",
+        direction,
+        divider: 50,
+        panes:
+          originalType === "pane" && !fromCenter
+            ? [leftChildPane, rightChildPane]
+            : [rightChildPane, leftChildPane],
+      });
 
       win.currentPaneId = rightChildPaneId;
 
       if (leftChildPane.type === "pane" && cloneTab) {
-        const tabToClone = leftChildPane.currentTabId
-          ? win.tabs[leftChildPane.currentTabId]
-          : null;
+        const tabToClone = leftChildPane.currentTabId ? win.tabs[leftChildPane.currentTabId] : null;
 
         if (tabToClone) {
           const clonedTabId = getUniqueId();
@@ -1139,7 +1126,7 @@ export const splitPane = (
           rightChildPane.currentTabId = clonedTabId;
         }
       }
-    })
+    }),
   );
   // updateSyncedState();
 };
@@ -1206,9 +1193,7 @@ export const openFileAt = (path: string, line: number, column: number) => {
 
   const openTabsAtTargetPath = tabArray.filter((tab) => tab.path === path);
 
-  const tabInCurrentPane = openTabsAtTargetPath.find(
-    (tab) => tab.paneId === currentTab?.paneId
-  );
+  const tabInCurrentPane = openTabsAtTargetPath.find((tab) => tab.paneId === currentTab?.paneId);
 
   if (tabInCurrentPane) {
     focusTabWithId(tabInCurrentPane.id);
@@ -1248,7 +1233,7 @@ export const openFileAt = (path: string, line: number, column: number) => {
 };
 
 // Functions for managing non-project open files
-export const addOpenFile = (absolutePath: string, name: string, type: 'file' | 'dir') => {
+export const addOpenFile = (absolutePath: string, name: string, type: "file" | "dir") => {
   setState(
     produce((_state: AppState) => {
       _state.openFiles[absolutePath] = {
@@ -1256,7 +1241,7 @@ export const addOpenFile = (absolutePath: string, name: string, type: 'file' | '
         type,
         addedAt: Date.now(),
       };
-    })
+    }),
   );
 };
 
@@ -1264,14 +1249,14 @@ export const removeOpenFile = (absolutePath: string) => {
   setState(
     produce((_state: AppState) => {
       delete _state.openFiles[absolutePath];
-    })
+    }),
   );
 };
 
 export const isFileInProject = (absolutePath: string): boolean => {
   const projects = state.projects;
   for (const project of Object.values(projects)) {
-    if (absolutePath.startsWith(project.path + '/') || absolutePath === project.path) {
+    if (absolutePath.startsWith(project.path + "/") || absolutePath === project.path) {
       return true;
     }
   }

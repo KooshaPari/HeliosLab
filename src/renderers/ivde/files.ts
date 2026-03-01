@@ -62,10 +62,7 @@ import { electrobun } from "./init";
 
 // todo (yoav): [blocking] move this to a store and make it reactive when state changes (wtf did I mean by this comment)
 // todo (yoav): [blocking] rename this to writeColabSlateConfigFile since it's different to writing a package.json config file
-export const writeSlateConfigFile = (
-  absoluteFolderPath: string,
-  slate: SlateType
-) => {
+export const writeSlateConfigFile = (absoluteFolderPath: string, slate: SlateType) => {
   // Projects are stored in GoldfishDB, not .colab.json
   // Only write .colab.json for web and agent slates
   if (slate.type === "web" || slate.type === "agent") {
@@ -106,10 +103,7 @@ export const writeSlateConfigFile = (
   }
 };
 
-export const getProjectForNode = (
-  node: PreviewFileTreeType,
-  _state: AppState = state
-) => {
+export const getProjectForNode = (node: PreviewFileTreeType, _state: AppState = state) => {
   if (!node) {
     return null;
   }
@@ -119,30 +113,24 @@ export const getProjectForNode = (
 // Check if a node is the root of a project (its path exactly matches a project path)
 export const isProjectRoot = (
   node: PreviewFileTreeType | CachedFileType | null | undefined,
-  _state: AppState = state
+  _state: AppState = state,
 ) => {
   if (!node) {
     return false;
   }
   return Object.values(_state.projects).some(
-    (project) => project.path && project.path === node.path
+    (project) => project.path && project.path === node.path,
   );
 };
 
 // Get the project that has this node as its root (exact match, not descendant)
-export const getProjectByRootPath = (
-  nodePath: string,
-  _state: AppState = state
-) => {
+export const getProjectByRootPath = (nodePath: string, _state: AppState = state) => {
   return Object.values(_state.projects).find(
-    (project) => project.path && project.path === nodePath
+    (project) => project.path && project.path === nodePath,
   );
 };
 
-export const getProjectForNodePath = (
-  nodePath: string,
-  _state: AppState = state
-) => {
+export const getProjectForNodePath = (nodePath: string, _state: AppState = state) => {
   // Find all projects that contain this path
   const matchingProjects = Object.values(_state.projects).filter((project) => {
     // Skip projects with empty or invalid paths
@@ -238,9 +226,7 @@ const templateSlates = {
 
 // todo: - how much of this should be async via the backend vs. completely stored, and cached
 // on the backend.
-export const getSlateForNode = (
-  node?: CachedFileType | PreviewFileTreeType | null
-) => {
+export const getSlateForNode = (node?: CachedFileType | PreviewFileTreeType | null) => {
   if (!node) {
     // throw new Error('Must give a node')
     return undefined;
@@ -300,8 +286,7 @@ export const getSlateForNode = (
   const fileOrFolderName = node.path.split("/").pop();
 
   if (fileOrFolderName && fileOrFolderName in fileSlates) {
-    const fileNameSlate =
-      fileSlates[fileOrFolderName as keyof typeof fileSlates];
+    const fileNameSlate = fileSlates[fileOrFolderName as keyof typeof fileSlates];
 
     if (fileNameSlate) {
       // For .git, create a custom slate with the parent folder name
@@ -317,9 +302,7 @@ export const getSlateForNode = (
   }
 
   if (node.type === "dir") {
-    const colabConfigFile = (node as FolderNodeType).children?.includes(
-      ".colab.json"
-    );
+    const colabConfigFile = (node as FolderNodeType).children?.includes(".colab.json");
 
     if (colabConfigFile) {
       const absoluteColabConfigPath = join(node.path, ".colab.json");
@@ -352,7 +335,10 @@ export const getSlateForNode = (
       for (const slate of pluginSlates) {
         if (slate.folderHandler) continue;
         for (const pattern of slate.patterns) {
-          if (pattern === filename || (pattern.startsWith("*.") && filename.endsWith(pattern.slice(1)))) {
+          if (
+            pattern === filename ||
+            (pattern.startsWith("*.") && filename.endsWith(pattern.slice(1)))
+          ) {
             // Return a slate-like object so the context menu knows this file has a slate
             return {
               v: 1,
@@ -489,7 +475,9 @@ export const findPluginSlateForFile = (filePath: string): PluginSlateInfo | null
  * Find a plugin slate that matches a folder path
  * This is for folder handler slates (like devlink which handles folders with .webflowrc.json)
  */
-export const findPluginSlateForFolder = async (folderPath: string): Promise<PluginSlateInfo | null> => {
+export const findPluginSlateForFolder = async (
+  folderPath: string,
+): Promise<PluginSlateInfo | null> => {
   try {
     const result = await electrobun.rpc?.request.pluginFindSlateForFolder({ folderPath });
     return result || null;

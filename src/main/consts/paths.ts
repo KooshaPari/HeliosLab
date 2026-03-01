@@ -5,8 +5,7 @@ import { getAppPath, getPath } from "../newapi";
 
 const channel = await Updater.localInfo.channel();
 
-const COLAB_HOME_FOLDER_NAME =
-  channel === "stable" ? ".colab" : `.colab-${channel}`;
+const COLAB_HOME_FOLDER_NAME = channel === "stable" ? ".colab" : `.colab-${channel}`;
 
 // colab
 export const APP_PATH = getAppPath();

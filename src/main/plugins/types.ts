@@ -60,37 +60,31 @@ export interface PluginCommand {
   keybinding?: string;
 }
 
-export type WebviewHook =
-  | 'beforeNavigate'
-  | 'afterNavigate'
-  | 'onLoad'
-  | 'onUnload';
+export type WebviewHook = "beforeNavigate" | "afterNavigate" | "onLoad" | "onUnload";
 
-export type FileTreeContribution =
-  | 'contextMenuItems'
-  | 'decorations'
-  | 'dragDrop';
+export type FileTreeContribution = "contextMenuItems" | "decorations" | "dragDrop";
 
 export type EditorContribution =
-  | 'codeActions'
-  | 'completions'
-  | 'diagnostics'
-  | 'hover'
-  | 'formatting'
-  | 'codeLen';
+  | "codeActions"
+  | "completions"
+  | "diagnostics"
+  | "hover"
+  | "formatting"
+  | "codeLen";
 
-export type TerminalContribution =
-  | 'ptyHooks'
-  | 'shellIntegration';
+export type TerminalContribution = "ptyHooks" | "shellIntegration";
 
 export interface PluginConfigurationSchema {
   /** JSON Schema for plugin settings */
-  properties: Record<string, {
-    type: 'string' | 'number' | 'boolean' | 'array' | 'object';
-    default?: unknown;
-    description?: string;
-    enum?: unknown[];
-  }>;
+  properties: Record<
+    string,
+    {
+      type: "string" | "number" | "boolean" | "array" | "object";
+      default?: unknown;
+      description?: string;
+      enum?: unknown[];
+    }
+  >;
 }
 
 // ============================================================================
@@ -231,7 +225,9 @@ export interface PluginEntitlements {
 /**
  * Get a human-readable summary of entitlements for display
  */
-export function summarizeEntitlements(entitlements: PluginEntitlements | undefined): EntitlementSummary[] {
+export function summarizeEntitlements(
+  entitlements: PluginEntitlements | undefined,
+): EntitlementSummary[] {
   if (!entitlements) return [];
 
   const summary: EntitlementSummary[] = [];
@@ -240,27 +236,27 @@ export function summarizeEntitlements(entitlements: PluginEntitlements | undefin
     const fs = entitlements.filesystem;
     if (fs.fullAccess) {
       summary.push({
-        category: 'filesystem',
-        level: 'high',
-        icon: '📁',
-        label: 'Full File System Access',
-        description: fs.reason || 'Can read and write files anywhere on your system',
+        category: "filesystem",
+        level: "high",
+        icon: "📁",
+        label: "Full File System Access",
+        description: fs.reason || "Can read and write files anywhere on your system",
       });
     } else if (fs.write) {
       summary.push({
-        category: 'filesystem',
-        level: 'medium',
-        icon: '📝',
-        label: 'File Read/Write',
-        description: fs.reason || 'Can read and modify files in your workspace',
+        category: "filesystem",
+        level: "medium",
+        icon: "📝",
+        label: "File Read/Write",
+        description: fs.reason || "Can read and modify files in your workspace",
       });
     } else if (fs.read) {
       summary.push({
-        category: 'filesystem',
-        level: 'low',
-        icon: '📖',
-        label: 'File Read',
-        description: fs.reason || 'Can read files in your workspace',
+        category: "filesystem",
+        level: "low",
+        icon: "📖",
+        label: "File Read",
+        description: fs.reason || "Can read files in your workspace",
       });
     }
   }
@@ -268,24 +264,24 @@ export function summarizeEntitlements(entitlements: PluginEntitlements | undefin
   if (entitlements.network) {
     const net = entitlements.network;
     if (net.internet) {
-      const domains = net.domains?.length ? ` (${net.domains.join(', ')})` : '';
+      const domains = net.domains?.length ? ` (${net.domains.join(", ")})` : "";
       summary.push({
-        category: 'network',
-        level: 'medium',
-        icon: '🌐',
-        label: 'Network Access' + domains,
-        description: net.reason || 'Can make requests to the internet',
+        category: "network",
+        level: "medium",
+        icon: "🌐",
+        label: "Network Access" + domains,
+        description: net.reason || "Can make requests to the internet",
       });
     }
   }
 
   if (entitlements.process?.spawn) {
     summary.push({
-      category: 'process',
-      level: 'high',
-      icon: '⚙️',
-      label: 'Run Processes',
-      description: entitlements.process.reason || 'Can execute shell commands and spawn processes',
+      category: "process",
+      level: "high",
+      icon: "⚙️",
+      label: "Run Processes",
+      description: entitlements.process.reason || "Can execute shell commands and spawn processes",
     });
   }
 
@@ -293,19 +289,19 @@ export function summarizeEntitlements(entitlements: PluginEntitlements | undefin
     const term = entitlements.terminal;
     if (term.write) {
       summary.push({
-        category: 'terminal',
-        level: 'medium',
-        icon: '💻',
-        label: 'Terminal Control',
-        description: term.reason || 'Can send commands to terminals',
+        category: "terminal",
+        level: "medium",
+        icon: "💻",
+        label: "Terminal Control",
+        description: term.reason || "Can send commands to terminals",
       });
     } else if (term.read || term.commands) {
       summary.push({
-        category: 'terminal',
-        level: 'low',
-        icon: '💻',
-        label: 'Terminal Integration',
-        description: term.reason || 'Integrates with the terminal',
+        category: "terminal",
+        level: "low",
+        icon: "💻",
+        label: "Terminal Integration",
+        description: term.reason || "Integrates with the terminal",
       });
     }
   }
@@ -314,11 +310,11 @@ export function summarizeEntitlements(entitlements: PluginEntitlements | undefin
     const sys = entitlements.system;
     if (sys.environment) {
       summary.push({
-        category: 'system',
-        level: 'medium',
-        icon: '🔧',
-        label: 'Environment Access',
-        description: sys.reason || 'Can read environment variables',
+        category: "system",
+        level: "medium",
+        icon: "🔧",
+        label: "Environment Access",
+        description: sys.reason || "Can read environment variables",
       });
     }
   }
@@ -327,20 +323,20 @@ export function summarizeEntitlements(entitlements: PluginEntitlements | undefin
     const wv = entitlements.webview;
     if (wv.scriptInjection) {
       summary.push({
-        category: 'webview',
-        level: 'medium',
-        icon: '🔌',
-        label: 'Web Page Scripts',
-        description: wv.reason || 'Injects scripts into web pages you visit',
+        category: "webview",
+        level: "medium",
+        icon: "🔌",
+        label: "Web Page Scripts",
+        description: wv.reason || "Injects scripts into web pages you visit",
       });
     }
     if (wv.requestInterception) {
       summary.push({
-        category: 'webview',
-        level: 'high',
-        icon: '🔍',
-        label: 'Web Request Access',
-        description: wv.reason || 'Can intercept web requests',
+        category: "webview",
+        level: "high",
+        icon: "🔍",
+        label: "Web Request Access",
+        description: wv.reason || "Can intercept web requests",
       });
     }
   }
@@ -349,19 +345,19 @@ export function summarizeEntitlements(entitlements: PluginEntitlements | undefin
     const ai = entitlements.ai;
     if (ai.externalServices) {
       summary.push({
-        category: 'ai',
-        level: 'medium',
-        icon: '🤖',
-        label: 'External AI Services',
-        description: ai.reason || 'Sends data to external AI services',
+        category: "ai",
+        level: "medium",
+        icon: "🤖",
+        label: "External AI Services",
+        description: ai.reason || "Sends data to external AI services",
       });
     } else if (ai.localModels) {
       summary.push({
-        category: 'ai',
-        level: 'low',
-        icon: '🤖',
-        label: 'Local AI Models',
-        description: ai.reason || 'Uses local AI models',
+        category: "ai",
+        level: "low",
+        icon: "🤖",
+        label: "Local AI Models",
+        description: ai.reason || "Uses local AI models",
       });
     }
   }
@@ -370,20 +366,20 @@ export function summarizeEntitlements(entitlements: PluginEntitlements | undefin
     const sens = entitlements.sensitive;
     if (sens.credentials) {
       summary.push({
-        category: 'sensitive',
-        level: 'high',
-        icon: '🔑',
-        label: 'Credential Access',
-        description: sens.reason || 'May access stored credentials or tokens',
+        category: "sensitive",
+        level: "high",
+        icon: "🔑",
+        label: "Credential Access",
+        description: sens.reason || "May access stored credentials or tokens",
       });
     }
     if (sens.clipboard) {
       summary.push({
-        category: 'sensitive',
-        level: 'medium',
-        icon: '📋',
-        label: 'Clipboard Access',
-        description: sens.reason || 'Can read from or write to clipboard',
+        category: "sensitive",
+        level: "medium",
+        icon: "📋",
+        label: "Clipboard Access",
+        description: sens.reason || "Can read from or write to clipboard",
       });
     }
   }
@@ -391,17 +387,17 @@ export function summarizeEntitlements(entitlements: PluginEntitlements | undefin
   if (entitlements.ui) {
     const ui = entitlements.ui;
     const features: string[] = [];
-    if (ui.statusBar) features.push('status bar');
-    if (ui.contextMenu) features.push('context menus');
-    if (ui.fileDecorations) features.push('file badges');
-    if (ui.notifications) features.push('notifications');
+    if (ui.statusBar) features.push("status bar");
+    if (ui.contextMenu) features.push("context menus");
+    if (ui.fileDecorations) features.push("file badges");
+    if (ui.notifications) features.push("notifications");
     if (features.length > 0) {
       summary.push({
-        category: 'ui',
-        level: 'low',
-        icon: '🎨',
-        label: 'UI Elements',
-        description: ui.reason || `Adds ${features.join(', ')}`,
+        category: "ui",
+        level: "low",
+        icon: "🎨",
+        label: "UI Elements",
+        description: ui.reason || `Adds ${features.join(", ")}`,
       });
     }
   }
@@ -409,17 +405,17 @@ export function summarizeEntitlements(entitlements: PluginEntitlements | undefin
   if (entitlements.editor) {
     const ed = entitlements.editor;
     const features: string[] = [];
-    if (ed.completions) features.push('completions');
-    if (ed.hover) features.push('hover info');
-    if (ed.codeActions) features.push('code actions');
-    if (ed.diagnostics) features.push('diagnostics');
+    if (ed.completions) features.push("completions");
+    if (ed.hover) features.push("hover info");
+    if (ed.codeActions) features.push("code actions");
+    if (ed.diagnostics) features.push("diagnostics");
     if (features.length > 0) {
       summary.push({
-        category: 'editor',
-        level: 'low',
-        icon: '✏️',
-        label: 'Editor Features',
-        description: ed.reason || `Provides ${features.join(', ')}`,
+        category: "editor",
+        level: "low",
+        icon: "✏️",
+        label: "Editor Features",
+        description: ed.reason || `Provides ${features.join(", ")}`,
       });
     }
   }
@@ -428,11 +424,11 @@ export function summarizeEntitlements(entitlements: PluginEntitlements | undefin
     const kb = entitlements.keybindings;
     if (kb.global || kb.editor) {
       summary.push({
-        category: 'keybindings',
-        level: 'low',
-        icon: '⌨️',
-        label: 'Keyboard Shortcuts',
-        description: kb.reason || `Registers ${kb.global ? 'global' : 'editor'} keyboard shortcuts`,
+        category: "keybindings",
+        level: "low",
+        icon: "⌨️",
+        label: "Keyboard Shortcuts",
+        description: kb.reason || `Registers ${kb.global ? "global" : "editor"} keyboard shortcuts`,
       });
     }
   }
@@ -442,7 +438,7 @@ export function summarizeEntitlements(entitlements: PluginEntitlements | undefin
 
 export interface EntitlementSummary {
   category: string;
-  level: 'low' | 'medium' | 'high';
+  level: "low" | "medium" | "high";
   icon: string;
   label: string;
   description: string;
@@ -455,29 +451,29 @@ export interface EntitlementSummary {
 /** @deprecated Use PluginEntitlements instead */
 export interface PluginPermissions {
   /** File system access level */
-  fs?: 'none' | 'readonly' | 'readwrite';
+  fs?: "none" | "readonly" | "readwrite";
   /** Network access */
-  network?: 'none' | 'allow';
+  network?: "none" | "allow";
   /** AI model access */
-  aiModels?: 'none' | 'allow';
+  aiModels?: "none" | "allow";
   /** Clipboard access */
-  clipboard?: 'none' | 'read' | 'readwrite';
+  clipboard?: "none" | "read" | "readwrite";
   /** Git operations */
-  git?: 'none' | 'readonly' | 'readwrite';
+  git?: "none" | "readonly" | "readwrite";
   /** Terminal access */
-  terminal?: 'none' | 'readonly' | 'readwrite';
+  terminal?: "none" | "readonly" | "readwrite";
   /** Can show notifications */
   notifications?: boolean;
 }
 
 /** @deprecated */
 export const DEFAULT_PERMISSIONS: PluginPermissions = {
-  fs: 'none',
-  network: 'none',
-  aiModels: 'none',
-  clipboard: 'none',
-  git: 'none',
-  terminal: 'none',
+  fs: "none",
+  network: "none",
+  aiModels: "none",
+  clipboard: "none",
+  git: "none",
+  terminal: "none",
   notifications: false,
 };
 
@@ -486,23 +482,23 @@ export const DEFAULT_PERMISSIONS: PluginPermissions = {
 // ============================================================================
 
 export type ActivationEvent =
-  | '*'  // Always activate on startup
+  | "*" // Always activate on startup
   | `onCommand:${string}`
   | `onLanguage:${string}`
-  | `onFileOpen:${string}`  // glob pattern
-  | `workspaceContains:${string}`;  // glob pattern
+  | `onFileOpen:${string}` // glob pattern
+  | `workspaceContains:${string}`; // glob pattern
 
 // ============================================================================
 // Plugin Runtime Types
 // ============================================================================
 
 export type PluginState =
-  | 'installed'     // Downloaded but not loaded
-  | 'activating'    // Worker starting, calling activate()
-  | 'active'        // Running
-  | 'deactivating'  // Calling deactivate()
-  | 'inactive'      // Loaded but not running
-  | 'error';        // Failed to load/activate
+  | "installed" // Downloaded but not loaded
+  | "activating" // Worker starting, calling activate()
+  | "active" // Running
+  | "deactivating" // Calling deactivate()
+  | "inactive" // Loaded but not running
+  | "error"; // Failed to load/activate
 
 export interface InstalledPlugin {
   /** npm package name */
@@ -545,19 +541,19 @@ export interface PluginRegistry {
 // ============================================================================
 
 export type MainToWorkerMessage =
-  | { type: 'activate'; pluginName: string; config: unknown }
-  | { type: 'deactivate' }
-  | { type: 'command'; commandId: string; args?: unknown[] }
-  | { type: 'event'; eventType: string; payload: unknown }
-  | { type: 'response'; requestId: string; result?: unknown; error?: string };
+  | { type: "activate"; pluginName: string; config: unknown }
+  | { type: "deactivate" }
+  | { type: "command"; commandId: string; args?: unknown[] }
+  | { type: "event"; eventType: string; payload: unknown }
+  | { type: "response"; requestId: string; result?: unknown; error?: string };
 
 export type WorkerToMainMessage =
-  | { type: 'ready' }
-  | { type: 'activated' }
-  | { type: 'deactivated' }
-  | { type: 'error'; error: string }
-  | { type: 'request'; requestId: string; method: string; params: unknown }
-  | { type: 'log'; level: 'debug' | 'info' | 'warn' | 'error'; message: string; args?: unknown[] };
+  | { type: "ready" }
+  | { type: "activated" }
+  | { type: "deactivated" }
+  | { type: "error"; error: string }
+  | { type: "request"; requestId: string; method: string; params: unknown }
+  | { type: "log"; level: "debug" | "info" | "warn" | "error"; message: string; args?: unknown[] };
 
 // ============================================================================
 // Plugin API Types (what plugins can call)
@@ -609,10 +605,7 @@ export interface PluginAPI {
      * @param languages - Array of language IDs (e.g., ['typescript', 'javascript'])
      * @param provider - The completion provider
      */
-    registerCompletionProvider(
-      languages: string[],
-      provider: CompletionProvider
-    ): Disposable;
+    registerCompletionProvider(languages: string[], provider: CompletionProvider): Disposable;
   };
 
   /** Terminal operations (requires terminal permission) */
@@ -629,7 +622,7 @@ export interface PluginAPI {
      */
     registerCommand(
       name: string,
-      handler: (ctx: TerminalCommandContext) => void | Promise<void>
+      handler: (ctx: TerminalCommandContext) => void | Promise<void>,
     ): Disposable;
   };
 
@@ -647,7 +640,7 @@ export interface PluginAPI {
         cwd?: string;
         env?: Record<string, string>;
         timeout?: number;
-      }
+      },
     ): Promise<{ stdout: string; stderr: string; exitCode: number }>;
     /**
      * Open a URL in the default browser or a file with its default application
@@ -713,7 +706,7 @@ export interface PluginAPI {
      */
     registerItem(
       item: ContextMenuItem,
-      handler: (context: { filePath?: string; selection?: string }) => void | Promise<void>
+      handler: (context: { filePath?: string; selection?: string }) => void | Promise<void>,
     ): Disposable;
   };
 
@@ -803,7 +796,10 @@ export interface PluginAPI {
      * @param slateId - The slate ID (without plugin prefix)
      * @param handler - Called with instanceId, eventType, and payload
      */
-    onEvent(slateId: string, handler: (instanceId: string, eventType: string, payload: unknown) => void | Promise<void>): Disposable;
+    onEvent(
+      slateId: string,
+      handler: (instanceId: string, eventType: string, payload: unknown) => void | Promise<void>,
+    ): Disposable;
     /**
      * Render HTML content into a slate instance.
      * Call this from your onMount handler or event handlers to update the UI.
@@ -880,7 +876,7 @@ export interface PluginAPI {
 /** Handle to update or dispose a status bar item */
 export interface StatusBarItemHandle extends Disposable {
   /** Update the item's text */
-  update(item: Partial<Omit<StatusBarItem, 'id'>>): void;
+  update(item: Partial<Omit<StatusBarItem, "id">>): void;
 }
 
 // ============================================================================
@@ -904,7 +900,7 @@ export interface EditorInfo {
 
 export interface FileChangeEvent {
   path: string;
-  type: 'created' | 'changed' | 'deleted';
+  type: "created" | "changed" | "deleted";
 }
 
 export interface TerminalCommandContext {
@@ -943,7 +939,7 @@ export interface CompletionItem {
   /** Optional documentation shown in the details pane */
   documentation?: string;
   /** Kind of completion (e.g., 'function', 'snippet', 'text') */
-  kind?: 'function' | 'snippet' | 'text' | 'keyword' | 'variable' | 'class' | 'method' | 'property';
+  kind?: "function" | "snippet" | "text" | "keyword" | "variable" | "class" | "method" | "property";
   /** Characters that trigger this completion (e.g., ['.']) */
   triggerCharacters?: string[];
 }
@@ -971,7 +967,7 @@ export interface StatusBarItem {
   /** Priority for ordering (higher = more to the left). Default: 0 */
   priority?: number;
   /** Alignment: 'left' or 'right'. Default: 'right' */
-  alignment?: 'left' | 'right';
+  alignment?: "left" | "right";
 }
 
 export interface FileDecoration {
@@ -993,7 +989,9 @@ export interface FileDecorationProvider {
    * @param filePath - Absolute path to the file
    * @returns Decoration for this file, or undefined for no decoration
    */
-  provideDecoration(filePath: string): FileDecoration | undefined | Promise<FileDecoration | undefined>;
+  provideDecoration(
+    filePath: string,
+  ): FileDecoration | undefined | Promise<FileDecoration | undefined>;
 }
 
 export interface ContextMenuItem {
@@ -1002,7 +1000,7 @@ export interface ContextMenuItem {
   /** Display label */
   label: string;
   /** Context where this item appears: 'editor', 'fileTree', or 'both' */
-  context: 'editor' | 'fileTree' | 'both';
+  context: "editor" | "fileTree" | "both";
   /** Optional keyboard shortcut hint to display */
   shortcutHint?: string;
 }
@@ -1013,7 +1011,7 @@ export interface KeyboardShortcut {
   /** Command ID to execute when triggered */
   command: string;
   /** Optional context where this shortcut is active: 'editor', 'terminal', 'global'. Default: 'global' */
-  when?: 'editor' | 'terminal' | 'global';
+  when?: "editor" | "terminal" | "global";
 }
 
 // ============================================================================
@@ -1027,7 +1025,7 @@ export interface PluginSettingField {
   /** Display label */
   label: string;
   /** Field type. Use 'secret' for passwords/tokens that should be masked */
-  type: 'string' | 'number' | 'boolean' | 'select' | 'color' | 'secret';
+  type: "string" | "number" | "boolean" | "select" | "color" | "secret";
   /** Default value */
   default?: string | number | boolean;
   /** Description/help text */
@@ -1061,18 +1059,18 @@ export interface PluginSettingsSchema {
 }
 
 /** Stored settings values for a plugin */
-export type PluginSettingsValues = Record<string, string | number | boolean>
+export type PluginSettingsValues = Record<string, string | number | boolean>;
 
 /** Validation status for a setting field (shown inline in settings panel) */
 export interface SettingValidationStatus {
   /** Validation state */
-  state: 'idle' | 'validating' | 'valid' | 'invalid';
+  state: "idle" | "validating" | "valid" | "invalid";
   /** Optional message to display */
   message?: string;
 }
 
 /** Map of setting keys to their validation status */
-export type SettingValidationStatuses = Record<string, SettingValidationStatus>
+export type SettingValidationStatuses = Record<string, SettingValidationStatus>;
 
 // ============================================================================
 // Slate Registration Types
@@ -1143,7 +1141,7 @@ export interface RegisteredSlate {
  * Message sent to plugin when slate should mount
  */
 export interface SlateMountMessage {
-  type: 'slateMount';
+  type: "slateMount";
   instanceId: string;
   slateId: string;
   filePath: string;
@@ -1153,7 +1151,7 @@ export interface SlateMountMessage {
  * Message sent to plugin when slate should unmount
  */
 export interface SlateUnmountMessage {
-  type: 'slateUnmount';
+  type: "slateUnmount";
   instanceId: string;
 }
 
@@ -1161,7 +1159,7 @@ export interface SlateUnmountMessage {
  * Message from plugin to render content into slate
  */
 export interface SlateRenderMessage {
-  type: 'slateRender';
+  type: "slateRender";
   instanceId: string;
   /** HTML content to render, or null to clear */
   html?: string;
@@ -1173,7 +1171,7 @@ export interface SlateRenderMessage {
  * Message from slate UI to plugin (user interactions)
  */
 export interface SlateEventMessage {
-  type: 'slateEvent';
+  type: "slateEvent";
   instanceId: string;
   eventType: string;
   payload: unknown;
@@ -1193,7 +1191,7 @@ export interface NpmPackageInfo {
   homepage?: string;
   license?: string;
   /** The colab-plugin field if present */
-  'colab-plugin'?: PluginManifest;
+  "colab-plugin"?: PluginManifest;
 }
 
 export interface NpmSearchResult {

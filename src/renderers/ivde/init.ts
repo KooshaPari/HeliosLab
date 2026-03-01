@@ -26,7 +26,7 @@ import { produce, reconcile } from "solid-js/store";
 import { join, basename, dirname } from "../utils/pathUtils";
 import { _getNode, getNode } from "./FileWatcher";
 import { trackFrontend } from "./analytics";
-import {untrack} from "solid-js";
+import { untrack } from "solid-js";
 import { loadPluginSlates } from "./files";
 import { initializeSlateRegistry } from "./slates/pluginSlateRegistry";
 import { registerColabTerminal } from "../components/ColabTerminal";
@@ -61,7 +61,7 @@ const rpc = Electroview.defineRPC<WorkspaceRPC>({
             // buildFileTree(project.path, true)
             return acc;
           },
-          {}
+          {},
         );
 
         // todo (yoav): [blocking] if we used a flatmap tree
@@ -85,19 +85,12 @@ const rpc = Electroview.defineRPC<WorkspaceRPC>({
             // setState gets triggered, since the presence of projects
             // and tabs and such will trigger rendering a bunch of stuff
             // fileTrees: fileTreesByProjectId,
-          })
+          }),
         );
 
         console.log("projects", state.projects);
       },
-      fileWatchEvent: async ({
-        absolutePath,
-        exists,
-        isDelete,
-        isAdding,
-        isFile,
-        isDir,
-      }) => {
+      fileWatchEvent: async ({ absolutePath, exists, isDelete, isAdding, isFile, isDir }) => {
         const stateFile = state.fileCache[absolutePath];
         // Force reactivity by resetting then setting (ensures change even for same file)
         setState("lastFileChange", null);
@@ -133,7 +126,7 @@ const rpc = Electroview.defineRPC<WorkspaceRPC>({
                     tab.path = "";
                   }
                 }
-              })
+              }),
             );
             // file was removed, delete the model
             const currentFileModel = stateFile.model;
@@ -150,7 +143,7 @@ const rpc = Electroview.defineRPC<WorkspaceRPC>({
                 if (_state.slateCache?.[absolutePath]) {
                   delete _state.slateCache[absolutePath];
                 }
-              })
+              }),
             );
           }
 
@@ -164,10 +157,10 @@ const rpc = Electroview.defineRPC<WorkspaceRPC>({
               const parent = _state.fileCache[parentPath];
               if (parent?.type === "dir") {
                 parent.children = parent.children?.filter(
-                  (childName: string) => childName !== filename
+                  (childName: string) => childName !== filename,
                 );
               }
-            })
+            }),
           );
         } else {
           // this will fetch and cache it if it's not already cached
@@ -190,24 +183,30 @@ const rpc = Electroview.defineRPC<WorkspaceRPC>({
           if (isFile) {
             if (stateFile?.type === "file" && stateFile.isCached) {
               // Only fetch file contents if the file has been explicitly loaded by the user
-              const currentContents =
-                stateFile.model?.getValue() || stateFile.persistedContent;
+              const currentContents = stateFile.model?.getValue() || stateFile.persistedContent;
               const response = await electrobun.rpc?.request.readFile({
                 path: absolutePath,
               });
 
               if (!response) {
-                console.error('No response from readFile for:', absolutePath);
+                console.error("No response from readFile for:", absolutePath);
                 return;
               }
 
               const { textContent: newContents, isBinary, loadedBytes, totalBytes } = response;
 
-              console.log('Got file ', filename, ' with length: ', newContents?.length, 'isBinary:', isBinary);
+              console.log(
+                "Got file ",
+                filename,
+                " with length: ",
+                newContents?.length,
+                "isBinary:",
+                isBinary,
+              );
 
               // Handle binary files
               if (isBinary) {
-                console.log('File is binary, not updating editors:', absolutePath);
+                console.log("File is binary, not updating editors:", absolutePath);
                 setState("fileCache", absolutePath, {
                   isBinary: true,
                   totalBytes: totalBytes,
@@ -269,14 +268,17 @@ const rpc = Electroview.defineRPC<WorkspaceRPC>({
       },
       openAsText: ({ nodePath }) => {
         // Open file directly in code editor, bypassing any slate
-        openNewTab({
-          type: "file",
-          path: nodePath,
-          forceEditor: true,
-        }, false);
+        openNewTab(
+          {
+            type: "file",
+            path: nodePath,
+            forceEditor: true,
+          },
+          false,
+        );
       },
-      openUrlInNewTab: ({url}) => {
-        console.log('openUrlInNewTab', url)
+      openUrlInNewTab: ({ url }) => {
+        console.log("openUrlInNewTab", url);
         openNewTabForNode(`__COLAB_INTERNAL__/web`, false, { focusNewTab: false, url });
       },
       showNodeSettings: ({ nodePath }) => {
@@ -296,51 +298,58 @@ const rpc = Electroview.defineRPC<WorkspaceRPC>({
 
         // Always open settings panel to allow name editing
         const actualNodeType = nodeType || "file";
-        const baseName = actualNodeType === "dir" ? "new-folder" : 
-                         actualNodeType === "repo" ? "new-repo" : "new-file";
+        const baseName =
+          actualNodeType === "dir"
+            ? "new-folder"
+            : actualNodeType === "repo"
+              ? "new-repo"
+              : "new-file";
 
         // clear settings and then set after a delay for animation to play
         // and to cleanly reset the add node settings
         const delay = untrack(() => {
           return state.settingsPane.type ? 400 : 0;
-        })
+        });
 
         setState("settingsPane", {
           type: "",
-          data: {}
-        })        
+          data: {},
+        });
         setTimeout(async () => {
           const nodeName = await electrobun.rpc?.request.getUniqueNewName({
             parentPath: node.path,
             baseName,
           });
-          
-          const childNode: CachedFileType | PreviewFolderNodeType = actualNodeType === "repo" ? {
-            type: "dir",
-            name: nodeName,
-            path: join(node.path, nodeName),
-            isExpanded: true,
-            previewChildren: [],
-            slate: {
-              v: 1,
-              name: nodeName,
-              type: "repo",
-              icon: "🔀",
-              config: {
-                gitUrl: "",
-                branch: "main",
-              },
-            },
-          } : {
-            type: actualNodeType === "dir" ? "dir" : "file",
-            name: nodeName,
-            path: join(node.path, nodeName),
-            persistedContent: "",
-            model: null,
-            isDirty: false,
-            editors: {},
-          };
-        
+
+          const childNode: CachedFileType | PreviewFolderNodeType =
+            actualNodeType === "repo"
+              ? {
+                  type: "dir",
+                  name: nodeName,
+                  path: join(node.path, nodeName),
+                  isExpanded: true,
+                  previewChildren: [],
+                  slate: {
+                    v: 1,
+                    name: nodeName,
+                    type: "repo",
+                    icon: "🔀",
+                    config: {
+                      gitUrl: "",
+                      branch: "main",
+                    },
+                  },
+                }
+              : {
+                  type: actualNodeType === "dir" ? "dir" : "file",
+                  name: nodeName,
+                  path: join(node.path, nodeName),
+                  persistedContent: "",
+                  model: null,
+                  isDirty: false,
+                  editors: {},
+                };
+
           setState("settingsPane", {
             type: "add-node",
             data: {
@@ -349,10 +358,9 @@ const rpc = Electroview.defineRPC<WorkspaceRPC>({
               selectedNodeType: actualNodeType, // Pass the intended node type to settings
             },
           });
-        }, delay)
-        
+        }, delay);
       },
-      newTerminal: ({ nodePath }) => {        
+      newTerminal: ({ nodePath }) => {
         const node = getNode(nodePath);
         if (!node) {
           return;
@@ -394,7 +402,7 @@ const rpc = Electroview.defineRPC<WorkspaceRPC>({
                 match,
               });
             });
-          })
+          }),
         );
       },
       findFilesInWorkspaceResult: ({ query, projectId, results }) => {
@@ -413,7 +421,7 @@ const rpc = Electroview.defineRPC<WorkspaceRPC>({
             results.forEach((result) => {
               _findFileResults[projectId].push(result);
             });
-          })
+          }),
         );
       },
       openCommandPalette: () => {
@@ -457,14 +465,14 @@ const rpc = Electroview.defineRPC<WorkspaceRPC>({
         const tabCount = Object.keys(win?.tabs || {}).length;
         if (tabCount > 0) {
           // Dispatch event to show close window confirmation dialog
-          window.dispatchEvent(new CustomEvent('showCloseWindowDialog'));
+          window.dispatchEvent(new CustomEvent("showCloseWindowDialog"));
         } else {
           electrobun.rpc?.send.closeWindow();
         }
       },
       handleGlobalShortcut: ({ key, ctrl, shift, alt, meta }) => {
         // Dispatch a synthetic keyboard event to trigger the existing shortcut handlers
-        const event = new KeyboardEvent('keydown', {
+        const event = new KeyboardEvent("keydown", {
           key,
           ctrlKey: ctrl,
           shiftKey: shift,
@@ -480,37 +488,37 @@ const rpc = Electroview.defineRPC<WorkspaceRPC>({
       },
       terminalOutput: (data: { terminalId: string; data: string }) => {
         // Notify all terminal components about new output
-        window.dispatchEvent(new CustomEvent('terminalOutput', { detail: data }));
+        window.dispatchEvent(new CustomEvent("terminalOutput", { detail: data }));
       },
       terminalExit: (data: { terminalId: string; exitCode: number }) => {
         // Notify all terminal components about terminal exit
-        window.dispatchEvent(new CustomEvent('terminalExit', { detail: data }));
+        window.dispatchEvent(new CustomEvent("terminalExit", { detail: data }));
       },
       openFileInEditor: (data: { filePath: string; createIfNotExists?: boolean }) => {
         // Open a file in the editor (from edit command, Open menu, or drag-drop)
-        window.dispatchEvent(new CustomEvent('openFileInEditor', { detail: data }));
+        window.dispatchEvent(new CustomEvent("openFileInEditor", { detail: data }));
       },
       openFolderAsProject: (data: { folderPath: string }) => {
         // Add a folder as a project
-        window.dispatchEvent(new CustomEvent('openFolderAsProject', { detail: data }));
+        window.dispatchEvent(new CustomEvent("openFolderAsProject", { detail: data }));
       },
       removeOpenFile: (data: { filePath: string }) => {
         // Remove a file from the open files list
-        window.dispatchEvent(new CustomEvent('removeOpenFile', { detail: data }));
+        window.dispatchEvent(new CustomEvent("removeOpenFile", { detail: data }));
       },
       downloadStarted: (data: { filename: string; path: string }) => {
         setState("downloadNotification", {
           visible: true,
           filename: data.filename,
           path: data.path,
-          status: 'downloading',
+          status: "downloading",
           progress: 0,
         });
       },
       downloadProgress: (data: { progress: number }) => {
         // Only update progress if we're currently downloading
         const current = state.downloadNotification;
-        if (current && current.status === 'downloading') {
+        if (current && current.status === "downloading") {
           setState("downloadNotification", {
             ...current,
             progress: data.progress,
@@ -522,7 +530,7 @@ const rpc = Electroview.defineRPC<WorkspaceRPC>({
           visible: true,
           filename: data.filename,
           path: data.path,
-          status: 'completed',
+          status: "completed",
         });
         // Auto-hide after 5 seconds
         setTimeout(() => {
@@ -534,7 +542,7 @@ const rpc = Electroview.defineRPC<WorkspaceRPC>({
           visible: true,
           filename: data.filename,
           path: data.path,
-          status: 'failed',
+          status: "failed",
           error: data.error,
         });
         // Auto-hide after 8 seconds
@@ -544,7 +552,7 @@ const rpc = Electroview.defineRPC<WorkspaceRPC>({
       },
       slateRender: (data: { instanceId: string; html?: string; script?: string }) => {
         // Notify slate components about render updates from plugins
-        window.dispatchEvent(new CustomEvent('slateRender', { detail: data }));
+        window.dispatchEvent(new CustomEvent("slateRender", { detail: data }));
       },
       createSpecialFile: async ({ nodePath, fileType }) => {
         let fileName = "";

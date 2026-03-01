@@ -2,10 +2,22 @@
   "name": "colab-webflow",
   "version": "0.1.0",
   "description": "Webflow integration for Colab - DevLink sync, Code Components, Cloud deployment, and asset management",
-  "main": "src/index.ts",
-  "keywords": ["colab-plugin", "webflow", "devlink", "cms"],
-  "author": "Colab Team",
+  "keywords": [
+    "cms",
+    "colab-plugin",
+    "devlink",
+    "webflow"
+  ],
   "license": "MIT",
+  "author": "Colab Team",
+  "main": "src/index.ts",
+  "dependencies": {
+    "webflow-api": "^3.1.2"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "^5.0.0"
+  },
   "colab-plugin": {
     "displayName": "Webflow",
     "description": "Sync DevLink components, share Code Components, deploy to Webflow Cloud, and manage custom assets",
@@ -33,7 +45,9 @@
           "title": "Upload Assets to Webflow"
         }
       ],
-      "webviewHooks": ["onLoad"]
+      "webviewHooks": [
+        "onLoad"
+      ]
     },
     "entitlements": {
       "filesystem": {
@@ -43,7 +57,11 @@
       },
       "network": {
         "internet": true,
-        "domains": ["api.webflow.com", "webflow.com", "*.webflow.io"],
+        "domains": [
+          "api.webflow.com",
+          "webflow.com",
+          "*.webflow.io"
+        ],
         "reason": "Connects to Webflow APIs for site management, DevLink sync, and deployments"
       },
       "process": {
@@ -66,13 +84,8 @@
         "reason": "Shows sync status, adds context menu actions, decorates Webflow config files"
       }
     },
-    "activationEvents": ["*"]
-  },
-  "dependencies": {
-    "webflow-api": "^3.1.2"
-  },
-  "devDependencies": {
-    "@types/bun": "latest",
-    "typescript": "^5.0.0"
+    "activationEvents": [
+      "*"
+    ]
   }
 }

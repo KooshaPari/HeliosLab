@@ -12,11 +12,7 @@ import {
   Suspense,
 } from "solid-js";
 import { state, setState } from "../store";
-import {
-  SettingsPaneSaveClose,
-  SettingsPaneFormSection,
-  SettingsPaneField,
-} from "./forms";
+import { SettingsPaneSaveClose, SettingsPaneFormSection, SettingsPaneField } from "./forms";
 import { electrobun } from "../init";
 
 // Props for custom settings components
@@ -31,7 +27,9 @@ export interface CustomSettingsComponentProps {
 import { getSettingsComponent } from "../slates/pluginSlateRegistry";
 
 // Load a custom settings component from the plugin registry
-async function loadCustomComponent(name: string): Promise<Component<CustomSettingsComponentProps> | null> {
+async function loadCustomComponent(
+  name: string,
+): Promise<Component<CustomSettingsComponentProps> | null> {
   const component = getSettingsComponent(name);
   if (!component) {
     console.warn(`Unknown custom settings component: ${name}`);
@@ -42,7 +40,8 @@ async function loadCustomComponent(name: string): Promise<Component<CustomSettin
 
 // Wrapper component that handles lazy loading of custom settings components
 const CustomSettingsLoader = (props: { componentName: string; pluginName: string }): JSXElement => {
-  const [CustomComponent, setCustomComponent] = createSignal<Component<CustomSettingsComponentProps> | null>(null);
+  const [CustomComponent, setCustomComponent] =
+    createSignal<Component<CustomSettingsComponentProps> | null>(null);
   const [loadError, setLoadError] = createSignal<string | null>(null);
   const [loadingComponent, setLoadingComponent] = createSignal(true);
 
@@ -55,7 +54,7 @@ const CustomSettingsLoader = (props: { componentName: string; pluginName: string
         setLoadError(`Component "${props.componentName}" not found`);
       }
     } catch (e) {
-      setLoadError(e instanceof Error ? e.message : 'Failed to load component');
+      setLoadError(e instanceof Error ? e.message : "Failed to load component");
     } finally {
       setLoadingComponent(false);
     }
@@ -63,12 +62,15 @@ const CustomSettingsLoader = (props: { componentName: string; pluginName: string
 
   // Create messaging helpers for the custom component
   const sendMessage = async (message: unknown) => {
-    console.log('[PluginSettings] sendMessage called:', props.pluginName, message);
+    console.log("[PluginSettings] sendMessage called:", props.pluginName, message);
     try {
-      await electrobun.rpc?.request.pluginSendSettingsMessage({ pluginName: props.pluginName, message });
-      console.log('[PluginSettings] sendMessage completed');
+      await electrobun.rpc?.request.pluginSendSettingsMessage({
+        pluginName: props.pluginName,
+        message,
+      });
+      console.log("[PluginSettings] sendMessage completed");
     } catch (e) {
-      console.error('[PluginSettings] sendMessage error:', e);
+      console.error("[PluginSettings] sendMessage error:", e);
     }
   };
 
@@ -84,20 +86,22 @@ const CustomSettingsLoader = (props: { componentName: string; pluginName: string
   onMount(() => {
     const pollMessages = async () => {
       try {
-        const messages = await electrobun.rpc?.request.pluginGetPendingSettingsMessages({ pluginName: props.pluginName });
+        const messages = await electrobun.rpc?.request.pluginGetPendingSettingsMessages({
+          pluginName: props.pluginName,
+        });
         if (messages && messages.length > 0) {
           for (const msg of messages) {
             for (const listener of messageListeners) {
               try {
                 listener(msg);
               } catch (e) {
-                console.error('Error in message listener:', e);
+                console.error("Error in message listener:", e);
               }
             }
           }
         }
       } catch (e) {
-        console.error('Failed to poll messages:', e);
+        console.error("Failed to poll messages:", e);
       }
     };
 
@@ -111,11 +115,14 @@ const CustomSettingsLoader = (props: { componentName: string; pluginName: string
   });
 
   // State helpers
-  const getStateValue = async <T = unknown,>(key: string): Promise<T | undefined> => {
-    return await electrobun.rpc?.request.pluginGetStateValue({ pluginName: props.pluginName, key }) as T | undefined;
+  const getStateValue = async <T = unknown>(key: string): Promise<T | undefined> => {
+    return (await electrobun.rpc?.request.pluginGetStateValue({
+      pluginName: props.pluginName,
+      key,
+    })) as T | undefined;
   };
 
-  const setStateValue = async <T = unknown,>(key: string, value: T): Promise<void> => {
+  const setStateValue = async <T = unknown>(key: string, value: T): Promise<void> => {
     await electrobun.rpc?.request.pluginSetStateValue({ pluginName: props.pluginName, key, value });
   };
 
@@ -152,7 +159,7 @@ const CustomSettingsLoader = (props: { componentName: string; pluginName: string
 interface SettingField {
   key: string;
   label: string;
-  type: 'string' | 'number' | 'boolean' | 'select' | 'color' | 'secret';
+  type: "string" | "number" | "boolean" | "select" | "color" | "secret";
   default?: string | number | boolean;
   description?: string;
   options?: Array<{ label: string; value: string | number }>;
@@ -171,14 +178,14 @@ interface SettingsSchema {
 
 interface EntitlementSummary {
   category: string;
-  level: 'low' | 'medium' | 'high';
+  level: "low" | "medium" | "high";
   icon: string;
   label: string;
   description: string;
 }
 
 interface ValidationStatus {
-  state: 'idle' | 'validating' | 'valid' | 'invalid';
+  state: "idle" | "validating" | "valid" | "invalid";
   message?: string;
 }
 
@@ -188,7 +195,9 @@ export const PluginSettings = (): JSXElement => {
   const [entitlements, setEntitlements] = createSignal<EntitlementSummary[]>([]);
   const [loading, setLoading] = createSignal(true);
   const [pluginDisplayName, setPluginDisplayName] = createSignal<string>("");
-  const [validationStatuses, setValidationStatuses] = createSignal<Record<string, ValidationStatus>>({});
+  const [validationStatuses, setValidationStatuses] = createSignal<
+    Record<string, ValidationStatus>
+  >({});
 
   // Get the plugin name from settingsPane data
   const getPluginName = () => {
@@ -245,12 +254,14 @@ export const PluginSettings = (): JSXElement => {
       attempts++;
 
       try {
-        const statuses = await electrobun.rpc?.request.pluginGetSettingValidationStatuses({ pluginName });
+        const statuses = await electrobun.rpc?.request.pluginGetSettingValidationStatuses({
+          pluginName,
+        });
         if (statuses && statuses[key]) {
-          setValidationStatuses(prev => ({ ...prev, [key]: statuses[key] }));
+          setValidationStatuses((prev) => ({ ...prev, [key]: statuses[key] }));
 
           // Stop polling if we have a final state
-          if (statuses[key].state === 'valid' || statuses[key].state === 'invalid') {
+          if (statuses[key].state === "valid" || statuses[key].state === "invalid") {
             return;
           }
         }
@@ -269,24 +280,28 @@ export const PluginSettings = (): JSXElement => {
     loadSettings();
   });
 
-  const handleValueChange = async (key: string, value: string | number | boolean, isSecret = false) => {
+  const handleValueChange = async (
+    key: string,
+    value: string | number | boolean,
+    isSecret = false,
+  ) => {
     const pluginName = getPluginName();
     if (!pluginName) return;
 
     // Update local state immediately
-    setValues(prev => ({ ...prev, [key]: value }));
+    setValues((prev) => ({ ...prev, [key]: value }));
 
     // For secret fields, show validating state immediately
-    if (isSecret && typeof value === 'string' && value.trim()) {
-      setValidationStatuses(prev => ({
+    if (isSecret && typeof value === "string" && value.trim()) {
+      setValidationStatuses((prev) => ({
         ...prev,
-        [key]: { state: 'validating', message: 'Validating...' }
+        [key]: { state: "validating", message: "Validating..." },
       }));
-    } else if (isSecret && typeof value === 'string' && !value.trim()) {
+    } else if (isSecret && typeof value === "string" && !value.trim()) {
       // Clear validation status if value is empty
-      setValidationStatuses(prev => ({
+      setValidationStatuses((prev) => ({
         ...prev,
-        [key]: { state: 'idle' }
+        [key]: { state: "idle" },
       }));
     }
 
@@ -295,15 +310,15 @@ export const PluginSettings = (): JSXElement => {
       await electrobun.rpc?.request.pluginSetSettingValue({ pluginName, key, value });
 
       // For secret fields, start polling for validation status
-      if (isSecret && typeof value === 'string' && value.trim()) {
+      if (isSecret && typeof value === "string" && value.trim()) {
         pollValidationStatus(key);
       }
     } catch (error) {
       console.error("Failed to save setting:", error);
       if (isSecret) {
-        setValidationStatuses(prev => ({
+        setValidationStatuses((prev) => ({
           ...prev,
-          [key]: { state: 'invalid', message: 'Failed to save' }
+          [key]: { state: "invalid", message: "Failed to save" },
         }));
       }
     }
@@ -314,7 +329,7 @@ export const PluginSettings = (): JSXElement => {
     if (field.key in v) {
       return v[field.key];
     }
-    return field.default ?? (field.type === 'boolean' ? false : field.type === 'number' ? 0 : '');
+    return field.default ?? (field.type === "boolean" ? false : field.type === "number" ? 0 : "");
   };
 
   const onClose = () => {
@@ -322,9 +337,7 @@ export const PluginSettings = (): JSXElement => {
   };
 
   return (
-    <div
-      style="background: #404040; color: #d9d9d9; height: 100vh; overflow: hidden; display: flex; flex-direction: column;"
-    >
+    <div style="background: #404040; color: #d9d9d9; height: 100vh; overflow: hidden; display: flex; flex-direction: column;">
       <div style="height: 100%; display: flex; flex-direction: column;">
         <div
           class="settings-header"
@@ -345,9 +358,7 @@ export const PluginSettings = (): JSXElement => {
 
         <div style="flex: 1; overflow-y: auto; padding: 0; padding-bottom: 40px;">
           <Show when={loading()}>
-            <div style="padding: 20px; text-align: center; color: #999;">
-              Loading settings...
-            </div>
+            <div style="padding: 20px; text-align: center; color: #999;">Loading settings...</div>
           </Show>
 
           <Show when={!loading() && !schema()}>
@@ -368,7 +379,7 @@ export const PluginSettings = (): JSXElement => {
                 {(field) => (
                   <SettingsPaneField label={field.label}>
                     <Switch>
-                      <Match when={field.type === 'boolean'}>
+                      <Match when={field.type === "boolean"}>
                         <div style="display: flex; align-items: flex-start; gap: 8px;">
                           <input
                             type="checkbox"
@@ -384,7 +395,7 @@ export const PluginSettings = (): JSXElement => {
                         </div>
                       </Match>
 
-                      <Match when={field.type === 'string'}>
+                      <Match when={field.type === "string"}>
                         <input
                           type="text"
                           value={getValue(field) as string}
@@ -398,52 +409,67 @@ export const PluginSettings = (): JSXElement => {
                         </Show>
                       </Match>
 
-                      <Match when={field.type === 'secret'}>
+                      <Match when={field.type === "secret"}>
                         <div style="position: relative;">
                           <input
                             type="password"
                             value={getValue(field) as string}
-                            placeholder={field.placeholder || '••••••••••••••••'}
-                            onInput={(e) => handleValueChange(field.key, e.currentTarget.value, true)}
+                            placeholder={field.placeholder || "••••••••••••••••"}
+                            onInput={(e) =>
+                              handleValueChange(field.key, e.currentTarget.value, true)
+                            }
                             style={{
-                              background: '#2b2b2b',
-                              'border-radius': '4px',
-                              border: validationStatuses()[field.key]?.state === 'valid' ? '1px solid #51cf66' :
-                                      validationStatuses()[field.key]?.state === 'invalid' ? '1px solid #ff6b6b' :
-                                      validationStatuses()[field.key]?.state === 'validating' ? '1px solid #ff9800' : '1px solid #212121',
-                              color: '#d9d9d9',
-                              outline: 'none',
-                              cursor: 'text',
-                              display: 'block',
-                              'font-family': "'Fira Code', 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace",
-                              'font-size': '12px',
-                              'padding-top': '8px',
-                              'padding-right': '36px',
-                              'padding-bottom': '8px',
-                              'padding-left': '9px',
-                              'line-height': '14px',
-                              width: '100%',
-                              'box-sizing': 'border-box',
+                              background: "#2b2b2b",
+                              "border-radius": "4px",
+                              border:
+                                validationStatuses()[field.key]?.state === "valid"
+                                  ? "1px solid #51cf66"
+                                  : validationStatuses()[field.key]?.state === "invalid"
+                                    ? "1px solid #ff6b6b"
+                                    : validationStatuses()[field.key]?.state === "validating"
+                                      ? "1px solid #ff9800"
+                                      : "1px solid #212121",
+                              color: "#d9d9d9",
+                              outline: "none",
+                              cursor: "text",
+                              display: "block",
+                              "font-family":
+                                "'Fira Code', 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace",
+                              "font-size": "12px",
+                              "padding-top": "8px",
+                              "padding-right": "36px",
+                              "padding-bottom": "8px",
+                              "padding-left": "9px",
+                              "line-height": "14px",
+                              width: "100%",
+                              "box-sizing": "border-box",
                             }}
                           />
                           {/* Validation status indicator */}
-                          <Show when={validationStatuses()[field.key]?.state && validationStatuses()[field.key]?.state !== 'idle'}>
-                            <div style={{
-                              position: 'absolute',
-                              right: '10px',
-                              top: '50%',
-                              transform: 'translateY(-50%)',
-                              display: 'flex',
-                              'align-items': 'center',
-                              gap: '4px',
-                            }}>
-                              <Show when={validationStatuses()[field.key]?.state === 'validating'}>
+                          <Show
+                            when={
+                              validationStatuses()[field.key]?.state &&
+                              validationStatuses()[field.key]?.state !== "idle"
+                            }
+                          >
+                            <div
+                              style={{
+                                position: "absolute",
+                                right: "10px",
+                                top: "50%",
+                                transform: "translateY(-50%)",
+                                display: "flex",
+                                "align-items": "center",
+                                gap: "4px",
+                              }}
+                            >
+                              <Show when={validationStatuses()[field.key]?.state === "validating"}>
                                 <span style="color: #ff9800; font-size: 14px;">⏳</span>
                               </Show>
-                              <Show when={validationStatuses()[field.key]?.state === 'valid'}>
+                              <Show when={validationStatuses()[field.key]?.state === "valid"}>
                                 <span style="color: #51cf66; font-size: 14px;">✓</span>
                               </Show>
-                              <Show when={validationStatuses()[field.key]?.state === 'invalid'}>
+                              <Show when={validationStatuses()[field.key]?.state === "invalid"}>
                                 <span style="color: #ff6b6b; font-size: 14px;">✗</span>
                               </Show>
                             </div>
@@ -451,13 +477,20 @@ export const PluginSettings = (): JSXElement => {
                         </div>
                         {/* Validation message */}
                         <Show when={validationStatuses()[field.key]?.message}>
-                          <div style={{
-                            'font-size': '11px',
-                            'margin-top': '4px',
-                            color: validationStatuses()[field.key]?.state === 'valid' ? '#51cf66' :
-                                   validationStatuses()[field.key]?.state === 'invalid' ? '#ff6b6b' :
-                                   validationStatuses()[field.key]?.state === 'validating' ? '#ff9800' : '#999',
-                          }}>
+                          <div
+                            style={{
+                              "font-size": "11px",
+                              "margin-top": "4px",
+                              color:
+                                validationStatuses()[field.key]?.state === "valid"
+                                  ? "#51cf66"
+                                  : validationStatuses()[field.key]?.state === "invalid"
+                                    ? "#ff6b6b"
+                                    : validationStatuses()[field.key]?.state === "validating"
+                                      ? "#ff9800"
+                                      : "#999",
+                            }}
+                          >
                             {validationStatuses()[field.key]?.message}
                           </div>
                         </Show>
@@ -468,7 +501,7 @@ export const PluginSettings = (): JSXElement => {
                         </Show>
                       </Match>
 
-                      <Match when={field.type === 'number'}>
+                      <Match when={field.type === "number"}>
                         <div style="display: flex; flex-direction: column; gap: 8px;">
                           <div style="display: flex; align-items: center; gap: 12px;">
                             <input
@@ -477,7 +510,9 @@ export const PluginSettings = (): JSXElement => {
                               max={field.max ?? 100}
                               step={field.step ?? 1}
                               value={(getValue(field) as number).toString()}
-                              onInput={(e) => handleValueChange(field.key, parseFloat(e.currentTarget.value))}
+                              onInput={(e) =>
+                                handleValueChange(field.key, parseFloat(e.currentTarget.value))
+                              }
                               style="flex: 1; accent-color: #0073e6;"
                             />
                             <span style="font-size: 12px; color: #d9d9d9; min-width: 40px; text-align: right;">
@@ -485,14 +520,12 @@ export const PluginSettings = (): JSXElement => {
                             </span>
                           </div>
                           <Show when={field.description}>
-                            <div style="font-size: 11px; color: #999;">
-                              {field.description}
-                            </div>
+                            <div style="font-size: 11px; color: #999;">{field.description}</div>
                           </Show>
                         </div>
                       </Match>
 
-                      <Match when={field.type === 'select'}>
+                      <Match when={field.type === "select"}>
                         <select
                           value={getValue(field) as string | number}
                           onChange={(e) => {
@@ -505,7 +538,10 @@ export const PluginSettings = (): JSXElement => {
                         >
                           <For each={field.options || []}>
                             {(option) => (
-                              <option value={option.value} selected={option.value === getValue(field)}>
+                              <option
+                                value={option.value}
+                                selected={option.value === getValue(field)}
+                              >
                                 {option.label}
                               </option>
                             )}
@@ -518,7 +554,7 @@ export const PluginSettings = (): JSXElement => {
                         </Show>
                       </Match>
 
-                      <Match when={field.type === 'color'}>
+                      <Match when={field.type === "color"}>
                         <div style="display: flex; align-items: center; gap: 8px;">
                           <input
                             type="color"
@@ -563,8 +599,9 @@ export const PluginSettings = (): JSXElement => {
                     <div style="display: flex; align-items: flex-start; gap: 8px; color: #f0ad4e; font-size: 11px;">
                       <span style="font-size: 14px;">⚠️</span>
                       <div>
-                        <strong>Trust Notice:</strong> These are capabilities the plugin author declares it needs.
-                        They are <em>not enforced</em> by Colab. Only install plugins from sources you trust.
+                        <strong>Trust Notice:</strong> These are capabilities the plugin author
+                        declares it needs. They are <em>not enforced</em> by Colab. Only install
+                        plugins from sources you trust.
                       </div>
                     </div>
                   </div>
@@ -591,10 +628,18 @@ export const PluginSettings = (): JSXElement => {
                                 "font-size": "10px",
                                 padding: "2px 6px",
                                 "border-radius": "3px",
-                                background: entitlement.level === 'high' ? '#5c2626' :
-                                           entitlement.level === 'medium' ? '#4a4026' : '#2a3a2a',
-                                color: entitlement.level === 'high' ? '#f87171' :
-                                       entitlement.level === 'medium' ? '#fbbf24' : '#86efac',
+                                background:
+                                  entitlement.level === "high"
+                                    ? "#5c2626"
+                                    : entitlement.level === "medium"
+                                      ? "#4a4026"
+                                      : "#2a3a2a",
+                                color:
+                                  entitlement.level === "high"
+                                    ? "#f87171"
+                                    : entitlement.level === "medium"
+                                      ? "#fbbf24"
+                                      : "#86efac",
                               }}
                             >
                               {entitlement.level}

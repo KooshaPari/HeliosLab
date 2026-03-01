@@ -62,8 +62,11 @@ export function arePluginRenderersReady(): boolean {
  * Mapping of plugin names to their renderer module paths.
  * This is the only place where plugin renderer paths are configured.
  */
-const pluginRendererPaths: Record<string, () => Promise<{ initializeRenderer: (api: typeof pluginRendererAPI) => void }>> = {
-  'colab-webflow': () => import("../../../../webflow-plugin/src/renderer/index"),
+const pluginRendererPaths: Record<
+  string,
+  () => Promise<{ initializeRenderer: (api: typeof pluginRendererAPI) => void }>
+> = {
+  "colab-webflow": () => import("../../../../webflow-plugin/src/renderer/index"),
 };
 
 /**
@@ -98,7 +101,7 @@ export async function initializePluginRenderer(pluginName: string): Promise<void
  */
 export async function initializeAllPluginRenderers(pluginNames: string[]): Promise<void> {
   const uniquePlugins = [...new Set(pluginNames)];
-  await Promise.all(uniquePlugins.map(name => initializePluginRenderer(name)));
+  await Promise.all(uniquePlugins.map((name) => initializePluginRenderer(name)));
 
   // Mark renderers as ready
   renderersReady = true;

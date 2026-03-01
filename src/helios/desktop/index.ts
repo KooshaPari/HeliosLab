@@ -1,10 +1,15 @@
 import { InMemoryLocalBus } from "../runtime/protocol/bus";
-import { DEFAULT_SETTINGS, switchRendererWithRollback, type DesktopSettings, type RendererEngine } from "./settings";
+import {
+  DEFAULT_SETTINGS,
+  switchRendererWithRollback,
+  type DesktopSettings,
+  type RendererEngine,
+} from "./settings";
 import {
   ActiveContextStore,
   INITIAL_ACTIVE_CONTEXT_STATE,
   selectActiveContext,
-  type ActiveTab
+  type ActiveTab,
 } from "./context_store";
 import { DesktopRuntimeClient } from "./runtime_client";
 import { buildAllTabSurfaces, type TabSurface } from "./tabs";
@@ -66,7 +71,7 @@ export class EditorlessControlPlane {
       this.store.dispatch({
         type: "operation.failure",
         operation: "lane",
-        error: result.error ?? "lane create failed"
+        error: result.error ?? "lane create failed",
       });
       return { ok: false, laneId: null, error: result.error ?? "lane create failed" };
     }
@@ -91,7 +96,7 @@ export class EditorlessControlPlane {
       this.store.dispatch({
         type: "operation.failure",
         operation: "session",
-        error: result.error ?? "session attach failed"
+        error: result.error ?? "session attach failed",
       });
       return { ok: false, sessionId: null, error: result.error ?? "session attach failed" };
     }
@@ -116,7 +121,7 @@ export class EditorlessControlPlane {
       this.store.dispatch({
         type: "operation.failure",
         operation: "terminal",
-        error: result.error ?? "terminal spawn failed"
+        error: result.error ?? "terminal spawn failed",
       });
       return { ok: false, terminalId: null, error: result.error ?? "terminal spawn failed" };
     }
@@ -129,24 +134,32 @@ export class EditorlessControlPlane {
     return { ok: true, terminalId: result.id, error: null };
   }
 
-  async switchRenderer(targetEngine: RendererEngine, options?: {
-    forceError?: boolean;
-    forceRollbackError?: boolean;
-  }): Promise<{ committed: boolean; rolledBack: boolean; message: string; activeEngine: RendererEngine }> {
+  async switchRenderer(
+    targetEngine: RendererEngine,
+    options?: {
+      forceError?: boolean;
+      forceRollbackError?: boolean;
+    },
+  ): Promise<{
+    committed: boolean;
+    rolledBack: boolean;
+    message: string;
+    activeEngine: RendererEngine;
+  }> {
     const outcome = await switchRendererWithRollback({
       settings: this.settings,
       targetEngine,
       runtimeClient: this.runtimeClient,
       contextStore: this.store,
       forceError: options?.forceError,
-      forceRollbackError: options?.forceRollbackError
+      forceRollbackError: options?.forceRollbackError,
     });
     this.settings = outcome.settings;
     return {
       committed: outcome.committed,
       rolledBack: outcome.rolledBack,
       message: outcome.message,
-      activeEngine: this.settings.rendererEngine
+      activeEngine: this.settings.rendererEngine,
     };
   }
 }
@@ -165,7 +178,7 @@ export function renderTabSnapshot(surface: TabSurface): string {
     `<p data-testid="tab-${surface.tab}-session">${surface.context.sessionId ?? "none"}</p>`,
     `<p data-testid="tab-${surface.tab}-transport">${surface.diagnostics.resolvedTransport}</p>`,
     `<p data-testid="tab-${surface.tab}-degrade">${surface.diagnostics.degradedReason ?? "none"}</p>`,
-    "</section>"
+    "</section>",
   ].join("");
 }
 
@@ -181,7 +194,6 @@ export function renderControlPlaneSnapshot(controlPlane: EditorlessControlPlane)
     renderTabSnapshot(tabs.session),
     renderTabSnapshot(tabs.chat),
     renderTabSnapshot(tabs.project),
-    "</main>"
+    "</main>",
   ].join("");
 }
-

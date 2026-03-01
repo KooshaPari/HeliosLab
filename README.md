@@ -2,10 +2,9 @@
 > We believe in shipping early and often.
 > Now that **we're using co(lab) to build all of Blackboard's projects internally including Electrobun and co(lab) itself** we decided to open source it and make the Developer Preview available for download for early feedback.
 
->[!IMPORTANT]
+> [!IMPORTANT]
 > **Some of the listed features are in early development**, and our FTU and onboarding could use some love.
 > We invite the **brave** to download the developer preview as we prep for v1 and **give us feedback** on how co(lab) could best help you do your best deep work
-
 
 # Co(lab)
 
@@ -59,13 +58,13 @@ Co(lab) is built with [Electrobun](https://github.com/blackboardsh/electrobun), 
 
 ```bash
 # Install dependencies
-npm install
+bun install
 
 # Start development server
-npm run dev
+bun run dev
 
 # Build for production
-npm run build:stable
+bun run build:stable
 ```
 
 ### Project Structure

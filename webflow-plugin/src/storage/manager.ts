@@ -8,7 +8,7 @@
  * - Plugin settings
  */
 
-import type { PluginAPI } from '../../../src/main/plugins/types';
+import type { PluginAPI } from "../../../src/main/plugins/types";
 
 export interface WebflowAuth {
   accessToken: string;
@@ -35,12 +35,12 @@ export interface AssetInfo {
 }
 
 export interface AssetConnection {
-  type: 'site' | 'page' | 'element';
-  location: 'head' | 'body';
+  type: "site" | "page" | "element";
+  location: "head" | "body";
   siteId?: string;
   pageSlug?: string;
   elementId?: string;
-  loadStrategy?: 'sync' | 'async' | 'defer';
+  loadStrategy?: "sync" | "async" | "defer";
 }
 
 export interface PluginStorage {
@@ -70,7 +70,7 @@ export class StorageManager {
    */
   async initialize(): Promise<void> {
     try {
-      const stored = this.api.settings.get<string>('_storage');
+      const stored = this.api.settings.get<string>("_storage");
       if (stored) {
         const parsed = JSON.parse(stored);
         if (parsed.version === STORAGE_VERSION) {
@@ -81,7 +81,7 @@ export class StorageManager {
         }
       }
     } catch (e) {
-      this.api.log.error('Failed to load storage:', e);
+      this.api.log.error("Failed to load storage:", e);
     }
   }
 
@@ -90,9 +90,9 @@ export class StorageManager {
    */
   private async save(): Promise<void> {
     try {
-      this.api.settings.set('_storage', JSON.stringify(this.data));
+      this.api.settings.set("_storage", JSON.stringify(this.data));
     } catch (e) {
-      this.api.log.error('Failed to save storage:', e);
+      this.api.log.error("Failed to save storage:", e);
     }
   }
 
@@ -167,7 +167,7 @@ export class StorageManager {
 
   async getAssetsBySite(siteId: string): Promise<AssetInfo[]> {
     return Object.values(this.data.assets).filter((asset) =>
-      asset.connections.some((conn) => conn.siteId === siteId)
+      asset.connections.some((conn) => conn.siteId === siteId),
     );
   }
 

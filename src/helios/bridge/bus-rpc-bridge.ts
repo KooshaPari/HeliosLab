@@ -8,11 +8,21 @@
 
 import { type InMemoryLocalBus } from "../runtime/protocol/bus";
 import type { LocalBusEnvelope } from "../runtime/protocol/types";
-import { createBoundaryDispatcher, getBoundaryDispatchDecision } from "../runtime/protocol/boundary_adapter";
+import {
+  createBoundaryDispatcher,
+  getBoundaryDispatchDecision,
+} from "../runtime/protocol/boundary_adapter";
 import { broadcastToAllWindowsInWorkspace } from "../../main/workspaceWindows";
-import { upsertLane, writeAuditEntry } from "./persistence";
+import {
+  upsertLane,
+  writeAuditEntry,
+  loadSessionSnapshot,
+  saveSessionSnapshot,
+} from "./persistence";
 import type { RuntimeMetrics } from "../runtime/diagnostics/metrics";
 import type { HeliosTerminalBridge } from "./terminal-bridge";
+import { createMuxerDispatch } from "./muxer-dispatch";
+import { createToolDispatch } from "./tool-dispatch";
 
 type CommandDispatch = (command: LocalBusEnvelope) => Promise<LocalBusEnvelope>;
 
@@ -21,6 +31,7 @@ export type BusRpcBridgeOptions = {
   workspaceId: string;
   dispatchTool?: CommandDispatch;
   dispatchA2A?: CommandDispatch;
+  dispatchMuxer?: CommandDispatch;
   metrics?: RuntimeMetrics;
   termBridge?: HeliosTerminalBridge;
   windowId?: string;
@@ -41,13 +52,60 @@ export type BusRpcBridge = {
  * - Bus events are broadcast to all windows in the workspace via RPC
  */
 export function createBusRpcBridge(opts: BusRpcBridgeOptions): BusRpcBridge {
-  const { bus, workspaceId, dispatchTool, dispatchA2A, metrics, termBridge, windowId } = opts;
+  const {
+    bus,
+    workspaceId,
+    dispatchTool,
+    dispatchA2A,
+    dispatchMuxer,
+    metrics,
+    termBridge,
+    windowId,
+  } = opts;
   let disposed = false;
+
+  // Restore session snapshot on bridge creation
+  try {
+    const snapshot = loadSessionSnapshot(workspaceId);
+    if (snapshot && snapshot.length > 0) {
+      bus.restoreLanes(snapshot);
+    }
+  } catch {
+    // Silently fail; start with fresh state
+  }
+
+  // Create combined tool dispatcher: tries tool dispatch first (for share.*/zmx.*),
+  // then muxer dispatch for unhandled methods
+  const createCombinedDispatcher = (): CommandDispatch => {
+    const toolDispatch = createToolDispatch();
+    const muxerDispatch = createMuxerDispatch();
+
+    return async (command: LocalBusEnvelope): Promise<LocalBusEnvelope> => {
+      const method = command.method;
+
+      // Route share.* and zmx.* to tool dispatch
+      if (method.startsWith("share.") || method.startsWith("zmx.")) {
+        return toolDispatch(command);
+      }
+
+      // Route muxer.* to muxer dispatch
+      if (method.startsWith("muxer.")) {
+        return muxerDispatch(command);
+      }
+
+      // Fallback to tool dispatch for unknown methods
+      return toolDispatch(command);
+    };
+  };
+
+  // Resolve tool dispatch: use provided dispatchTool, fall back to combined
+  // dispatcher that routes to tool and muxer dispatchers
+  const resolvedDispatchTool = dispatchTool || dispatchMuxer || createCombinedDispatcher();
 
   // Create boundary dispatcher with all three boundaries
   const dispatch = createBoundaryDispatcher({
     dispatchLocal: (command) => bus.request(command),
-    dispatchTool,
+    dispatchTool: resolvedDispatchTool,
     dispatchA2A,
   });
 
@@ -74,6 +132,57 @@ export function createBusRpcBridge(opts: BusRpcBridgeOptions): BusRpcBridge {
       method: string,
       params: Record<string, unknown>,
     ): Promise<LocalBusEnvelope> {
+      // Handle lane.list query
+      if (method === "lane.list") {
+        const lanes = bus.getActiveLanes();
+        return {
+          id: crypto.randomUUID(),
+          type: "response",
+          ts: new Date().toISOString(),
+          status: "ok",
+          result: { lanes },
+        };
+      }
+
+      // Handle session.reconnect
+      if (method === "session.reconnect") {
+        const laneId = params["laneId"] as string;
+        if (!laneId) {
+          return {
+            id: crypto.randomUUID(),
+            type: "response",
+            ts: new Date().toISOString(),
+            status: "error",
+            result: null,
+            error: {
+              code: "SESSION_RECONNECT_FAILED",
+              message: "laneId is required",
+              retryable: false,
+              details: { method: "session.reconnect" },
+            },
+          };
+        }
+
+        // Delegate to session.attach logic with the existing laneId
+        const sessionEnvelope: LocalBusEnvelope = {
+          id: crypto.randomUUID(),
+          type: "command",
+          ts: new Date().toISOString(),
+          workspace_id: workspaceId,
+          method: "session.attach",
+          payload: { id: `${laneId}:session` },
+          correlation_id: crypto.randomUUID(),
+          meta: {
+            workspace_id: workspaceId,
+            session_id: (params["session_id"] as string) ?? null,
+            correlation_id: crypto.randomUUID(),
+            timestamp: new Date().toISOString(),
+          },
+        };
+
+        return await dispatch(sessionEnvelope);
+      }
+
       const correlationId = crypto.randomUUID();
       const envelope: LocalBusEnvelope = {
         id: correlationId,
@@ -85,7 +194,7 @@ export function createBusRpcBridge(opts: BusRpcBridgeOptions): BusRpcBridge {
         correlation_id: correlationId,
         meta: {
           workspace_id: workspaceId,
-          session_id: (params.session_id as string) ?? null,
+          session_id: (params["session_id"] as string) ?? null,
           correlation_id: correlationId,
           timestamp: new Date().toISOString(),
         },
@@ -93,9 +202,12 @@ export function createBusRpcBridge(opts: BusRpcBridgeOptions): BusRpcBridge {
 
       // Route through boundary dispatcher with metrics
       const decision = getBoundaryDispatchDecision(method);
-      const metricName = method === "lane.create" ? "lane_create_latency_ms" as const
-        : method === "session.attach" ? "session_restore_latency_ms" as const
-        : null;
+      const metricName =
+        method === "lane.create"
+          ? ("lane_create_latency_ms" as const)
+          : method === "session.attach"
+            ? ("session_restore_latency_ms" as const)
+            : null;
 
       if (metrics && metricName) {
         metrics.startTimer(metricName, envelope.meta?.correlation_id ?? method);
@@ -112,15 +224,22 @@ export function createBusRpcBridge(opts: BusRpcBridgeOptions): BusRpcBridge {
       // Persist lane state after lifecycle commands
       if (method === "lane.create" || method === "session.attach" || method === "terminal.spawn") {
         const result = response.result as Record<string, unknown> | null;
-        const laneId = (result?.lane_id as string) ?? (params.lane_id as string) ?? (params.id as string)?.split(":")[0] ?? null;
+        const laneId =
+          (result?.["lane_id"] as string) ??
+          (params["lane_id"] as string) ??
+          (params["id"] as string)?.split(":")[0] ??
+          null;
         if (laneId) {
           try {
             upsertLane({
               workspaceId,
               laneId,
-              sessionId: (result?.session_id as string) ?? null,
-              terminalId: (result?.terminal_id as string) ?? null,
-              transport: (result?.diagnostics as Record<string, unknown>)?.resolved_transport as string ?? "cliproxy_harness",
+              sessionId: (result?.["session_id"] as string) ?? null,
+              terminalId: (result?.["terminal_id"] as string) ?? null,
+              transport:
+                ((result?.["diagnostics"] as Record<string, unknown>)?.[
+                  "resolved_transport"
+                ] as string) ?? "cliproxy_harness",
               state: JSON.stringify(state),
               lastUpdated: new Date().toISOString(),
             });
@@ -144,6 +263,14 @@ export function createBusRpcBridge(opts: BusRpcBridgeOptions): BusRpcBridge {
           if (termId) {
             termBridge.spawnTerminal(termId, workspaceId, windowId);
           }
+        }
+
+        // Save session snapshot after lifecycle changes
+        try {
+          const exportedLanes = bus.exportLanes();
+          saveSessionSnapshot(workspaceId, exportedLanes);
+        } catch {
+          // Don't fail the command if snapshot save fails
         }
       }
 

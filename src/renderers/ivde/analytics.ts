@@ -3,7 +3,7 @@ import type { track } from "../../main/utils/analytics";
 
 export const trackFrontend = <T extends keyof typeof track>(
   event: T,
-  properties: Parameters<(typeof track)[T]>[0]
+  properties: Parameters<(typeof track)[T]>[0],
 ) => {
   electrobun.rpc?.send("track", {
     event,

@@ -5,19 +5,13 @@
  */
 
 // Re-export types from manager for external use
-export type {
-  WebflowAuth,
-  SiteInfo,
-  AssetInfo,
-  AssetConnection,
-  PluginStorage,
-} from './manager';
+export type { WebflowAuth, SiteInfo, AssetInfo, AssetConnection, PluginStorage } from "./manager";
 
 /**
  * Project types detected by scanning filesystem
  */
 export interface DiscoveredProject {
-  type: 'devlink' | 'code-components' | 'cloud';
+  type: "devlink" | "code-components" | "cloud";
   path: string;
   siteId?: string;
   siteName?: string;
@@ -32,7 +26,7 @@ export interface DevLinkConfig {
   siteName?: string;
   componentsPath?: string;
   host?: string;
-  authMethod?: 'oauth' | 'token';
+  authMethod?: "oauth" | "token";
 }
 
 /**
@@ -49,11 +43,11 @@ export interface CodeComponentsConfig {
  * Webflow Cloud project configuration (.colab.json with type: webflow-cloud)
  */
 export interface CloudProjectConfig {
-  type: 'webflow-cloud';
+  type: "webflow-cloud";
   name: string;
   siteId: string;
   siteName?: string;
-  framework: 'astro' | 'nextjs';
+  framework: "astro" | "nextjs";
   mountPath: string;
   devlinkEnabled?: boolean;
 }
@@ -67,7 +61,7 @@ export interface Deployment {
   commitHash?: string;
   commitMessage?: string;
   deployedAt: number;
-  status: 'pending' | 'building' | 'deploying' | 'live' | 'failed';
+  status: "pending" | "building" | "deploying" | "live" | "failed";
   duration?: number;
   url?: string;
 }
@@ -79,6 +73,6 @@ export interface ComponentSyncStatus {
   name: string;
   localVersion?: string;
   remoteVersion?: string;
-  status: 'synced' | 'local-newer' | 'remote-newer' | 'conflict' | 'local-only' | 'remote-only';
+  status: "synced" | "local-newer" | "remote-newer" | "conflict" | "local-only" | "remote-only";
   lastSynced?: number;
 }

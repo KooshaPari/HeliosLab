@@ -1,7 +1,4 @@
-import {
-  type CachedFileType,
-  type PreviewFileTreeType,
-} from "../../shared/types/types";
+import { type CachedFileType, type PreviewFileTreeType } from "../../shared/types/types";
 import { dirname } from "./pathUtils";
 
 export const parentNodePath = (node: CachedFileType | PreviewFileTreeType) => {

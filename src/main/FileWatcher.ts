@@ -4,10 +4,7 @@ import { makeFileNameSafe } from "../shared/utils/files";
 import { COLAB_HOME_FOLDER } from "./consts/paths";
 import db, { type CurrentDocumentTypes } from "./goldfishdb/db";
 import { readSlateConfigFile } from "./utils/fileUtils";
-import {
-  broadcastToAllWindows,
-  broadcastToAllWindowsInWorkspace,
-} from "./workspaceWindows";
+import { broadcastToAllWindows, broadcastToAllWindowsInWorkspace } from "./workspaceWindows";
 
 const directoryWatchers: { [projectId: string]: FSWatcher | null } = {};
 
@@ -38,8 +35,7 @@ export const watchProjectDirectories = () => {
     const fileWatcher = directoryWatchers[String(projectId)];
     // TODO: consider moving to project create/edit
     const projectDirectory =
-      project.path ||
-      join(COLAB_HOME_FOLDER, makeFileNameSafe(project.name || project.id));
+      project.path || join(COLAB_HOME_FOLDER, makeFileNameSafe(project.name || project.id));
 
     if (!existsSync(projectDirectory)) {
       // TODO: create the project directory now, but move to add/edit when choosing a project path in the future just exit here
@@ -83,8 +79,7 @@ export const watchProjectDirectories = () => {
           const exists = existsSync(absolutePath);
           const isDelete = eventType === "rename" && !exists;
           const isAdding = eventType === "rename" && exists;
-          const projectWasDeleted =
-            isDelete && projectDirectory === absolutePath;
+          const projectWasDeleted = isDelete && projectDirectory === absolutePath;
 
           if (projectWasDeleted) {
             // stop watching the folder
@@ -116,7 +111,7 @@ export const watchProjectDirectories = () => {
             isFile: Boolean(stat?.isFile()),
             isDir: Boolean(stat?.isDirectory()),
           });
-        }
+        },
       );
 
       directoryWatchers[project.id] = fileWatcher;

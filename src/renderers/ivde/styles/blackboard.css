@@ -1,7 +1,7 @@
 /* Blackboard chalk-like text effects */
 .chalk-text {
   color: #ffffff;
-  text-shadow: 
+  text-shadow:
     0 0 1px rgba(255, 255, 255, 0.8),
     0 0 2px rgba(255, 255, 255, 0.4),
     0 0 3px rgba(255, 255, 255, 0.2);
@@ -10,7 +10,7 @@
 
 .chalk-text-subtle {
   color: #f0f0f0;
-  text-shadow: 
+  text-shadow:
     0 0 1px rgba(255, 255, 255, 0.3),
     0 0 2px rgba(255, 255, 255, 0.1);
 }
@@ -31,18 +31,22 @@
 }
 
 .blackboard-texture::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: 
-    radial-gradient(circle at 20% 50%, rgba(255,255,255,0.02) 1px, transparent 1px),
-    radial-gradient(circle at 80% 50%, rgba(255,255,255,0.02) 1px, transparent 1px),
-    radial-gradient(circle at 40% 20%, rgba(255,255,255,0.01) 1px, transparent 1px),
-    radial-gradient(circle at 60% 80%, rgba(255,255,255,0.01) 1px, transparent 1px);
-  background-size: 50px 50px, 60px 60px, 70px 70px, 80px 80px;
+  background:
+    radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    radial-gradient(circle at 80% 50%, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    radial-gradient(circle at 40% 20%, rgba(255, 255, 255, 0.01) 1px, transparent 1px),
+    radial-gradient(circle at 60% 80%, rgba(255, 255, 255, 0.01) 1px, transparent 1px);
+  background-size:
+    50px 50px,
+    60px 60px,
+    70px 70px,
+    80px 80px;
   pointer-events: none;
   opacity: 0.5;
 }

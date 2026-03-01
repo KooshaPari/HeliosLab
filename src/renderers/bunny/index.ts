@@ -8,18 +8,18 @@ const DEPTH_LAYERS = 12;
 const LAYER_SPACING = 0.8; // px between each layer
 
 for (let i = 1; i <= DEPTH_LAYERS; i++) {
-	const layer = frontImg.cloneNode(true) as HTMLImageElement;
-	layer.style.position = "absolute";
-	layer.style.top = "0";
-	layer.style.left = "0";
-	layer.style.transform = `translateZ(${-i * LAYER_SPACING}px)`;
-	// Darken deeper layers to simulate shading on the edge
-	const brightness = Math.max(0.25, 1 - i * 0.06);
-	const computedFilter = getComputedStyle(frontImg).filter;
-	const baseFilter = computedFilter && computedFilter !== "none" ? computedFilter : "";
-	layer.style.filter = `brightness(${brightness}) ${baseFilter}`;
-	layer.setAttribute("aria-hidden", "true");
-	bunny.insertBefore(layer, frontImg);
+  const layer = frontImg.cloneNode(true) as HTMLImageElement;
+  layer.style.position = "absolute";
+  layer.style.top = "0";
+  layer.style.left = "0";
+  layer.style.transform = `translateZ(${-i * LAYER_SPACING}px)`;
+  // Darken deeper layers to simulate shading on the edge
+  const brightness = Math.max(0.25, 1 - i * 0.06);
+  const computedFilter = getComputedStyle(frontImg).filter;
+  const baseFilter = computedFilter && computedFilter !== "none" ? computedFilter : "";
+  layer.style.filter = `brightness(${brightness}) ${baseFilter}`;
+  layer.setAttribute("aria-hidden", "true");
+  bunny.insertBefore(layer, frontImg);
 }
 
 // --- Electric spark effect on hover (WebGL shader) ---
@@ -28,9 +28,9 @@ sparkCanvas.className = "spark-canvas";
 bunny.appendChild(sparkCanvas);
 
 const gl = sparkCanvas.getContext("webgl", {
-	alpha: true,
-	premultipliedAlpha: true,
-	antialias: false,
+  alpha: true,
+  premultipliedAlpha: true,
+  antialias: false,
 })!;
 
 const vsSource = `
@@ -129,10 +129,10 @@ void main() {
 `;
 
 function compileShader(src: string, type: number) {
-	const s = gl.createShader(type)!;
-	gl.shaderSource(s, src);
-	gl.compileShader(s);
-	return s;
+  const s = gl.createShader(type)!;
+  gl.shaderSource(s, src);
+  gl.compileShader(s);
+  return s;
 }
 
 const vs = compileShader(vsSource, gl.VERTEX_SHADER);
@@ -146,7 +146,7 @@ gl.useProgram(prog);
 // Fullscreen quad
 const buf = gl.createBuffer();
 gl.bindBuffer(gl.ARRAY_BUFFER, buf);
-gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
 const aPos = gl.getAttribLocation(prog, "a_pos");
 gl.enableVertexAttribArray(aPos);
 gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
@@ -159,10 +159,10 @@ gl.enable(gl.BLEND);
 gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 
 function resizeCanvas() {
-	const rect = bunny.getBoundingClientRect();
-	sparkCanvas.width = Math.round(rect.width * devicePixelRatio);
-	sparkCanvas.height = Math.round(rect.height * devicePixelRatio);
-	gl.viewport(0, 0, sparkCanvas.width, sparkCanvas.height);
+  const rect = bunny.getBoundingClientRect();
+  sparkCanvas.width = Math.round(rect.width * devicePixelRatio);
+  sparkCanvas.height = Math.round(rect.height * devicePixelRatio);
+  gl.viewport(0, 0, sparkCanvas.width, sparkCanvas.height);
 }
 
 resizeCanvas();
@@ -176,12 +176,10 @@ let bursting = true;
 let burstUntil = performance.now() + 200 + Math.random() * 400;
 
 function scheduleBurst() {
-	bursting = !bursting;
-	// On: 500-2000ms burst, Off: 3-10s pause
-	const duration = bursting
-		? 500 + Math.random() * 1500
-		: 3000 + Math.random() * 7000;
-	burstUntil = performance.now() + duration;
+  bursting = !bursting;
+  // On: 500-2000ms burst, Off: 3-10s pause
+  const duration = bursting ? 500 + Math.random() * 1500 : 3000 + Math.random() * 7000;
+  burstUntil = performance.now() + duration;
 }
 
 const MAX_ROTATION = 32;
@@ -196,25 +194,25 @@ let velocityX = 0;
 let velocityY = 0;
 
 const rpc = Electroview.defineRPC<any>({
-	maxRequestTime: 5000,
-	handlers: {
-		requests: {},
-		messages: {
-			cursorMove: ({ screenX, screenY, winX, winY, winW, winH }) => {
-				const centerX = winX + winW / 2;
-				const centerY = winY + winH / 2;
+  maxRequestTime: 5000,
+  handlers: {
+    requests: {},
+    messages: {
+      cursorMove: ({ screenX, screenY, winX, winY, winW, winH }) => {
+        const centerX = winX + winW / 2;
+        const centerY = winY + winH / 2;
 
-				const normalizedX = (screenX - centerX) / (winW / 2);
-				const normalizedY = (screenY - centerY) / (winH / 2);
+        const normalizedX = (screenX - centerX) / (winW / 2);
+        const normalizedY = (screenY - centerY) / (winH / 2);
 
-				const clampedX = Math.max(-1, Math.min(1, normalizedX));
-				const clampedY = Math.max(-1, Math.min(1, normalizedY));
+        const clampedX = Math.max(-1, Math.min(1, normalizedX));
+        const clampedY = Math.max(-1, Math.min(1, normalizedY));
 
-				targetRotateX = -clampedY * MAX_ROTATION;
-				targetRotateY = clampedX * MAX_ROTATION;
-			},
-		},
-	},
+        targetRotateX = -clampedY * MAX_ROTATION;
+        targetRotateY = clampedX * MAX_ROTATION;
+      },
+    },
+  },
 });
 
 const electrobun = new Electrobun.Electroview({ rpc });
@@ -223,52 +221,54 @@ const electrobun = new Electrobun.Electroview({ rpc });
 let downX = 0;
 let downY = 0;
 const scene = document.getElementById("scene")!;
-scene.addEventListener("mousedown", (e) => { downX = e.screenX; downY = e.screenY; });
+scene.addEventListener("mousedown", (e) => {
+  downX = e.screenX;
+  downY = e.screenY;
+});
 scene.addEventListener("mouseup", (e) => {
-	const dx = e.screenX - downX;
-	const dy = e.screenY - downY;
-	if (dx * dx + dy * dy < 25) {
-		(rpc as any).send.bunnyClicked();
-	}
+  const dx = e.screenX - downX;
+  const dy = e.screenY - downY;
+  if (dx * dx + dy * dy < 25) {
+    (rpc as any).send.bunnyClicked();
+  }
 });
 
 function animate() {
-	const forceX = (targetRotateX - currentRotateX) * SPRING;
-	const forceY = (targetRotateY - currentRotateY) * SPRING;
+  const forceX = (targetRotateX - currentRotateX) * SPRING;
+  const forceY = (targetRotateY - currentRotateY) * SPRING;
 
-	velocityX = (velocityX + forceX) * DAMPING;
-	velocityY = (velocityY + forceY) * DAMPING;
+  velocityX = (velocityX + forceX) * DAMPING;
+  velocityY = (velocityY + forceY) * DAMPING;
 
-	currentRotateX += velocityX;
-	currentRotateY += velocityY;
+  currentRotateX += velocityX;
+  currentRotateY += velocityY;
 
-	bunny.style.transform =
-		`rotateX(${currentRotateX}deg) rotateY(${currentRotateY}deg)`;
+  bunny.style.transform = `rotateX(${currentRotateX}deg) rotateY(${currentRotateY}deg)`;
 
-	// Drive electric spark shader with random bursts
-	if (performance.now() >= burstUntil) {
-		scheduleBurst();
-	}
-	const targetIntensity = bursting ? 1.0 : 0.0;
-	currentIntensity += (targetIntensity - currentIntensity) * 0.12;
+  // Drive electric spark shader with random bursts
+  if (performance.now() >= burstUntil) {
+    scheduleBurst();
+  }
+  const targetIntensity = bursting ? 1.0 : 0.0;
+  currentIntensity += (targetIntensity - currentIntensity) * 0.12;
 
-	if (currentIntensity > 0.001) {
-		if (!shaderActive) {
-			sparkCanvas.style.display = "";
-			shaderActive = true;
-		}
-		gl.uniform1f(uTime, performance.now() / 1000);
-		gl.uniform2f(uResolution, sparkCanvas.width, sparkCanvas.height);
-		gl.uniform1f(uIntensity, currentIntensity);
-		gl.clear(gl.COLOR_BUFFER_BIT);
-		gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-	} else if (shaderActive) {
-		gl.clear(gl.COLOR_BUFFER_BIT);
-		sparkCanvas.style.display = "none";
-		shaderActive = false;
-	}
+  if (currentIntensity > 0.001) {
+    if (!shaderActive) {
+      sparkCanvas.style.display = "";
+      shaderActive = true;
+    }
+    gl.uniform1f(uTime, performance.now() / 1000);
+    gl.uniform2f(uResolution, sparkCanvas.width, sparkCanvas.height);
+    gl.uniform1f(uIntensity, currentIntensity);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  } else if (shaderActive) {
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    sparkCanvas.style.display = "none";
+    shaderActive = false;
+  }
 
-	requestAnimationFrame(animate);
+  requestAnimationFrame(animate);
 }
 
 animate();

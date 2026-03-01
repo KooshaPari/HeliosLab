@@ -1,20 +1,7 @@
-import {
-  type JSXElement,
-  createSignal,
-  onMount,
-  Show,
-} from "solid-js";
+import { type JSXElement, createSignal, onMount, Show } from "solid-js";
 import { state, setState, updateSyncedAppSettings } from "../store";
-import {
-  SettingsPaneSaveClose,
-  SettingsPaneFormSection,
-  SettingsPaneField,
-} from "./forms";
-import {
-  uploadSettings,
-  downloadSettings,
-  getSyncStatus,
-} from "../services/settingsSyncService";
+import { SettingsPaneSaveClose, SettingsPaneFormSection, SettingsPaneField } from "./forms";
+import { uploadSettings, downloadSettings, getSyncStatus } from "../services/settingsSyncService";
 
 // API URLs - use 127.0.0.1 in dev, canary-cloud for canary, cloud for stable
 const getApiBaseUrl = () => {
@@ -40,7 +27,10 @@ export const ColabCloudSettings = (): JSXElement => {
   const [newPassphrase, setNewPassphrase] = createSignal("");
   const [confirmPassphrase, setConfirmPassphrase] = createSignal("");
   const [isSyncing, setIsSyncing] = createSignal(false);
-  const [syncMessage, setSyncMessage] = createSignal<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [syncMessage, setSyncMessage] = createSignal<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
   const [syncStatus, setSyncStatus] = createSignal<{
     hasSyncedSettings: boolean;
     storage?: {
@@ -93,8 +83,8 @@ export const ColabCloudSettings = (): JSXElement => {
     try {
       const response = await fetch(`${getApiBaseUrl()}/api/user/profile`, {
         headers: {
-          'Authorization': `Bearer ${state.appSettings.colabCloud.accessToken}`,
-          'Content-Type': 'application/json',
+          Authorization: `Bearer ${state.appSettings.colabCloud.accessToken}`,
+          "Content-Type": "application/json",
         },
       });
 
@@ -130,9 +120,9 @@ export const ColabCloudSettings = (): JSXElement => {
 
     try {
       const response = await fetch(`${getApiBaseUrl()}/api/auth/refresh`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ refreshToken: refreshTokenValue }),
       });
@@ -168,9 +158,9 @@ export const ColabCloudSettings = (): JSXElement => {
 
     try {
       const response = await fetch(`${getApiBaseUrl()}/api/auth/login`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           email: email(),
@@ -212,9 +202,9 @@ export const ColabCloudSettings = (): JSXElement => {
       const refreshTokenValue = state.appSettings.colabCloud?.refreshToken;
       if (refreshTokenValue) {
         await fetch(`${getApiBaseUrl()}/api/auth/logout`, {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({ refreshToken: refreshTokenValue }),
         });
@@ -239,17 +229,17 @@ export const ColabCloudSettings = (): JSXElement => {
 
   const handleSavePassphrase = () => {
     if (!newPassphrase()) {
-      setSyncMessage({ type: 'error', text: 'Please enter a passphrase' });
+      setSyncMessage({ type: "error", text: "Please enter a passphrase" });
       return;
     }
 
     if (newPassphrase().length < 8) {
-      setSyncMessage({ type: 'error', text: 'Passphrase must be at least 8 characters' });
+      setSyncMessage({ type: "error", text: "Passphrase must be at least 8 characters" });
       return;
     }
 
     if (newPassphrase() !== confirmPassphrase()) {
-      setSyncMessage({ type: 'error', text: 'Passphrases do not match' });
+      setSyncMessage({ type: "error", text: "Passphrases do not match" });
       return;
     }
 
@@ -261,11 +251,14 @@ export const ColabCloudSettings = (): JSXElement => {
     setNewPassphrase("");
     setConfirmPassphrase("");
     setIsSettingPassphrase(false);
-    setSyncMessage({ type: 'success', text: 'Passphrase saved!' });
+    setSyncMessage({ type: "success", text: "Passphrase saved!" });
   };
 
   // Show message with minimum display time
-  const showSyncMessage = (message: { type: 'success' | 'error'; text: string }, minDuration = 2000) => {
+  const showSyncMessage = (
+    message: { type: "success" | "error"; text: string },
+    minDuration = 2000,
+  ) => {
     setSyncMessage(message);
     setTimeout(() => {
       setSyncMessage(null);
@@ -275,7 +268,7 @@ export const ColabCloudSettings = (): JSXElement => {
   const handleBackup = async () => {
     const passphrase = state.appSettings.colabCloud?.syncPassphrase;
     if (!passphrase) {
-      showSyncMessage({ type: 'error', text: 'Please set a passphrase first' });
+      showSyncMessage({ type: "error", text: "Please set a passphrase first" });
       return;
     }
 
@@ -287,17 +280,17 @@ export const ColabCloudSettings = (): JSXElement => {
     setIsSyncing(false);
 
     if (result.success) {
-      showSyncMessage({ type: 'success', text: 'Settings backed up successfully!' });
+      showSyncMessage({ type: "success", text: "Settings backed up successfully!" });
       fetchSyncStatus();
     } else {
-      showSyncMessage({ type: 'error', text: result.error || 'Backup failed' });
+      showSyncMessage({ type: "error", text: result.error || "Backup failed" });
     }
   };
 
   const handleRestore = async () => {
     const passphrase = state.appSettings.colabCloud?.syncPassphrase;
     if (!passphrase) {
-      showSyncMessage({ type: 'error', text: 'Please set a passphrase first' });
+      showSyncMessage({ type: "error", text: "Please set a passphrase first" });
       return;
     }
 
@@ -309,10 +302,10 @@ export const ColabCloudSettings = (): JSXElement => {
     setIsSyncing(false);
 
     if (result.success) {
-      showSyncMessage({ type: 'success', text: 'Settings restored successfully!' });
+      showSyncMessage({ type: "success", text: "Settings restored successfully!" });
       fetchSyncStatus();
     } else {
-      showSyncMessage({ type: 'error', text: result.error || 'Restore failed. Wrong passphrase?' });
+      showSyncMessage({ type: "error", text: result.error || "Restore failed. Wrong passphrase?" });
     }
   };
 
@@ -322,9 +315,7 @@ export const ColabCloudSettings = (): JSXElement => {
   };
 
   return (
-    <div
-      style="background: #404040; color: #d9d9d9; height: 100vh; overflow: hidden; display: flex; flex-direction: column;"
-    >
+    <div style="background: #404040; color: #d9d9d9; height: 100vh; overflow: hidden; display: flex; flex-direction: column;">
       <form onSubmit={onSubmit} style="height: 100%; display: flex; flex-direction: column;">
         <SettingsPaneSaveClose label="Colab Cloud" />
 
@@ -333,12 +324,14 @@ export const ColabCloudSettings = (): JSXElement => {
             <SettingsPaneField label="Status">
               <div style="background: #202020; padding: 12px; color: #d9d9d9; font-size: 12px; border-radius: 4px; margin-bottom: 8px;">
                 <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                  <div style={{
-                    width: "8px",
-                    height: "8px",
-                    "border-radius": "50%",
-                    background: isConnected() ? "#51cf66" : "#666",
-                  }}></div>
+                  <div
+                    style={{
+                      width: "8px",
+                      height: "8px",
+                      "border-radius": "50%",
+                      background: isConnected() ? "#51cf66" : "#666",
+                    }}
+                  ></div>
                   <span style="font-weight: 500;">
                     {isConnected() ? "Connected" : "Not Connected"}
                   </span>
@@ -426,7 +419,7 @@ export const ColabCloudSettings = (): JSXElement => {
                     value={password()}
                     onInput={(e) => setPassword(e.currentTarget.value)}
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
+                      if (e.key === "Enter") {
                         e.preventDefault();
                         login();
                       }
@@ -493,7 +486,8 @@ export const ColabCloudSettings = (): JSXElement => {
               <Show when={isSettingPassphrase()}>
                 <SettingsPaneField label="Create Encryption Passphrase">
                   <div style="font-size: 11px; color: #999; margin-bottom: 12px;">
-                    This passphrase encrypts your settings. You'll need it to restore on other devices.
+                    This passphrase encrypts your settings. You'll need it to restore on other
+                    devices.
                   </div>
                   <input
                     type="password"
@@ -560,17 +554,21 @@ export const ColabCloudSettings = (): JSXElement => {
                   <SettingsPaneField label="Backup Status">
                     <div style="background: #2b2b2b; padding: 12px; border-radius: 4px;">
                       <div style="font-size: 11px; color: #999;">
-                        <Show when={syncStatus()?.hasSyncedSettings} fallback={
-                          <span>No backup yet</span>
-                        }>
+                        <Show
+                          when={syncStatus()?.hasSyncedSettings}
+                          fallback={<span>No backup yet</span>}
+                        >
                           <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
                             <span>Last backup:</span>
-                            <span style="color: #d9d9d9;">{formatDate(syncStatus()?.lastSync?.at)}</span>
+                            <span style="color: #d9d9d9;">
+                              {formatDate(syncStatus()?.lastSync?.at)}
+                            </span>
                           </div>
                           <div style="display: flex; justify-content: space-between;">
                             <span>Size:</span>
                             <span style="color: #d9d9d9;">
-                              {syncStatus()?.storage?.usedFormatted} / {syncStatus()?.storage?.limitFormatted}
+                              {syncStatus()?.storage?.usedFormatted} /{" "}
+                              {syncStatus()?.storage?.limitFormatted}
                             </span>
                           </div>
                         </Show>
@@ -582,27 +580,33 @@ export const ColabCloudSettings = (): JSXElement => {
                 {/* Backup/Restore buttons */}
                 <SettingsPaneField label="">
                   {/* Message area - fixed height to prevent layout shift */}
-                  <div style={{
-                    height: syncMessage() ? "auto" : "0",
-                    "min-height": syncMessage() ? "36px" : "0",
-                    "margin-bottom": syncMessage() ? "12px" : "0",
-                    overflow: "hidden",
-                    transition: "all 0.15s ease",
-                  }}>
+                  <div
+                    style={{
+                      height: syncMessage() ? "auto" : "0",
+                      "min-height": syncMessage() ? "36px" : "0",
+                      "margin-bottom": syncMessage() ? "12px" : "0",
+                      overflow: "hidden",
+                      transition: "all 0.15s ease",
+                    }}
+                  >
                     <Show when={syncMessage()}>
-                      <div style={{
-                        background: syncMessage()?.type === 'success'
-                          ? "rgba(74, 222, 128, 0.1)"
-                          : "rgba(255, 107, 107, 0.1)",
-                        border: syncMessage()?.type === 'success'
-                          ? "1px solid rgba(74, 222, 128, 0.3)"
-                          : "1px solid rgba(255, 107, 107, 0.3)",
-                        color: syncMessage()?.type === 'success' ? "#4ade80" : "#ff6b6b",
-                        padding: "8px 12px",
-                        "border-radius": "4px",
-                        "font-size": "11px",
-                        "text-align": "center",
-                      }}>
+                      <div
+                        style={{
+                          background:
+                            syncMessage()?.type === "success"
+                              ? "rgba(74, 222, 128, 0.1)"
+                              : "rgba(255, 107, 107, 0.1)",
+                          border:
+                            syncMessage()?.type === "success"
+                              ? "1px solid rgba(74, 222, 128, 0.3)"
+                              : "1px solid rgba(255, 107, 107, 0.3)",
+                          color: syncMessage()?.type === "success" ? "#4ade80" : "#ff6b6b",
+                          padding: "8px 12px",
+                          "border-radius": "4px",
+                          "font-size": "11px",
+                          "text-align": "center",
+                        }}
+                      >
                         {syncMessage()?.text}
                       </div>
                     </Show>
@@ -620,7 +624,7 @@ export const ColabCloudSettings = (): JSXElement => {
                       type="button"
                       onClick={handleRestore}
                       disabled={isSyncing() || !syncStatus()?.hasSyncedSettings}
-                      style={`flex: 1; background: #333; color: #d9d9d9; border: 1px solid #555; padding: 10px 16px; border-radius: 4px; cursor: pointer; font-size: 12px; opacity: ${(isSyncing() || !syncStatus()?.hasSyncedSettings) ? 0.5 : 1};`}
+                      style={`flex: 1; background: #333; color: #d9d9d9; border: 1px solid #555; padding: 10px 16px; border-radius: 4px; cursor: pointer; font-size: 12px; opacity: ${isSyncing() || !syncStatus()?.hasSyncedSettings ? 0.5 : 1};`}
                     >
                       Restore
                     </button>

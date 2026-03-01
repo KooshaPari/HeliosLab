@@ -19,20 +19,20 @@
  *   wf assets inject           - Update custom code with asset references
  */
 
-import type { PluginAPI, TerminalCommandContext } from '../../../src/main/plugins/types';
-import type { WebflowClient } from '../api/client';
-import type { StorageManager } from '../storage/manager';
-import { handleAuthCommand } from './auth';
-import { handleDevlinkCommand } from './devlink';
-import { handleCloudCommand } from './cloud';
-import { handleAssetsCommand } from './assets';
-import { handleComponentsCommand } from './components';
+import type { PluginAPI, TerminalCommandContext } from "../../../src/main/plugins/types";
+import type { WebflowClient } from "../api/client";
+import type { StorageManager } from "../storage/manager";
+import { handleAuthCommand } from "./auth";
+import { handleDevlinkCommand } from "./devlink";
+import { handleCloudCommand } from "./cloud";
+import { handleAssetsCommand } from "./assets";
+import { handleComponentsCommand } from "./components";
 
 export async function handleWfCommand(
   ctx: TerminalCommandContext,
   client: WebflowClient,
   storage: StorageManager,
-  api: PluginAPI
+  api: PluginAPI,
 ): Promise<void> {
   const { args, write, cwd } = ctx;
 
@@ -46,33 +46,33 @@ export async function handleWfCommand(
 
   try {
     switch (subcommand) {
-      case 'help':
-      case '--help':
-      case '-h':
+      case "help":
+      case "--help":
+      case "-h":
         printHelp(write);
         break;
 
-      case 'auth':
+      case "auth":
         await handleAuthCommand(subArgs, write, client, storage, api);
         break;
 
-      case 'sites':
+      case "sites":
         await handleSitesCommand(write, client);
         break;
 
-      case 'devlink':
+      case "devlink":
         await handleDevlinkCommand(subArgs, write, cwd, client, storage, api);
         break;
 
-      case 'components':
+      case "components":
         await handleComponentsCommand(subArgs, write, cwd, client, storage, api);
         break;
 
-      case 'cloud':
+      case "cloud":
         await handleCloudCommand(subArgs, write, cwd, client, storage, api);
         break;
 
-      case 'assets':
+      case "assets":
         await handleAssetsCommand(subArgs, write, cwd, client, storage, api);
         break;
 
@@ -88,14 +88,14 @@ export async function handleWfCommand(
 
 async function handleSitesCommand(
   write: (text: string) => void,
-  client: WebflowClient
+  client: WebflowClient,
 ): Promise<void> {
-  write('\x1b[36mFetching sites...\x1b[0m\r\n\r\n');
+  write("\x1b[36mFetching sites...\x1b[0m\r\n\r\n");
 
   const sites = await client.listSites();
 
   if (sites.length === 0) {
-    write('No sites found. Make sure your token has access to at least one site.\r\n');
+    write("No sites found. Make sure your token has access to at least one site.\r\n");
     return;
   }
 
@@ -111,47 +111,47 @@ async function handleSitesCommand(
     if (site.lastPublished) {
       write(`  Last published: ${new Date(site.lastPublished).toLocaleString()}\r\n`);
     }
-    write('\r\n');
+    write("\r\n");
   }
 }
 
 function printHelp(write: (text: string) => void): void {
-  write('\x1b[1;36mWebflow CLI for Colab\x1b[0m\r\n');
-  write('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\r\n\r\n');
+  write("\x1b[1;36mWebflow CLI for Colab\x1b[0m\r\n");
+  write("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\r\n\r\n");
 
-  write('\x1b[1mAuthentication:\x1b[0m\r\n');
-  write('  wf auth              Connect your Webflow account\r\n');
-  write('  wf auth logout       Clear stored credentials\r\n');
-  write('  wf auth status       Show current auth status\r\n');
-  write('  wf sites             List accessible sites\r\n');
-  write('\r\n');
+  write("\x1b[1mAuthentication:\x1b[0m\r\n");
+  write("  wf auth              Connect your Webflow account\r\n");
+  write("  wf auth logout       Clear stored credentials\r\n");
+  write("  wf auth status       Show current auth status\r\n");
+  write("  wf sites             List accessible sites\r\n");
+  write("\r\n");
 
-  write('\x1b[1mDevLink (Webflow → Code):\x1b[0m\r\n');
-  write('  wf devlink init      Initialize DevLink in current directory\r\n');
-  write('  wf devlink pull      Pull components from Webflow Designer\r\n');
-  write('  wf devlink status    Show sync status\r\n');
-  write('  wf devlink watch     Watch for changes and auto-sync\r\n');
-  write('\r\n');
+  write("\x1b[1mDevLink (Webflow → Code):\x1b[0m\r\n");
+  write("  wf devlink init      Initialize DevLink in current directory\r\n");
+  write("  wf devlink pull      Pull components from Webflow Designer\r\n");
+  write("  wf devlink status    Show sync status\r\n");
+  write("  wf devlink watch     Watch for changes and auto-sync\r\n");
+  write("\r\n");
 
-  write('\x1b[1mCode Components (Code → Webflow):\x1b[0m\r\n');
-  write('  wf components init   Initialize a Code Components library\r\n');
-  write('  wf components share  Share library to Webflow Designer\r\n');
-  write('  wf components list   List components in library\r\n');
-  write('\r\n');
+  write("\x1b[1mCode Components (Code → Webflow):\x1b[0m\r\n");
+  write("  wf components init   Initialize a Code Components library\r\n");
+  write("  wf components share  Share library to Webflow Designer\r\n");
+  write("  wf components list   List components in library\r\n");
+  write("\r\n");
 
-  write('\x1b[1mWebflow Cloud:\x1b[0m\r\n');
-  write('  wf cloud init        Scaffold a new Cloud project\r\n');
-  write('  wf cloud deploy      Deploy to Webflow Cloud\r\n');
-  write('  wf cloud logs        View deployment logs\r\n');
-  write('  wf cloud status      Show deployment status\r\n');
-  write('\r\n');
+  write("\x1b[1mWebflow Cloud:\x1b[0m\r\n");
+  write("  wf cloud init        Scaffold a new Cloud project\r\n");
+  write("  wf cloud deploy      Deploy to Webflow Cloud\r\n");
+  write("  wf cloud logs        View deployment logs\r\n");
+  write("  wf cloud status      Show deployment status\r\n");
+  write("\r\n");
 
-  write('\x1b[1mAssets:\x1b[0m\r\n');
-  write('  wf assets upload     Upload file to Webflow CDN\r\n');
-  write('  wf assets sync       Sync all assets in project\r\n');
-  write('  wf assets inject     Update custom code references\r\n');
-  write('  wf assets list       List uploaded assets\r\n');
-  write('\r\n');
+  write("\x1b[1mAssets:\x1b[0m\r\n");
+  write("  wf assets upload     Upload file to Webflow CDN\r\n");
+  write("  wf assets sync       Sync all assets in project\r\n");
+  write("  wf assets inject     Update custom code references\r\n");
+  write("  wf assets list       List uploaded assets\r\n");
+  write("\r\n");
 
   write('\x1b[90mRun "wf <command> --help" for more info on a command.\x1b[0m\r\n');
 }

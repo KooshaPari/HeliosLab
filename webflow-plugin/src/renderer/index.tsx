@@ -30,39 +30,19 @@ interface PluginRendererAPI {
 export function initializeRenderer(api: PluginRendererAPI): void {
   // Register slate components
   api.registerSlateComponent("colab-webflow.devlink-project", (props) => {
-    return (
-      <WebflowSlate
-        node={props.node}
-        slateType="devlink"
-      />
-    );
+    return <WebflowSlate node={props.node} slateType="devlink" />;
   });
 
   api.registerSlateComponent("colab-webflow.code-components", (props) => {
-    return (
-      <WebflowSlate
-        node={props.node}
-        slateType="code-components"
-      />
-    );
+    return <WebflowSlate node={props.node} slateType="code-components" />;
   });
 
   api.registerSlateComponent("colab-webflow.dashboard", (props) => {
-    return (
-      <WebflowSlate
-        node={props.node}
-        slateType="dashboard"
-      />
-    );
+    return <WebflowSlate node={props.node} slateType="dashboard" />;
   });
 
   api.registerSlateComponent("colab-webflow.cloud", (props) => {
-    return (
-      <WebflowSlate
-        node={props.node}
-        slateType="cloud"
-      />
-    );
+    return <WebflowSlate node={props.node} slateType="cloud" />;
   });
 
   // Register settings components

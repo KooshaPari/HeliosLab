@@ -39,7 +39,7 @@ export const TopBar = () => {
         (w) => w.id === currentWindow.id,
         "ui",
         "showSidebar",
-        showSidebar
+        showSidebar,
       );
       updateSyncedState();
     }, 200);
@@ -116,11 +116,7 @@ export const TopBar = () => {
           electrobun.rpc?.send.createWindow({ offset });
         }}
       >
-        <img
-          width="16px"
-          height="16px"
-          src="views://assets/file-icons/new-window.svg"
-        />
+        <img width="16px" height="16px" src="views://assets/file-icons/new-window.svg" />
       </div>
 
       <div
@@ -136,20 +132,32 @@ export const TopBar = () => {
         onMouseEnter={(e) => {
           const tip = e.currentTarget.querySelector("[data-bunny-tip]") as HTMLElement;
           const bunnyImg = e.currentTarget.querySelector("[data-bunny-btn]") as HTMLElement;
-          if (tip) { tip.style.opacity = "1"; tip.style.transform = "translateX(0)"; tip.style.pointerEvents = "auto"; }
-          if (bunnyImg) bunnyImg.style.filter = "drop-shadow(2px 0 0 #000) drop-shadow(-2px 0 0 #000) drop-shadow(0 2px 0 #000) drop-shadow(0 -2px 0 #000)";
+          if (tip) {
+            tip.style.opacity = "1";
+            tip.style.transform = "translateX(0)";
+            tip.style.pointerEvents = "auto";
+          }
+          if (bunnyImg)
+            bunnyImg.style.filter =
+              "drop-shadow(2px 0 0 #000) drop-shadow(-2px 0 0 #000) drop-shadow(0 2px 0 #000) drop-shadow(0 -2px 0 #000)";
         }}
         onMouseLeave={(e) => {
           const tip = e.currentTarget.querySelector("[data-bunny-tip]") as HTMLElement;
           const bunnyImg = e.currentTarget.querySelector("[data-bunny-btn]") as HTMLElement;
-          if (tip) { tip.style.opacity = "0"; tip.style.transform = "translateX(8px)"; tip.style.pointerEvents = "none"; }
+          if (tip) {
+            tip.style.opacity = "0";
+            tip.style.transform = "translateX(8px)";
+            tip.style.pointerEvents = "none";
+          }
           if (bunnyImg) bunnyImg.style.filter = "none";
         }}
       >
         <div
           data-bunny-tip
           style="position: absolute; right: 100%; top: 50%; transform: translateX(8px); margin-right: 6px; white-space: nowrap; background: #111; color: #c0c0c0; font-size: 12px; padding: 4px 10px; border-radius: 4px; border: 1px solid #333; z-index: 9999; pointer-events: none; opacity: 0; transition: opacity 0.3s ease, transform 0.3s ease; translate: 0 -50%;"
-        >Co(lab) is built with Electrobun</div>
+        >
+          Co(lab) is built with Electrobun
+        </div>
         <div
           data-bunny-btn
           style={{
@@ -188,7 +196,13 @@ export const TopBar = () => {
           });
         }}
       >
-        <svg style="width: 14px; height: 14px;" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2">
+        <svg
+          style="width: 14px; height: 14px;"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#4ade80"
+          stroke-width="2"
+        >
           <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path>
         </svg>
         <span style="color: #4ade80; font-weight: 500; font-size: 12px;">Cloud</span>
@@ -197,12 +211,18 @@ export const TopBar = () => {
       {/* Colab button */}
       <div
         style={`font-size: 13px;margin: 8px 0px; margin-right: -2px; cursor: pointer; display: flex; align-items: center; gap: 6px; background: ${
-          state.buildVars.channel === "dev" ? "#5a1616" :
-          state.buildVars.channel === "canary" ? "#076310" :
-          "#184d8b"
+          state.buildVars.channel === "dev"
+            ? "#5a1616"
+            : state.buildVars.channel === "canary"
+              ? "#076310"
+              : "#184d8b"
         }; border-radius: 4px; padding: 2px 8px 2px 4px;`}
         title="This is a beta version of co(lab)"
-        onClick={() => openNewTabForNode("__COLAB_INTERNAL__/web", false, { url: "https://github.com/blackboardsh/colab" })}
+        onClick={() =>
+          openNewTabForNode("__COLAB_INTERNAL__/web", false, {
+            url: "https://github.com/blackboardsh/colab",
+          })
+        }
       >
         <img
           style={{
@@ -211,9 +231,14 @@ export const TopBar = () => {
           }}
           src="views://assets/icon_32x32@2x.png"
         />
-        <span style="color: #fff; font-weight: bold;">co(lab){state.buildVars.channel === "dev" ? " - dev" :
-          state.buildVars.channel === "canary" ? " - canary" :
-          ""}</span>
+        <span style="color: #fff; font-weight: bold;">
+          co(lab)
+          {state.buildVars.channel === "dev"
+            ? " - dev"
+            : state.buildVars.channel === "canary"
+              ? " - canary"
+              : ""}
+        </span>
       </div>
 
       <CommandPalette setOpen={setCommandPaletteOpen} />
@@ -266,20 +291,20 @@ const CommandPalette = ({ setOpen }: { setOpen: (value: boolean) => void }) => {
     const items: any[] = [];
 
     openTabs().forEach((tab) => {
-      items.push({ type: 'tab', ...tab });
+      items.push({ type: "tab", ...tab });
     });
 
     workspaceCommands().forEach((cmd) => {
-      items.push({ type: 'workspace', ...cmd });
+      items.push({ type: "workspace", ...cmd });
     });
 
     colabCommands().forEach((cmd) => {
-      items.push({ type: 'colab', ...cmd });
+      items.push({ type: "colab", ...cmd });
     });
 
     const files = fileMatches();
     files.forEach((file) => {
-      items.push({ type: 'file', ...file });
+      items.push({ type: "file", ...file });
     });
 
     return items;
@@ -291,26 +316,26 @@ const CommandPalette = ({ setOpen }: { setOpen: (value: boolean) => void }) => {
 
     if (totalItems === 0) return;
 
-    if (e.key === 'ArrowDown') {
+    if (e.key === "ArrowDown") {
       e.preventDefault();
       setSelectedIndex((selectedIndex() + 1) % totalItems);
-    } else if (e.key === 'ArrowUp') {
+    } else if (e.key === "ArrowUp") {
       e.preventDefault();
       setSelectedIndex((selectedIndex() - 1 + totalItems) % totalItems);
-    } else if (e.key === 'Enter') {
+    } else if (e.key === "Enter") {
       e.preventDefault();
       const selectedItem = allItems[selectedIndex()];
       if (selectedItem) {
-        if (selectedItem.type === 'tab') {
+        if (selectedItem.type === "tab") {
           focusTabWithId(selectedItem.tabId);
-        } else if (selectedItem.type === 'workspace' || selectedItem.type === 'colab') {
+        } else if (selectedItem.type === "workspace" || selectedItem.type === "colab") {
           selectedItem.action();
-        } else if (selectedItem.type === 'file') {
+        } else if (selectedItem.type === "file") {
           openFileAt(selectedItem.path, 0, 0);
         }
         setOpen(false);
       }
-    } else if (e.key === 'Escape') {
+    } else if (e.key === "Escape") {
       e.preventDefault();
       toggleOpen(false);
     }
@@ -323,7 +348,7 @@ const CommandPalette = ({ setOpen }: { setOpen: (value: boolean) => void }) => {
       setState(
         produce((_state: AppState) => {
           _state.commandPalette = { query: value, results: {} };
-        })
+        }),
       );
     }
 
@@ -348,38 +373,35 @@ const CommandPalette = ({ setOpen }: { setOpen: (value: boolean) => void }) => {
   const resetOpenTabs = () => {
     const query = state.commandPalette.query;
     const queryRegex = new RegExp(query.split("").join(".*"), "i");
-    const tabs = Object.values(getWindow(state)?.tabs || {}).reduce(
-      (acc, tab) => {
-        if (tab.type === "file") {
-          // const node = state.fileCache[tab.path];
-          const project = getProjectForNodePath(tab.path);
-          const name = basename(tab.path);
-          const folder = dirname(tab.path).replace(project?.path || "", "");
-          const projectName = project?.name || (project?.path ? basename(project.path) : "");
-          if (name.match(queryRegex)) {
-            acc.push({
-              name: name,
-              description: `${projectName} ${folder}`,
-              path: tab.path,
-              tabId: tab.id,
-            });
-          }
-        } else if (tab.type === "web") {
-          if (tab.url.match(queryRegex)) {
-            acc.push({
-              name: new URL(tab.url).host,
-              description: tab.url,
-              tabId: tab.id,
-              // todo: tabs need to store which project they were opened under
-              // project: "web",
-            });
-          }
+    const tabs = Object.values(getWindow(state)?.tabs || {}).reduce((acc, tab) => {
+      if (tab.type === "file") {
+        // const node = state.fileCache[tab.path];
+        const project = getProjectForNodePath(tab.path);
+        const name = basename(tab.path);
+        const folder = dirname(tab.path).replace(project?.path || "", "");
+        const projectName = project?.name || (project?.path ? basename(project.path) : "");
+        if (name.match(queryRegex)) {
+          acc.push({
+            name: name,
+            description: `${projectName} ${folder}`,
+            path: tab.path,
+            tabId: tab.id,
+          });
         }
+      } else if (tab.type === "web") {
+        if (tab.url.match(queryRegex)) {
+          acc.push({
+            name: new URL(tab.url).host,
+            description: tab.url,
+            tabId: tab.id,
+            // todo: tabs need to store which project they were opened under
+            // project: "web",
+          });
+        }
+      }
 
-        return acc;
-      },
-      []
-    );
+      return acc;
+    }, []);
 
     setOpenTabs(tabs);
   };
@@ -390,34 +412,28 @@ const CommandPalette = ({ setOpen }: { setOpen: (value: boolean) => void }) => {
 
   const globalSettingsClick = () => {
     setState("settingsPane", {
-      type:
-        state.settingsPane.type === "global-settings" ? "" : "global-settings",
+      type: state.settingsPane.type === "global-settings" ? "" : "global-settings",
       data: {},
     });
   };
 
   const workspaceSettingsClick = () => {
     setState("settingsPane", {
-      type:
-        state.settingsPane.type === "workspace-settings"
-          ? ""
-          : "workspace-settings",
+      type: state.settingsPane.type === "workspace-settings" ? "" : "workspace-settings",
       data: {},
     });
   };
 
   const pluginsClick = () => {
     setState("settingsPane", {
-      type:
-        state.settingsPane.type === "plugin-marketplace" ? "" : "plugin-marketplace",
+      type: state.settingsPane.type === "plugin-marketplace" ? "" : "plugin-marketplace",
       data: {},
     });
   };
 
   const llamaSettingsClick = () => {
     setState("settingsPane", {
-      type:
-        state.settingsPane.type === "llama-settings" ? "" : "llama-settings",
+      type: state.settingsPane.type === "llama-settings" ? "" : "llama-settings",
       data: {},
     });
   };
@@ -428,32 +444,76 @@ const CommandPalette = ({ setOpen }: { setOpen: (value: boolean) => void }) => {
 
     // Define all workspace commands
     const allWorkspaceCommands = [
-      { name: "New Window", description: "Open a new window", action: () => electrobun.rpc?.send.createWindow() },
-      { name: "Hide Workspace", description: "Hide the current workspace", action: () => electrobun.rpc?.send.hideWorkspace() },
+      {
+        name: "New Window",
+        description: "Open a new window",
+        action: () => electrobun.rpc?.send.createWindow(),
+      },
+      {
+        name: "Hide Workspace",
+        description: "Hide the current workspace",
+        action: () => electrobun.rpc?.send.hideWorkspace(),
+      },
       { name: "Plugins", description: "Browse and manage plugins", action: pluginsClick },
-      { name: "Llama Settings", description: "Configure local AI model", action: llamaSettingsClick },
-      { name: "Colab Settings", description: "Configure global Colab settings", action: globalSettingsClick },
-      { name: "Workspace Settings", description: "Configure workspace settings", action: workspaceSettingsClick },
-      { name: "New Workspace", description: "Create a new workspace", action: () => electrobun.rpc?.send.createWorkspace() },
+      {
+        name: "Llama Settings",
+        description: "Configure local AI model",
+        action: llamaSettingsClick,
+      },
+      {
+        name: "Colab Settings",
+        description: "Configure global Colab settings",
+        action: globalSettingsClick,
+      },
+      {
+        name: "Workspace Settings",
+        description: "Configure workspace settings",
+        action: workspaceSettingsClick,
+      },
+      {
+        name: "New Workspace",
+        description: "Create a new workspace",
+        action: () => electrobun.rpc?.send.createWorkspace(),
+      },
       {
         name: "Format Document",
         description: "Format the current code editor",
         action: () => {
           const activeTab = getCurrentTab();
-          if (!activeTab || activeTab.type !== 'file') return;
+          if (!activeTab || activeTab.type !== "file") return;
 
           electrobun.rpc?.send("formatFile", { path: activeTab.path });
-        }
+        },
       },
     ];
 
     // Define all colab menu commands
     const allColabCommands = [
-      { name: "Submit an issue", description: "Report a Bug / Request a Feature", action: () => openWebTab("https://github.com/blackboardsh/colab") },
-      { name: "Changelog", description: "View Colab changelog", action: () => openWebTab("https://github.com/blackboardsh/colab/tags") },
-      { name: "Blackboard Blog", description: "Updates from the Blackboard Labs", action: () => openWebTab("https://blackboard.sh/blog/") },
-      { name: "Join co(lab) Discord", description: "Join our Discord community", action: () => openWebTab("https://discord.gg/ueKE4tjaCE") },
-      { name: "Yoav", description: "Things Yoav says", action: () => openWebTab("https://bsky.app/profile/yoav.codes") },
+      {
+        name: "Submit an issue",
+        description: "Report a Bug / Request a Feature",
+        action: () => openWebTab("https://github.com/blackboardsh/colab"),
+      },
+      {
+        name: "Changelog",
+        description: "View Colab changelog",
+        action: () => openWebTab("https://github.com/blackboardsh/colab/tags"),
+      },
+      {
+        name: "Blackboard Blog",
+        description: "Updates from the Blackboard Labs",
+        action: () => openWebTab("https://blackboard.sh/blog/"),
+      },
+      {
+        name: "Join co(lab) Discord",
+        description: "Join our Discord community",
+        action: () => openWebTab("https://discord.gg/ueKE4tjaCE"),
+      },
+      {
+        name: "Yoav",
+        description: "Things Yoav says",
+        action: () => openWebTab("https://bsky.app/profile/yoav.codes"),
+      },
     ];
 
     // Filter workspace commands
@@ -541,15 +601,11 @@ const CommandPalette = ({ setOpen }: { setOpen: (value: boolean) => void }) => {
   createEffect(() => {
     if (open()) {
       // trigger webview rapid sync so show animation plays smoothly
-      document
-        .querySelectorAll("electrobun-webview")
-        .forEach((el) => el?.syncDimensions(true));
+      document.querySelectorAll("electrobun-webview").forEach((el) => el?.syncDimensions(true));
       input?.focus();
     } else {
       // remove the mask cutout when closing
-      document
-        .querySelectorAll("electrobun-webview")
-        .forEach((el) => el?.syncDimensions(true));
+      document.querySelectorAll("electrobun-webview").forEach((el) => el?.syncDimensions(true));
     }
   });
 
@@ -581,7 +637,7 @@ const CommandPalette = ({ setOpen }: { setOpen: (value: boolean) => void }) => {
         cursor: pointer;
       `}
       >
-        {state.workspace?.name || 'Search'}
+        {state.workspace?.name || "Search"}
       </button>
       <style>
         {`@keyframes fadeIn {
@@ -643,11 +699,11 @@ const CommandPalette = ({ setOpen }: { setOpen: (value: boolean) => void }) => {
                 };
 
                 const sectionTitle = () => {
-                  if (item.type === 'tab') return 'Tabs';
-                  if (item.type === 'workspace') return 'Workspace';
-                  if (item.type === 'colab') return 'Colab';
-                  if (item.type === 'file') return 'Files';
-                  return '';
+                  if (item.type === "tab") return "Tabs";
+                  if (item.type === "workspace") return "Workspace";
+                  if (item.type === "colab") return "Colab";
+                  if (item.type === "file") return "Files";
+                  return "";
                 };
 
                 return (
@@ -660,27 +716,30 @@ const CommandPalette = ({ setOpen }: { setOpen: (value: boolean) => void }) => {
                       font-size: 12px;
                       border-bottom: 1px solid #333;
                       margin: 0 3px;
-                      margin-top: ${index() > 0 ? '10px' : '0'};`}
+                      margin-top: ${index() > 0 ? "10px" : "0"};`}
                       >
                         {sectionTitle()}
                       </h3>
                     )}
                     <CommandPaletteItem
                       icon={
-                        item.type === 'tab' ? '✨' :
-                        item.type === 'workspace' ? '⚙️' :
-                        item.type === 'colab' ? '🔧' :
-                        '✨'
+                        item.type === "tab"
+                          ? "✨"
+                          : item.type === "workspace"
+                            ? "⚙️"
+                            : item.type === "colab"
+                              ? "🔧"
+                              : "✨"
                       }
                       name={item.name}
                       description={item.description}
                       isSelected={() => index() === selectedIndex()}
                       onSelect={() => {
-                        if (item.type === 'tab') {
+                        if (item.type === "tab") {
                           focusTabWithId(item.tabId);
-                        } else if (item.type === 'workspace' || item.type === 'colab') {
+                        } else if (item.type === "workspace" || item.type === "colab") {
                           item.action();
-                        } else if (item.type === 'file') {
+                        } else if (item.type === "file") {
                           openFileAt(item.path, 0, 0);
                         }
                         toggleOpen(false);
@@ -697,7 +756,13 @@ const CommandPalette = ({ setOpen }: { setOpen: (value: boolean) => void }) => {
   );
 };
 
-const CommandPaletteItem = ({ icon, name, description, onSelect, isSelected }: {
+const CommandPaletteItem = ({
+  icon,
+  name,
+  description,
+  onSelect,
+  isSelected,
+}: {
   icon: string;
   name: string;
   description: string;
@@ -709,7 +774,7 @@ const CommandPaletteItem = ({ icon, name, description, onSelect, isSelected }: {
 
   createEffect(() => {
     if (isSelected?.() && itemRef) {
-      itemRef.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      itemRef.scrollIntoView({ block: "nearest", behavior: "smooth" });
     }
   });
 
@@ -733,11 +798,11 @@ const CommandPaletteItem = ({ icon, name, description, onSelect, isSelected }: {
       onMouseLeave={() => setHover(false)}
       onMouseDown={onSelect}
     >
-      <div style="display: flex; align-items: center; flex-shrink: 0; width: 16px; justify-content: center;">{icon}</div>
-      <div style="flex: 1; min-width: 0;">{name}</div>
-      <div style={`font-size: 11px; opacity: .5; flex-shrink: 0;`}>
-        {description}
+      <div style="display: flex; align-items: center; flex-shrink: 0; width: 16px; justify-content: center;">
+        {icon}
       </div>
+      <div style="flex: 1; min-width: 0;">{name}</div>
+      <div style={`font-size: 11px; opacity: .5; flex-shrink: 0;`}>{description}</div>
     </div>
   );
 };
@@ -753,11 +818,7 @@ const WorkspaceMenu = ({ children }: { children: JSX.Element }) => {
             if (!state.ui.showWorkspaceMenu) {
               setState("isResizingPane", true);
               setTimeout(() => {
-                setState(
-                  "ui",
-                  "showWorkspaceMenu",
-                  !state.ui.showWorkspaceMenu
-                );
+                setState("ui", "showWorkspaceMenu", !state.ui.showWorkspaceMenu);
               }, 100);
             } else {
               setState("ui", "showWorkspaceMenu", !state.ui.showWorkspaceMenu);
@@ -786,10 +847,8 @@ const WorkspaceMenu = ({ children }: { children: JSX.Element }) => {
 const Update = () => {
   const isReady = () => Boolean(state.update.downloadedFile);
   const updateInfo = () => state.update.info;
-  const hasError = () =>
-    state.update.status === "error" || Boolean(state.update.error);
-  const updateAvailable = () =>
-    Boolean(updateInfo()?.updateAvailable) || isReady() || hasError();
+  const hasError = () => state.update.status === "error" || Boolean(state.update.error);
+  const updateAvailable = () => Boolean(updateInfo()?.updateAvailable) || isReady() || hasError();
   const updateErrorMessage = () =>
     state.update.error?.message || "Update failed. Please download manually.";
 
@@ -844,9 +903,7 @@ const Update = () => {
         <span
           style={`-webkit-user-select: none;border-radius: 4px;  padding: 5px 17px; font-size: 13px; box-sizing: border-box; color: ${
             hasError() ? "#fff" : "#222"
-          }; opacity: ${
-            hasError() || isReady() ? 1 : 0.7
-          };`}
+          }; opacity: ${hasError() || isReady() ? 1 : 0.7};`}
         >
           {buttonLabel()}
         </span>
@@ -854,4 +911,3 @@ const Update = () => {
     </Show>
   );
 };
-

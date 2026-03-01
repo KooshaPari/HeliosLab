@@ -6,13 +6,7 @@ import type {
   SlateType,
 } from "../../shared/types/types";
 import type { AppState } from "./store";
-import type {
-  CommitResult,
-  DefaultLogFields,
-  LogResult,
-  Response,
-  StatusResult,
-} from "simple-git";
+import type { CommitResult, DefaultLogFields, LogResult, Response, StatusResult } from "simple-git";
 import type { WorkspaceType } from "./store";
 import type { track } from "../../main/utils/analytics";
 
@@ -623,7 +617,7 @@ export type WorkspaceRPC = {
             path: string;
             size: number;
             modified: string;
-            source: 'llama' | 'legacy';
+            source: "llama" | "legacy";
           }>;
           error?: string;
         };
@@ -647,7 +641,7 @@ export type WorkspaceRPC = {
         response: {
           ok: boolean;
           status?: {
-            status: 'downloading' | 'completed' | 'failed';
+            status: "downloading" | "completed" | "failed";
             progress: number;
             fileName: string;
             error?: string;
@@ -697,7 +691,7 @@ export type WorkspaceRPC = {
           description?: string;
           author?: string | { name: string; email?: string };
           keywords?: string[];
-          'colab-plugin'?: any;
+          "colab-plugin"?: any;
         } | null;
       };
       pluginInstall: {
@@ -809,7 +803,7 @@ export type WorkspaceRPC = {
           tooltip?: string;
           color?: string;
           priority?: number;
-          alignment?: 'left' | 'right';
+          alignment?: "left" | "right";
           pluginName: string;
           hasSettings: boolean;
         }>;
@@ -825,7 +819,7 @@ export type WorkspaceRPC = {
         } | null;
       };
       pluginGetContextMenuItems: {
-        params: { context: 'editor' | 'fileTree' };
+        params: { context: "editor" | "fileTree" };
         response: Array<{
           id: string;
           label: string;
@@ -845,7 +839,7 @@ export type WorkspaceRPC = {
         response: Array<{
           key: string;
           command: string;
-          when?: 'editor' | 'terminal' | 'global';
+          when?: "editor" | "terminal" | "global";
         }>;
       };
       pluginGetSettingsSchemas: {
@@ -859,7 +853,7 @@ export type WorkspaceRPC = {
             fields: Array<{
               key: string;
               label: string;
-              type: 'string' | 'number' | 'boolean' | 'select' | 'color';
+              type: "string" | "number" | "boolean" | "select" | "color";
               default?: string | number | boolean;
               description?: string;
               options?: Array<{ label: string; value: string | number }>;
@@ -878,7 +872,7 @@ export type WorkspaceRPC = {
           fields: Array<{
             key: string;
             label: string;
-            type: 'string' | 'number' | 'boolean' | 'select' | 'color';
+            type: "string" | "number" | "boolean" | "select" | "color";
             default?: string | number | boolean;
             description?: string;
             options?: Array<{ label: string; value: string | number }>;
@@ -904,7 +898,7 @@ export type WorkspaceRPC = {
         params: { pluginName: string };
         response: Array<{
           category: string;
-          level: 'low' | 'medium' | 'high';
+          level: "low" | "medium" | "high";
           icon: string;
           label: string;
           description: string;

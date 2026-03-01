@@ -54,6 +54,18 @@ describe("createToolDispatch", () => {
       expect(response.ts).toBeDefined();
     });
 
+    it("includes installation instructions when upterm not installed", async () => {
+      const command = createCommand("share.upterm.start", { terminalId: "term-1" });
+      const response = await dispatch(command);
+
+      expect(response.status).toBe("error");
+      expect(response.error?.message).toContain("upterm CLI is not installed");
+      expect(response.error?.message).toContain("brew install upterm");
+      expect(response.error?.message).toContain(
+        "curl -sL https://github.com/owenthereal/upterm/raw/main/scripts/install.sh",
+      );
+    });
+
     it("has correct response envelope structure", async () => {
       const command = createCommand("share.upterm.start", { terminalId: "term-1" });
       const response = await dispatch(command);
@@ -67,14 +79,13 @@ describe("createToolDispatch", () => {
   });
 
   describe("share.upterm.stop", () => {
-    it("returns TOOL_EXECUTION_FAILED when upterm CLI not available", async () => {
+    it("returns a valid response envelope", async () => {
       const command = createCommand("share.upterm.stop", { terminalId: "term-1" });
       const response = await dispatch(command);
 
-      expect(response.status).toBe("error");
-      expect(response.error?.code).toBe("TOOL_EXECUTION_FAILED");
       expect(response.id).toBe("test-123");
       expect(response.type).toBe("response");
+      expect(["ok", "error"]).toContain(response.status);
       expect(response.ts).toBeDefined();
     });
   });

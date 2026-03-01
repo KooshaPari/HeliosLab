@@ -19,7 +19,7 @@ describe("InMemoryLocalBus", () => {
       payload,
       workspace_id: "ws-test",
       session_id: "sess-test",
-      terminal_id: "term-test"
+      terminal_id: "term-test",
     };
   }
 
@@ -31,7 +31,7 @@ describe("InMemoryLocalBus", () => {
       ts: new Date().toISOString(),
       topic,
       payload,
-      workspace_id: "ws-test"
+      workspace_id: "ws-test",
     };
   }
 
@@ -163,6 +163,7 @@ describe("InMemoryLocalBus", () => {
     });
 
     it("should emit transition events for session.attach success", async () => {
+      await bus.request(createCommand("lane.create"));
       const command = createCommand("session.attach");
       await bus.request(command);
 
@@ -173,6 +174,7 @@ describe("InMemoryLocalBus", () => {
     });
 
     it("should emit transition events for session.attach failure", async () => {
+      await bus.request(createCommand("lane.create"));
       const command = createCommand("session.attach", { force_error: true });
       await bus.request(command);
 
@@ -213,21 +215,25 @@ describe("InMemoryLocalBus", () => {
     });
 
     it("should emit transition events for terminal.spawn success", async () => {
+      await bus.request(createCommand("lane.create"));
       const command = createCommand("terminal.spawn");
       await bus.request(command);
 
       const events = bus.getEvents();
-      const topics = events.map((e) => e.topic);
+      const terminalEvents = events.filter((e) => e.topic?.startsWith("terminal"));
+      const topics = terminalEvents.map((e) => e.topic);
       expect(topics).toContain("terminal.spawn.started");
       expect(topics).toContain("terminal.spawned");
     });
 
     it("should emit transition events for terminal.spawn failure", async () => {
+      await bus.request(createCommand("lane.create"));
       const command = createCommand("terminal.spawn", { force_error: true });
       await bus.request(command);
 
       const events = bus.getEvents();
-      const topics = events.map((e) => e.topic);
+      const terminalEvents = events.filter((e) => e.topic?.startsWith("terminal"));
+      const topics = terminalEvents.map((e) => e.topic);
       expect(topics).toContain("terminal.spawn.started");
       expect(topics).toContain("terminal.spawn.failed");
     });
@@ -303,7 +309,7 @@ describe("InMemoryLocalBus", () => {
     it("should reject with force_error flag", async () => {
       const command = createCommand("renderer.switch", {
         target_engine: "rio",
-        force_error: true
+        force_error: true,
       });
       const response = await bus.request(command);
 
@@ -359,7 +365,7 @@ describe("InMemoryLocalBus", () => {
     it("should resolve to native_openai transport when simulate_degrade is true", async () => {
       const command = createCommand("lane.create", {
         preferred_transport: "cliproxy_harness",
-        simulate_degrade: true
+        simulate_degrade: true,
       });
       const response = await bus.request(command);
 
@@ -373,7 +379,7 @@ describe("InMemoryLocalBus", () => {
     it("should keep preferred_transport when simulate_degrade is false", async () => {
       const command = createCommand("session.attach", {
         preferred_transport: "cliproxy_harness",
-        simulate_degrade: false
+        simulate_degrade: false,
       });
       const response = await bus.request(command);
 
@@ -419,7 +425,7 @@ describe("InMemoryLocalBus", () => {
         id: commandId,
         type: "command",
         ts: new Date().toISOString(),
-        method: "undefined.method"
+        method: "undefined.method",
       };
       const response = await bus.request(command);
 
@@ -559,11 +565,7 @@ describe("InMemoryLocalBus", () => {
       const event2 = createEvent("event2");
       const event3 = createEvent("event3");
 
-      await Promise.all([
-        bus.publish(event1),
-        bus.publish(event2),
-        bus.publish(event3)
-      ]);
+      await Promise.all([bus.publish(event1), bus.publish(event2), bus.publish(event3)]);
 
       const events = bus.getEvents();
       expect(events).toHaveLength(3);
@@ -577,7 +579,7 @@ describe("InMemoryLocalBus", () => {
       const [resp1, resp2, resp3] = await Promise.all([
         bus.request(cmd1),
         bus.request(cmd2),
-        bus.request(cmd3)
+        bus.request(cmd3),
       ]);
 
       expect(resp1.status).toBe("ok");
@@ -601,6 +603,7 @@ describe("InMemoryLocalBus", () => {
     });
 
     it("should preserve session_id in event responses", async () => {
+      await bus.request(createCommand("lane.create"));
       const command = createCommand("session.attach");
       command.session_id = "custom-sess-456";
       await bus.request(command);
@@ -611,6 +614,7 @@ describe("InMemoryLocalBus", () => {
     });
 
     it("should preserve terminal_id in event responses", async () => {
+      await bus.request(createCommand("lane.create"));
       const command = createCommand("terminal.spawn");
       command.terminal_id = "custom-term-789";
       await bus.request(command);
@@ -618,6 +622,263 @@ describe("InMemoryLocalBus", () => {
       const events = bus.getEvents();
       const transitionEvent = events.find((e) => e.topic === "terminal.spawn.started");
       expect(transitionEvent?.terminal_id).toBe("custom-term-789");
+    });
+  });
+
+  describe("multi-lane support", () => {
+    it("should create multiple lanes and track them separately", async () => {
+      const cmd1 = createCommand("lane.create", { id: "lane-1" });
+      const resp1 = await bus.request(cmd1);
+      expect(resp1.status).toBe("ok");
+      expect(resp1.result?.lane_id).toBe("lane-1");
+
+      const cmd2 = createCommand("lane.create", { id: "lane-2" });
+      const resp2 = await bus.request(cmd2);
+      expect(resp2.status).toBe("ok");
+      expect(resp2.result?.lane_id).toBe("lane-2");
+
+      const allLanes = bus.getAllLanes();
+      expect(allLanes).toHaveLength(2);
+      expect(allLanes.some((l) => l.laneId === "lane-1")).toBe(true);
+      expect(allLanes.some((l) => l.laneId === "lane-2")).toBe(true);
+    });
+
+    it("should set current lane when lane.create is called", async () => {
+      const cmd1 = createCommand("lane.create", { id: "lane-1" });
+      await bus.request(cmd1);
+
+      const state1 = bus.getState();
+      expect(state1).toBeDefined();
+    });
+
+    it("should switch to new lane when lane.create is called", async () => {
+      const cmd1 = createCommand("lane.create", { id: "lane-1" });
+      await bus.request(cmd1);
+      await bus.request(createCommand("session.attach"));
+      const state1 = bus.getState();
+
+      const cmd2 = createCommand("lane.create", { id: "lane-2" });
+      await bus.request(cmd2);
+      const state2 = bus.getState();
+
+      expect(state1).not.toEqual(state2);
+    });
+
+    it("should return state for specific lane with getStateForLane", async () => {
+      const cmd1 = createCommand("lane.create", { id: "lane-1" });
+      await bus.request(cmd1);
+      const cmd2 = createCommand("session.attach");
+      await bus.request(cmd2);
+
+      const cmd3 = createCommand("lane.create", { id: "lane-2" });
+      await bus.request(cmd3);
+
+      const state1 = bus.getStateForLane("lane-1");
+      const state2 = bus.getStateForLane("lane-2");
+
+      expect(state1).toBeDefined();
+      expect(state2).toBeDefined();
+      expect(state1).not.toEqual(state2);
+    });
+
+    it("should return undefined for non-existent lane", () => {
+      const state = bus.getStateForLane("non-existent");
+      expect(state).toBeUndefined();
+    });
+
+    it("should get lane state with getLaneState", async () => {
+      const cmd = createCommand("lane.create", { id: "lane-1" });
+      await bus.request(cmd);
+
+      const laneState = bus.getLaneState("lane-1");
+      expect(laneState).toBeDefined();
+      expect(laneState?.laneId).toBe("lane-1");
+      expect(laneState?.createdAt).toBeDefined();
+    });
+
+    it("should switch between lanes with switchLane", async () => {
+      const cmd1 = createCommand("lane.create", { id: "lane-1" });
+      await bus.request(cmd1);
+
+      const cmd2 = createCommand("lane.create", { id: "lane-2" });
+      await bus.request(cmd2);
+
+      bus.switchLane("lane-1");
+      const laneState1 = bus.getLaneState("lane-1");
+      expect(laneState1?.laneId).toBe("lane-1");
+
+      bus.switchLane("lane-2");
+      const laneState2 = bus.getLaneState("lane-2");
+      expect(laneState2?.laneId).toBe("lane-2");
+    });
+
+    it("should only switch to valid existing lanes", async () => {
+      const cmd = createCommand("lane.create", { id: "lane-1" });
+      await bus.request(cmd);
+
+      const currentBefore = bus.getLaneState("lane-1");
+      bus.switchLane("non-existent");
+      const currentAfter = bus.getLaneState("lane-1");
+
+      expect(currentBefore).toBeDefined();
+      expect(currentAfter).toBeDefined();
+    });
+
+    it("should return only active lanes with getActiveLanes", async () => {
+      const cmd1 = createCommand("lane.create", { id: "lane-1" });
+      await bus.request(cmd1);
+
+      const cmd2 = createCommand("session.attach");
+      await bus.request(cmd2);
+
+      const activeLanes = bus.getActiveLanes();
+      expect(activeLanes.length).toBeGreaterThan(0);
+      expect(activeLanes.some((l) => l.laneId)).toBe(true);
+    });
+
+    it("should track session and terminal IDs in lane state", async () => {
+      const cmd = createCommand("lane.create", { id: "lane-1" });
+      await bus.request(cmd);
+
+      const laneState = bus.getLaneState("lane-1");
+      expect(laneState?.lane).toBeDefined();
+      expect(laneState?.session).toBeDefined();
+      expect(laneState?.terminal).toBeDefined();
+    });
+
+    it("should include transport in lane state", async () => {
+      const cmd = createCommand("lane.create", {
+        id: "lane-1",
+        preferred_transport: "custom_transport",
+      });
+      await bus.request(cmd);
+
+      const laneState = bus.getLaneState("lane-1");
+      expect(laneState?.lane.transport).toBe("custom_transport");
+    });
+  });
+
+  describe("request() - lane.switch", () => {
+    it("should return error when no laneId provided", async () => {
+      const command = createCommand("lane.switch", {});
+      const response = await bus.request(command);
+
+      expect(response.id).toBe(command.id);
+      expect(response.type).toBe("response");
+      expect(response.status).toBe("error");
+      expect(response.result).toBeNull();
+      expect(response.error).toBeDefined();
+      expect(response.error?.code).toBe("LANE_SWITCH_FAILED");
+      expect(response.error?.message).toContain("no laneId provided");
+      expect(response.error?.retryable).toBe(false);
+      expect(response.error?.details?.reason).toBe("missing_lane_id");
+    });
+
+    it("should return error when lane doesn't exist", async () => {
+      const command = createCommand("lane.switch", { id: "non-existent-lane" });
+      const response = await bus.request(command);
+
+      expect(response.id).toBe(command.id);
+      expect(response.type).toBe("response");
+      expect(response.status).toBe("error");
+      expect(response.result).toBeNull();
+      expect(response.error).toBeDefined();
+      expect(response.error?.code).toBe("LANE_NOT_FOUND");
+      expect(response.error?.message).toContain("not found");
+      expect(response.error?.retryable).toBe(false);
+      expect(response.error?.details?.requested_lane_id).toBe("non-existent-lane");
+      expect(Array.isArray(response.error?.details?.available_lanes)).toBe(true);
+    });
+
+    it("should successfully switch to existing lane using 'id' field", async () => {
+      const cmd1 = createCommand("lane.create", { id: "lane-1" });
+      await bus.request(cmd1);
+
+      const cmd2 = createCommand("lane.create", { id: "lane-2" });
+      await bus.request(cmd2);
+
+      const switchCommand = createCommand("lane.switch", { id: "lane-1" });
+      const response = await bus.request(switchCommand);
+
+      expect(response.id).toBe(switchCommand.id);
+      expect(response.type).toBe("response");
+      expect(response.status).toBe("ok");
+      expect(response.result).toBeDefined();
+      expect(response.result?.lane_id).toBe("lane-1");
+    });
+
+    it("should successfully switch to existing lane using 'laneId' field", async () => {
+      const cmd1 = createCommand("lane.create", { id: "lane-1" });
+      await bus.request(cmd1);
+
+      const cmd2 = createCommand("lane.create", { id: "lane-2" });
+      await bus.request(cmd2);
+
+      const switchCommand = createCommand("lane.switch", { laneId: "lane-2" });
+      const response = await bus.request(switchCommand);
+
+      expect(response.id).toBe(switchCommand.id);
+      expect(response.type).toBe("response");
+      expect(response.status).toBe("ok");
+      expect(response.result).toBeDefined();
+      expect(response.result?.lane_id).toBe("lane-2");
+    });
+
+    it("should return correct state after switch", async () => {
+      const cmd1 = createCommand("lane.create", { id: "lane-1" });
+      await bus.request(cmd1);
+
+      const cmd2 = createCommand("lane.create", { id: "lane-2" });
+      await bus.request(cmd2);
+
+      // Attach session to lane-2
+      await bus.request(createCommand("session.attach"));
+
+      // Switch back to lane-1
+      const switchCommand = createCommand("lane.switch", { id: "lane-1" });
+      const response = await bus.request(switchCommand);
+
+      expect(response.result?.state).toBeDefined();
+      const state = response.result?.state;
+      expect(state?.lane).toBeDefined();
+      expect(state?.session).toBeDefined();
+      expect(state?.terminal).toBeDefined();
+    });
+
+    it("should change getState() result after successful switch", async () => {
+      const cmd1 = createCommand("lane.create", { id: "lane-1" });
+      await bus.request(cmd1);
+      await bus.request(createCommand("session.attach"));
+      const state1 = bus.getState();
+
+      const cmd2 = createCommand("lane.create", { id: "lane-2" });
+      await bus.request(cmd2);
+      await bus.request(createCommand("terminal.spawn"));
+      const state2 = bus.getState();
+
+      // States should be different due to different operations
+      expect(state1).not.toEqual(state2);
+
+      // Switch back to lane-1 and verify state matches
+      await bus.request(createCommand("lane.switch", { id: "lane-1" }));
+      const state1Retrieved = bus.getState();
+      expect(state1Retrieved).toEqual(state1);
+    });
+
+    it("should handle lane.switch with non-existent lane among multiple lanes", async () => {
+      const cmd1 = createCommand("lane.create", { id: "lane-1" });
+      await bus.request(cmd1);
+
+      const cmd2 = createCommand("lane.create", { id: "lane-2" });
+      await bus.request(cmd2);
+
+      const switchCommand = createCommand("lane.switch", { id: "lane-999" });
+      const response = await bus.request(switchCommand);
+
+      expect(response.status).toBe("error");
+      expect(response.error?.code).toBe("LANE_NOT_FOUND");
+      expect(response.error?.details?.available_lanes).toContain("lane-1");
+      expect(response.error?.details?.available_lanes).toContain("lane-2");
     });
   });
 });

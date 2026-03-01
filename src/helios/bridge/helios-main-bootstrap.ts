@@ -59,7 +59,9 @@ export function bootstrapHelios(workspaceId: string, windowId?: string): HeliosR
     },
   };
 
-  console.log(`[helios] runtime bootstrapped for workspace ${workspaceId} (renderer: ${settings.rendererEngine})`);
+  console.log(
+    `[helios] runtime bootstrapped for workspace ${workspaceId} (renderer: ${settings.rendererEngine})`,
+  );
   return instance;
 }
 

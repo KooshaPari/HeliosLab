@@ -33,15 +33,10 @@ export const tsServer = () => {
     // Since we're not forking we can't use the node-ipc that simplifies reading/writing
     // from stdio.
     console.log("spawning tsServer");
-    tsServerProc = sandboxSpawn(
-      profile,
-      BUN_BINARY_PATH,
-      [TSSERVER_PATH, "--bun"],
-      {
-        // cwd should be an ancestor of the files we're working with
-        cwd: "/",
-      }
-    );
+    tsServerProc = sandboxSpawn(profile, BUN_BINARY_PATH, [TSSERVER_PATH, "--bun"], {
+      // cwd should be an ancestor of the files we're working with
+      cwd: "/",
+    });
 
     tsServerProc.stdout?.on("data", (data) => {
       handleTsServerStream(data);
@@ -66,7 +61,7 @@ export const tsServer = () => {
 export const tsServerRequest = (
   command: string,
   args: any,
-  metadata: { workspaceId: string; windowId: string; editorId: string }
+  metadata: { workspaceId: string; windowId: string; editorId: string },
 ) => {
   // console.log("tsserver request");
   currentEditor.workspaceId = metadata.workspaceId;
@@ -85,7 +80,7 @@ export const tsServerRequest = (
       type: "request",
       command,
       arguments: args,
-    }) + "\n"
+    }) + "\n",
   );
 };
 
@@ -121,8 +116,7 @@ const handleTsServerStream = (data: any) => {
       return;
     }
 
-    tsServerResponse.lengthReceived =
-      tsServerResponse.lengthReceived + line.length;
+    tsServerResponse.lengthReceived = tsServerResponse.lengthReceived + line.length;
     tsServerResponse.text = tsServerResponse.text + line;
 
     if (tsServerResponse.lengthReceived === tsServerResponse.contentLength) {

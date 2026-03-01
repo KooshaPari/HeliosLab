@@ -2,20 +2,22 @@
   "name": "colab-electrobun-demo",
   "version": "1.0.0",
   "description": "Comprehensive test plugin demonstrating the full Colab plugin API surface - powered by Electrobun!",
-  "main": "index.ts",
-  "keywords": ["colab-plugin"],
-  "author": "Blackboard Inc",
+  "keywords": [
+    "colab-plugin"
+  ],
+  "homepage": "https://blackboard.dev/colab/docs/plugins/example",
   "license": "MIT",
+  "author": "Blackboard Inc",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/blackboardsh/colab.git",
     "directory": "test-plugin"
   },
-  "homepage": "https://blackboard.dev/colab/docs/plugins/example",
   "files": [
     "index.ts",
     "README.md"
   ],
+  "main": "index.ts",
   "colab-plugin": {
     "displayName": "Electrobun Demo Plugin",
     "description": "A comprehensive demo of the Colab plugin API with bunnies and lightning bolts",
@@ -47,7 +49,9 @@
           "title": "Open Electrobun Docs"
         }
       ],
-      "webviewHooks": ["onLoad"]
+      "webviewHooks": [
+        "onLoad"
+      ]
     },
     "entitlements": {
       "filesystem": {
@@ -57,7 +61,11 @@
       },
       "network": {
         "internet": true,
-        "domains": ["placekitten.com", "placebear.com", "electrobun.dev"],
+        "domains": [
+          "placekitten.com",
+          "placebear.com",
+          "electrobun.dev"
+        ],
         "reason": "Fetches placeholder images and opens documentation"
       },
       "process": {
@@ -88,6 +96,8 @@
         "reason": "Registers Cmd+Shift+Z keyboard shortcut"
       }
     },
-    "activationEvents": ["*"]
+    "activationEvents": [
+      "*"
+    ]
   }
 }
