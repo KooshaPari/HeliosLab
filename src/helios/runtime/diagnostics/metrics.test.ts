@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, afterEach } from "vitest";
+import { describe, it, expect, afterEach, vi } from "vitest";
 import { RuntimeMetrics } from "./metrics";
 
-describe("RuntimeMetrics", () => {
+describe(RuntimeMetrics, () => {
   afterEach(() => {
     vi.restoreAllMocks();
   });
@@ -240,9 +240,9 @@ describe("RuntimeMetrics", () => {
       expect(summary.min).toBe(10);
       expect(summary.max).toBe(50);
       expect(summary.latest).toBe(50); // Last recorded value
-      // p50 = percentile(sorted, 0.5) -> index = ceil(5 * 0.5) - 1 = 2 -> values[2] = 30
+      // P50 = percentile(sorted, 0.5) -> index = ceil(5 * 0.5) - 1 = 2 -> values[2] = 30
       expect(summary.p50).toBe(30);
-      // p95 = percentile(sorted, 0.95) -> index = ceil(5 * 0.95) - 1 = 4 -> values[4] = 50
+      // P95 = percentile(sorted, 0.95) -> index = ceil(5 * 0.95) - 1 = 4 -> values[4] = 50
       expect(summary.p95).toBe(50);
     });
 

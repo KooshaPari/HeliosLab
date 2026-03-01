@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { INITIAL_RUNTIME_STATE, transition } from "./state_machine";
 
 describe("state_machine", () => {
-  describe("INITIAL_RUNTIME_STATE", () => {
+  describe(INITIAL_RUNTIME_STATE, () => {
     it('has lane state of "new"', () => {
       expect(INITIAL_RUNTIME_STATE.lane).toBe("new");
     });

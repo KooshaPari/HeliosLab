@@ -1,34 +1,33 @@
-import type { ActiveContextStore } from "./context_store";
-import { selectActiveContext } from "./context_store";
+import { selectActiveContext, type ActiveContextStore } from "./context_store";
 import type { DesktopRuntimeClient } from "./runtime_client";
 
 export type RendererEngine = "ghostty" | "rio";
 
-export type DesktopSettings = {
+export interface DesktopSettings {
   rendererEngine: RendererEngine;
   hotSwapPreferred: boolean;
-};
+}
 
 export const DEFAULT_SETTINGS: DesktopSettings = {
   rendererEngine: "ghostty",
   hotSwapPreferred: true,
 };
 
-export type SwitchRendererInput = {
+export interface SwitchRendererInput {
   settings: DesktopSettings;
   targetEngine: RendererEngine;
   runtimeClient: DesktopRuntimeClient;
   contextStore: ActiveContextStore;
   forceError?: boolean;
   forceRollbackError?: boolean;
-};
+}
 
-export type SwitchRendererOutcome = {
+export interface SwitchRendererOutcome {
   settings: DesktopSettings;
   committed: boolean;
   rolledBack: boolean;
   message: string;
-};
+}
 
 export async function switchRendererWithRollback(
   input: SwitchRendererInput,

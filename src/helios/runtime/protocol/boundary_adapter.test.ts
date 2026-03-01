@@ -3,7 +3,6 @@ import type { LocalBusEnvelope, ResponseEnvelope } from "./types";
 import {
   getBoundaryDispatchDecision,
   createBoundaryDispatcher,
-  type BoundaryDispatchDecision,
 } from "./boundary_adapter";
 
 // Helper to create mock command envelopes
@@ -52,7 +51,7 @@ function createResponseEnvelope(
   };
 }
 
-describe("getBoundaryDispatchDecision", () => {
+describe(getBoundaryDispatchDecision, () => {
   describe("LOCAL_METHODS routing", () => {
     it("should route workspace.create to local_control/local_bus", () => {
       const decision = getBoundaryDispatchDecision("workspace.create");
@@ -256,7 +255,7 @@ describe("getBoundaryDispatchDecision", () => {
   });
 });
 
-describe("createBoundaryDispatcher", () => {
+describe(createBoundaryDispatcher, () => {
   describe("routing to correct dispatch function", () => {
     it("should route LOCAL_METHODS to dispatchLocal", async () => {
       const dispatchLocal = vi.fn(async (cmd: LocalBusEnvelope) => createResponseEnvelope(cmd));
@@ -341,7 +340,7 @@ describe("createBoundaryDispatcher", () => {
 
       const dispatcher = createBoundaryDispatcher({
         dispatchLocal,
-        // dispatchTool intentionally omitted
+        // DispatchTool intentionally omitted
       });
 
       const command = createCommandEnvelope("zmx.checkpoint");
@@ -364,7 +363,7 @@ describe("createBoundaryDispatcher", () => {
 
       const dispatcher = createBoundaryDispatcher({
         dispatchLocal,
-        // dispatchA2A intentionally omitted
+        // DispatchA2A intentionally omitted
       });
 
       const command = createCommandEnvelope("agent.run");
@@ -644,7 +643,7 @@ describe("createBoundaryDispatcher", () => {
         id: "test-id",
         type: "command",
         ts: new Date().toISOString(),
-        // method is missing - defaults to unknown
+        // Method is missing - defaults to unknown
       };
 
       const response = await dispatcher(command);

@@ -27,7 +27,7 @@ const createMockCollectionWithRemove = () => ({
 });
 
 // Mock GoldfishDB module
-vi.mock("../../main/goldfishdb/db", () => {
+vi.mock(import('../../main/goldfishdb/db'), () => {
   return {
     default: {
       collection: vi.fn(() => mockCollectionInstance),
@@ -392,7 +392,6 @@ describe("Session Snapshot Persistence", () => {
       saveSessionSnapshot(workspaceId, originalLanes);
 
       const insertCall = mockCollectionInstance.insert.mock.calls[0][0];
-      const savedLanes = JSON.parse(insertCall.lanes);
 
       mockCollectionInstance.query.mockReturnValueOnce({
         data: [

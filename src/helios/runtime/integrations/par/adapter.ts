@@ -1,8 +1,8 @@
-export type LaneSpec = {
+export interface LaneSpec {
   laneId: string;
   repoPath: string;
   branchName: string;
-};
+}
 
 export interface ParAdapter {
   createLane(spec: LaneSpec): Promise<{ worktreePath: string }>;

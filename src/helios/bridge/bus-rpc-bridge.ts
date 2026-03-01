@@ -26,7 +26,7 @@ import { createToolDispatch } from "./tool-dispatch";
 
 type CommandDispatch = (command: LocalBusEnvelope) => Promise<LocalBusEnvelope>;
 
-export type BusRpcBridgeOptions = {
+export interface BusRpcBridgeOptions {
   bus: InMemoryLocalBus;
   workspaceId: string;
   dispatchTool?: CommandDispatch;
@@ -35,14 +35,14 @@ export type BusRpcBridgeOptions = {
   metrics?: RuntimeMetrics;
   termBridge?: HeliosTerminalBridge;
   windowId?: string;
-};
+}
 
-export type BusRpcBridge = {
+export interface BusRpcBridge {
   /** Forward an RPC request to the bus and return the response */
   handleRequest(method: string, params: Record<string, unknown>): Promise<LocalBusEnvelope>;
   /** Stop listening to bus events */
   dispose(): void;
-};
+}
 
 /**
  * Creates a bridge between the helios LocalBus and ElectroBun RPC.
@@ -50,6 +50,9 @@ export type BusRpcBridge = {
  * - Incoming RPC requests are routed through the boundary dispatcher
  * - State changes are persisted to GoldfishDB
  * - Bus events are broadcast to all windows in the workspace via RPC
+ *
+ * @param {BusRpcBridgeOptions} opts Configuration options for the bridge
+ * @returns {BusRpcBridge} A BusRpcBridge instance
  */
 export function createBusRpcBridge(opts: BusRpcBridgeOptions): BusRpcBridge {
   const {
@@ -75,7 +78,7 @@ export function createBusRpcBridge(opts: BusRpcBridgeOptions): BusRpcBridge {
   }
 
   // Create combined tool dispatcher: tries tool dispatch first (for share.*/zmx.*),
-  // then muxer dispatch for unhandled methods
+  // Then muxer dispatch for unhandled methods
   const createCombinedDispatcher = (): CommandDispatch => {
     const toolDispatch = createToolDispatch();
     const muxerDispatch = createMuxerDispatch();
@@ -99,7 +102,7 @@ export function createBusRpcBridge(opts: BusRpcBridgeOptions): BusRpcBridge {
   };
 
   // Resolve tool dispatch: use provided dispatchTool, fall back to combined
-  // dispatcher that routes to tool and muxer dispatchers
+  // Dispatcher that routes to tool and muxer dispatchers
   const resolvedDispatchTool = dispatchTool || dispatchMuxer || createCombinedDispatcher();
 
   // Create boundary dispatcher with all three boundaries
@@ -112,7 +115,7 @@ export function createBusRpcBridge(opts: BusRpcBridgeOptions): BusRpcBridge {
   // Poll bus events and forward to renderers
   let lastEventIndex = 0;
   const pollInterval = setInterval(() => {
-    if (disposed) return;
+    if (disposed) {return;}
 
     const events = bus.getEvents();
     if (events.length > lastEventIndex) {
@@ -202,12 +205,12 @@ export function createBusRpcBridge(opts: BusRpcBridgeOptions): BusRpcBridge {
 
       // Route through boundary dispatcher with metrics
       const decision = getBoundaryDispatchDecision(method);
-      const metricName =
-        method === "lane.create"
-          ? ("lane_create_latency_ms" as const)
-          : method === "session.attach"
-            ? ("session_restore_latency_ms" as const)
-            : null;
+      let metricName: "lane_create_latency_ms" | "session_restore_latency_ms" | null = null;
+      if (method === "lane.create") {
+        metricName = "lane_create_latency_ms" as const;
+      } else if (method === "session.attach") {
+        metricName = "session_restore_latency_ms" as const;
+      }
 
       if (metrics && metricName) {
         metrics.startTimer(metricName, envelope.meta?.correlation_id ?? method);

@@ -4,7 +4,7 @@
  * Verifies tool dispatch routing and error handling
  */
 
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, expectTypeOf } from "vitest";
 import { createToolDispatch } from "./tool-dispatch";
 import type { LocalBusEnvelope } from "../runtime/protocol/types";
 
@@ -16,7 +16,7 @@ const createCommand = (method: string, payload?: Record<string, unknown>): Local
   payload,
 });
 
-describe("createToolDispatch", () => {
+describe(createToolDispatch, () => {
   let dispatch: ReturnType<typeof createToolDispatch>;
 
   beforeEach(() => {
@@ -24,7 +24,7 @@ describe("createToolDispatch", () => {
   });
 
   it("returns a function", () => {
-    expect(typeof dispatch).toBe("function");
+    expectTypeOf(dispatch).toBeFunction();
   });
 
   describe("unknown method", () => {
@@ -164,7 +164,7 @@ describe("createToolDispatch", () => {
       const command = createCommand("unknown.method");
       const response = await dispatch(command);
 
-      expect(typeof response.ts).toBe("string");
+      expectTypeOf(response.ts).toBeString();
       expect(response.ts).toMatch(/^\d{4}-\d{2}-\d{2}T/);
     });
 

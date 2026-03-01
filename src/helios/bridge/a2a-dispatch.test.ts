@@ -4,7 +4,7 @@
  * Verifies agent delegation dispatch and subprocess execution
  */
 
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, expectTypeOf } from "vitest";
 import { createA2ADispatch } from "./a2a-dispatch";
 import type { LocalBusEnvelope } from "../runtime/protocol/types";
 
@@ -16,7 +16,7 @@ const createCommand = (method: string, payload?: Record<string, unknown>): Local
   payload,
 });
 
-describe("createA2ADispatch", () => {
+describe(createA2ADispatch, () => {
   let dispatch: ReturnType<typeof createA2ADispatch>;
 
   beforeEach(() => {
@@ -24,7 +24,7 @@ describe("createA2ADispatch", () => {
   });
 
   it("returns a function", () => {
-    expect(typeof dispatch).toBe("function");
+    expectTypeOf(dispatch).toBeFunction();
   });
 
   describe("agent.run", () => {
@@ -78,7 +78,7 @@ describe("createA2ADispatch", () => {
 
       expect(response.status).toBe("ok");
       expect(response.result?.agents).toBeDefined();
-      expect(Array.isArray(response.result?.agents)).toBe(true);
+      expect(Array.isArray(response.result?.agents)).toBeTruthy();
       expect(response.result?.count).toBe(0);
     });
 
@@ -102,11 +102,11 @@ describe("createA2ADispatch", () => {
 
       expect(response.status).toBe("ok");
       expect(response.result?.configured).toBeDefined();
-      expect(typeof response.result?.configured).toBe("boolean");
+      expectTypeOf(response.result?.configured).toBeBoolean();
       expect(response.result?.acpClientInitialized).toBeDefined();
-      expect(typeof response.result?.acpClientInitialized).toBe("boolean");
+      expectTypeOf(response.result?.acpClientInitialized).toBeBoolean();
       expect(response.result?.activeAgentCount).toBeDefined();
-      expect(typeof response.result?.activeAgentCount).toBe("number");
+      expectTypeOf(response.result?.activeAgentCount).toBeNumber();
     });
 
     it("returns zero active agents when none running", async () => {
@@ -152,7 +152,7 @@ describe("createA2ADispatch", () => {
       expect(response).toHaveProperty("type", "response");
       expect(response).toHaveProperty("ts");
       expect(response).toHaveProperty("status", "error");
-      expect(response.error?.retryable).toBe(false);
+      expect(response.error?.retryable).toBeFalsy();
       expect(response.error?.details?.method).toBe("agent.unknown");
     });
   });
@@ -177,7 +177,7 @@ describe("createA2ADispatch", () => {
       const command = createCommand("agent.list");
       const response = await dispatch(command);
 
-      expect(typeof response.ts).toBe("string");
+      expectTypeOf(response.ts).toBeString();
       expect(response.ts).toMatch(/^\d{4}-\d{2}-\d{2}T/);
     });
 
@@ -196,9 +196,9 @@ describe("createA2ADispatch", () => {
       const response = await dispatch(command);
 
       expect(response.error).toBeDefined();
-      expect(typeof response.error?.code).toBe("string");
-      expect(typeof response.error?.message).toBe("string");
-      expect(response.error?.retryable).toBe(false);
+      expectTypeOf(response.error?.code).toBeString();
+      expectTypeOf(response.error?.message).toBeString();
+      expect(response.error?.retryable).toBeFalsy();
     });
 
     it("has error details with method for errors", async () => {

@@ -14,10 +14,10 @@ import {
 import { DesktopRuntimeClient } from "./runtime_client";
 import { buildAllTabSurfaces, type TabSurface } from "./tabs";
 
-export type BootDesktopInput = {
+export interface BootDesktopInput {
   bus?: InMemoryLocalBus;
   initialSettings?: DesktopSettings;
-};
+}
 
 export class EditorlessControlPlane {
   readonly store: ActiveContextStore;

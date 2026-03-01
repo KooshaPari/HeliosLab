@@ -1,13 +1,13 @@
 export type EnvelopeType = "command" | "response" | "event";
 
-export type ErrorPayload = {
+export interface ErrorPayload {
   code: string;
   message: string;
   retryable: boolean;
   details?: Record<string, unknown> | null;
-};
+}
 
-export type LocalBusEnvelope = {
+export interface LocalBusEnvelope {
   id: string;
   type: EnvelopeType;
   ts: string;
@@ -28,7 +28,7 @@ export type LocalBusEnvelope = {
     correlation_id?: string;
     timestamp?: string;
   };
-};
+}
 
 export type ResponseEnvelope = LocalBusEnvelope & {
   type: "response";

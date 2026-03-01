@@ -1,7 +1,7 @@
 import type { AcpClientAdapter, AcpConfig, AcpExecuteResult, ProviderHealthState } from "./adapter";
 
 const DEFAULT_MODEL = "claude-sonnet-4-20250514";
-const DEFAULT_TIMEOUT_MS = 120000;
+const DEFAULT_TIMEOUT_MS = 120_000;
 const DEFAULT_MAX_RETRIES = 2;
 
 interface PendingRequest {
@@ -32,9 +32,9 @@ export class AcpClient implements AcpClientAdapter {
         // 405 is expected for OPTIONS on some APIs, but at least the endpoint exists
         throw new Error(`Endpoint validation failed: ${response.status}`);
       }
-    } catch (err) {
+    } catch (error) {
       throw new Error(
-        `Failed to validate ACP endpoint: ${err instanceof Error ? err.message : String(err)}`,
+        `Failed to validate ACP endpoint: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
 
@@ -78,25 +78,25 @@ export class AcpClient implements AcpClientAdapter {
       if (!response.ok) {
         if (response.status === 401) {
           this.consecutiveFailures++;
-          throw {
+          throw new Error(JSON.stringify({
             code: "PROVIDER_AUTH_FAILED",
             message: "Authentication failed",
             status: 401,
-          };
+          }));
         }
         if (response.status === 429) {
           this.consecutiveFailures++;
-          throw {
+          throw new Error(JSON.stringify({
             code: "PROVIDER_RATE_LIMITED",
             message: "Rate limited",
             status: 429,
-          };
+          }));
         }
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
       const data = (await response.json()) as Record<string, unknown>;
-      const content = ((data.content as Array<Record<string, unknown>>) || [])[0];
+      const content = ((data.content as Record<string, unknown>[]) || [])[0];
       const text = (content?.text as string) || "";
 
       const usage = data.usage as Record<string, number> | undefined;
@@ -112,25 +112,25 @@ export class AcpClient implements AcpClientAdapter {
           ? { inputTokens: usage.input_tokens || 0, outputTokens: usage.output_tokens || 0 }
           : undefined,
       };
-    } catch (err) {
+    } catch (error) {
       clearTimeout(timeoutHandle);
       this.pendingRequests.delete(taskId);
       this.consecutiveFailures++;
 
-      if (err instanceof Error) {
-        if (err.name === "AbortError") {
-          throw { code: "PROVIDER_TIMEOUT", message: "Request timeout" };
+      if (error instanceof Error) {
+        if (error.name === "AbortError") {
+          throw new Error(JSON.stringify({ code: "PROVIDER_TIMEOUT", message: "Request timeout" }));
         }
       }
 
-      if (typeof err === "object" && err !== null && "code" in err) {
-        throw err;
+      if (typeof error === "object" && error !== null && "code" in error) {
+        throw new Error(JSON.stringify(error));
       }
 
-      throw {
+      throw new Error(JSON.stringify({
         code: "PROVIDER_NETWORK_ERROR",
-        message: err instanceof Error ? err.message : String(err),
-      };
+        message: error instanceof Error ? error.message : String(error),
+      }));
     }
   }
 

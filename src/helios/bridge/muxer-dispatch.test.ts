@@ -4,7 +4,7 @@
  * Verifies muxer dispatch routing and error handling
  */
 
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, expectTypeOf } from "vitest";
 import { createMuxerDispatch } from "./muxer-dispatch";
 import type { LocalBusEnvelope } from "../runtime/protocol/types";
 
@@ -16,7 +16,7 @@ const createCommand = (method: string, payload?: Record<string, unknown>): Local
   payload,
 });
 
-describe("createMuxerDispatch", () => {
+describe(createMuxerDispatch, () => {
   let dispatch: ReturnType<typeof createMuxerDispatch>;
 
   beforeEach(() => {
@@ -24,7 +24,7 @@ describe("createMuxerDispatch", () => {
   });
 
   it("returns a function", () => {
-    expect(typeof dispatch).toBe("function");
+    expectTypeOf(dispatch).toBeFunction();
   });
 
   describe("muxer.list", () => {
@@ -34,7 +34,7 @@ describe("createMuxerDispatch", () => {
 
       expect(response.status).toBe("ok");
       expect(response.result?.available).toBeDefined();
-      expect(Array.isArray(response.result?.available)).toBe(true);
+      expect(Array.isArray(response.result?.available)).toBeTruthy();
       expect(response.result?.count).toBe(5);
     });
 
@@ -157,7 +157,7 @@ describe("createMuxerDispatch", () => {
 
       expect(response.status).toBe("ok");
       expect(response.result?.name).toBeDefined();
-      expect(typeof response.result?.name).toBe("string");
+      expectTypeOf(response.result?.name).toBeString();
     });
 
     it("returns proper success envelope structure", async () => {
@@ -177,7 +177,7 @@ describe("createMuxerDispatch", () => {
 
       expect(response.status).toBe("ok");
       expect(response.result?.createdAt).toBeDefined();
-      expect(typeof response.result?.createdAt).toBe("string");
+      expectTypeOf(response.result?.createdAt).toBeString();
     });
   });
 
@@ -209,7 +209,7 @@ describe("createMuxerDispatch", () => {
       const attachResp = await dispatch(attachCmd);
 
       expect(attachResp.status).toBe("ok");
-      expect(attachResp.result?.attached).toBe(true);
+      expect(attachResp.result?.attached).toBeTruthy();
       expect(attachResp.result?.sessionId).toBe(sessionId);
     });
 
@@ -259,7 +259,7 @@ describe("createMuxerDispatch", () => {
       const detachResp = await dispatch(detachCmd);
 
       expect(detachResp.status).toBe("ok");
-      expect(detachResp.result?.detached).toBe(true);
+      expect(detachResp.result?.detached).toBeTruthy();
       expect(detachResp.result?.sessionId).toBe(sessionId);
     });
 
@@ -309,7 +309,7 @@ describe("createMuxerDispatch", () => {
       const killResp = await dispatch(killCmd);
 
       expect(killResp.status).toBe("ok");
-      expect(killResp.result?.killed).toBe(true);
+      expect(killResp.result?.killed).toBeTruthy();
       expect(killResp.result?.status).toBe("terminated");
       expect(killResp.result?.sessionId).toBe(sessionId);
     });
@@ -372,7 +372,7 @@ describe("createMuxerDispatch", () => {
       expect(response).toHaveProperty("type", "response");
       expect(response).toHaveProperty("ts");
       expect(response).toHaveProperty("status", "error");
-      expect(response.error?.retryable).toBe(false);
+      expect(response.error?.retryable).toBeFalsy();
       expect(response.error?.details?.method).toBe("muxer.unknown");
     });
   });
@@ -397,7 +397,7 @@ describe("createMuxerDispatch", () => {
       const command = createCommand("muxer.list");
       const response = await dispatch(command);
 
-      expect(typeof response.ts).toBe("string");
+      expectTypeOf(response.ts).toBeString();
       expect(response.ts).toMatch(/^\d{4}-\d{2}-\d{2}T/);
     });
 
@@ -416,9 +416,9 @@ describe("createMuxerDispatch", () => {
       const response = await dispatch(command);
 
       expect(response.error).toBeDefined();
-      expect(typeof response.error?.code).toBe("string");
-      expect(typeof response.error?.message).toBe("string");
-      expect(response.error?.retryable).toBe(false);
+      expectTypeOf(response.error?.code).toBeString();
+      expectTypeOf(response.error?.message).toBeString();
+      expect(response.error?.retryable).toBeFalsy();
     });
 
     it("has error details with method for errors", async () => {

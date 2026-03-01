@@ -20,60 +20,62 @@ import type { WorkspaceRPC } from "../ivde/rpc";
 import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import { WebLinksAddon } from "@xterm/addon-web-links";
-// xterm.css loaded via <link> in index.html
+// Xterm.css loaded via <link> in index.html
 
 // ── State ──────────────────────────────────────────────
 
-type RuntimeState = {
+interface RuntimeState {
   lane: { state: string };
   session: { state: string };
   terminal: { state: string };
-};
+}
 
-type LifecycleIds = {
+interface LifecycleIds {
   workspaceId: string | null;
   laneId: string | null;
   sessionId: string | null;
   terminalId: string | null;
-};
+}
 
-type EventLogEntry = {
+interface EventLogEntry {
   ts: string;
   label: string;
   ok: boolean;
-};
+}
 
 type ActiveTab = "terminal" | "agent" | "session" | "chat" | "project";
 
-type Toast = {
+interface Toast {
   id: string;
   type: "success" | "error" | "warning";
   message: string;
   timeout?: NodeJS.Timeout;
-};
+}
+
+type RpcResponse = Record<string, unknown>;
 
 let runtimeState: RuntimeState = {
   lane: { state: "idle" },
   session: { state: "idle" },
   terminal: { state: "idle" },
 };
-let ids: LifecycleIds = {
+const ids: LifecycleIds = {
   workspaceId: null,
   laneId: null,
   sessionId: null,
   terminalId: null,
 };
-let eventLog: EventLogEntry[] = [];
+const eventLog: EventLogEntry[] = [];
 let activeTab: ActiveTab = "terminal";
 let busy = false;
 
-// xterm.js instance (persists across re-renders)
+// Xterm.js instance (persists across re-renders)
 let xterm: Terminal | null = null;
 let fitAddon: FitAddon | null = null;
 let xtermMounted = false;
 
 // Metrics cache
-type MetricSummary = {
+interface MetricSummary {
   metric: string;
   unit: string;
   count: number;
@@ -82,31 +84,31 @@ type MetricSummary = {
   p50: number;
   p95: number;
   latest: number;
-};
+}
 let metricsSummaries: MetricSummary[] = [];
 
 // Renderer capabilities cache
-type RendererCapabilities = {
+interface RendererCapabilities {
   active_engine: string;
   available_engines: string[];
   hot_swap_supported: boolean;
-};
+}
 let rendererCaps: RendererCapabilities | null = null;
 
 // Chat messages
-type ChatMessage = { role: "user" | "system"; text: string; ts: string };
-let chatMessages: ChatMessage[] = [];
+interface ChatMessage { role: "user" | "system"; text: string; ts: string }
+const chatMessages: ChatMessage[] = [];
 
 // Toasts
-let toasts: Toast[] = [];
+const toasts: Toast[] = [];
 
 // Available lanes for reconnection
-type AvailableLane = {
+interface AvailableLane {
   laneId: string;
   state: string;
   transport: string;
   lastUpdated: string;
-};
+}
 let availableLanes: AvailableLane[] = [];
 
 const TABS: ActiveTab[] = ["terminal", "agent", "session", "chat", "project"];
@@ -118,13 +120,13 @@ const rpc = Electroview.defineRPC<WorkspaceRPC>({
   handlers: {
     requests: {},
     messages: {
-      "helios:state": (data: { state: any }) => {
+      "helios:state": (data: { state: Record<string, unknown> }) => {
         applyState(data.state);
         render();
       },
-      "helios:event": (data: { event: any; state: any }) => {
+      "helios:event": (data: { event: Record<string, unknown>; state: Record<string, unknown> }) => {
         applyState(data.state);
-        const topic = data.event?.topic ?? data.event?.payload?.runtime_event ?? "event";
+        const topic = (data.event?.topic as string) ?? (data.event?.payload as Record<string, unknown>)?.runtime_event ?? "event";
         addLog(topic, true);
         render();
       },
@@ -139,27 +141,49 @@ const rpc = Electroview.defineRPC<WorkspaceRPC>({
 
 const electrobun = new Electroview({ rpc });
 
-function applyState(state: any) {
-  if (!state) return;
+/**
+ * Apply state update to runtime state
+ * @param state - The state object to apply
+ */
+function applyState(state: Record<string, unknown>) {
+  if (!state) {return;}
+  const laneState = state.lane as Record<string, string> | undefined;
+  const lanesState = state.lanes as Record<string, string> | undefined;
+  const sessionState = state.session as Record<string, string> | undefined;
+  const sessionsState = state.sessions as Record<string, string> | undefined;
+  const terminalState = state.terminal as Record<string, string> | undefined;
+  const terminalsState = state.terminals as Record<string, string> | undefined;
   runtimeState = {
-    lane: { state: state.lane?.state ?? state.lanes?.state ?? "idle" },
-    session: { state: state.session?.state ?? state.sessions?.state ?? "idle" },
-    terminal: { state: state.terminal?.state ?? state.terminals?.state ?? "idle" },
+    lane: { state: laneState?.state ?? lanesState?.state ?? "idle" },
+    session: { state: sessionState?.state ?? sessionsState?.state ?? "idle" },
+    terminal: { state: terminalState?.state ?? terminalsState?.state ?? "idle" },
   };
 }
 
+/**
+ * Add entry to event log
+ * @param label - Event label
+ * @param ok - Whether event succeeded
+ */
 function addLog(label: string, ok: boolean) {
   eventLog.push({ ts: new Date().toISOString().slice(11, 19), label, ok });
-  if (eventLog.length > 50) eventLog.shift();
+  if (eventLog.length > 50) {eventLog.shift();}
 }
 
 // ── Toast Notifications ────────────────────────────────
 
+/**
+ * Show a toast notification
+ * @param message - Message text
+ * @param type - Toast type
+ * @param duration - Duration in milliseconds
+ * @returns Toast ID
+ */
 function showToast(
   message: string,
   type: "success" | "error" | "warning" = "success",
   duration = 4000,
-) {
+): string {
   const id = `toast-${Date.now()}-${Math.random()}`;
   const toast: Toast = { id, type, message };
 
@@ -174,11 +198,15 @@ function showToast(
   return id;
 }
 
+/**
+ * Dismiss a toast notification
+ * @param id - Toast ID
+ */
 function dismissToast(id: string) {
   const idx = toasts.findIndex((t) => t.id === id);
   if (idx !== -1) {
     const toast = toasts[idx];
-    if (toast.timeout) clearTimeout(toast.timeout);
+    if (toast.timeout) {clearTimeout(toast.timeout);}
     toasts.splice(idx, 1);
     render();
   }
@@ -186,6 +214,12 @@ function dismissToast(id: string) {
 
 // ── Confirmation Dialog ────────────────────────────────
 
+/**
+ * Show a confirmation dialog
+ * @param title - Dialog title
+ * @param message - Dialog message
+ * @returns Promise that resolves to true if confirmed, false otherwise
+ */
 async function confirm(title: string, message: string): Promise<boolean> {
   return new Promise((resolve) => {
     const overlay = document.createElement("div");
@@ -221,15 +255,15 @@ async function confirm(title: string, message: string): Promise<boolean> {
       resolve(true);
     });
 
-    actionsEl.appendChild(cancelBtn);
-    actionsEl.appendChild(confirmBtn);
+    actionsEl.append(cancelBtn);
+    actionsEl.append(confirmBtn);
 
-    modal.appendChild(titleEl);
-    modal.appendChild(msgEl);
-    modal.appendChild(actionsEl);
+    modal.append(titleEl);
+    modal.append(msgEl);
+    modal.append(actionsEl);
 
-    overlay.appendChild(modal);
-    document.body.appendChild(overlay);
+    overlay.append(modal);
+    document.body.append(overlay);
 
     confirmBtn.focus();
   });
@@ -237,8 +271,8 @@ async function confirm(title: string, message: string): Promise<boolean> {
 
 // ── Lifecycle Actions ──────────────────────────────────
 
-async function doCreateLane() {
-  if (busy) return;
+async function doCreateLane(): Promise<void> {
+  if (busy) {return;}
   busy = true;
   render();
   try {
@@ -246,49 +280,51 @@ async function doCreateLane() {
     const res = (await electrobun.rpc?.request["heliosRequest"]({
       method: "lane.create",
       payload: { preferred_transport: "cliproxy_harness" },
-    })) as any;
+    })) as RpcResponse;
     ids.workspaceId = workspaceId;
-    ids.laneId = res?.result?.lane_id ?? null;
+    ids.laneId = (res?.result as Record<string, unknown>)?.lane_id as string ?? null;
     addLog("lane.create", res?.status === "ok");
     if (res?.status === "ok") {
       showToast(`Lane created: ${ids.laneId?.slice(0, 12)}`, "success");
     } else {
       showToast("Failed to create lane", "error");
     }
-  } catch (e: any) {
-    addLog(`lane.create error: ${e?.message ?? e}`, false);
-    showToast(`Error: ${e?.message ?? e}`, "error");
+  } catch (error: unknown) {
+    const err = error as Record<string, unknown>;
+    addLog(`lane.create error: ${err?.message ?? error}`, false);
+    showToast(`Error: ${err?.message ?? error}`, "error");
   }
   busy = false;
   render();
 }
 
-async function doAttachSession() {
-  if (busy || !ids.laneId) return;
+async function doAttachSession(): Promise<void> {
+  if (busy || !ids.laneId) {return;}
   busy = true;
   render();
   try {
     const res = (await electrobun.rpc?.request["heliosRequest"]({
       method: "session.attach",
       payload: { id: `${ids.laneId}:session` },
-    })) as any;
-    ids.sessionId = res?.result?.session_id ?? null;
+    })) as RpcResponse;
+    ids.sessionId = (res?.result as Record<string, unknown>)?.session_id as string ?? null;
     addLog("session.attach", res?.status === "ok");
     if (res?.status === "ok") {
       showToast("Session attached successfully", "success");
     } else {
       showToast("Failed to attach session", "error");
     }
-  } catch (e: any) {
-    addLog(`session.attach error: ${e?.message ?? e}`, false);
-    showToast(`Error: ${e?.message ?? e}`, "error");
+  } catch (error: unknown) {
+    const err = error as Record<string, unknown>;
+    addLog(`session.attach error: ${err?.message ?? error}`, false);
+    showToast(`Error: ${err?.message ?? error}`, "error");
   }
   busy = false;
   render();
 }
 
-async function doSpawnTerminal() {
-  if (busy || !ids.sessionId || !ids.laneId) return;
+async function doSpawnTerminal(): Promise<void> {
+  if (busy || !ids.sessionId || !ids.laneId) {return;}
   busy = true;
   render();
   try {
@@ -298,29 +334,34 @@ async function doSpawnTerminal() {
         id: `${ids.sessionId}:terminal`,
         lane_id: ids.laneId,
       },
-    })) as any;
-    ids.terminalId = res?.result?.terminal_id ?? null;
-    if (xterm) xterm.clear();
+    })) as RpcResponse;
+    ids.terminalId = (res?.result as Record<string, unknown>)?.terminal_id as string ?? null;
+    if (xterm) {xterm.clear();}
     addLog("terminal.spawn", res?.status === "ok");
     if (res?.status === "ok") {
       showToast("Terminal spawned successfully", "success");
     } else {
       showToast("Failed to spawn terminal", "error");
     }
-  } catch (e: any) {
-    addLog(`terminal.spawn error: ${e?.message ?? e}`, false);
-    showToast(`Error: ${e?.message ?? e}`, "error");
+  } catch (error: unknown) {
+    const err = error as Record<string, unknown>;
+    addLog(`terminal.spawn error: ${err?.message ?? error}`, false);
+    showToast(`Error: ${err?.message ?? error}`, "error");
   }
   busy = false;
   render();
 }
 
-async function doFullLifecycle() {
+/**
+ * Run full lifecycle: create lane, attach session, spawn terminal
+ * @returns Promise that resolves when complete
+ */
+async function doFullLifecycle(): Promise<void> {
   const confirmed = await confirm(
     "Start Full Lifecycle",
     "This will create a lane, attach a session, and spawn a terminal. Continue?",
   );
-  if (!confirmed) return;
+  if (!confirmed) {return;}
 
   busy = true;
   render();
@@ -334,26 +375,36 @@ async function doFullLifecycle() {
   }
 }
 
-async function doRefreshState() {
+/**
+ * Refresh runtime state from server
+ * @returns Promise that resolves when complete
+ */
+async function doRefreshState(): Promise<void> {
   try {
-    const state = (await electrobun.rpc?.request["heliosGetState"]()) as any;
+    const state = (await electrobun.rpc?.request["heliosGetState"]()) as RpcResponse;
     if (state) {
       applyState(state);
       addLog("state.refresh", true);
       showToast("State refreshed", "success", 2000);
     }
-  } catch (e: any) {
-    addLog(`state.refresh error: ${e?.message ?? e}`, false);
-    showToast(`Refresh error: ${e?.message ?? e}`, "error");
+  } catch (error: unknown) {
+    const err = error as Record<string, unknown>;
+    addLog(`state.refresh error: ${err?.message ?? error}`, false);
+    showToast(`Refresh error: ${err?.message ?? error}`, "error");
   }
   await loadPersistedData();
   await loadMetrics();
   render();
 }
 
-async function doReconnectSession(laneId: string) {
+/**
+ * Reconnect to an existing lane
+ * @param laneId - ID of the lane to reconnect to
+ * @returns Promise that resolves when complete
+ */
+async function doReconnectSession(laneId: string): Promise<void> {
   const confirmed = await confirm("Reconnect to Lane", `Reconnect to lane ${laneId.slice(0, 12)}?`);
-  if (!confirmed) return;
+  if (!confirmed) {return;}
 
   busy = true;
   render();
@@ -362,8 +413,9 @@ async function doReconnectSession(laneId: string) {
     await doAttachSession();
     await doSpawnTerminal();
     showToast("Reconnected successfully", "success");
-  } catch (e: any) {
-    showToast(`Reconnection failed: ${e?.message ?? e}`, "error");
+  } catch (error: unknown) {
+    const err = error as Record<string, unknown>;
+    showToast(`Reconnection failed: ${err?.message ?? error}`, "error");
   }
   busy = false;
   render();
@@ -371,8 +423,12 @@ async function doReconnectSession(laneId: string) {
 
 // ── xterm.js Setup ────────────────────────────────────
 
+/**
+ * Ensure xterm instance is initialized
+ * @returns Terminal instance
+ */
 function ensureXterm(): Terminal {
-  if (xterm) return xterm;
+  if (xterm) {return xterm;}
 
   xterm = new Terminal({
     theme: {
@@ -401,14 +457,14 @@ function ensureXterm(): Terminal {
   xterm.loadAddon(new WebLinksAddon());
 
   // Forward input to main process
-  xterm.onData((data) => {
+  xterm.onData((data: string) => {
     if (ids.terminalId) {
       electrobun.rpc?.request["heliosTerminalInput"]({ terminalId: ids.terminalId, data });
     }
   });
 
   // Forward resize
-  xterm.onResize(({ cols, rows }) => {
+  xterm.onResize(({ cols, rows }: { cols: number; rows: number }) => {
     if (ids.terminalId) {
       electrobun.rpc?.request["heliosTerminalResize"]({ terminalId: ids.terminalId, cols, rows });
     }
@@ -417,7 +473,11 @@ function ensureXterm(): Terminal {
   return xterm;
 }
 
-function mountXterm(container: HTMLElement) {
+/**
+ * Mount xterm instance to DOM
+ * @param container - Container element
+ */
+function mountXterm(container: HTMLElement): void {
   const term = ensureXterm();
   if (!xtermMounted) {
     term.open(container);
@@ -428,7 +488,10 @@ function mountXterm(container: HTMLElement) {
   });
 }
 
-function _disposeXterm() {
+/**
+ * Dispose xterm instance
+ */
+function _disposeXterm(): void {
   if (xterm) {
     xterm.dispose();
     xterm = null;
@@ -439,30 +502,34 @@ function _disposeXterm() {
 
 // ── Persisted Data ─────────────────────────────────────
 
-type PersistedLane = {
+interface PersistedLane {
   laneId: string;
   state: string;
   transport: string;
   sessionId: string | null;
   terminalId: string | null;
   lastUpdated: string;
-};
+}
 
-type AuditEntry = {
+interface AuditEntry {
   timestamp: string;
   action: string;
   detail: string;
-};
+}
 
 let persistedLanes: PersistedLane[] = [];
 let auditEntries: AuditEntry[] = [];
 
-async function loadPersistedData() {
+/**
+ * Load persisted lanes and audit data from server
+ * @returns Promise that resolves when complete
+ */
+async function loadPersistedData(): Promise<void> {
   try {
-    const lanes = (await electrobun.rpc?.request["heliosGetLanes"]()) as any;
+    const lanes = (await electrobun.rpc?.request["heliosGetLanes"]()) as PersistedLane[] | unknown;
     if (Array.isArray(lanes)) {
-      persistedLanes = lanes;
-      availableLanes = lanes.map((l: any) => ({
+      persistedLanes = lanes as PersistedLane[];
+      availableLanes = lanes.map((l: PersistedLane) => ({
         laneId: l.laneId,
         state: l.state,
         transport: l.transport,
@@ -470,42 +537,55 @@ async function loadPersistedData() {
       }));
     }
   } catch {
-    /* ignore */
+    /* Ignore */
   }
   try {
-    const audit = (await electrobun.rpc?.request["heliosGetAudit"]()) as any;
-    if (Array.isArray(audit)) auditEntries = audit.slice(0, 20);
+    const audit = (await electrobun.rpc?.request["heliosGetAudit"]()) as AuditEntry[] | unknown;
+    if (Array.isArray(audit)) {auditEntries = (audit as AuditEntry[]).slice(0, 20);}
   } catch {
-    /* ignore */
+    /* Ignore */
   }
 }
 
-async function loadMetrics() {
+/**
+ * Load metrics from server
+ * @returns Promise that resolves when complete
+ */
+async function loadMetrics(): Promise<void> {
   try {
-    const report = (await electrobun.rpc?.request["heliosGetMetrics"]()) as any;
-    if (report?.summaries) metricsSummaries = report.summaries;
+    const report = (await electrobun.rpc?.request["heliosGetMetrics"]()) as RpcResponse;
+    if (report?.summaries) {metricsSummaries = report.summaries as MetricSummary[];}
   } catch {
-    /* ignore */
+    /* Ignore */
   }
 }
 
-async function loadRendererCaps() {
+/**
+ * Load renderer capabilities from server
+ * @returns Promise that resolves when complete
+ */
+async function loadRendererCaps(): Promise<void> {
   try {
-    const res = (await electrobun.rpc?.request["heliosRendererCapabilities"]()) as any;
-    if (res?.result) rendererCaps = res.result as RendererCapabilities;
+    const res = (await electrobun.rpc?.request["heliosRendererCapabilities"]()) as RpcResponse;
+    if (res?.result) {rendererCaps = res.result as RendererCapabilities;}
   } catch {
-    /* ignore */
+    /* Ignore */
   }
 }
 
-async function doRendererSwitch(engine: string) {
-  if (busy) return;
+/**
+ * Switch to a different renderer engine
+ * @param engine - Engine name to switch to
+ * @returns Promise that resolves when complete
+ */
+async function doRendererSwitch(engine: string): Promise<void> {
+  if (busy) {return;}
   busy = true;
   render();
   try {
     const res = (await electrobun.rpc?.request["heliosRendererSwitch"]({
       targetEngine: engine,
-    })) as any;
+    })) as RpcResponse;
     addLog(`renderer.switch → ${engine}`, res?.status === "ok");
     await loadRendererCaps();
     if (res?.status === "ok") {
@@ -513,57 +593,72 @@ async function doRendererSwitch(engine: string) {
     } else {
       showToast("Switch failed", "error");
     }
-  } catch (e: any) {
-    addLog(`renderer.switch error: ${e?.message ?? e}`, false);
-    showToast(`Error: ${e?.message ?? e}`, "error");
+  } catch (error: unknown) {
+    const err = error as Record<string, unknown>;
+    addLog(`renderer.switch error: ${err?.message ?? error}`, false);
+    showToast(`Error: ${err?.message ?? error}`, "error");
   }
   busy = false;
   render();
 }
 
-async function doAgentRun(prompt: string) {
-  if (busy) return;
+/**
+ * Run agent with prompt
+ * @param prompt - Prompt to send to agent
+ * @returns Promise that resolves when complete
+ */
+async function doAgentRun(prompt: string): Promise<void> {
+  if (busy) {return;}
   busy = true;
   render();
   try {
     const res = (await electrobun.rpc?.request["heliosRequest"]({
       method: "agent.run",
       payload: { prompt },
-    })) as any;
+    })) as RpcResponse;
     addLog("agent.run", res?.status === "ok");
     if (res?.error) {
+      const errorMsg = (res.error as Record<string, unknown>).message as string;
       chatMessages.push({
         role: "system",
-        text: `agent: ${res.error.message}`,
+        text: `agent: ${errorMsg}`,
         ts: new Date().toISOString().slice(11, 19),
       });
       showToast("Agent error", "error", 3000);
     } else {
       showToast("Command sent to agent", "success", 2000);
     }
-  } catch (e: any) {
-    addLog(`agent.run error: ${e?.message ?? e}`, false);
+  } catch (error: unknown) {
+    const err = error as Record<string, unknown>;
+    addLog(`agent.run error: ${err?.message ?? error}`, false);
     chatMessages.push({
       role: "system",
-      text: `error: ${e?.message ?? e}`,
+      text: `error: ${err?.message ?? error}`,
       ts: new Date().toISOString().slice(11, 19),
     });
-    showToast(`Error: ${e?.message ?? e}`, "error");
+    showToast(`Error: ${err?.message ?? error}`, "error");
   }
   busy = false;
   render();
 }
 
-function addChatMessage(text: string) {
+/**
+ * Add message to chat and run agent
+ * @param text - Message text
+ */
+function addChatMessage(text: string): void {
   chatMessages.push({ role: "user", text, ts: new Date().toISOString().slice(11, 19) });
-  if (chatMessages.length > 100) chatMessages.shift();
-  doAgentRun(text);
+  if (chatMessages.length > 100) {chatMessages.shift();}
+  void doAgentRun(text);
 }
 
 // ── Keyboard Shortcuts ────────────────────────────────
 
-function setupKeyboardShortcuts() {
-  document.addEventListener("keydown", (e) => {
+/**
+ * Setup keyboard shortcuts for tab navigation
+ */
+function setupKeyboardShortcuts(): void {
+  document.addEventListener("keydown", (e: KeyboardEvent) => {
     if ((e.ctrlKey || e.metaKey) && e.key >= "1" && e.key <= "5") {
       const index = parseInt(e.key) - 1;
       if (index < TABS.length) {
@@ -577,13 +672,28 @@ function setupKeyboardShortcuts() {
 
 // ── DOM helpers ────────────────────────────────────────
 
+/**
+ * Create DOM element with optional class and text
+ * @param tag - Element tag name
+ * @param cls - Optional CSS class name
+ * @param text - Optional text content
+ * @returns Created element
+ */
 function el(tag: string, cls?: string, text?: string): HTMLElement {
   const e = document.createElement(tag);
-  if (cls) e.className = cls;
-  if (text) e.textContent = text;
+  if (cls) {e.className = cls;}
+  if (text) {e.textContent = text;}
   return e;
 }
 
+/**
+ * Create button element
+ * @param label - Button label
+ * @param onClick - Click handler
+ * @param disabled - Whether button is disabled
+ * @param variant - Button style variant
+ * @returns Created button element
+ */
 function btn(
   label: string,
   onClick: () => void,
@@ -600,12 +710,21 @@ function btn(
 
 // ── Render helpers ────────────────────────────────────
 
+/**
+ * Get status dot styling and text
+ * @param state - Lane state
+ * @returns Object with class and text
+ */
 function getLaneStatusDot(state: string): { class: string; text: string } {
-  if (state === "active") return { class: "active", text: "●" };
-  if (state === "error") return { class: "error", text: "●" };
+  if (state === "active") {return { class: "active", text: "●" };}
+  if (state === "error") {return { class: "error", text: "●" };}
   return { class: "idle", text: "●" };
 }
 
+/**
+ * Get overall runtime status dot
+ * @returns Object with class and text
+ */
 function getRuntimeStatusDot(): { class: string; text: string } {
   const isActive =
     runtimeState.lane.state === "active" ||
@@ -616,9 +735,12 @@ function getRuntimeStatusDot(): { class: string; text: string } {
 
 // ── Render ─────────────────────────────────────────────
 
-function render() {
-  const root = document.getElementById("root");
-  if (!root) return;
+/**
+ * Render the entire UI
+ */
+function render(): void {
+  const root = document.querySelector("#root") as HTMLElement | null;
+  if (!root) {return;}
   root.textContent = "";
 
   const layout = el("div", "layout");
@@ -627,15 +749,15 @@ function render() {
   const topbar = el("div", "topbar");
   const titleGroup = el("h1");
   const icon = el("span", "topbar-icon", "H");
-  titleGroup.appendChild(icon);
-  titleGroup.appendChild(el("span", undefined, "Helios"));
-  topbar.appendChild(titleGroup);
+  titleGroup.append(icon);
+  titleGroup.append(el("span", undefined, "Helios"));
+  topbar.append(titleGroup);
 
   const statusGroup = el("div", "topbar-status");
   const runtimeStatus = getRuntimeStatusDot();
   const statusIndicator = el("span", `status-indicator ${runtimeStatus.class}`, runtimeStatus.text);
-  statusGroup.appendChild(statusIndicator);
-  statusGroup.appendChild(
+  statusGroup.append(statusIndicator);
+  statusGroup.append(
     el(
       "span",
       "status-text",
@@ -645,47 +767,50 @@ function render() {
 
   if (busy) {
     const busyIndicator = el("span", "busy-indicator");
-    busyIndicator.appendChild(el("span", "busy-dot"));
-    busyIndicator.appendChild(el("span", undefined, "working"));
-    statusGroup.appendChild(busyIndicator);
+    busyIndicator.append(el("span", "busy-dot"));
+    busyIndicator.append(el("span", undefined, "working"));
+    statusGroup.append(busyIndicator);
   }
 
-  topbar.appendChild(statusGroup);
+  topbar.append(statusGroup);
 
   // Left rail
   const leftRail = el("div", "left-rail");
-  leftRail.appendChild(el("div", "section-title", "Navigation"));
+  leftRail.append(el("div", "section-title", "Navigation"));
 
   const tabGroup = el("div", "tab-group");
   const tabList = el("ul", "tab-list");
+  const createTabClickHandler = (tab: ActiveTab): (() => void) => {
+    return () => {
+      activeTab = tab;
+      render();
+    };
+  };
   for (const t of TABS) {
     const li = el("li", t === activeTab ? "active" : "", t);
-    li.addEventListener("click", () => {
-      activeTab = t;
-      render();
-    });
+    li.addEventListener("click", createTabClickHandler(t));
     li.title = `${t} (Ctrl+${TABS.indexOf(t) + 1})`;
-    tabList.appendChild(li);
+    tabList.append(li);
   }
-  tabGroup.appendChild(tabList);
-  leftRail.appendChild(tabGroup);
+  tabGroup.append(tabList);
+  leftRail.append(tabGroup);
 
   // Lifecycle controls
-  leftRail.appendChild(el("div", "section-title mt", "Lifecycle"));
-  leftRail.appendChild(btn("Create Lane", doCreateLane, busy, "primary"));
-  leftRail.appendChild(btn("Attach Session", doAttachSession, busy || !ids.laneId));
-  leftRail.appendChild(btn("Spawn Terminal", doSpawnTerminal, busy || !ids.sessionId));
-  leftRail.appendChild(el("div", "separator"));
-  leftRail.appendChild(btn("Full Lifecycle", doFullLifecycle, busy, "primary"));
-  leftRail.appendChild(btn("Refresh State", doRefreshState, busy));
+  leftRail.append(el("div", "section-title mt", "Lifecycle"));
+  leftRail.append(btn("Create Lane", doCreateLane, busy, "primary"));
+  leftRail.append(btn("Attach Session", doAttachSession, busy || !ids.laneId));
+  leftRail.append(btn("Spawn Terminal", doSpawnTerminal, busy || !ids.sessionId));
+  leftRail.append(el("div", "separator"));
+  leftRail.append(btn("Full Lifecycle", doFullLifecycle, busy, "primary"));
+  leftRail.append(btn("Refresh State", doRefreshState, busy));
 
   // IDs
-  leftRail.appendChild(el("div", "section-title mt", "Active IDs"));
+  leftRail.append(el("div", "section-title mt", "Active IDs"));
   for (const [k, v] of Object.entries(ids)) {
     const card = el("div", "card");
-    card.appendChild(el("div", "card-label", k));
-    card.appendChild(el("div", "card-value", v ? String(v).slice(0, 20) : "—"));
-    leftRail.appendChild(card);
+    card.append(el("div", "card-label", k));
+    card.append(el("div", "card-value", v ? String(v).slice(0, 20) : "—"));
+    leftRail.append(card);
   }
 
   // Center — surface content
@@ -695,19 +820,19 @@ function render() {
     if (ids.terminalId) {
       const termContainer = el("div", "terminal-container");
       termContainer.id = "xterm-container";
-      center.appendChild(termContainer);
+      center.append(termContainer);
 
       // Mount xterm after DOM insertion
       requestAnimationFrame(() => {
-        const container = document.getElementById("xterm-container");
-        if (container) mountXterm(container);
+        const container = document.querySelector("#xterm-container") as HTMLElement | null;
+        if (container) {mountXterm(container);}
       });
     } else if (!ids.laneId) {
       // Onboarding panel for new users
       const onboarding = el("div", "onboarding-panel");
-      onboarding.appendChild(el("div", "onboarding-icon", "🚀"));
-      onboarding.appendChild(el("div", "onboarding-title", "Welcome to Helios"));
-      onboarding.appendChild(
+      onboarding.append(el("div", "onboarding-icon", "🚀"));
+      onboarding.append(el("div", "onboarding-title", "Welcome to Helios"));
+      onboarding.append(
         el(
           "div",
           "onboarding-desc",
@@ -716,19 +841,19 @@ function render() {
       );
       const ctaBtn = btn("Create Your First Lane", doCreateLane, busy, "primary");
       ctaBtn.className = "btn primary onboarding-btn";
-      onboarding.appendChild(ctaBtn);
-      center.appendChild(onboarding);
+      onboarding.append(ctaBtn);
+      center.append(onboarding);
     } else {
-      center.appendChild(
+      center.append(
         el("div", "empty-state", "Run Spawn Terminal in the Lifecycle section to open a terminal"),
       );
     }
   } else if (activeTab === "session") {
     // Reconnect section with available lanes
-    center.appendChild(el("div", "section-title", "Reconnect to Lane"));
+    center.append(el("div", "section-title", "Reconnect to Lane"));
 
     if (availableLanes.length === 0) {
-      center.appendChild(el("div", "empty-state", "No lanes available — create one in Lifecycle"));
+      center.append(el("div", "empty-state", "No lanes available — create one in Lifecycle"));
     } else {
       const table = el("div", "lane-table");
       for (const lane of availableLanes) {
@@ -736,28 +861,28 @@ function render() {
 
         const statusDot = getLaneStatusDot(lane.state);
         const statusEl = el("span", "lane-status");
-        statusEl.appendChild(el("span", `lane-status-dot ${statusDot.class}`, statusDot.text));
-        statusEl.appendChild(el("span", "lane-id", lane.laneId.slice(0, 12)));
-        row.appendChild(statusEl);
+        statusEl.append(el("span", `lane-status-dot ${statusDot.class}`, statusDot.text));
+        statusEl.append(el("span", "lane-id", lane.laneId.slice(0, 12)));
+        row.append(statusEl);
 
-        row.appendChild(el("span", "lane-transport", lane.transport));
-        row.appendChild(el("span", "lane-updated", lane.lastUpdated.slice(11, 19)));
+        row.append(el("span", "lane-transport", lane.transport));
+        row.append(el("span", "lane-updated", lane.lastUpdated.slice(11, 19)));
 
         const connectBtn = btn("Connect", () => doReconnectSession(lane.laneId), busy);
         connectBtn.style.width = "auto";
         connectBtn.style.marginBottom = "0";
         connectBtn.style.padding = "6px 12px";
-        row.appendChild(connectBtn);
+        row.append(connectBtn);
 
-        table.appendChild(row);
+        table.append(row);
       }
-      center.appendChild(table);
+      center.append(table);
     }
 
     // Show persisted lanes table
-    center.appendChild(el("div", "section-title mt", "All Lanes"));
+    center.append(el("div", "section-title mt", "All Lanes"));
     if (persistedLanes.length === 0) {
-      center.appendChild(el("div", "empty-state", "No persisted lanes yet"));
+      center.append(el("div", "empty-state", "No persisted lanes yet"));
     } else {
       const table = el("div", "lane-table");
       for (const lane of persistedLanes) {
@@ -765,63 +890,63 @@ function render() {
 
         const statusDot = getLaneStatusDot(lane.state);
         const statusEl = el("span", "lane-status");
-        statusEl.appendChild(el("span", `lane-status-dot ${statusDot.class}`, statusDot.text));
-        statusEl.appendChild(el("span", "lane-id", lane.laneId.slice(0, 12)));
-        row.appendChild(statusEl);
+        statusEl.append(el("span", `lane-status-dot ${statusDot.class}`, statusDot.text));
+        statusEl.append(el("span", "lane-id", lane.laneId.slice(0, 12)));
+        row.append(statusEl);
 
-        row.appendChild(el("span", "lane-transport", lane.transport));
-        row.appendChild(el("span", "lane-updated", lane.lastUpdated.slice(11, 19)));
-        table.appendChild(row);
+        row.append(el("span", "lane-transport", lane.transport));
+        row.append(el("span", "lane-updated", lane.lastUpdated.slice(11, 19)));
+        table.append(row);
       }
-      center.appendChild(table);
+      center.append(table);
     }
   } else if (activeTab === "agent") {
-    center.appendChild(el("div", "section-title", "Agent Delegation"));
+    center.append(el("div", "section-title", "Agent Delegation"));
     const statusCard = el("div", "card");
-    statusCard.appendChild(el("div", "card-label", "A2A Boundary"));
-    statusCard.appendChild(
+    statusCard.append(el("div", "card-label", "A2A Boundary"));
+    statusCard.append(
       el("div", "card-value", "not configured — connect an A2A or ACP endpoint in settings"),
     );
-    center.appendChild(statusCard);
+    center.append(statusCard);
 
-    center.appendChild(el("div", "section-title mt", "Available Methods"));
+    center.append(el("div", "section-title mt", "Available Methods"));
     for (const m of ["agent.run", "agent.cancel"]) {
       const row = el("div", "card");
-      row.appendChild(el("div", "card-label", m));
-      row.appendChild(el("div", "card-value", "stub — returns A2A_NOT_CONFIGURED"));
-      center.appendChild(row);
+      row.append(el("div", "card-label", m));
+      row.append(el("div", "card-value", "stub — returns A2A_NOT_CONFIGURED"));
+      center.append(row);
     }
 
-    center.appendChild(el("div", "section-title mt", "Tool Interop Adapters"));
+    center.append(el("div", "section-title mt", "Tool Interop Adapters"));
     for (const [name, methods] of [
       ["Upterm", "share.upterm.start / stop"],
       ["Tmate", "share.tmate.start / stop"],
       ["ZMX", "zmx.checkpoint / restore"],
     ] as const) {
       const row = el("div", "card");
-      row.appendChild(el("div", "card-label", name));
-      row.appendChild(el("div", "card-value", methods));
-      center.appendChild(row);
+      row.append(el("div", "card-label", name));
+      row.append(el("div", "card-value", methods));
+      center.append(row);
     }
   } else if (activeTab === "chat") {
     const chatContainer = el("div", "chat-container");
 
-    chatContainer.appendChild(el("div", "section-title", "Agent Chat"));
+    chatContainer.append(el("div", "section-title", "Agent Chat"));
 
     const chatLog = el("div", "chat-log");
     if (chatMessages.length === 0) {
-      chatLog.appendChild(
+      chatLog.append(
         el("div", "empty-state", "Send a message to interact with the agent boundary"),
       );
     } else {
       for (const msg of chatMessages) {
         const row = el("div", `chat-msg chat-${msg.role}`);
-        row.appendChild(el("span", "chat-ts", msg.ts));
-        row.appendChild(el("span", "chat-text", msg.text));
-        chatLog.appendChild(row);
+        row.append(el("span", "chat-ts", msg.ts));
+        row.append(el("span", "chat-text", msg.text));
+        chatLog.append(row);
       }
     }
-    chatContainer.appendChild(chatLog);
+    chatContainer.append(chatLog);
 
     const inputRow = el("div", "chat-input-row");
     const input = document.createElement("input");
@@ -834,7 +959,7 @@ function render() {
         input.value = "";
       }
     });
-    inputRow.appendChild(input);
+    inputRow.append(input);
     const sendBtn = btn(
       "Send",
       () => {
@@ -847,33 +972,33 @@ function render() {
       "primary",
     );
     sendBtn.className = "btn primary chat-send-btn";
-    inputRow.appendChild(sendBtn);
-    chatContainer.appendChild(inputRow);
+    inputRow.append(sendBtn);
+    chatContainer.append(inputRow);
 
-    center.appendChild(chatContainer);
+    center.append(chatContainer);
   } else if (activeTab === "project") {
-    center.appendChild(el("div", "section-title", "Workspace"));
+    center.append(el("div", "section-title", "Workspace"));
     const wsCard = el("div", "card");
-    wsCard.appendChild(el("div", "card-label", "Workspace ID"));
-    wsCard.appendChild(el("div", "card-value", ids.workspaceId ?? "—"));
-    center.appendChild(wsCard);
+    wsCard.append(el("div", "card-label", "Workspace ID"));
+    wsCard.append(el("div", "card-value", ids.workspaceId ?? "—"));
+    center.append(wsCard);
 
     if (rendererCaps) {
-      center.appendChild(el("div", "section-title mt", "Renderer Engine"));
+      center.append(el("div", "section-title mt", "Renderer Engine"));
       const engineCard = el("div", "card");
-      engineCard.appendChild(el("div", "card-label", "Active Engine"));
-      engineCard.appendChild(el("div", "card-value", rendererCaps.active_engine));
-      center.appendChild(engineCard);
+      engineCard.append(el("div", "card-label", "Active Engine"));
+      engineCard.append(el("div", "card-value", rendererCaps.active_engine));
+      center.append(engineCard);
 
       const availCard = el("div", "card");
-      availCard.appendChild(el("div", "card-label", "Available"));
-      availCard.appendChild(el("div", "card-value", rendererCaps.available_engines.join(", ")));
-      center.appendChild(availCard);
+      availCard.append(el("div", "card-label", "Available"));
+      availCard.append(el("div", "card-value", rendererCaps.available_engines.join(", ")));
+      center.append(availCard);
 
-      center.appendChild(el("div", "section-title mt", "Switch Engine"));
+      center.append(el("div", "section-title mt", "Switch Engine"));
       for (const engine of rendererCaps.available_engines) {
         const isActive = engine === rendererCaps.active_engine;
-        center.appendChild(
+        center.append(
           btn(
             `${engine}${isActive ? " (active)" : ""}`,
             () => doRendererSwitch(engine),
@@ -882,85 +1007,85 @@ function render() {
         );
       }
     } else {
-      center.appendChild(
+      center.append(
         el("div", "empty-state mt", "Run lifecycle to load renderer capabilities"),
       );
     }
 
-    center.appendChild(el("div", "section-title mt", "Multiplexer Adapters"));
+    center.append(el("div", "section-title mt", "Multiplexer Adapters"));
     for (const [name, desc] of [
       ["PAR", "git worktree lane management (par CLI)"],
       ["Zellij", "terminal session multiplexer (zellij CLI)"],
     ] as const) {
       const row = el("div", "card");
-      row.appendChild(el("div", "card-label", name));
-      row.appendChild(el("div", "card-value", desc));
-      center.appendChild(row);
+      row.append(el("div", "card-label", name));
+      row.append(el("div", "card-value", desc));
+      center.append(row);
     }
 
     // Metrics dashboard
     if (metricsSummaries.length > 0) {
-      center.appendChild(el("div", "section-title mt", "Metrics Dashboard"));
+      center.append(el("div", "section-title mt", "Metrics Dashboard"));
       const metricsGrid = el("div", "metrics-grid");
 
       for (const m of metricsSummaries) {
         const card = el("div", "metric-card");
-        card.appendChild(el("div", "metric-name", m.metric.replace(/_/g, " ")));
-        card.appendChild(el("div", "metric-value", `${m.p50}${m.unit}`));
+        card.append(el("div", "metric-name", m.metric.replaceAll(/_/g, " ")));
+        card.append(el("div", "metric-value", `${m.p50}${m.unit}`));
 
         const stats = el("div", "metric-stats");
-        stats.appendChild(
+        stats.append(
           el("div", "metric-stat", `Min: <span class="metric-stat-value">${m.min}${m.unit}</span>`),
         );
-        stats.appendChild(
+        stats.append(
           el("div", "metric-stat", `Max: <span class="metric-stat-value">${m.max}${m.unit}</span>`),
         );
-        stats.appendChild(
+        stats.append(
           el("div", "metric-stat", `P95: <span class="metric-stat-value">${m.p95}${m.unit}</span>`),
         );
-        stats.appendChild(
+        stats.append(
           el("div", "metric-stat", `Count: <span class="metric-stat-value">${m.count}x</span>`),
         );
 
-        card.appendChild(stats);
-        metricsGrid.appendChild(card);
+        card.append(stats);
+        metricsGrid.append(card);
       }
 
-      center.appendChild(metricsGrid);
+      center.append(metricsGrid);
     }
   }
 
   // Right rail — event log + diagnostics
   const rightRail = el("div", "right-rail");
-  rightRail.appendChild(el("div", "section-title", "Event Log"));
+  rightRail.append(el("div", "section-title", "Event Log"));
   const logContainer = el("div", "event-log");
   for (const entry of [...eventLog].reverse().slice(0, 20)) {
     const row = el("div", `log-entry ${entry.ok ? "" : "log-error"}`);
     const icon = el("span", "log-icon", entry.ok ? "✓" : "✕");
-    row.appendChild(icon);
-    row.appendChild(el("span", "log-ts", entry.ts));
-    row.appendChild(el("span", "log-label", entry.label));
-    logContainer.appendChild(row);
+    row.append(icon);
+    row.append(el("span", "log-ts", entry.ts));
+    row.append(el("span", "log-label", entry.label));
+    logContainer.append(row);
   }
   if (eventLog.length === 0) {
-    logContainer.appendChild(el("div", "log-empty", "No events yet"));
+    logContainer.append(el("div", "log-empty", "No events yet"));
   }
-  rightRail.appendChild(logContainer);
+  rightRail.append(logContainer);
 
   // Audit trail
   if (auditEntries.length > 0) {
-    rightRail.appendChild(el("div", "section-title mt", "Audit Trail"));
+    rightRail.append(el("div", "section-title mt", "Audit Trail"));
     const auditContainer = el("div", "event-log");
     for (const entry of auditEntries.slice(0, 10)) {
       const row = el("div", "log-entry");
-      row.appendChild(el("span", "log-ts", entry.timestamp.slice(11, 19)));
-      row.appendChild(el("span", "log-label", `${entry.action}: ${entry.detail.slice(0, 40)}`));
-      auditContainer.appendChild(row);
+      row.append(el("span", "log-ts", entry.timestamp.slice(11, 19)));
+      row.append(el("span", "log-label", `${entry.action}: ${entry.detail.slice(0, 40)}`));
+      auditContainer.append(row);
     }
-    rightRail.appendChild(auditContainer);
+    rightRail.append(auditContainer);
   }
 
-  rightRail.appendChild(el("div", "section-title mt", "Diagnostics"));
+  rightRail.append(el("div", "section-title mt", "Diagnostics"));
   const diagnostics = [
     ["Runtime", runtimeState.lane.state !== "idle" ? "active" : "idle"],
     ["Transport", "cliproxy_harness"],
@@ -971,10 +1096,15 @@ function render() {
 
   for (const [label, value] of diagnostics) {
     const card = el("div", "card");
-    card.appendChild(el("div", "card-label", label));
-    const valueClass = value === "active" ? "status-ok" : value === "error" ? "status-error" : "";
-    card.appendChild(el("div", `card-value ${valueClass}`, value));
-    rightRail.appendChild(card);
+    card.append(el("div", "card-label", label));
+    let valueClass = "";
+    if (value === "active") {
+      valueClass = "status-ok";
+    } else if (value === "error") {
+      valueClass = "status-error";
+    }
+    card.append(el("div", `card-value ${valueClass}`, value));
+    rightRail.append(card);
   }
 
   // Status bar
@@ -991,26 +1121,30 @@ function render() {
   }
 
   const statusItem = el("div", "statusbar-item");
-  statusItem.appendChild(el("span", "statusbar-icon"));
-  statusItem.appendChild(el("span", undefined, `Helios — ${statusText}`));
-  statusbar.appendChild(statusItem);
+  statusItem.append(el("span", "statusbar-icon"));
+  statusItem.append(el("span", undefined, `Helios — ${statusText}`));
+  statusbar.append(statusItem);
 
-  layout.appendChild(topbar);
-  layout.appendChild(leftRail);
-  layout.appendChild(center);
-  layout.appendChild(rightRail);
-  layout.appendChild(statusbar);
-  root.appendChild(layout);
+  layout.append(topbar);
+  layout.append(leftRail);
+  layout.append(center);
+  layout.append(rightRail);
+  layout.append(statusbar);
+  root.append(layout);
 
   // Render toasts
   for (const toast of toasts) {
     const toastEl = document.createElement("div");
     toastEl.className = `toast ${toast.type}`;
-    toastEl.appendChild(
-      el("span", "toast-icon", toast.type === "success" ? "✓" : toast.type === "error" ? "✕" : "⚠"),
-    );
-    toastEl.appendChild(el("span", "toast-message", toast.message));
-    document.body.appendChild(toastEl);
+    let toastIcon = "⚠";
+    if (toast.type === "success") {
+      toastIcon = "✓";
+    } else if (toast.type === "error") {
+      toastIcon = "✕";
+    }
+    toastEl.append(el("span", "toast-icon", toastIcon));
+    toastEl.append(el("span", "toast-message", toast.message));
+    document.body.append(toastEl);
   }
 }
 

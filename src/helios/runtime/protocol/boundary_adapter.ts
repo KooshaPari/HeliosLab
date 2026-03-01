@@ -3,18 +3,18 @@ import type { LocalBusEnvelope, ResponseEnvelope } from "./types";
 export type ProtocolBoundary = "local_control" | "tool_interop" | "agent_delegation";
 export type BoundaryAdapterName = "local_bus" | "tool_bridge" | "a2a_bridge";
 
-export type BoundaryDispatchDecision = {
+export interface BoundaryDispatchDecision {
   boundary: ProtocolBoundary;
   adapter: BoundaryAdapterName;
-};
+}
 
 type CommandDispatch = (command: LocalBusEnvelope) => Promise<LocalBusEnvelope>;
 
-type BoundaryDispatcherInput = {
+interface BoundaryDispatcherInput {
   dispatchLocal: CommandDispatch;
   dispatchTool?: CommandDispatch;
   dispatchA2A?: CommandDispatch;
-};
+}
 
 const LOCAL_METHODS = new Set([
   "workspace.create",
@@ -134,12 +134,14 @@ export function createBoundaryDispatcher(input: BoundaryDispatcherInput): Comman
     }
 
     const decision = getBoundaryDispatchDecision(command.method ?? "");
-    const response =
-      decision.adapter === "local_bus"
-        ? await input.dispatchLocal(command)
-        : decision.adapter === "tool_bridge"
-          ? await dispatchTool(command)
-          : await dispatchA2A(command);
+    let response: LocalBusEnvelope;
+    if (decision.adapter === "local_bus") {
+      response = await input.dispatchLocal(command);
+    } else if (decision.adapter === "tool_bridge") {
+      response = await dispatchTool(command);
+    } else {
+      response = await dispatchA2A(command);
+    }
 
     if (response.type === "response") {
       return response;

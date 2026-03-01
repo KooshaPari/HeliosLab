@@ -3,7 +3,7 @@ import { selectActiveContext } from "./context_store";
 
 export type TabViewState = "empty" | "loading" | "ready" | "error";
 
-export type TabSurface = {
+export interface TabSurface {
   tab: ActiveTab;
   title: string;
   state: TabViewState;
@@ -13,7 +13,7 @@ export type TabSurface = {
     resolvedTransport: string;
     degradedReason: string | null;
   };
-};
+}
 
 const TAB_TITLES: Record<ActiveTab, string> = {
   terminal: "Terminal",

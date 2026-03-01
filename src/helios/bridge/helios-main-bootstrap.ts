@@ -13,23 +13,27 @@ import { HeliosTerminalBridge } from "./terminal-bridge";
 import { createToolDispatch } from "./tool-dispatch";
 import { createA2ADispatch } from "./a2a-dispatch";
 
-export type HeliosRuntime = {
+export interface HeliosRuntime {
   bus: InstanceType<typeof InMemoryLocalBus>;
   bridge: BusRpcBridge;
   settings: HeliosSettings;
   metrics: RuntimeMetrics;
   termBridge: HeliosTerminalBridge;
   dispose(): void;
-};
+}
 
 let instance: HeliosRuntime | null = null;
 
 /**
  * Bootstrap the helios runtime for a workspace.
  * Idempotent — returns the existing instance if already bootstrapped.
+ *
+ * @param {string} workspaceId The ID of the workspace to bootstrap
+ * @param {string} [windowId] Optional ID of the window initializing the runtime
+ * @returns {HeliosRuntime} A HeliosRuntime instance
  */
 export function bootstrapHelios(workspaceId: string, windowId?: string): HeliosRuntime {
-  if (instance) return instance;
+  if (instance) {return instance;}
 
   const bus = new InMemoryLocalBus();
   const metrics = new RuntimeMetrics();
@@ -65,7 +69,11 @@ export function bootstrapHelios(workspaceId: string, windowId?: string): HeliosR
   return instance;
 }
 
-/** Get the current helios runtime instance, if bootstrapped */
+/**
+ * Get the current helios runtime instance, if bootstrapped.
+ *
+ * @returns {HeliosRuntime|null} The HeliosRuntime instance if bootstrapped, null otherwise
+ */
 export function getHeliosRuntime(): HeliosRuntime | null {
   return instance;
 }

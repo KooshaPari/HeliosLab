@@ -11,11 +11,11 @@ export type LaneState =
 export type SessionState = "detached" | "attaching" | "attached" | "restoring" | "terminated";
 export type TerminalState = "idle" | "spawning" | "active" | "throttled" | "errored" | "stopped";
 
-export type RuntimeState = {
+export interface RuntimeState {
   lane: LaneState;
   session: SessionState;
   terminal: TerminalState;
-};
+}
 
 export type RuntimeEvent =
   | "lane.create.requested"
@@ -49,49 +49,70 @@ export const INITIAL_RUNTIME_STATE: RuntimeState = {
 
 export function transition(state: RuntimeState, event: RuntimeEvent): RuntimeState {
   switch (event) {
-    case "lane.create.requested":
+    case "lane.create.requested": {
       return { ...state, lane: "provisioning" };
-    case "lane.create.succeeded":
+    }
+    case "lane.create.succeeded": {
       return { ...state, lane: "ready" };
-    case "lane.create.failed":
+    }
+    case "lane.create.failed": {
       return { ...state, lane: "failed" };
-    case "lane.run.started":
+    }
+    case "lane.run.started": {
       return { ...state, lane: "running" };
-    case "lane.blocked":
+    }
+    case "lane.blocked": {
       return { ...state, lane: "blocked" };
-    case "lane.share.started":
+    }
+    case "lane.share.started": {
       return { ...state, lane: "shared" };
-    case "lane.share.stopped":
+    }
+    case "lane.share.stopped": {
       return { ...state, lane: "running" };
-    case "lane.cleanup.started":
+    }
+    case "lane.cleanup.started": {
       return { ...state, lane: "cleaning" };
-    case "lane.cleanup.completed":
+    }
+    case "lane.cleanup.completed": {
       return { ...state, lane: "closed" };
+    }
     case "lane.switch.requested":
     case "lane.switch.succeeded":
-    case "lane.switch.failed":
+    case "lane.switch.failed": {
       return state;
-    case "session.attach.requested":
+    }
+    case "session.attach.requested": {
       return { ...state, session: "attaching" };
-    case "session.attach.succeeded":
+    }
+    case "session.attach.succeeded": {
       return { ...state, session: "attached" };
-    case "session.restore.started":
+    }
+    case "session.restore.started": {
       return { ...state, session: "restoring" };
-    case "session.restore.completed":
+    }
+    case "session.restore.completed": {
       return { ...state, session: "attached" };
-    case "session.terminated":
+    }
+    case "session.terminated": {
       return { ...state, session: "terminated" };
-    case "terminal.spawn.requested":
+    }
+    case "terminal.spawn.requested": {
       return { ...state, terminal: "spawning" };
-    case "terminal.spawn.succeeded":
+    }
+    case "terminal.spawn.succeeded": {
       return { ...state, terminal: "active" };
-    case "terminal.throttled":
+    }
+    case "terminal.throttled": {
       return { ...state, terminal: "throttled" };
-    case "terminal.error":
+    }
+    case "terminal.error": {
       return { ...state, terminal: "errored" };
-    case "terminal.stopped":
+    }
+    case "terminal.stopped": {
       return { ...state, terminal: "stopped" };
-    default:
+    }
+    default: {
       return state;
+    }
   }
 }

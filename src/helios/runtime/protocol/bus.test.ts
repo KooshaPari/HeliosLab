@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, expectTypeOf } from "vitest";
 import { InMemoryLocalBus } from "./bus";
 import type { LocalBusEnvelope } from "./types";
 
-describe("InMemoryLocalBus", () => {
+describe(InMemoryLocalBus, () => {
   let bus: InMemoryLocalBus;
 
   beforeEach(() => {
@@ -71,7 +71,7 @@ describe("InMemoryLocalBus", () => {
       expect(response.status).toBe("ok");
       expect(response.result).toBeDefined();
       expect((response.result as any)?.lane_id).toBeDefined();
-      expect(typeof (response.result as any)?.lane_id).toBe("string");
+      expectTypeOf((response.result as any)?.lane_id).toBeString();
       expect((response.result as any)?.diagnostics).toBeDefined();
       expect((response.result as any)?.diagnostics?.preferred_transport).toBe("cliproxy_harness");
       expect((response.result as any)?.diagnostics?.resolved_transport).toBe("cliproxy_harness");
@@ -89,7 +89,7 @@ describe("InMemoryLocalBus", () => {
       expect(response.error).toBeDefined();
       expect(response.error?.code).toBe("LANE_CREATE_FAILED");
       expect(response.error?.message).toBe("lane.create failed");
-      expect(response.error?.retryable).toBe(true);
+      expect(response.error?.retryable).toBeTruthy();
       expect(response.error?.details?.method).toBe("lane.create");
     });
 
@@ -143,7 +143,7 @@ describe("InMemoryLocalBus", () => {
       expect(response.status).toBe("ok");
       expect(response.result).toBeDefined();
       expect((response.result as any)?.session_id).toBeDefined();
-      expect(typeof (response.result as any)?.session_id).toBe("string");
+      expectTypeOf((response.result as any)?.session_id).toBeString();
       expect((response.result as any)?.diagnostics).toBeDefined();
     });
 
@@ -158,7 +158,7 @@ describe("InMemoryLocalBus", () => {
       expect(response.error).toBeDefined();
       expect(response.error?.code).toBe("SESSION_ATTACH_FAILED");
       expect(response.error?.message).toBe("session.attach failed");
-      expect(response.error?.retryable).toBe(true);
+      expect(response.error?.retryable).toBeTruthy();
       expect(response.error?.details?.method).toBe("session.attach");
     });
 
@@ -195,7 +195,7 @@ describe("InMemoryLocalBus", () => {
       expect(response.status).toBe("ok");
       expect(response.result).toBeDefined();
       expect((response.result as any)?.terminal_id).toBeDefined();
-      expect(typeof (response.result as any)?.terminal_id).toBe("string");
+      expectTypeOf((response.result as any)?.terminal_id).toBeString();
       expect((response.result as any)?.diagnostics).toBeDefined();
     });
 
@@ -210,7 +210,7 @@ describe("InMemoryLocalBus", () => {
       expect(response.error).toBeDefined();
       expect(response.error?.code).toBe("TERMINAL_SPAWN_FAILED");
       expect(response.error?.message).toBe("terminal.spawn failed");
-      expect(response.error?.retryable).toBe(true);
+      expect(response.error?.retryable).toBeTruthy();
       expect(response.error?.details?.method).toBe("terminal.spawn");
     });
 
@@ -250,7 +250,7 @@ describe("InMemoryLocalBus", () => {
       expect(response.result).toBeDefined();
       expect((response.result as any)?.active_engine).toBe("ghostty");
       expect((response.result as any)?.available_engines).toEqual(["ghostty", "rio"]);
-      expect((response.result as any)?.hot_swap_supported).toBe(true);
+      expect((response.result as any)?.hot_swap_supported).toBeTruthy();
     });
 
     it("should return updated active_engine after renderer.switch", async () => {
@@ -302,7 +302,7 @@ describe("InMemoryLocalBus", () => {
       expect(response.error).toBeDefined();
       expect(response.error?.code).toBe("RENDERER_SWITCH_FAILED");
       expect(response.error?.message).toBe("renderer.switch failed");
-      expect(response.error?.retryable).toBe(true);
+      expect(response.error?.retryable).toBeTruthy();
       expect(response.error?.details?.target_engine).toBe("invalid_engine");
     });
 
@@ -439,7 +439,7 @@ describe("InMemoryLocalBus", () => {
     it("should return initial state", () => {
       const state = bus.getState();
       expect(state).toBeDefined();
-      expect(typeof state).toBe("object");
+      expectTypeOf(state).toBeObject();
     });
 
     it("should return consistent state across calls", () => {
@@ -490,8 +490,8 @@ describe("InMemoryLocalBus", () => {
 
       const events = bus.getEvents();
       expect(events.length).toBeGreaterThan(0);
-      expect(events.some((e) => e.topic === "lane.create.started")).toBe(true);
-      expect(events.some((e) => e.topic === "lane.created")).toBe(true);
+      expect(events.some((e) => e.topic === "lane.create.started")).toBeTruthy();
+      expect(events.some((e) => e.topic === "lane.created")).toBeTruthy();
     });
 
     it("should include multiple command events", async () => {
@@ -641,8 +641,8 @@ describe("InMemoryLocalBus", () => {
 
       const allLanes = bus.getAllLanes();
       expect(allLanes).toHaveLength(2);
-      expect(allLanes.some((l) => l.laneId === "lane-1")).toBe(true);
-      expect(allLanes.some((l) => l.laneId === "lane-2")).toBe(true);
+      expect(allLanes.some((l) => l.laneId === "lane-1")).toBeTruthy();
+      expect(allLanes.some((l) => l.laneId === "lane-2")).toBeTruthy();
     });
 
     it("should set current lane when lane.create is called", async () => {
@@ -735,7 +735,7 @@ describe("InMemoryLocalBus", () => {
 
       const activeLanes = bus.getActiveLanes();
       expect(activeLanes.length).toBeGreaterThan(0);
-      expect(activeLanes.some((l) => l.laneId)).toBe(true);
+      expect(activeLanes.some((l) => l.laneId)).toBeTruthy();
     });
 
     it("should track session and terminal IDs in lane state", async () => {
@@ -772,7 +772,7 @@ describe("InMemoryLocalBus", () => {
       expect(response.error).toBeDefined();
       expect(response.error?.code).toBe("LANE_SWITCH_FAILED");
       expect(response.error?.message).toContain("no laneId provided");
-      expect(response.error?.retryable).toBe(false);
+      expect(response.error?.retryable).toBeFalsy();
       expect(response.error?.details?.reason).toBe("missing_lane_id");
     });
 
@@ -787,9 +787,9 @@ describe("InMemoryLocalBus", () => {
       expect(response.error).toBeDefined();
       expect(response.error?.code).toBe("LANE_NOT_FOUND");
       expect(response.error?.message).toContain("not found");
-      expect(response.error?.retryable).toBe(false);
+      expect(response.error?.retryable).toBeFalsy();
       expect(response.error?.details?.requested_lane_id).toBe("non-existent-lane");
-      expect(Array.isArray(response.error?.details?.available_lanes)).toBe(true);
+      expect(Array.isArray(response.error?.details?.available_lanes)).toBeTruthy();
     });
 
     it("should successfully switch to existing lane using 'id' field", async () => {

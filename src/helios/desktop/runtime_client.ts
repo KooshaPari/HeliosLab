@@ -4,32 +4,32 @@ import type { LocalBus } from "../runtime/protocol/bus";
 import type { RendererEngine } from "./settings";
 import type { TransportDiagnostics } from "./context_store";
 
-type RuntimeResponse<T extends Record<string, unknown>> = {
+interface RuntimeResponse<T extends Record<string, unknown>> {
   ok: boolean;
   result: T | null;
   error: string | null;
-};
+}
 
-export type LifecycleResult = {
+export interface LifecycleResult {
   ok: boolean;
   runtimeState: RuntimeState | null;
   id: string | null;
   diagnostics: TransportDiagnostics;
   error: string | null;
-};
+}
 
-export type RendererCapabilities = {
+export interface RendererCapabilities {
   activeEngine: RendererEngine;
   availableEngines: RendererEngine[];
   hotSwapSupported: boolean;
-};
+}
 
-export type RendererSwitchResult = {
+export interface RendererSwitchResult {
   ok: boolean;
   activeEngine: RendererEngine;
   previousEngine: RendererEngine;
   error: string | null;
-};
+}
 
 function toCommandEnvelope(
   method: string,
@@ -86,7 +86,11 @@ function normalizeDiagnostics(result: Record<string, unknown> | null): Transport
 }
 
 export class DesktopRuntimeClient {
-  constructor(private readonly bus: LocalBus) {}
+  private readonly bus: LocalBus;
+
+  constructor(bus: LocalBus) {
+    this.bus = bus;
+  }
 
   async createLane(input: {
     workspaceId: string;

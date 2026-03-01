@@ -4,30 +4,30 @@ export type ActiveTab = "terminal" | "agent" | "session" | "chat" | "project";
 
 export type AsyncStatus = "idle" | "loading" | "ready" | "error";
 
-export type TransportDiagnostics = {
+export interface TransportDiagnostics {
   preferredTransport: string;
   resolvedTransport: string;
   degradedReason: string | null;
   degradedAt: string | null;
-};
+}
 
-export type ContextActionTrace = {
+export interface ContextActionTrace {
   action: string;
   at: string;
   detail?: unknown;
-};
+}
 
-export type OperationState = {
+export interface OperationState {
   lane: AsyncStatus;
   session: AsyncStatus;
   terminal: AsyncStatus;
   renderer: AsyncStatus;
   error: string | null;
-};
+}
 
 export type OperationKey = Exclude<keyof OperationState, "error">;
 
-export type ActiveContextState = {
+export interface ActiveContextState {
   workspaceId: string | null;
   laneId: string | null;
   sessionId: string | null;
@@ -44,7 +44,7 @@ export type ActiveContextState = {
     lastStatus: "idle" | "started" | "succeeded" | "failed" | "rolled_back";
     message: string | null;
   };
-};
+}
 
 export type ActiveContextAction =
   | { type: "workspace.set"; workspaceId: string }
@@ -107,43 +107,49 @@ export function reduceActiveContextState(
   action: ActiveContextAction,
 ): ActiveContextState {
   switch (action.type) {
-    case "workspace.set":
+    case "workspace.set": {
       return {
         ...state,
         workspaceId: action.workspaceId,
         trace: appendTrace(state.trace, action.type, { workspaceId: action.workspaceId }),
       };
-    case "lane.set":
+    }
+    case "lane.set": {
       return {
         ...state,
         laneId: action.laneId,
         trace: appendTrace(state.trace, action.type, { laneId: action.laneId }),
       };
-    case "session.set":
+    }
+    case "session.set": {
       return {
         ...state,
         sessionId: action.sessionId,
         trace: appendTrace(state.trace, action.type, { sessionId: action.sessionId }),
       };
-    case "terminal.set":
+    }
+    case "terminal.set": {
       return {
         ...state,
         terminalId: action.terminalId,
         trace: appendTrace(state.trace, action.type, { terminalId: action.terminalId }),
       };
-    case "tab.set":
+    }
+    case "tab.set": {
       return {
         ...state,
         activeTab: action.tab,
         trace: appendTrace(state.trace, action.type, { tab: action.tab }),
       };
-    case "runtime.state.set":
+    }
+    case "runtime.state.set": {
       return {
         ...state,
         runtimeState: action.runtimeState,
         trace: appendTrace(state.trace, action.type, { runtimeState: action.runtimeState }),
       };
-    case "operation.start":
+    }
+    case "operation.start": {
       return {
         ...state,
         operations: {
@@ -153,7 +159,8 @@ export function reduceActiveContextState(
         },
         trace: appendTrace(state.trace, action.type, { operation: action.operation }),
       };
-    case "operation.success":
+    }
+    case "operation.success": {
       return {
         ...state,
         operations: {
@@ -163,7 +170,8 @@ export function reduceActiveContextState(
         },
         trace: appendTrace(state.trace, action.type, { operation: action.operation }),
       };
-    case "operation.failure":
+    }
+    case "operation.failure": {
       return {
         ...state,
         operations: {
@@ -176,13 +184,15 @@ export function reduceActiveContextState(
           error: action.error,
         }),
       };
-    case "diagnostics.set":
+    }
+    case "diagnostics.set": {
       return {
         ...state,
         diagnostics: action.diagnostics,
         trace: appendTrace(state.trace, action.type, { diagnostics: action.diagnostics }),
       };
-    case "renderer.switch.started":
+    }
+    case "renderer.switch.started": {
       return {
         ...state,
         operations: {
@@ -202,7 +212,8 @@ export function reduceActiveContextState(
           targetEngine: action.targetEngine,
         }),
       };
-    case "renderer.switch.succeeded":
+    }
+    case "renderer.switch.succeeded": {
       return {
         ...state,
         operations: {
@@ -218,7 +229,8 @@ export function reduceActiveContextState(
         },
         trace: appendTrace(state.trace, action.type, { targetEngine: action.targetEngine }),
       };
-    case "renderer.switch.failed":
+    }
+    case "renderer.switch.failed": {
       return {
         ...state,
         operations: {
@@ -234,7 +246,8 @@ export function reduceActiveContextState(
         },
         trace: appendTrace(state.trace, action.type, { message: action.message }),
       };
-    case "renderer.switch.rolled_back":
+    }
+    case "renderer.switch.rolled_back": {
       return {
         ...state,
         operations: {
@@ -254,8 +267,10 @@ export function reduceActiveContextState(
           message: action.message,
         }),
       };
-    default:
+    }
+    default: {
       return state;
+    }
   }
 }
 
@@ -289,13 +304,13 @@ export class ActiveContextStore {
   }
 }
 
-export type ActiveContextIdentifiers = {
+export interface ActiveContextIdentifiers {
   workspaceId: string | null;
   laneId: string | null;
   sessionId: string | null;
   terminalId: string | null;
   activeTab: ActiveTab;
-};
+}
 
 export function selectActiveContext(state: ActiveContextState): ActiveContextIdentifiers {
   return {

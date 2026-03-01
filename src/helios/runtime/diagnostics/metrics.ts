@@ -3,15 +3,15 @@ export type RuntimeMetricName =
   | "session_restore_latency_ms"
   | "terminal_output_backlog_depth";
 
-export type RuntimeMetricSample = {
+export interface RuntimeMetricSample {
   metric: RuntimeMetricName;
   value: number;
   unit: "ms" | "count";
   ts: string;
   tags?: Record<string, string>;
-};
+}
 
-export type RuntimeMetricSummary = {
+export interface RuntimeMetricSummary {
   metric: RuntimeMetricName;
   unit: "ms" | "count";
   count: number;
@@ -20,19 +20,19 @@ export type RuntimeMetricSummary = {
   p50: number;
   p95: number;
   latest: number;
-};
+}
 
-export type RuntimeMetricsReport = {
+export interface RuntimeMetricsReport {
   samples: RuntimeMetricSample[];
   summaries: RuntimeMetricSummary[];
-};
+}
 
 type MetricUnit = RuntimeMetricSample["unit"];
 
-type TimerMark = {
+interface TimerMark {
   startAtMs: number;
   tags?: Record<string, string>;
-};
+}
 
 export class RuntimeMetrics {
   private readonly samples: RuntimeMetricSample[] = [];
@@ -94,10 +94,10 @@ export class RuntimeMetrics {
         unit,
         count: sortedValues.length,
         min: sortedValues[0],
-        max: sortedValues[sortedValues.length - 1],
+        max: sortedValues.at(-1),
         p50: percentile(sortedValues, 0.5),
         p95: percentile(sortedValues, 0.95),
-        latest: items[items.length - 1].value,
+        latest: items.at(-1).value,
       });
     }
 

@@ -70,11 +70,13 @@ export function createToolDispatch(): CommandDispatch {
           await zmx.restore(payload.checkpointId as string);
           return okResponse(command, {});
         }
-        default:
+        default: {
           return errorResponse(command, "UNKNOWN_TOOL_METHOD", `unknown tool method: ${method}`);
+        }
       }
-    } catch (e: any) {
-      return errorResponse(command, "TOOL_EXECUTION_FAILED", e?.message ?? String(e));
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      return errorResponse(command, "TOOL_EXECUTION_FAILED", errorMessage);
     }
   };
 }

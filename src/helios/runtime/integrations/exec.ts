@@ -1,8 +1,8 @@
-export type ExecResult = {
+export interface ExecResult {
   code: number;
   stdout: string;
   stderr: string;
-};
+}
 
 export async function execCommand(command: string, args: string[]): Promise<ExecResult> {
   const proc = Bun.spawn([command, ...args], {

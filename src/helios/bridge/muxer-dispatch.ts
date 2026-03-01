@@ -84,7 +84,7 @@ export function createMuxerDispatch(): CommandDispatch {
           }
 
           const newSession: MuxerSession = {
-            id: `${muxerType}-${Date.now()}-${Math.random().toString(36).substring(7)}`,
+            id: `${muxerType}-${Date.now()}-${Math.random().toString(36).slice(7)}`,
             type: muxerType,
             name: sessionName,
             status: "active",
@@ -100,8 +100,8 @@ export function createMuxerDispatch(): CommandDispatch {
             status: "active",
             createdAt: newSession.createdAt,
           });
-        } catch (err) {
-          const message = err instanceof Error ? err.message : String(err);
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
           return errorResponse(command, "MUXER_SPAWN_FAILED", `Failed to spawn muxer: ${message}`);
         }
       }
@@ -142,8 +142,8 @@ export function createMuxerDispatch(): CommandDispatch {
             status: "active",
             attached: true,
           });
-        } catch (err) {
-          const message = err instanceof Error ? err.message : String(err);
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
           return errorResponse(
             command,
             "MUXER_ATTACH_FAILED",
@@ -180,8 +180,8 @@ export function createMuxerDispatch(): CommandDispatch {
             status: "active",
             detached: true,
           });
-        } catch (err) {
-          const message = err instanceof Error ? err.message : String(err);
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
           return errorResponse(
             command,
             "MUXER_DETACH_FAILED",
@@ -221,14 +221,15 @@ export function createMuxerDispatch(): CommandDispatch {
             status: "terminated",
             killed: true,
           });
-        } catch (err) {
-          const message = err instanceof Error ? err.message : String(err);
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
           return errorResponse(command, "MUXER_KILL_FAILED", `Failed to kill muxer: ${message}`);
         }
       }
 
-      default:
+      default: {
         return errorResponse(command, "UNKNOWN_MUXER_METHOD", `unknown muxer method: ${method}`);
+      }
     }
   };
 }

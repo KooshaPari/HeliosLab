@@ -10,10 +10,10 @@ import type { BusLaneState } from "../runtime/protocol/bus";
 
 // ── Settings ───────────────────────────────────────────
 
-export type HeliosSettings = {
+export interface HeliosSettings {
   rendererEngine: "ghostty" | "rio";
   hotSwapPreferred: boolean;
-};
+}
 
 const DEFAULT_SETTINGS: HeliosSettings = {
   rendererEngine: "ghostty",
@@ -55,7 +55,7 @@ export function saveSettings(settings: HeliosSettings): void {
 
 // ── Lanes ──────────────────────────────────────────────
 
-export type PersistedLane = {
+export interface PersistedLane {
   id: string;
   workspaceId: string;
   laneId: string;
@@ -64,7 +64,7 @@ export type PersistedLane = {
   transport: string;
   state: string;
   lastUpdated: string;
-};
+}
 
 export function upsertLane(lane: Omit<PersistedLane, "id">): PersistedLane {
   const { data } = db.collection("helios_lanes").query();
@@ -136,14 +136,14 @@ export function writeAuditEntry(entry: {
   });
 }
 
-export function getRecentAudit(limit = 50): Array<{
+export function getRecentAudit(limit = 50): {
   timestamp: string;
   action: string;
   workspaceId: string;
   laneId: string | null;
   sessionId: string | null;
   detail: string;
-}> {
+}[] {
   const { data } = db.collection("helios_audit").query();
   return data
     .sort((a, b) => b.timestamp.localeCompare(a.timestamp))

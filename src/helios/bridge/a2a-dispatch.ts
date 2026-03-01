@@ -22,7 +22,9 @@ interface AgentTask {
 type CommandDispatch = (command: LocalBusEnvelope) => Promise<LocalBusEnvelope>;
 
 const activeAgents = new Map<string, AgentTask>();
+// eslint-disable-next-line jest/require-hook
 let acpClient: AcpClient | null = null;
+// eslint-disable-next-line jest/require-hook
 let acpClientInitialized = false;
 
 function getDefaultAcpConfig(): Partial<AcpConfig> {
@@ -124,8 +126,8 @@ export function createA2ADispatch(): CommandDispatch {
             usage: result.usage,
             status: "completed",
           });
-        } catch (err) {
-          const message = err instanceof Error ? err.message : String(err);
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
           return errorResponse(command, "AGENT_RUN_FAILED", `Failed to run agent: ${message}`);
         }
       }
@@ -147,8 +149,8 @@ export function createA2ADispatch(): CommandDispatch {
             status: "cancelled",
             message: "Agent cancelled",
           });
-        } catch (err) {
-          const message = err instanceof Error ? err.message : String(err);
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
           return errorResponse(
             command,
             "AGENT_CANCEL_FAILED",
@@ -158,7 +160,7 @@ export function createA2ADispatch(): CommandDispatch {
       }
 
       case "agent.list": {
-        const agents = Array.from(activeAgents.values()).map((agent) => ({
+        const agents = [...activeAgents.values()].map((agent) => ({
           id: agent.id,
           status: agent.status,
           taskId: agent.taskId,
@@ -171,7 +173,7 @@ export function createA2ADispatch(): CommandDispatch {
       }
 
       case "agent.status": {
-        const configured = !!acpClient || !!getDefaultAcpConfig().endpoint;
+        const configured = Boolean(acpClient) || Boolean(getDefaultAcpConfig().endpoint);
 
         return successResponse(command, {
           configured,
@@ -180,8 +182,9 @@ export function createA2ADispatch(): CommandDispatch {
         });
       }
 
-      default:
+      default: {
         return errorResponse(command, "UNKNOWN_A2A_METHOD", `unknown a2a method: ${method}`);
+      }
     }
   };
 }

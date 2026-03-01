@@ -24,7 +24,7 @@ export interface LocalBus {
 
 type HandledMethod = "lane.create" | "session.attach" | "terminal.spawn" | "lane.switch";
 
-type MethodTransitionSpec = {
+interface MethodTransitionSpec {
   requested: RuntimeEvent;
   succeeded: RuntimeEvent;
   failed: RuntimeEvent;
@@ -32,7 +32,7 @@ type MethodTransitionSpec = {
   successTopic: string;
   failedTopic: string;
   resultKey: string;
-};
+}
 
 const METHOD_SPECS: Record<HandledMethod, MethodTransitionSpec> = {
   "lane.create": {
@@ -74,8 +74,8 @@ const METHOD_SPECS: Record<HandledMethod, MethodTransitionSpec> = {
 };
 
 export class InMemoryLocalBus implements LocalBus {
-  private lanes: Map<string, BusLaneState> = new Map();
-  private currentLaneId: string = "";
+  private lanes = new Map<string, BusLaneState>();
+  private currentLaneId = "";
   private readonly eventLog: LocalBusEnvelope[] = [];
   private rendererEngine: "ghostty" | "rio" = "ghostty";
 
@@ -111,7 +111,7 @@ export class InMemoryLocalBus implements LocalBus {
   }
 
   getAllLanes(): BusLaneState[] {
-    return Array.from(this.lanes.values());
+    return [...this.lanes.values()];
   }
 
   switchLane(laneId: string): void {
@@ -137,8 +137,8 @@ export class InMemoryLocalBus implements LocalBus {
     lane.terminal.state = state.terminal;
   }
 
-  getActiveLanes(): Array<{ laneId: string; sessionId?: string; terminalId?: string }> {
-    const activeLanes: Array<{ laneId: string; sessionId?: string; terminalId?: string }> = [];
+  getActiveLanes(): { laneId: string; sessionId?: string; terminalId?: string }[] {
+    const activeLanes: { laneId: string; sessionId?: string; terminalId?: string }[] = [];
     for (const [laneId, laneState] of this.lanes) {
       if (laneState.lane.state !== "new" && laneState.lane.state !== "closed") {
         activeLanes.push({
@@ -152,7 +152,7 @@ export class InMemoryLocalBus implements LocalBus {
   }
 
   exportLanes(): BusLaneState[] {
-    return Array.from(this.lanes.values());
+    return [...this.lanes.values()];
   }
 
   restoreLanes(lanes: BusLaneState[]): void {
@@ -167,7 +167,6 @@ export class InMemoryLocalBus implements LocalBus {
 
   async publish(event: LocalBusEnvelope): Promise<void> {
     this.eventLog.push(event);
-    return;
   }
 
   async request(command: LocalBusEnvelope): Promise<LocalBusEnvelope> {
@@ -385,7 +384,7 @@ export class InMemoryLocalBus implements LocalBus {
           retryable: false,
           details: {
             requested_lane_id: laneId,
-            available_lanes: Array.from(this.lanes.keys()),
+            available_lanes: [...this.lanes.keys()],
           },
         },
       };

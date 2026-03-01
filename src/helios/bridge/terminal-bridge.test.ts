@@ -4,10 +4,10 @@
  * Verifies terminal bridge interface and basic PTY subprocess handling
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi, expectTypeOf } from "vitest";
 import { createTerminalBridge, HeliosTerminalBridge } from "./terminal-bridge";
 
-describe("createTerminalBridge", () => {
+describe(createTerminalBridge, () => {
   let bridge: ReturnType<typeof createTerminalBridge>;
 
   beforeEach(() => {
@@ -19,23 +19,23 @@ describe("createTerminalBridge", () => {
   });
 
   it("returns an object with required methods", () => {
-    expect(typeof bridge.spawnTerminal).toBe("function");
-    expect(typeof bridge.writeToTerminal).toBe("function");
-    expect(typeof bridge.resizeTerminal).toBe("function");
-    expect(typeof bridge.killTerminal).toBe("function");
-    expect(typeof bridge.dispose).toBe("function");
+    expectTypeOf(bridge.spawnTerminal).toBeFunction();
+    expectTypeOf(bridge.writeToTerminal).toBeFunction();
+    expectTypeOf(bridge.resizeTerminal).toBeFunction();
+    expectTypeOf(bridge.killTerminal).toBeFunction();
+    expectTypeOf(bridge.dispose).toBeFunction();
   });
 
   describe("spawnTerminal", () => {
     it("returns a terminal ID", () => {
       const terminalId = bridge.spawnTerminal("helios-term-1", "workspace-1", "window-1");
-      expect(typeof terminalId).toBe("string");
+      expectTypeOf(terminalId).toBeString();
       expect(terminalId.length).toBeGreaterThan(0);
     });
 
     it("accepts optional cwd parameter", () => {
-      const terminalId = bridge.spawnTerminal("helios-term-2", "workspace-1", "window-1", "/tmp");
-      expect(typeof terminalId).toBe("string");
+      const _terminalId = bridge.spawnTerminal("helios-term-2", "workspace-1", "window-1", "/tmp");
+      expectTypeOf(_terminalId).toBeString();
     });
 
     it("creates unique terminal IDs for each spawn", () => {
@@ -48,58 +48,58 @@ describe("createTerminalBridge", () => {
   describe("writeToTerminal", () => {
     it("returns false for non-existent terminal", () => {
       const result = bridge.writeToTerminal("non-existent", "test");
-      expect(result).toBe(false);
+      expect(result).toBeFalsy();
     });
 
     it("returns true for valid terminal", () => {
-      const terminalId = bridge.spawnTerminal("helios-term-1", "workspace-1", "window-1");
+      const _terminalId = bridge.spawnTerminal("helios-term-1", "workspace-1", "window-1");
       const result = bridge.writeToTerminal("helios-term-1", "echo test");
-      expect(result).toBe(true);
+      expect(result).toBeTruthy();
     });
 
     it("accepts string data parameter", () => {
-      const terminalId = bridge.spawnTerminal("helios-term-1", "workspace-1", "window-1");
+      const _terminalId = bridge.spawnTerminal("helios-term-1", "workspace-1", "window-1");
       const result = bridge.writeToTerminal("helios-term-1", "ls\n");
-      expect(result).toBe(true);
+      expect(result).toBeTruthy();
     });
   });
 
   describe("resizeTerminal", () => {
     it("returns false for non-existent terminal", () => {
       const result = bridge.resizeTerminal("non-existent", 80, 24);
-      expect(result).toBe(false);
+      expect(result).toBeFalsy();
     });
 
     it("returns true for valid terminal", () => {
-      const terminalId = bridge.spawnTerminal("helios-term-1", "workspace-1", "window-1");
+      const _terminalId = bridge.spawnTerminal("helios-term-1", "workspace-1", "window-1");
       const result = bridge.resizeTerminal("helios-term-1", 120, 40);
-      expect(result).toBe(true);
+      expect(result).toBeTruthy();
     });
 
     it("accepts cols and rows parameters", () => {
-      const terminalId = bridge.spawnTerminal("helios-term-1", "workspace-1", "window-1");
+      const _terminalId = bridge.spawnTerminal("helios-term-1", "workspace-1", "window-1");
       const result = bridge.resizeTerminal("helios-term-1", 100, 50);
-      expect(result).toBe(true);
+      expect(result).toBeTruthy();
     });
   });
 
   describe("killTerminal", () => {
     it("returns false for non-existent terminal", () => {
       const result = bridge.killTerminal("non-existent");
-      expect(result).toBe(false);
+      expect(result).toBeFalsy();
     });
 
     it("returns true for valid terminal", () => {
-      const terminalId = bridge.spawnTerminal("helios-term-1", "workspace-1", "window-1");
+      const _terminalId = bridge.spawnTerminal("helios-term-1", "workspace-1", "window-1");
       const result = bridge.killTerminal("helios-term-1");
-      expect(result).toBe(true);
+      expect(result).toBeTruthy();
     });
 
     it("prevents operations on killed terminal", () => {
-      const terminalId = bridge.spawnTerminal("helios-term-1", "workspace-1", "window-1");
+      const _terminalId = bridge.spawnTerminal("helios-term-1", "workspace-1", "window-1");
       bridge.killTerminal("helios-term-1");
       const result = bridge.writeToTerminal("helios-term-1", "test");
-      expect(result).toBe(false);
+      expect(result).toBeFalsy();
     });
   });
 
@@ -111,8 +111,8 @@ describe("createTerminalBridge", () => {
 
       const result1 = bridge.writeToTerminal("helios-term-1", "test");
       const result2 = bridge.writeToTerminal("helios-term-2", "test");
-      expect(result1).toBe(false);
-      expect(result2).toBe(false);
+      expect(result1).toBeFalsy();
+      expect(result2).toBeFalsy();
     });
 
     it("can be called multiple times safely", () => {
@@ -125,7 +125,7 @@ describe("createTerminalBridge", () => {
   });
 });
 
-describe("HeliosTerminalBridge", () => {
+describe(HeliosTerminalBridge, () => {
   let bridge: HeliosTerminalBridge;
 
   beforeEach(() => {
@@ -137,31 +137,31 @@ describe("HeliosTerminalBridge", () => {
   });
 
   it("creates an instance with required methods", () => {
-    expect(typeof bridge.spawnTerminal).toBe("function");
-    expect(typeof bridge.sendInput).toBe("function");
-    expect(typeof bridge.resize).toBe("function");
-    expect(typeof bridge.dispose).toBe("function");
+    expectTypeOf(bridge.spawnTerminal).toBeFunction();
+    expectTypeOf(bridge.sendInput).toBeFunction();
+    expectTypeOf(bridge.resize).toBeFunction();
+    expectTypeOf(bridge.dispose).toBeFunction();
   });
 
   it("spawnTerminal returns a string ID", () => {
-    const terminalId = bridge.spawnTerminal("helios-term-1", "workspace-1", "window-1");
-    expect(typeof terminalId).toBe("string");
+    const _terminalId = bridge.spawnTerminal("helios-term-1", "workspace-1", "window-1");
+    expectTypeOf(_terminalId).toBeString();
   });
 
   it("sendInput delegates to writeToTerminal", () => {
-    const terminalId = bridge.spawnTerminal("helios-term-1", "workspace-1", "window-1");
+    const _terminalId = bridge.spawnTerminal("helios-term-1", "workspace-1", "window-1");
     const result = bridge.sendInput("helios-term-1", "test data");
-    expect(typeof result).toBe("boolean");
+    expectTypeOf(result).toBeBoolean();
   });
 
   it("resize delegates to resizeTerminal", () => {
-    const terminalId = bridge.spawnTerminal("helios-term-1", "workspace-1", "window-1");
+    const _terminalId = bridge.spawnTerminal("helios-term-1", "workspace-1", "window-1");
     const result = bridge.resize("helios-term-1", 80, 24);
-    expect(typeof result).toBe("boolean");
+    expectTypeOf(result).toBeBoolean();
   });
 
   it("dispose cleans up resources", () => {
-    bridge.spawnTerminal("helios-term-1", "workspace-1", "window-1");
+    const _terminalId = bridge.spawnTerminal("helios-term-1", "workspace-1", "window-1");
     expect(() => {
       bridge.dispose();
     }).not.toThrow();
