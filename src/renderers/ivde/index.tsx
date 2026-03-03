@@ -125,6 +125,11 @@ import { PluginSlate } from "./slates/PluginSlate";
 // XXX - terminal slate
 import { TerminalSlate } from "./slates/TerminalSlate";
 import { WebSlate } from "./slates/WebSlate";
+import type {
+	AnalyticsStatus,
+	ReloadableWebviewElement,
+	WebviewDidNavigateEvent,
+} from "./types/ui";
 
 // todo (yoav): download this somewhere and move them to files.ts or something
 const defaultWebFaviconUrl = () => "views://assets/file-icons/bookmark.svg";
@@ -226,8 +231,7 @@ document.addEventListener(
 			if (!currentTab) {
 				return null;
 			}
-			// YYY - any was Type Electron.WebviewTag
-			const webview: any | null = document.querySelector(
+			const webview = document.querySelector<ReloadableWebviewElement>(
 				`[data-tabId="${currentTab.id}"] electrobun-webview`,
 			);
 
@@ -558,13 +562,15 @@ const App = () => {
 	const githubAuthUrl = () => state.githubAuth.authUrl || "";
 
 	// YYY - Electron.WebviewTag;
-	let githubAuthWebview: any; //
+	let githubAuthWebview:
+		| { addEventListener: (name: string, listener: (event: unknown) => void) => void }
+		| undefined;
 
 	let shadowHost: HTMLDivElement | undefined;
 	let shadowRoot: ShadowRoot;
 
 	// GitHub auth webview navigation handler
-	const githubAuthWebviewWillNavigate = async (e: any) => {
+	const githubAuthWebviewWillNavigate = async (e: WebviewDidNavigateEvent) => {
 		const { detail: url } = e;
 		console.log("GitHub auth webview navigated to:", url);
 
@@ -1001,7 +1007,14 @@ const GlobalSettings = () => {
 	const [analyticsEnabled, setAnalyticsEnabled] = createSignal(
 		state.appSettings.analyticsEnabled || false,
 	);
-	const [analyticsStatus, setAnalyticsStatus] = createSignal<any>({});
+		const [analyticsStatus, setAnalyticsStatus] = createSignal<AnalyticsStatus>({
+			enabled: false,
+			level: "Community",
+			isAnonymous: true,
+			hasToken: false,
+			userOptedIn: false,
+			userHasBeenPrompted: false,
+		});
 
 	// Load current analytics status
 	onMount(() => {
@@ -1162,7 +1175,7 @@ const AnalyticsSettingsSection = ({
 }: {
 	analyticsEnabled: Accessor<boolean>;
 	setAnalyticsEnabled: (value: boolean) => void;
-	analyticsStatus: Accessor<any>;
+	analyticsStatus: Accessor<AnalyticsStatus>;
 }): JSXElement => {
 	const [hasBeenPrompted, setHasBeenPrompted] = createSignal(false);
 

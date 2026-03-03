@@ -16,80 +16,19 @@ import type { CachedFileType } from "../../../shared/types/types";
 import { join } from "../../utils/pathUtils";
 import { electrobun } from "../init";
 import { Dialog } from "../components/Dialog";
-
-type FileChangeType = {
-  changeType: "A" | "M" | "D" | "?" | "";
-  relPath: string;
-};
-
-type FileChangesType = { [relPath: string]: FileChangeType };
-
-type FileChangeWithCommitType = FileChangeType & {
-  commitHash: string;
-  isFromStaged?: boolean;
-};
-
-type UncommittedChangesType = {
-  staged: FileChangesType;
-  unstaged: FileChangesType;
-  shortStat: string;
-};
-
-type CommitType = {
-  author: string;
-  date: number;
-  hash: string;
-  files: FileChangesType;
-  message: string;
-  shortStat: string;
-  refs: string[];
-  isRemoteOnly?: boolean;
-};
-
-type RemoteType = {
-  name: string;
-  refs: {
-    fetch: string;
-    push: string;
-  };
-};
-
-type BranchInfo = {
-  current: string;
-  all: string[];
-  remote: string[];
-  trackingBranch?: string;
-};
-
-type SyncStatusType = {
-  ahead: number;
-  behind: number;
-};
-
-type UIStateType = {
-  changes: UncommittedChangesType;
-  log: CommitType[];
-  stashes: { all: any[]; latest: any; total: number };
-  originalText: string;
-  modifiedText: string;
-  remotes: RemoteType[];
-  branches: BranchInfo;
-  syncStatus: SyncStatusType;
-  activeSection: 'branches' | 'remotes' | 'stashes';
-};
+import { parseStatusLine } from "./git/helpers";
+import type {
+  BranchInfo,
+  CommitType,
+  FileChangeType,
+  FileChangesType,
+  FileChangeWithCommitType,
+  GitUiStateType,
+} from "./git/types";
 
 // const relGitDirectory = join(__dirname, "/git");
 
 // process.env.LOCAL_GIT_DIRECTORY = relGitDirectory;
-const parseStatusLine = (line: string) => {
-  const changeType = line.slice(0, 1);
-  const relPath = line.slice(3);
-  return {
-    changeType,
-    relPath,
-  };
-};
-
 // todo (yoav): maybe we just give it a path and it fetches the node as needed
 export const GitSlate = ({ node }: { node?: CachedFileType }) => {
   if (!node) {
@@ -153,7 +92,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
   // Note: InitialState must be defined inside the component
   // if it's global then the same object reference (which gets solidjs store setters/getters)
   // will be shared across GitSlate tabs even for different repos
-  const initialState: UIStateType = {
+  const initialState: GitUiStateType = {
     changes: { staged: {}, unstaged: {}, shortStat: "" },
     log: [],
     stashes: { all: [], latest: null, total: 0 },
@@ -4059,4 +3998,3 @@ const FileListItem = ({
     </div>
   );
 };
-
