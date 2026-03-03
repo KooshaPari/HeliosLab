@@ -142,6 +142,10 @@ const defaultWebFaviconUrl = () => "views://assets/file-icons/bookmark.svg";
 // Global ref for Find All input (for keyboard shortcut)
 let globalFindAllInput: HTMLInputElement | undefined;
 
+type TerminalTabWithCurrentDir = TerminalTabType & { currentDir?: string };
+type RepoSlateConfig = { gitUrl?: string };
+type RepoSlate = SlateType & { config?: RepoSlateConfig };
+
 // We prevent the browser window's webcontents
 // from closing. This prevents cmd+w from shutting it down
 // and cmd+r from refreshing it.
@@ -2032,8 +2036,9 @@ const PaneTab = ({
 		}
 
 		if (_tab?.type === "terminal") {
+			const terminalTab = _tab as TerminalTabWithCurrentDir;
 			// Use current directory if available, otherwise fall back to initial path
-			const currentPath = (_tab as any).currentDir || _tab.path;
+			const currentPath = terminalTab.currentDir || terminalTab.path;
 			const folderName = currentPath
 				? currentPath === "/"
 					? "root"
@@ -2819,7 +2824,7 @@ const NodeSettings = () => {
 					});
 				}
 			} else if (getSlateForNode(_previewNode)?.type === "repo") {
-				const repoSlate = getSlateForNode(_previewNode) as any;
+				const repoSlate = getSlateForNode(_previewNode) as RepoSlate | undefined;
 				const gitUrl = repoSlate?.config?.gitUrl;
 
 				if (!gitUrl) {
@@ -3724,7 +3729,7 @@ const NodeSettings = () => {
 														}
 														return "system";
 													})()}
-													onInput={(e: any) => {
+													onInput={(e: Event & { currentTarget: HTMLSelectElement }) => {
 														const renderer = e.currentTarget.value as
 															| "cef"
 															| "system";

@@ -29,6 +29,32 @@ import type {
 	GitUiStateType,
 } from "./git/types";
 
+type StashFileEntry = { file?: string; status?: string };
+type GitDiffSummary = {
+	files?: StashFileEntry[];
+	insertions?: number;
+	deletions?: number;
+	changed?: number;
+};
+type GitLogEntry = {
+	author_name: string;
+	date: string;
+	hash: string;
+	diff?: GitDiffSummary;
+	message: string;
+	body?: string;
+};
+type GitStatusFile = {
+	path?: string;
+	index?: string;
+	working_dir?: string;
+};
+type GitRemoteEntry = {
+	name: string;
+	refs: { fetch: string; push: string };
+};
+type LineChange = Record<string, unknown>;
+
 // const relGitDirectory = join(__dirname, "/git");
 
 // process.env.LOCAL_GIT_DIRECTORY = relGitDirectory;
@@ -377,9 +403,9 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 	const [expandedStashes, setExpandedStashes] = createSignal<Set<string>>(
 		new Set(),
 	);
-	const [stashFiles, setStashFiles] = createSignal<{
-		[stashName: string]: any[];
-	}>({});
+	const [stashFiles, setStashFiles] = createSignal<Record<string, StashFileEntry[]>>(
+		{},
+	);
 
 	// Dialog state
 	const [dialogOpen, setDialogOpen] = createSignal(false);
@@ -407,9 +433,13 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 	});
 
 	// Helper function to show error dialogs
-	const showErrorDialog = (title: string, error: any) => {
+	const showErrorDialog = (title: string, error: unknown) => {
 		const errorMessage =
-			error?.message || error?.toString() || "An unknown error occurred";
+			error instanceof Error
+				? error.message
+				: typeof error === "string"
+					? error
+					: "An unknown error occurred";
 		setDialogConfig({
 			title: title,
 			message: errorMessage,
@@ -476,7 +506,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 		}
 	};
 
-	const softRevertCommit = async (commit: any) => {
+	const softRevertCommit = async (commit: { hash: string; message?: string }) => {
 		try {
 			console.log("Soft reverting commit:", commit.hash, commit.message);
 
@@ -723,13 +753,13 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 
 		// Process remote-only commits (these go at the top with lower opacity)
 		const remoteOnlyCommits =
-			gitRemoteOnlyLog?.all?.map((commit: any) => {
+			gitRemoteOnlyLog?.all?.map((commit: GitLogEntry) => {
 				return {
 					author: commit.author_name,
 					date: new Date(commit.date).getTime(),
 					hash: commit.hash,
 					files:
-						commit.diff?.files?.reduce((acc: any, file: any) => {
+						commit.diff?.files?.reduce<Record<string, FileChangeType>>((acc, file) => {
 							if (file.file) {
 								acc[file.file] = {
 									changeType: file.status || "",
@@ -762,7 +792,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 					date: new Date(commit.date).getTime(),
 					hash: commit.hash,
 					files:
-						commit.diff?.files?.reduce((acc: any, file: any) => {
+						commit.diff?.files?.reduce<Record<string, FileChangeType>>((acc, file) => {
 							if (file.file) {
 								acc[file.file] = {
 									changeType: file.status || "",
@@ -796,7 +826,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 		const staged: FileChangesType = {};
 		const unstaged: FileChangesType = {};
 
-		gitStatus?.files.forEach((file: any) => {
+		gitStatus?.files.forEach((file: GitStatusFile) => {
 			if (file.path) {
 				console.log(
 					`File: ${file.path}, index: "${file.index}", working_dir: "${file.working_dir}"`,
@@ -840,7 +870,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 		};
 
 		// Process remotes
-		const remotes = (gitRemotes || []).map((remote: any) => ({
+		const remotes = (gitRemotes || []).map((remote: GitRemoteEntry) => ({
 			name: remote.name,
 			refs: remote.refs,
 		}));
@@ -905,7 +935,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 
 		// Expand all remotes by default
 		if (remotes.length > 0) {
-			const allRemoteNames = new Set(remotes.map((r: any) => r.name as string));
+			const allRemoteNames = new Set(remotes.map((r) => r.name));
 			setExpandedRemotes(allRemoteNames);
 		}
 
@@ -931,14 +961,17 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 
 			if (gitLog?.all) {
 				// Process the new commits (similar to getLogAndStatus but only for commits)
-				const newCommits = gitLog.all.map((commit: any, index: number) => {
+				const newCommits = gitLog.all.map((commit: GitLogEntry, index: number) => {
 					const files: FileChangesType = {};
 
 					if (commit.diff && commit.diff.files) {
-						commit.diff.files.forEach((file: any) => {
+						commit.diff.files.forEach((file: StashFileEntry) => {
+							if (!file.file) {
+								return;
+							}
 							files[file.file] = {
 								changeType:
-									file.changes > 0 ? (file.insertions > 0 ? "M" : "A") : "D",
+									(file.status as FileChangeType["changeType"]) || "M",
 								relPath: file.file,
 							};
 						});
@@ -1044,7 +1077,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 		filePath: string,
 		startLine: number,
 		endLine: number,
-		lineChange?: any,
+		lineChange?: LineChange,
 		originalText?: string,
 		modifiedText?: string,
 	) => {
@@ -1098,7 +1131,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 		filePath: string,
 		startLine: number,
 		endLine: number,
-		lineChange?: any,
+		lineChange?: LineChange,
 		originalText?: string,
 		stagedText?: string,
 	) => {
