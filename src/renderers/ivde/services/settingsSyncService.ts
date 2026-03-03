@@ -1,3 +1,5 @@
+/// <reference lib="dom" />
+
 /**
  * Settings Sync Service
  * Handles gathering, uploading, and downloading syncable settings
