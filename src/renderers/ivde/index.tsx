@@ -127,6 +127,7 @@ import { PluginSlate } from "./slates/PluginSlate";
 // XXX - terminal slate
 import { TerminalSlate } from "./slates/TerminalSlate";
 import { WebSlate } from "./slates/WebSlate";
+import { watchClonedRepoAndOpenGitSlate } from "./repoCloneWatcher";
 import type {
 	AnalyticsStatus,
 	ReloadableWebviewElement,
@@ -2833,58 +2834,11 @@ const NodeSettings = () => {
 				setNodeExpanded(parentNodePath(_previewNode), true);
 				setState("settingsPane", { type: "", data: {} });
 
-				// Start polling for the repo folder immediately
-				let pollAttempts = 0;
-				const maxAttempts = 20; // Stop after 10 seconds (20 * 500ms)
-
-				const expandWhenReady = () => {
-					pollAttempts++;
-					// Check if the node exists in the file tree
-					const node = getNode(_previewNode.path);
-					if (node) {
-						console.log("Found repo node, expanding:", _previewNode.path);
-						setNodeExpanded(_previewNode.path, true);
-
-						// Also check for the .git folder and open it in a new tab
-						const gitFolderPath = join(_previewNode.path, ".git");
-						console.log("Looking for git folder at:", gitFolderPath);
-
-						// Start checking for .git folder immediately
-						let gitPollAttempts = 0;
-						const maxGitAttempts = 20; // Wait up to 10 seconds for .git folder
-
-						const openGitSlateWhenReady = () => {
-							gitPollAttempts++;
-							const gitNode = getNode(gitFolderPath);
-							console.log(
-								`Git folder poll attempt ${gitPollAttempts}, found:`,
-								gitNode ? "yes" : "no",
-							);
-
-							if (gitNode) {
-								console.log("Opening git slate for:", gitFolderPath);
-								openNewTabForNode(gitFolderPath);
-							} else if (gitPollAttempts < maxGitAttempts) {
-								setTimeout(openGitSlateWhenReady, 500);
-							} else {
-								console.log("Timeout waiting for .git folder");
-							}
-						};
-
-						// Start polling for .git folder immediately, no initial delay
-						openGitSlateWhenReady();
-					} else if (pollAttempts < maxAttempts) {
-						// Node not ready yet, try again in 500ms
-						setTimeout(expandWhenReady, 500);
-					} else {
-						console.log(
-							"Timeout waiting for cloned repo to appear in file tree",
-						);
-					}
-				};
-
-				// Start polling immediately, no initial delay
-				expandWhenReady();
+				watchClonedRepoAndOpenGitSlate({
+					previewNode: _previewNode,
+					onExpandRepo: (repoPath) => setNodeExpanded(repoPath, true),
+					onOpenGitSlate: (gitPath) => openNewTabForNode(gitPath),
+				});
 
 				// Clone the repository in the background (don't await)
 				electrobun.rpc?.request

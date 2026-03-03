@@ -19,6 +19,7 @@ import { join } from "../../utils/pathUtils";
 import { electrobun } from "../init";
 import { Dialog } from "../components/Dialog";
 import { parseStatusLine } from "./git/helpers";
+import { ensureSpinnerAnimation } from "./git/spinner";
 import type {
   BranchInfo,
   CommitType,
@@ -116,21 +117,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
     isLoading: false,
   });
 
-  // Add CSS animation for loading spinner
-  const addSpinnerAnimation = () => {
-    if (!document.getElementById('spinner-keyframes')) {
-      const style = document.createElement('style');
-      style.id = 'spinner-keyframes';
-      style.innerHTML = `
-        @keyframes spinner-rotate {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-      `;
-      document.head.appendChild(style);
-    }
-  };
-  addSpinnerAnimation();
+  ensureSpinnerAnimation();
 
   const [selectedFile, setSelectedFile] =
     createSignal<FileChangeWithCommitType>({
