@@ -27,7 +27,15 @@
 export const sep = "/";
 export const delimiter = ":";
 
-export function assertPath(path) {
+type PathObjectLike = {
+  root?: string;
+  dir?: string;
+  base?: string;
+  ext?: string;
+  name?: string;
+};
+
+export function assertPath(path: string): void {
   if (typeof path !== "string") {
     throw new TypeError(
       "Path must be a string. Received " + JSON.stringify(path)
@@ -36,7 +44,7 @@ export function assertPath(path) {
 }
 
 // Resolves . and .. elements in a path with directory names
-export function normalizeStringPosix(path, allowAboveRoot) {
+export function normalizeStringPosix(path: string, allowAboveRoot: boolean): string {
   var res = "";
   var lastSegmentLength = 0;
   var lastSlash = -1;
@@ -99,7 +107,7 @@ export function normalizeStringPosix(path, allowAboveRoot) {
   return res;
 }
 
-function _format(sep, pathObject) {
+function _format(sep: string, pathObject: PathObjectLike): string {
   var dir = pathObject.dir || pathObject.root;
   var base =
     pathObject.base || (pathObject.name || "") + (pathObject.ext || "");
@@ -113,13 +121,13 @@ function _format(sep, pathObject) {
 }
 
 // path.resolve([from ...], to)
-export function resolve() {
+export function resolve(...paths: string[]): string {
   var resolvedPath = "";
   var resolvedAbsolute = false;
 
   for (var i = arguments.length - 1; i >= -1 && !resolvedAbsolute; i--) {
     var path;
-    if (i >= 0) path = arguments[i];
+    if (i >= 0) path = paths[i];
     else {
       // In browser environment, we don't have process.cwd()
       // Since we're always dealing with absolute paths in Colab, use "/" as fallback
@@ -153,7 +161,7 @@ export function resolve() {
   }
 }
 
-export function normalize(path) {
+export function normalize(path: string): string {
   assertPath(path);
 
   if (path.length === 0) return ".";
@@ -171,16 +179,16 @@ export function normalize(path) {
   return path;
 }
 
-export function isAbsolute(path) {
+export function isAbsolute(path: string): boolean {
   assertPath(path);
   return path.length > 0 && path.charCodeAt(0) === 47 /*/*/;
 }
 
-export function join() {
-  if (arguments.length === 0) return ".";
+export function join(...paths: string[]): string {
+  if (paths.length === 0) return ".";
   var joined;
-  for (var i = 0; i < arguments.length; ++i) {
-    var arg = arguments[i];
+  for (var i = 0; i < paths.length; ++i) {
+    var arg = paths[i];
     assertPath(arg);
     if (arg.length > 0) {
       if (joined === undefined) joined = arg;
@@ -191,7 +199,7 @@ export function join() {
   return normalize(joined);
 }
 
-export function relative(from, to) {
+export function relative(from: string, to: string): string {
   assertPath(from);
   assertPath(to);
 
@@ -273,11 +281,11 @@ export function relative(from, to) {
   }
 }
 
-export function _makeLong(path) {
+export function _makeLong(path: string): string {
   return path;
 }
 
-export function dirname(path) {
+export function dirname(path: string): string {
   assertPath(path);
   if (path.length === 0) return ".";
   var code = path.charCodeAt(0);
@@ -375,7 +383,7 @@ export function basename(path: string, ext?: string) {
   }
 }
 
-export function extname(path) {
+export function extname(path: string): string {
   assertPath(path);
   var startDot = -1;
   var startPart = 0;
@@ -425,7 +433,7 @@ export function extname(path) {
   return path.slice(startDot, end);
 }
 
-export function format(pathObject) {
+export function format(pathObject: PathObjectLike): string {
   if (pathObject === null || typeof pathObject !== "object") {
     throw new TypeError(
       'The "pathObject" argument must be of type Object. Received type ' +
@@ -435,7 +443,7 @@ export function format(pathObject) {
   return _format("/", pathObject);
 }
 
-export function parse(path) {
+export function parse(path: string): PathObjectLike {
   assertPath(path);
 
   var ret = { root: "", dir: "", base: "", ext: "", name: "" };
