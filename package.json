@@ -20,7 +20,8 @@
 		"push:patch": "npm version prepatch --preid=canary && git push origin main --tags",
 		"push:minor": "npm version preminor --preid=canary && git push origin main --tags",
 		"push:major": "npm version premajor --preid=canary && git push origin main --tags",
-		"push:stable": "npm version patch && git push origin main --tags"
+		"push:stable": "npm version patch && git push origin main --tags",
+		"gate:protocol-parity": "node tools/gates/protocol-parity.mjs"
 	},
 	"repository": {
 		"type": "git",
