@@ -1,3 +1,5 @@
+/// <reference lib="dom" />
+
 import {
   For,
   Show,
@@ -37,7 +39,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 
   const repoRootPath = node.path.replace(/\.git/, "");
 
-  let refreshLogAndStageTimeout: Timer;
+  let refreshLogAndStageTimeout: ReturnType<typeof setTimeout>;
 
   createEffect(() => {
     if (state.lastFileChange) {
@@ -170,7 +172,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
           options: [`${commitRef}:${filepath}`],
           repoRoot: repoRootPath,
         })
-        .catch((error) => {
+        .catch((error: unknown) => {
           console.error('Git show error:', error);
           return "";
         });
@@ -183,7 +185,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
           options: [`HEAD:${filepath}`],
           repoRoot: repoRootPath,
         })
-        .catch((error) => {
+        .catch((error: unknown) => {
           console.error('Git show HEAD error:', error);
           return "";
         });
