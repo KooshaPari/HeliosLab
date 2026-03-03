@@ -5,6 +5,9 @@
 	"main": "index.js",
 	"scripts": {
 		"setup": "bun run scripts/setup-deps.ts",
+		"typecheck": "tsc --noEmit",
+		"lint": "bunx @biomejs/biome check .",
+		"test": "bun test --pass-with-no-tests",
 		"build:dev": "bun setup && electrobun build",
 		"dev": "bun setup && electrobun dev",
 		"build:canary": "electrobun build --env=canary",
