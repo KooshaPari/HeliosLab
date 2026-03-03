@@ -68,10 +68,43 @@ jobs:
       - name: Run tests
         run: bun run test
 
+  coverage:
+    name: coverage
+    runs-on: ubuntu-latest
+    needs: [unit-tests]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Run coverage
+        run: bun test --coverage --pass-with-no-tests
+
+  secret-scan:
+    name: secret-scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   ci-summary:
     name: ci-summary
     runs-on: ubuntu-latest
-    needs: [typecheck, lint, unit-tests]
+    needs: [typecheck, lint, unit-tests, coverage, secret-scan]
     if: always()
     steps:
       - name: Assert required jobs succeeded
@@ -79,12 +112,18 @@ jobs:
           TYPECHECK: ${{ needs.typecheck.result }}
           LINT: ${{ needs.lint.result }}
           UNIT_TESTS: ${{ needs.unit-tests.result }}
+          COVERAGE: ${{ needs.coverage.result }}
+          SECRET_SCAN: ${{ needs.secret-scan.result }}
         run: |
           set -euo pipefail
           echo "typecheck=${TYPECHECK}"
           echo "lint=${LINT}"
           echo "unit-tests=${UNIT_TESTS}"
+          echo "coverage=${COVERAGE}"
+          echo "secret-scan=${SECRET_SCAN}"
 
           test "${TYPECHECK}" = "success"
           test "${LINT}" = "success"
           test "${UNIT_TESTS}" = "success"
+          test "${COVERAGE}" = "success"
+          test "${SECRET_SCAN}" = "success"

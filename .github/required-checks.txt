@@ -2,5 +2,7 @@
 ci.yml|typecheck
 ci.yml|lint
 ci.yml|unit-tests
+ci.yml|coverage
+ci.yml|secret-scan
 ci.yml|ci-summary
 required-check-names-guard.yml|verify-required-check-names
