@@ -890,7 +890,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 
     // Process local commits
     const localCommits =
-      gitLog?.all?.map((commit, index) => {
+      gitLog?.all?.map((commit: any, index: number) => {
         // Debug the first commit to see what properties are available
         if (index === 0) {
           console.log("Raw commit object:", commit);
@@ -1319,16 +1319,16 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 
   const fetchStashFiles = async (stashName: string) => {
     try {
-      const stashContent = await electrobun.rpc?.request.gitStashShow({
+      const stashContent = (await electrobun.rpc?.request.gitStashShow({
         repoRoot: repoRootPath,
         stashName: stashName,
-      });
+      })) as string | undefined;
 
       // Parse the name-status output into file changes
       const files = stashContent
         .split("\n")
         .filter((line) => line.trim())
-        .map((line) => {
+        .map((line: string) => {
           const parts = line.trim().split("\t");
           const changeType = parts[0];
           const filePath = parts[1];
@@ -1518,8 +1518,8 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
       "-temp-" +
       Date.now();
     const backupPath = tempRootPath + "-backup";
-    const tempGitPath = join(tempRootPath, ".git");
-    const originalGitPath = join(repoRootPath, ".git");
+    const tempGitPath = `${tempRootPath}/.git`;
+    const originalGitPath = `${repoRootPath}/.git`;
 
     const project = getProjectForNodePath(node.path);
 
@@ -1528,7 +1528,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
       return;
     }
     // Recreate the file watchers because we're actually going to move and replace the entire folder.
-    electrobun.rpc?.send("removeProjectDirectoryWatcher", {
+    (electrobun.rpc?.send as any)?.("removeProjectDirectoryWatcher", {
       projectId: project.id,
     });
 
@@ -1578,7 +1578,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 
     await onClickSaveBackup();
 
-    electrobun.rpc?.send("removeProjectDirectoryWatcher", {
+    (electrobun.rpc?.send as any)?.("removeProjectDirectoryWatcher", {
       projectId: project.id,
     });
 

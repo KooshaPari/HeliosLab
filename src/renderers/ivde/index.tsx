@@ -816,7 +816,7 @@ const App = () => {
           {githubAuthUrl() && (
             <electrobun-webview
               // nodeintegration={false}
-              ref={(el) => {
+              ref={(el: Element) => {
                 // YYY - el was Electron.WebviewTag type
                 githubAuthWebview = el; // as Electron.WebviewTag;
                 el.addEventListener("did-navigate", githubAuthWebviewWillNavigate);
