@@ -27,7 +27,7 @@
  * ✅ Utils (getUniqueNewName)
  */
 
-import type { PluginAPI, Disposable } from "../colab/src/main/plugins/types";
+import type { PluginAPI, Disposable } from "../src/main/plugins/types";
 
 let electrobunModeEnabled = false;
 const disposables: Disposable[] = [];
