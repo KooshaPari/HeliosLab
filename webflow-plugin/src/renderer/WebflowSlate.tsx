@@ -801,7 +801,9 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
 
       // Create a terminal and start the server
       setCommandOutput((prev) => (prev || "") + "\nStarting dev server...\n");
-      const terminalId = await electrobun.rpc?.request.createTerminal({ cwd });
+      const terminalId = (await electrobun.rpc?.request.createTerminal({ cwd })) as
+        | string
+        | undefined;
       if (terminalId) {
         setDevServerTerminalId(terminalId);
         // Send the serve command to the terminal
