@@ -2844,25 +2844,33 @@ const createWindow = (
 					//   payload
 					// );
 				},
-				removeProjectDirectoryWatcher: ({ projectId }) => {
+				removeProjectDirectoryWatcher: ({ projectId }: { projectId: string }) => {
 					removeProjectDirectoryWatcher(projectId);
 				},
-				closeProjectDirectoryWatcher: ({ projectId }) => {
+				closeProjectDirectoryWatcher: ({ projectId }: { projectId: string }) => {
 					closeProjectDirectoryWatcher(projectId);
 				},
-				tsServerRequest: ({ command, args, metadata }) => {
+				tsServerRequest: ({
+					command,
+					args,
+					metadata,
+				}: {
+					command: string;
+					args?: unknown;
+					metadata?: unknown;
+				}) => {
 					tsServerRequest(command, args, metadata);
 				},
-				formatFile: ({ path }) => {
+				formatFile: ({ path }: { path: string }) => {
 					formatFile(path);
 				},
-				createWindow: ({ offset } = {}) => {
+				createWindow: ({ offset }: { offset?: number } = {}) => {
 					createWindow(workspaceId, undefined, offset);
 				},
 				closeWindow: () => {
 					mainWindow.close();
 				},
-				openBunnyWindow: ({ screenX, screenY }) => {
+				openBunnyWindow: ({ screenX, screenY }: { screenX: number; screenY: number }) => {
 					openBunnyWindow(screenX, screenY);
 				},
 				createWorkspace: () => {
@@ -2879,7 +2887,17 @@ const createWindow = (
 					cleanupLlamaProcesses();
 					Electrobun.Updater.applyUpdate();
 				},
-				addToken: ({ name, url, endpoint, token }) => {
+				addToken: ({
+					name,
+					url,
+					endpoint,
+					token,
+				}: {
+					name: string;
+					url: string;
+					endpoint: string;
+					token: string;
+				}) => {
 					setTimeout(() => {
 						const insertedToken = db
 							.collection("tokens")
@@ -2888,7 +2906,15 @@ const createWindow = (
 						fetchAndSendProjects();
 					}, 0);
 				},
-				editProject: ({ projectId, projectName, path }) => {
+				editProject: ({
+					projectId,
+					projectName,
+					path,
+				}: {
+					projectId: string;
+					projectName: string;
+					path: string;
+				}) => {
 					setTimeout(() => {
 						const updatedProject = db.collection("projects").update(projectId, {
 							name: projectName,
@@ -2897,13 +2923,13 @@ const createWindow = (
 						fetchAndSendProjects();
 					}, 0);
 				},
-				deleteToken: ({ tokenId }) => {
+				deleteToken: ({ tokenId }: { tokenId: string }) => {
 					setTimeout(() => {
 						db.collection("tokens").remove(tokenId);
 						fetchAndSendProjects();
 					}, 0);
 				},
-				updateWorkspace: (data) => {
+				updateWorkspace: (data: Record<string, unknown>) => {
 					setTimeout(() => {
 						db.collection("workspaces").update(workspaceId, data);
 						// todo (yoav): it's dumb that we have to manually re-send this data, there should be an auto-subscribed
@@ -2946,13 +2972,13 @@ const createWindow = (
 					});
 					db.collection("workspaces").remove(workspaceId);
 				},
-				removeProjectFromColabOnly: ({ projectId }) => {
+				removeProjectFromColabOnly: ({ projectId }: { projectId: string }) => {
 					setTimeout(() => {
 						deleteProject(workspaceId, projectId);
 						fetchAndSendProjects();
 					}, 0);
 				},
-				fullyDeleteProjectFromDiskAndColab: ({ projectId }) => {
+				fullyDeleteProjectFromDiskAndColab: ({ projectId }: { projectId: string }) => {
 					setTimeout(() => {
 						const { data: _project } = db
 							.collection("projects")
@@ -2966,13 +2992,13 @@ const createWindow = (
 						fetchAndSendProjects();
 					}, 0);
 				},
-				fullyDeleteNodeFromDisk: ({ nodePath }) => {
+				fullyDeleteNodeFromDisk: ({ nodePath }: { nodePath: string }) => {
 					safeTrashFileOrFolder(nodePath);
 				},
-				syncDevlink: ({ nodePath }) => {
+				syncDevlink: ({ nodePath }: { nodePath: string }) => {
 					syncDevlink(nodePath);
 				},
-				track: ({ event, properties }) => {
+				track: ({ event, properties }: { event: string; properties?: unknown }) => {
 					const trackFn = track[event];
 					if (!trackFn) {
 						console.error("no track function found for event", event);

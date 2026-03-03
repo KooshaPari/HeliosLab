@@ -54,6 +54,17 @@ type GitRemoteEntry = {
 	refs: { fetch: string; push: string };
 };
 type LineChange = Record<string, unknown>;
+type GitCommitView = {
+	author: string;
+	date: number;
+	hash: string;
+	files: Record<string, FileChangeType>;
+	message: string;
+	body?: string;
+	shortStat: string;
+	refs: string[];
+	isRemoteOnly: boolean;
+};
 
 // const relGitDirectory = join(__dirname, "/git");
 
@@ -778,7 +789,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 
 		// Process local commits
 		const localCommits =
-			gitLog?.all?.map((commit, index) => {
+			gitLog?.all?.map((commit: GitLogEntry, index: number): GitCommitView => {
 				// Debug the first commit to see what properties are available
 				if (index === 0) {
 					console.log("Raw commit object:", commit);
@@ -792,7 +803,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 					date: new Date(commit.date).getTime(),
 					hash: commit.hash,
 					files:
-						commit.diff?.files?.reduce<Record<string, FileChangeType>>((acc, file) => {
+						commit.diff?.files?.reduce<Record<string, FileChangeType>>((acc, file: StashFileEntry) => {
 							if (file.file) {
 								acc[file.file] = {
 									changeType: file.status || "",
@@ -935,7 +946,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 
 		// Expand all remotes by default
 		if (remotes.length > 0) {
-			const allRemoteNames = new Set(remotes.map((r) => r.name));
+			const allRemoteNames = new Set(remotes.map((r: GitRemoteEntry) => r.name));
 			setExpandedRemotes(allRemoteNames);
 		}
 
@@ -1245,8 +1256,8 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 			// Parse the name-status output into file changes
 			const files = stashContent
 				.split("\n")
-				.filter((line) => line.trim())
-				.map((line) => {
+				.filter((line: string) => line.trim())
+				.map((line: string) => {
 					const parts = line.trim().split("\t");
 					const changeType = parts[0];
 					const filePath = parts[1];

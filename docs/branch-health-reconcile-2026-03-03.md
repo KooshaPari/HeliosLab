@@ -112,6 +112,30 @@ git push -u origin chore/branch-health-colab-20260303
 
 ### Typecheck evidence
 
-- Command: `bun run typecheck`
-- Result: fail (existing repo-wide debt outside this focused lane)
-- Captured count: 3,335 `error TS` lines in `/tmp/colab-typecheck-after.log`.
+- Baseline command: `bun run typecheck`
+- Baseline log: `/tmp/colab-typecheck-before2.log`
+- After-change command: `bun run typecheck`
+- After-change log: `/tmp/colab-typecheck-after.log`
+
+#### Before/After counts (diff-friendly)
+
+| metric | before | after | delta |
+|---|---:|---:|---:|
+| total `error TS` lines | 639 | 610 | -29 |
+| `TS7006` (implicit any parameter) | 53 | 44 | -9 |
+| `TS7031` (implicit any destructuring) | 25 | 3 | -22 |
+
+#### Target file impact
+
+| file | before errors | after errors | delta |
+|---|---:|---:|---:|
+| `src/renderers/ivde/slates/GitSlate.tsx` | 73 | 66 | -7 |
+| `src/renderers/ivde/index.tsx` | 64 | 64 | 0 |
+| `src/renderers/ivde/settings/PluginSettings.tsx` | 9 | 9 | 0 |
+| `src/main/utils/terminalManager.ts` | 0 | 0 | 0 |
+
+#### Notes
+
+- `src/renderers/ivde/index.tsx`: `TS7006` reduced from 1 to 0 (typed webview `ref` callback).
+- `src/renderers/ivde/slates/GitSlate.tsx`: `TS7006` reduced from 7 to 0 (typed commit/file/reduce callbacks).
+- Additional high-frequency class reduction was delivered in `src/main/index.ts`: `TS7031` reduced from 25 to 3 via typed RPC payload destructuring.
