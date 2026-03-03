@@ -1,3 +1,5 @@
+/// <reference lib="dom" />
+
 import {
 	type Accessor,
 	For,
@@ -146,12 +148,12 @@ let globalFindAllInput: HTMLInputElement | undefined;
 // when done inside a nested <webview> they still propagate and affect the window
 // Note: this is overridden when we actually do want to
 // close the window from main using webContents.on('will-prevent-unload')
-window.onbeforeunload = (e) => {
+window.onbeforeunload = (e: BeforeUnloadEvent) => {
 	e.preventDefault();
 	return true;
 };
 
-window.open = (url, target) => {
+window.open = (url: string | URL, target?: string) => {
 	console.log("new window open!");
 	// Note: We handle opening new windows from nested webviews
 	// in the main process.
@@ -180,7 +182,7 @@ window.addEventListener('showCloseWindowDialog', () => {
 
 document.addEventListener(
 	"keydown",
-	(e) => {
+	(e: KeyboardEvent) => {
 		// console.info(e.key);
 		// todo (yoav): come up with pattern of hot keys
 		// eg: shift always reverses direction of implied-direction shortcuts
