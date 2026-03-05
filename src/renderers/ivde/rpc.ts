@@ -1176,6 +1176,9 @@ export type WorkspaceRPC = {
       openNewTab: {
         nodePath: string;
       };
+      openAsText: {
+        nodePath: string;
+      };
       openUrlInNewTab: {
         url: string;
       };
@@ -1218,7 +1221,14 @@ export type WorkspaceRPC = {
       closeCurrentTab: void;
       closeCurrentWindow: void;
       openSettings: {
-        settingsType: string;
+        settingsType:
+          | "global-settings"
+          | "workspace-settings"
+          | "llama-settings"
+          | "github-settings"
+          | "colab-cloud-settings"
+          | "plugin-marketplace"
+          | "plugin-settings";
       };
       handleGlobalShortcut: {
         key: string;
@@ -1258,6 +1268,22 @@ export type WorkspaceRPC = {
       removeOpenFile: {
         filePath: string;
       };
+      downloadStarted: {
+        filename: string;
+        path: string;
+      };
+      downloadProgress: {
+        progress: number;
+      };
+      downloadCompleted: {
+        filename: string;
+        path: string;
+      };
+      downloadFailed: {
+        filename: string;
+        path: string;
+        error: string;
+      };
       // Helios runtime state/event broadcasts
       "helios:state": {
         state: any;
@@ -1269,6 +1295,9 @@ export type WorkspaceRPC = {
       "helios:terminal-data": {
         terminalId: string;
         data: string;
+      };
+      copyToClipboard: {
+        text: string;
       };
     };
   }>;

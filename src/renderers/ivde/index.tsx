@@ -79,6 +79,7 @@ import type {
   CachedFileType,
   DomEventWithTarget,
   FileNodeType,
+  PanePathType,
   PostMessageShowContextMenu,
   PreviewFileTreeType,
   ProjectType,
@@ -125,8 +126,26 @@ import { PluginSlate } from "./slates/PluginSlate";
 import { TerminalSlate } from "./slates/TerminalSlate";
 import { WebSlate } from "./slates/WebSlate";
 
+declare module "solid-js" {
+  namespace JSX {
+    interface IntrinsicElements {
+      "electrobun-webview": any;
+    }
+  }
+}
+
 // todo (yoav): download this somewhere and move them to files.ts or something
 const defaultWebFaviconUrl = () => "views://assets/file-icons/bookmark.svg";
+const isSlateType = (value: unknown): value is SlateType => {
+  if (!value || typeof value !== "object" || !("type" in value)) {
+    return false;
+  }
+  const slate = value as { type?: unknown; v?: unknown };
+  if (slate.type === "devlink") {
+    return true;
+  }
+  return slate.v === 1;
+};
 
 // Removed DEFAULT_HOME_URL - no longer needed without new tab button
 
@@ -632,9 +651,12 @@ const App = () => {
       removeOpenFile(filePath);
     };
 
-    window.addEventListener("openFileInEditor", handleOpenFileInEditor as EventListener);
-    window.addEventListener("openFolderAsProject", handleOpenFolderAsProject as EventListener);
-    window.addEventListener("removeOpenFile", handleRemoveOpenFile as EventListener);
+    window.addEventListener("openFileInEditor", handleOpenFileInEditor as unknown as EventListener);
+    window.addEventListener(
+      "openFolderAsProject",
+      handleOpenFolderAsProject as unknown as EventListener,
+    );
+    window.addEventListener("removeOpenFile", handleRemoveOpenFile as unknown as EventListener);
   });
 
   const [isLoaded, setIsLoaded] = createSignal(false);
@@ -814,7 +836,7 @@ const App = () => {
           {githubAuthUrl() && (
             <electrobun-webview
               // nodeintegration={false}
-              ref={(el) => {
+              ref={(el: Element) => {
                 // YYY - el was Electron.WebviewTag type
                 githubAuthWebview = el; // as Electron.WebviewTag;
                 el.addEventListener("did-navigate", githubAuthWebviewWillNavigate);
@@ -1129,7 +1151,7 @@ const AnalyticsSettingsSection = ({
   analyticsEnabled: Accessor<boolean>;
   setAnalyticsEnabled: (value: boolean) => void;
   analyticsStatus: Accessor<any>;
-}): JSXElement => {
+}): JSX.Element => {
   const [hasBeenPrompted, setHasBeenPrompted] = createSignal(false);
 
   return (
@@ -1606,7 +1628,7 @@ const Pane = ({
                   if (dragState) {
                     dragState.targetPaneId = pane.id;
 
-                    if (pane.tabIds.includes(dragState.id)) {
+                    if (dragState.type === "tab" && pane.tabIds.includes(dragState.id)) {
                       dragState.targetTabIndex = pane.tabIds.length - 1;
                     } else {
                       dragState.targetTabIndex = pane.tabIds.length;
@@ -1973,7 +1995,9 @@ const PaneTab = ({
 
     if (_tab?.type === "file") {
       const _node = getNode(_tab?.path);
-      setTitle(getSlateForNode(_node)?.name || _node?.name || "untitled");
+      const slate = getSlateForNode(_node);
+      const slateName = slate && "name" in slate ? slate.name : undefined;
+      setTitle(slateName || _node?.name || "untitled");
     }
 
     if (_tab?.type === "agent") {
@@ -2480,7 +2504,7 @@ const NodeSettings = () => {
     if (_previewNode.type === "dir" && projectNameRef) {
       const project = getProjectByRootPath(_previewNode.path);
       if (project) {
-        projectNameRef.value = project.name;
+        projectNameRef.value = project.name || "";
       }
     }
 
@@ -2596,10 +2620,16 @@ const NodeSettings = () => {
         return;
       }
       // If it's a web browser profile, ensure the URL has a protocol before saving
-      const slateType = getSlateForNode(_previewNode)?.type;
+      const previewSlate = getSlateForNode(_previewNode);
+      const slateType = previewSlate?.type;
 
-      if (slateType === "web" && _previewNode.type === "dir" && "slate" in _previewNode) {
-        const currentUrl = getSlateForNode(_previewNode)?.url;
+      if (
+        previewSlate?.type === "web" &&
+        _previewNode.type === "dir" &&
+        "slate" in _previewNode &&
+        "url" in previewSlate
+      ) {
+        const currentUrl = previewSlate.url;
         if (currentUrl && !/^[a-zA-Z][a-zA-Z\d+\-.]*:/.test(currentUrl)) {
           // Use setPreviewNodeSlateUrl to properly update the reactive state
           setPreviewNodeSlateUrl(`https://${currentUrl}`);
@@ -2662,7 +2692,10 @@ const NodeSettings = () => {
       // Write .colab.json for directory slates (web, agent, etc.) but NOT for projects
       // Projects are stored in GoldfishDB and detected via isProjectRoot()
       if (_previewNode.type === "dir" && slateType && slateType !== "project") {
-        writeSlateConfigFile(_previewNode.path, getSlateForNode(_previewNode));
+        const slate = getSlateForNode(_previewNode);
+        if (isSlateType(slate)) {
+          writeSlateConfigFile(_previewNode.path, slate);
+        }
       }
 
       if (isProjectNode()) {
@@ -2676,13 +2709,15 @@ const NodeSettings = () => {
             const projectName = projectNameRef?.value || project.name;
             electrobun.rpc?.send.editProject({
               projectId: project.id,
-              projectName,
+              projectName: projectName || _previewNode.name,
               path: absolutePath,
             });
           }
         } else {
           // For new projects, get name from the preview node's slate
-          const projectName = getSlateForNode(_previewNode)?.name;
+          const projectSlate = getSlateForNode(_previewNode);
+          const projectName =
+            projectSlate && "name" in projectSlate ? projectSlate.name : _previewNode.name;
           electrobun.rpc?.request.addProject({
             projectName,
             path: absolutePath,
@@ -2966,12 +3001,13 @@ const NodeSettings = () => {
             "previewNode" in _state.settingsPane.data
           ) {
             const previewNode = _state.settingsPane.data.previewNode;
-            previewNode.name = newName;
-            previewNode.path = join(parentNodePath(previewNode), newName);
+            const resolvedName = newName || "new-project";
+            previewNode.name = resolvedName;
+            previewNode.path = join(parentNodePath(previewNode), resolvedName);
 
             // Also update the slate name to match
-            if ("slate" in previewNode && previewNode.slate) {
-              previewNode.slate.name = newName;
+            if ("slate" in previewNode && previewNode.slate && "name" in previewNode.slate) {
+              previewNode.slate.name = resolvedName;
             }
           }
         }),
@@ -2984,10 +3020,11 @@ const NodeSettings = () => {
         parentPath: parentNodePath(_previewNode),
         baseName: "new-browser-profile",
       });
+      const resolvedName = newName || "new-browser-profile";
       setPreviewNode({
         type: "dir",
-        name: newName,
-        path: join(parentNodePath(_previewNode), newName),
+        name: resolvedName,
+        path: join(parentNodePath(_previewNode), resolvedName),
         isExpanded: true,
         children: [],
         slate: {
@@ -3007,10 +3044,11 @@ const NodeSettings = () => {
         parentPath: parentNodePath(_previewNode),
         baseName: "new-agent",
       });
+      const resolvedName = newName || "new-agent";
       setPreviewNode({
         type: "dir",
-        name: newName,
-        path: join(parentNodePath(_previewNode), newName),
+        name: resolvedName,
+        path: join(parentNodePath(_previewNode), resolvedName),
         isExpanded: true,
         children: [],
         slate: {
@@ -3034,15 +3072,16 @@ const NodeSettings = () => {
       // Reset validation state when creating new repo
       setGitUrlValidation({ status: "idle" });
 
+      const resolvedName = newName || "new-repo";
       setPreviewNode({
         type: "dir",
-        name: newName,
-        path: join(parentNodePath(_previewNode), newName),
+        name: resolvedName,
+        path: join(parentNodePath(_previewNode), resolvedName),
         isExpanded: true,
         children: [],
         slate: {
           v: 1,
-          name: newName,
+          name: resolvedName,
           icon: "🔀",
           type: "repo",
           config: {
@@ -3078,10 +3117,11 @@ const NodeSettings = () => {
           parentPath: parentNodePath(_previewNode),
           baseName: "new-file",
         });
+        const resolvedName = nodeName || "new-file";
         setPreviewNode({
           type: "file",
-          name: nodeName,
-          path: join(parentNodePath(_previewNode), nodeName),
+          name: resolvedName,
+          path: join(parentNodePath(_previewNode), resolvedName),
           persistedContent: "",
           isDirty: false,
           model: null,
@@ -3092,10 +3132,11 @@ const NodeSettings = () => {
           parentPath: parentNodePath(_previewNode),
           baseName: "new-folder",
         });
+        const resolvedName = nodeName || "new-folder";
         setPreviewNode({
           type: "dir",
-          name: nodeName,
-          path: join(parentNodePath(_previewNode), nodeName),
+          name: resolvedName,
+          path: join(parentNodePath(_previewNode), resolvedName),
           previewChildren: [],
           isExpanded: false,
         });
@@ -3580,14 +3621,17 @@ const NodeSettings = () => {
                       <SettingsPaneField label="Browser Engine">
                         <select
                           name="renderer"
-                          value={createMemo(() => {
+                          value={createMemo((): string => {
                             const slate = getSlateForNode(previewNode());
                             if (
                               slate?.type === "web" &&
                               slate.config &&
                               "renderer" in slate.config
                             ) {
-                              return slate.config.renderer || "system";
+                              const renderer = slate.config.renderer;
+                              return renderer === "cef" || renderer === "system"
+                                ? renderer
+                                : "system";
                             }
                             return "system";
                           })()}
@@ -3855,8 +3899,8 @@ const Sidebar = () => {
     document.addEventListener("mouseup", handleMouseUp);
   };
 
-  const onFindAllChange = (e: InputEvent) => {
-    const value = e.target?.value;
+  const onFindAllChange = (e: DomEventWithTarget<InputEvent, HTMLInputElement>) => {
+    const value = e.currentTarget.value;
 
     // Clear results and cancel ongoing searches immediately
     if (value !== state.findAllInFolder.query) {
