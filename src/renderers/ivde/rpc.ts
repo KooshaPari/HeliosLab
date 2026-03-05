@@ -1236,6 +1236,11 @@ export type WorkspaceRPC = {
         exitCode: number;
         signal?: number;
       };
+      slateRender: {
+        instanceId: string;
+        html?: string;
+        script?: string;
+      };
       // Open a file in the editor (from edit command, Open menu, or drag-drop)
       openFileInEditor: {
         filePath: string;

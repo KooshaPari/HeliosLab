@@ -2,6 +2,7 @@ import Electrobun, {
   ApplicationMenu,
   BrowserView,
   BrowserWindow,
+  type MenuItemConfig,
   Screen,
   Tray,
   Updater,
@@ -713,8 +714,26 @@ setInterval(syncPluginKeybindings, 5000);
 // Initial sync after plugins are loaded
 setTimeout(syncPluginKeybindings, 1000);
 
+const extractAction = (event: unknown): string | null => {
+  if (
+    typeof event === "object" &&
+    event !== null &&
+    "data" in event &&
+    typeof (event as { data?: unknown }).data === "object" &&
+    (event as { data?: unknown }).data !== null &&
+    "action" in ((event as { data?: unknown }).data as Record<string, unknown>) &&
+    typeof ((event as { data?: unknown }).data as { action?: unknown }).action === "string"
+  ) {
+    return ((event as { data?: unknown }).data as { action: string }).action;
+  }
+  return null;
+};
+
 ApplicationMenu.on("application-menu-clicked", (e) => {
-  const { action } = e.data;
+  const action = extractAction(e);
+  if (!action) {
+    return;
+  }
 
   if (action === "terms-of-service") {
     createAboutWindow("https://colab.dev/terms-of-service");
@@ -806,7 +825,10 @@ const tray = new Tray({
 });
 
 tray.on("tray-clicked", (e) => {
-  const { action } = e.data;
+  const action = extractAction(e);
+  if (!action) {
+    return;
+  }
 
   if (action.startsWith("toggle-workspace:")) {
     const workspaceId = action.split(":")[1];
@@ -1087,7 +1109,7 @@ let findFilesTimeout: ReturnType<typeof setTimeout> | undefined;
 const updateTrayMenu = () => {
   const workspaces = db.collection("workspaces").query()?.data || {};
 
-  const trayMenu = [
+  const trayMenu: MenuItemConfig[] = [
     ...workspaces.map((workspace) => {
       return {
         type: "normal" as const,
@@ -1593,6 +1615,8 @@ const createWindow = (
             db.collection("appSettings").insert({
               distinctId: String(Date.now() + Math.random()), // Same pattern as analytics.ts
               userId: "",
+              analyticsEnabled: appSettings.analyticsEnabled ?? false,
+              analyticsConsentPrompted: appSettings.analyticsConsentPrompted ?? false,
               ...appSettings,
             });
           }
@@ -2137,7 +2161,7 @@ const createWindow = (
             // Ignore pkill errors (no processes found, etc.)
           }
 
-          let proc = null;
+          let proc: ReturnType<typeof Bun.spawn> | null = null;
           try {
             // First, check for local llama.cpp models in COLAB_MODELS_PATH
             let modelPath: string | null = null;
@@ -2229,7 +2253,7 @@ const createWindow = (
                   setTimeout(() => {
                     // Kill the process on timeout
                     try {
-                      proc.kill();
+                      proc?.kill();
                     } catch (e) {
                       console.warn("Failed to kill timed-out llama-cli process:", e);
                     }
@@ -2250,7 +2274,8 @@ const createWindow = (
             }
 
             // Read stdout (stderr is ignored to suppress verbose output)
-            const stdout = await new Response(proc.stdout).text();
+            const stdout =
+              proc.stdout instanceof ReadableStream ? await new Response(proc.stdout).text() : "";
             const response = stdout.trim();
 
             return {
@@ -3016,7 +3041,7 @@ const createWindow = (
     // We never want the main window to navigate or reload once it's loaded
     mainWindow.webview.on("will-navigate", (e) => {
       console.log("---->:: 3 main window will navigate");
-      e.response = { allow: false };
+      (e as { response: { allow: boolean } }).response = { allow: false };
     });
   });
 
@@ -3028,24 +3053,31 @@ const createWindow = (
 
   // Set up terminal manager message handler for this window
   terminalManager.setWindowMessageHandler(windowId, (message) => {
-    mainWindow.webview.rpc?.send(message.type, {
-      terminalId: message.terminalId,
-      data: message.data,
-      exitCode: message.exitCode,
-      signal: message.signal,
-    });
+    if (message.type === "terminalOutput") {
+      mainWindow.webview.rpc?.proxy.send.terminalOutput({
+        terminalId: message.terminalId,
+        data: message.data,
+      });
+      return;
+    }
+    if (message.type === "terminalExit") {
+      mainWindow.webview.rpc?.proxy.send.terminalExit({
+        terminalId: message.terminalId,
+        exitCode: message.exitCode,
+        signal: message.signal,
+      });
+    }
   });
 
   // Set up slate render message handler for plugin slates
   pluginManager.setSlateWindowMessageHandler((targetWindowId, message) => {
     if (targetWindowId === windowId && mainWindow.webview.rpc) {
       const slateMessage = message as {
-        type: string;
         instanceId: string;
         html?: string;
         script?: string;
       };
-      mainWindow.webview.rpc.send("slateRender", {
+      mainWindow.webview.rpc.proxy.send.slateRender({
         instanceId: slateMessage.instanceId,
         html: slateMessage.html,
         script: slateMessage.script,
@@ -3069,7 +3101,7 @@ const createWindow = (
   // });
 
   mainWindow.on("move", (e) => {
-    const { x, y } = e.data;
+    const { x, y } = (e as { data: { x: number; y: number } }).data;
     const { data: workspaceToUpdate } = db.collection("workspaces").queryById(workspaceId);
     if (workspaceToUpdate) {
       workspaceToUpdate.windows = workspaceToUpdate.windows?.map((w) => {
@@ -3089,7 +3121,9 @@ const createWindow = (
   });
 
   mainWindow.on("resize", (e) => {
-    const { x, y, width, height } = e.data;
+    const { x, y, width, height } = (e as {
+      data: { x: number; y: number; width: number; height: number };
+    }).data;
 
     const { data: workspaceToUpdate } = db.collection("workspaces").queryById(workspaceId);
     if (workspaceToUpdate) {
@@ -3323,7 +3357,6 @@ function openBunnyWindow(screenX?: number, screenY?: number) {
     url: "views://bunny/index.html",
     titleBarStyle: "hidden",
     transparent: true,
-    passthrough: true,
     frame: { width: size, height: size, x, y },
     rpc: bunnyRpc,
   });

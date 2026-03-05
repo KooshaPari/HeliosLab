@@ -1,9 +1,11 @@
 import { existsSync, renameSync, unlinkSync } from "fs";
 import { execSpawnSync } from "../utils/processUtils";
-import { BUN_BINARY_PATH, NODE_BINARY_PATH, NPM_BINARY_PATH, BUN_PATH } from "../consts/paths";
+import { BUN_BINARY_PATH, BUN_PATH, COLAB_DEPS_PATH } from "../consts/paths";
 import { join } from "path";
 
 const NODE_VERSION = "20.10.0";
+const NODE_BINARY_PATH = join(COLAB_DEPS_PATH, "node");
+const NPM_BINARY_PATH = join(COLAB_DEPS_PATH, "npm");
 
 // We don't use node.js, but some npm packages like webflow cli depend on it as a peerDependency
 // so it needs to exist on the PATH which only includes egbbunhome/.deps folder
