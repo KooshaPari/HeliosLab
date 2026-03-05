@@ -573,7 +573,11 @@ export type WorkspaceRPC = {
           args: string[];
           opts?: any;
         };
-        response: string;
+        response: {
+          stdout: string;
+          stderr: string;
+          exitCode: number | null;
+        };
       };
       safeTrashFileOrFolder: {
         params: {
@@ -878,7 +882,7 @@ export type WorkspaceRPC = {
             fields: Array<{
               key: string;
               label: string;
-              type: "string" | "number" | "boolean" | "select" | "color";
+              type: "string" | "number" | "boolean" | "select" | "color" | "secret";
               default?: string | number | boolean;
               description?: string;
               options?: Array<{ label: string; value: string | number }>;
@@ -897,7 +901,7 @@ export type WorkspaceRPC = {
           fields: Array<{
             key: string;
             label: string;
-            type: "string" | "number" | "boolean" | "select" | "color";
+            type: "string" | "number" | "boolean" | "select" | "color" | "secret";
             default?: string | number | boolean;
             description?: string;
             options?: Array<{ label: string; value: string | number }>;
@@ -928,6 +932,36 @@ export type WorkspaceRPC = {
           label: string;
           description: string;
         }>;
+      };
+      pluginGetSettingValidationStatuses: {
+        params: { pluginName: string };
+        response: Record<
+          string,
+          {
+            state: "idle" | "validating" | "valid" | "invalid";
+            message?: string;
+          }
+        >;
+      };
+      pluginGetState: {
+        params: { pluginName: string };
+        response: Record<string, unknown>;
+      };
+      pluginGetStateValue: {
+        params: { pluginName: string; key: string };
+        response: unknown;
+      };
+      pluginSetStateValue: {
+        params: { pluginName: string; key: string; value: unknown };
+        response: { ok: boolean };
+      };
+      pluginSendSettingsMessage: {
+        params: { pluginName: string; message: unknown };
+        response: { ok: boolean };
+      };
+      pluginGetPendingSettingsMessages: {
+        params: { pluginName: string };
+        response: unknown[];
       };
       // Helios runtime RPC (active when HELIOS_SURFACE_EDITOR != "true")
       heliosRequest: {

@@ -140,6 +140,10 @@ import { pluginManager, searchPlugins, getPackageInfo } from "./plugins";
 import { bootstrapHelios, getHeliosRuntime } from "../helios/bridge/helios-main-bootstrap";
 import { getLanesForWorkspace, getRecentAudit } from "../helios/bridge/persistence";
 
+declare global {
+  var llamaProcesses: Map<string, Subprocess>;
+}
+
 /** When true, helios terminal-first mode is active and editor surfaces are excluded */
 const HELIOS_MODE = process.env.HELIOS_SURFACE_EDITOR !== "true";
 
@@ -1577,6 +1581,7 @@ const createWindow = (
             // This should only happen if analytics.ts hasn't run yet
             db.collection("appSettings").insert({
               distinctId: String(Date.now() + Math.random()), // Same pattern as analytics.ts
+              userId: "",
               ...appSettings,
             });
           }
@@ -2027,7 +2032,7 @@ const createWindow = (
           console.log("syncRpc safeDeleteFileOrFolder", absolutePath);
           return safeDeleteFileOrFolder(absolutePath);
         },
-        execSpawnSync: ({ cmd, args, opts } = { cmd: "", args: [], opts: {} }) => {
+        execSpawnSync: ({ cmd, args, opts }) => {
           if (!cmd) {
             throw new Error("cmd is required");
           }
