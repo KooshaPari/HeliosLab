@@ -27,9 +27,10 @@ tasks:
       - bunx oxfmt --write .
 
   quality:lint:
-    desc: "Lint code with oxlint"
+    desc: "Lint code with oxlint + tsgolint"
     cmds:
       - bunx oxlint -c .oxlintrc.json .
+      - bunx tsgolint --tsconfig tsconfig.json
 
   quality:typecheck:
     desc: "Type check with tsgo (10x faster than tsc)"
@@ -54,6 +55,7 @@ tasks:
     cmds:
       - bunx oxfmt --check .
       - bunx oxlint -c .oxlintrc.json .
+      - bunx tsgolint --tsconfig tsconfig.json
       - bunx tsgo --noEmit
       - bunx vitest run
 
