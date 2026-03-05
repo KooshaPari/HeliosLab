@@ -1,10 +1,13 @@
+/// <reference lib="dom" />
+/// <reference types="bun-types" />
+
 import { spawn } from "bun";
 import { randomUUID } from "crypto";
 import path from "path";
 
 export interface TerminalSession {
   id: string;
-  process: any;
+  process: ReturnType<typeof spawn>;
   cwd: string;
   shell: string;
   ready: boolean;
@@ -13,6 +16,12 @@ export interface TerminalSession {
   stdoutReader?: ReadableStreamDefaultReader<Uint8Array>;
   stderrReader?: ReadableStreamDefaultReader<Uint8Array>;
 }
+
+type TerminalMessage =
+  | { type: "terminalOutput"; terminalId: string; data: string }
+  | { type: "terminalExit"; terminalId: string; exitCode: number; signal: number };
+
+type TerminalMessageHandler = (message: TerminalMessage) => void;
 
 interface PtyMessage {
   type: "spawn" | "input" | "resize" | "shutdown" | "get_cwd";
@@ -57,7 +66,7 @@ type BuiltinCommandHandler = (
 class TerminalManager {
   private terminals: Map<string, TerminalSession> = new Map();
   private terminalToWindow: Map<string, string> = new Map(); // terminalId -> windowId
-  private windowHandlers: Map<string, (message: any) => void> = new Map(); // windowId -> handler
+  private windowHandlers: Map<string, TerminalMessageHandler> = new Map(); // windowId -> handler
   private pluginCommandChecker?: PluginCommandChecker;
   private pluginCommandExecutor?: PluginCommandExecutor;
   private editCommandHandler?: BuiltinCommandHandler;
@@ -65,12 +74,12 @@ class TerminalManager {
   /**
    * @deprecated Use setWindowMessageHandler instead for proper multi-window support
    */
-  setMessageHandler(handler: (message: any) => void) {
+  setMessageHandler(handler: TerminalMessageHandler) {
     // Legacy support - register as "default" window
     this.windowHandlers.set("default", handler);
   }
 
-  setWindowMessageHandler(windowId: string, handler: (message: any) => void) {
+  setWindowMessageHandler(windowId: string, handler: TerminalMessageHandler) {
     this.windowHandlers.set(windowId, handler);
   }
 
@@ -84,7 +93,7 @@ class TerminalManager {
     }
   }
 
-  private getMessageHandler(terminalId: string): ((message: any) => void) | undefined {
+  private getMessageHandler(terminalId: string): TerminalMessageHandler | undefined {
     const windowId = this.terminalToWindow.get(terminalId);
     if (windowId) {
       return this.windowHandlers.get(windowId);
@@ -182,14 +191,14 @@ class TerminalManager {
     // Path to the Zig PTY binary - in the MacOS directory alongside the main executable
     const ptyBinaryPath = path.join(process.cwd(), "colab-pty");
 
-    const proc = spawn([ptyBinaryPath], {
+    const spawnOptions = {
       stdin: "pipe",
       stdout: "pipe",
       stderr: "pipe",
       cwd: process.cwd(),
-      // @ts-ignore - Bun specific option
       allowUnsafeCustomBinary: true,
-    });
+    } as Parameters<typeof spawn>[1];
+    const proc = spawn([ptyBinaryPath], spawnOptions);
 
     const terminal: TerminalSession = {
       id: terminalId,
@@ -210,7 +219,7 @@ class TerminalManager {
     this.readPtyOutput(proc, terminalId);
 
     // Handle process exit
-    proc.exited.then((exitCode) => {
+    proc.exited.then((exitCode: number) => {
       // console.log(`PTY process ${terminalId} exited with code ${exitCode}`);
       const terminal = this.terminals.get(terminalId);
       if (terminal) {
@@ -255,7 +264,7 @@ class TerminalManager {
     }
   }
 
-  private async readPtyOutput(proc: any, terminalId: string) {
+  private async readPtyOutput(proc: ReturnType<typeof spawn>, terminalId: string) {
     try {
       const stdoutReader = proc.stdout.getReader();
       const stderrReader = proc.stderr.getReader();

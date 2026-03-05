@@ -39,7 +39,7 @@
     "format:check": "oxfmt --check .",
     "lint": "oxlint -c .oxlintrc.json .",
     "lint:fix": "oxlint -c .oxlintrc.json --fix .",
-    "typecheck": "tsgo --noEmit"
+    "typecheck": "tsc -p tsconfig.ci.json --noEmit"
   },
   "dependencies": {
     "@webflow/webflow-cli": "^1.1.1",
