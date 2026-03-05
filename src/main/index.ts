@@ -142,6 +142,17 @@ import { getLanesForWorkspace, getRecentAudit } from "../helios/bridge/persisten
 
 declare global {
   var llamaProcesses: Map<string, Subprocess>;
+  var modelDownloads: Map<
+    string,
+    {
+      status: "downloading" | "completed" | "failed";
+      progress: number;
+      fileName: string;
+      downloadedBytes?: number;
+      totalBytes?: number;
+      error?: string;
+    }
+  >;
 }
 
 /** When true, helios terminal-first mode is active and editor surfaces are excluded */
@@ -2207,11 +2218,11 @@ const createWindow = (
             });
 
             // Store this process globally so it can be killed by future requests
-            const requestId = Date.now();
+            const requestId = String(Date.now());
             processTracker.set(requestId, proc);
 
             // Wait for completion with timeout
-            const result = await Promise.race([
+            await Promise.race([
               proc.exited,
               new Promise(
                 (_, reject) =>
@@ -2242,15 +2253,6 @@ const createWindow = (
             const stdout = await new Response(proc.stdout).text();
             const response = stdout.trim();
 
-            // Check if the process actually succeeded
-            if (result && result.exitCode !== 0) {
-              console.error("llama-cli exited with code:", result.exitCode);
-              return {
-                ok: false,
-                error: `llama-cli exited with code ${result.exitCode}`,
-              };
-            }
-
             return {
               ok: true,
               response: response,
@@ -2269,7 +2271,7 @@ const createWindow = (
 
             return {
               ok: false,
-              error: error.message,
+              error: getErrorMessage(error),
             };
           }
         },

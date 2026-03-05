@@ -963,6 +963,72 @@ export type WorkspaceRPC = {
         params: { pluginName: string };
         response: unknown[];
       };
+      pluginGetAllSlates: {
+        params: void;
+        response: Array<{
+          id: string;
+          pluginName: string;
+          name: string;
+          description?: string;
+          icon?: string;
+          patterns?: string[];
+          component?: string;
+          folderHandler?: boolean;
+        }>;
+      };
+      pluginFindSlateForFile: {
+        params: { filePath: string };
+        response:
+          | {
+              id: string;
+              pluginName: string;
+              name: string;
+              description?: string;
+              icon?: string;
+              patterns?: string[];
+              component?: string;
+              folderHandler?: boolean;
+            }
+          | null;
+      };
+      pluginFindSlateForFolder: {
+        params: { folderPath: string };
+        response:
+          | {
+              id: string;
+              pluginName: string;
+              name: string;
+              description?: string;
+              icon?: string;
+              patterns?: string[];
+              component?: string;
+              folderHandler?: boolean;
+            }
+          | null;
+      };
+      pluginMountSlate: {
+        params: { slateId: string; filePath: string; windowId: string };
+        response: {
+          instanceId: string;
+          initialRenders: Array<{ html?: string; script?: string }>;
+        };
+      };
+      pluginUnmountSlate: {
+        params: { instanceId: string };
+        response: { ok: boolean };
+      };
+      pluginSlateEvent: {
+        params: { instanceId: string; eventType: string; payload?: unknown };
+        response: { ok: boolean };
+      };
+      pluginGetSlateInstance: {
+        params: { instanceId: string };
+        response: unknown | null;
+      };
+      pluginGetPendingSlateRenders: {
+        params: { instanceId: string };
+        response: Array<{ html?: string; script?: string }>;
+      };
       // Helios runtime RPC (active when HELIOS_SURFACE_EDITOR != "true")
       heliosRequest: {
         params: {
