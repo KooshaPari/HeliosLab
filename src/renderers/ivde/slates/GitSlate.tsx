@@ -775,7 +775,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
     ]);
 
     // Fetch remote-only commits if we have a tracking branch
-    let gitRemoteOnlyLog: { all?: Array<any> } = { all: [] };
+    let gitRemoteOnlyLog: { all?: ReadonlyArray<any> } = { all: [] };
     if (gitStatus?.tracking && gitBranches?.current) {
       try {
         gitRemoteOnlyLog = (await electrobun.rpc?.request.gitLogRemoteOnly({
@@ -849,16 +849,18 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
         console.log("In sync with remote, adding remote ref to HEAD commit");
         if ((gitLog?.all?.length ?? 0) > 0) {
           const headCommit = gitLog?.all?.[0];
-          const existingRefs = refsMap.get(headCommit.hash) || [];
-          if (!existingRefs.includes(trackingBranch)) {
-            existingRefs.push(trackingBranch);
-            refsMap.set(headCommit.hash, existingRefs);
-            console.log(
-              "Added remote tracking refs to HEAD:",
-              existingRefs,
-              "to commit",
-              headCommit.hash,
-            );
+          if (headCommit) {
+            const existingRefs = refsMap.get(headCommit.hash) || [];
+            if (!existingRefs.includes(trackingBranch)) {
+              existingRefs.push(trackingBranch);
+              refsMap.set(headCommit.hash, existingRefs);
+              console.log(
+                "Added remote tracking refs to HEAD:",
+                existingRefs,
+                "to commit",
+                headCommit.hash,
+              );
+            }
           }
         }
       }

@@ -6,6 +6,7 @@ import { electrobun } from "../init";
 import {
   state,
   setState,
+  type AppState,
   openNewTabForNode,
   getWindow,
   focusTabWithId,
@@ -108,12 +109,7 @@ export const TopBar = () => {
           "justify-content": "center",
         }}
         onClick={() => {
-          const pos = getWindow()?.position;
-          const offset = {
-            x: (pos?.x || 0) + 75,
-            y: (pos?.y || 0) + 75,
-          };
-          electrobun.rpc?.send.createWindow({ offset });
+          electrobun.rpc?.send.createWindow();
         }}
       >
         <img width="16px" height="16px" src="views://assets/file-icons/new-window.svg" />
@@ -272,7 +268,7 @@ const CommandPalette = ({ setOpen }: { setOpen: (value: boolean) => void }) => {
   >([]);
 
   const [openTabs, setOpenTabs] = createSignal<
-    { name: string; description: string; project: string }[]
+    { name: string; description: string; tabId: string; path?: string }[]
   >([]);
 
   const [workspaceCommands, setWorkspaceCommands] = createSignal<
@@ -342,7 +338,7 @@ const CommandPalette = ({ setOpen }: { setOpen: (value: boolean) => void }) => {
   };
 
   const onCommandPaletteInput = (e: InputEvent) => {
-    const value = e.target?.value;
+    const value = (e.currentTarget as HTMLInputElement).value;
 
     if (value !== state.commandPalette.query) {
       setState(
@@ -373,7 +369,9 @@ const CommandPalette = ({ setOpen }: { setOpen: (value: boolean) => void }) => {
   const resetOpenTabs = () => {
     const query = state.commandPalette.query;
     const queryRegex = new RegExp(query.split("").join(".*"), "i");
-    const tabs = Object.values(getWindow(state)?.tabs || {}).reduce((acc, tab) => {
+    const tabs = Object.values(getWindow(state)?.tabs || {}).reduce<
+      { name: string; description: string; tabId: string; path?: string }[]
+    >((acc, tab) => {
       if (tab.type === "file") {
         // const node = state.fileCache[tab.path];
         const project = getProjectForNodePath(tab.path);
@@ -543,14 +541,17 @@ const CommandPalette = ({ setOpen }: { setOpen: (value: boolean) => void }) => {
       // Collect matches per project with scoring, limit to top 5 per project
       Object.entries(results).forEach(([key, value]) => {
         const project = state.projects[key];
+        if (!project?.path) {
+          return;
+        }
+        const projectPath = project.path;
         const projectMatches: any[] = [];
 
         value.forEach((path) => {
           const name = basename(path);
 
           // Get path from project folder (including project folder name)
-          const projectFolderName = basename(project.path);
-          const pathFromProject = path.replace(dirname(project.path) + "/", "");
+          const pathFromProject = path.replace(dirname(projectPath) + "/", "");
 
           // Simple scoring: prefer shorter paths and exact substring matches
           const lowerQuery = query.toLowerCase();

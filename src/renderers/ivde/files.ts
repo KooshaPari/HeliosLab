@@ -147,7 +147,9 @@ export const getProjectForNodePath = (nodePath: string, _state: AppState = state
   // Return the most specific (deepest nested) project
   // This ensures files in nested projects are associated with the child project, not the parent
   return matchingProjects.reduce((deepest, current) => {
-    return current.path.length > deepest.path.length ? current : deepest;
+    const deepestPathLength = deepest.path?.length ?? 0;
+    const currentPathLength = current.path?.length ?? 0;
+    return currentPathLength > deepestPathLength ? current : deepest;
   });
 };
 
@@ -389,6 +391,20 @@ export interface PluginSlateInfo {
   folderHandler?: boolean;
 }
 
+const normalizePluginSlate = (
+  slate: Partial<PluginSlateInfo> & Pick<PluginSlateInfo, "id" | "pluginName" | "name">,
+): PluginSlateInfo => {
+  return {
+    id: slate.id,
+    pluginName: slate.pluginName,
+    name: slate.name,
+    description: slate.description,
+    icon: slate.icon,
+    patterns: slate.patterns ?? [],
+    folderHandler: slate.folderHandler,
+  };
+};
+
 /**
  * Fetch plugin slates from backend and store them in reactive state.
  * Also initializes plugin renderer components for the loaded plugins.
@@ -396,12 +412,13 @@ export interface PluginSlateInfo {
  */
 export const loadPluginSlates = async (): Promise<void> => {
   try {
-    const slates = await electrobun.rpc?.request.pluginGetAllSlates();
-    setState("pluginSlates", slates || []);
+    const slatesResponse = await electrobun.rpc?.request.pluginGetAllSlates();
+    const slates = (slatesResponse ?? []).map((slate) => normalizePluginSlate(slate));
+    setState("pluginSlates", slates);
 
     // Initialize renderer components for all plugins that have slates
     const { initializeAllPluginRenderers } = await import("./slates/pluginSlateRegistry");
-    if (slates && slates.length > 0) {
+    if (slates.length > 0) {
       const pluginNames = [...new Set(slates.map((s: PluginSlateInfo) => s.pluginName))];
       await initializeAllPluginRenderers(pluginNames);
     } else {
@@ -480,7 +497,7 @@ export const findPluginSlateForFolder = async (
 ): Promise<PluginSlateInfo | null> => {
   try {
     const result = await electrobun.rpc?.request.pluginFindSlateForFolder({ folderPath });
-    return result || null;
+    return result ? normalizePluginSlate(result) : null;
   } catch (e) {
     console.error("[files] Failed to find plugin slate for folder:", e);
     return null;

@@ -34,7 +34,7 @@ import type {
   FileChangeEvent,
   EditorInfo,
   SlateContext,
-} from "../colab/src/main/plugins/types";
+} from "../src/main/plugins/types";
 
 let electrobunModeEnabled = false;
 const disposables: Disposable[] = [];

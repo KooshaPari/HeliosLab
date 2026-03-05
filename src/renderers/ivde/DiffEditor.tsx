@@ -340,6 +340,8 @@ export const DiffEditor = ({
 
     // Handle clicks on the glyph margin for staging
     modifiedEditor.onMouseDown((e: any) => {
+      if (!editor) return;
+
       if (e.target.type === monaco.editor.MouseTargetType.GUTTER_GLYPH_MARGIN) {
         const lineNumber = e.target.position?.lineNumber;
 
