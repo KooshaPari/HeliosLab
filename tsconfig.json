@@ -12,6 +12,9 @@
     // "jsxFragmentFactory": "Solid.Fragment",
 
     "allowJs": true,
+    "paths": {
+      "goldfishdb": ["./src/types/vendor/goldfishdb.d.ts"]
+    },
 
     // Bundler mode
     "moduleResolution": "bundler",

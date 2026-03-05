@@ -373,7 +373,7 @@ function deleteProject(workspaceId: string, projectId: string) {
   const workspace = db.collection("workspaces").queryById(workspaceId).data;
   if (workspace) {
     db.collection("workspaces").update(workspaceId, {
-      projectIds: workspace.projectIds.filter((projectIds) => projectIds !== projectId),
+      projectIds: workspace.projectIds.filter((projectIds: string) => projectIds !== projectId),
     });
   }
 
@@ -1110,7 +1110,7 @@ const updateTrayMenu = () => {
   const workspaces = db.collection("workspaces").query()?.data || {};
 
   const trayMenu: MenuItemConfig[] = [
-    ...workspaces.map((workspace) => {
+    ...workspaces.map((workspace: CurrentDocumentTypes["workspaces"]) => {
       return {
         type: "normal" as const,
         label: workspace.name || "",
@@ -1199,7 +1199,7 @@ const openWorkspaceWindows = (workspace: CurrentDocumentTypes["workspaces"]) => 
   if (!workspace.windows?.length) {
     const newWindow = createWindow(workspace.id);
   } else {
-    workspace.windows.forEach((window) => {
+    workspace.windows.forEach((window: WindowConfigType) => {
       const newWindow = createWindow(workspace.id, window);
     });
   }
@@ -1224,8 +1224,8 @@ type WindowConfigType = NonNullable<CurrentDocumentTypes["workspaces"]["windows"
 const getWorkspaceForWindow = (windowId: number) => {
   const { data: workspaces } = db.collection("workspaces").query();
 
-  return workspaces?.find((workspace) => {
-    return workspace.windows.find((win) => {
+  return workspaces?.find((workspace: CurrentDocumentTypes["workspaces"]) => {
+    return workspace.windows.find((win: WindowConfigType) => {
       console.log("win: ", win, windowId);
       return win.id === String(windowId);
     });
@@ -1676,7 +1676,7 @@ const createWindow = (
           };
 
           // Start new searches for each project
-          findAllProcesses = workspace.projectIds.map((projectId) => {
+          findAllProcesses = workspace.projectIds.map((projectId: string) => {
             const project = db.collection("projects").queryById(projectId).data;
 
             if (!project || !project.path) {
@@ -1755,7 +1755,7 @@ const createWindow = (
               return [];
             }
 
-            findFilesProcesses = workspace.projectIds.map((projectId) => {
+            findFilesProcesses = workspace.projectIds.map((projectId: string) => {
               const project = db.collection("projects").queryById(projectId).data;
 
               if (!project || !project.path) {
@@ -2940,7 +2940,7 @@ const createWindow = (
             win.close();
           });
           delete workspaceWindows[workspaceId];
-          _workspace?.projectIds?.forEach((projectId) => {
+          _workspace?.projectIds?.forEach((projectId: string) => {
             db.collection("projects").remove(projectId);
           });
           db.collection("workspaces").remove(workspaceId);
@@ -2951,7 +2951,7 @@ const createWindow = (
             win.close();
           });
           delete workspaceWindows[workspaceId];
-          _workspace?.projectIds?.forEach((projectId) => {
+          _workspace?.projectIds?.forEach((projectId: string) => {
             const { data: _project } = db.collection("projects").queryById(projectId);
             const path = _project?.path;
             if (path) {
@@ -3104,7 +3104,7 @@ const createWindow = (
     const { x, y } = (e as { data: { x: number; y: number } }).data;
     const { data: workspaceToUpdate } = db.collection("workspaces").queryById(workspaceId);
     if (workspaceToUpdate) {
-      workspaceToUpdate.windows = workspaceToUpdate.windows?.map((w) => {
+      workspaceToUpdate.windows = workspaceToUpdate.windows?.map((w: WindowConfigType) => {
         if (w.id === windowId) {
           w.position = {
             ...w.position,
@@ -3127,7 +3127,7 @@ const createWindow = (
 
     const { data: workspaceToUpdate } = db.collection("workspaces").queryById(workspaceId);
     if (workspaceToUpdate) {
-      workspaceToUpdate.windows = workspaceToUpdate.windows?.map((w) => {
+      workspaceToUpdate.windows = workspaceToUpdate.windows?.map((w: WindowConfigType) => {
         if (w.id === windowId) {
           w.position = {
             x,
@@ -3177,7 +3177,7 @@ const createWindow = (
       const visible = workspaceToUpdate.windows?.length > 1;
 
       db.collection("workspaces").update(workspaceId, {
-        windows: workspaceToUpdate.windows.filter((w) => w.id !== windowId),
+        windows: workspaceToUpdate.windows.filter((w: WindowConfigType) => w.id !== windowId),
         visible,
       });
 
@@ -3213,7 +3213,8 @@ const createWindow = (
     watchProjectDirectories();
 
     const { data: projects } = db.collection("projects").query({
-      where: (project) => Boolean(workspace.projectIds?.includes(project.id)),
+      where: (project: CurrentDocumentTypes["projects"]) =>
+        Boolean(workspace.projectIds?.includes(project.id)),
     });
     const { data: tokens } = db.collection("tokens").query();
     const { data: appSettingsArray } = db.collection("appSettings").query();
@@ -3247,7 +3248,7 @@ if (workspaces.length === 0) {
   workspaces = db.collection("workspaces").query()?.data || [];
 }
 
-workspaces.forEach((workspace) => {
+workspaces.forEach((workspace: CurrentDocumentTypes["workspaces"]) => {
   if (workspace.visible) {
     openWorkspaceWindows(workspace);
   }
