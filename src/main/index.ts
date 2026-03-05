@@ -150,7 +150,7 @@ const appName = localInfo.name;
 const version = localInfo.version;
 const hash = localInfo.hash;
 
-track.appOpen({ channel, appName, version, hash });
+track.appLaunch({ channel, appName, version, hash });
 
 // This is a main process cache of the state sent to windows
 // ie: if a window is created after the state is updated they should
@@ -171,6 +171,22 @@ const updateCache: {
   progress: null,
   downloadedFile: false,
   error: null,
+};
+
+const getErrorMessage = (error: unknown): string => {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return String(error);
+};
+
+const getErrorStack = (error: unknown): string => {
+  if (error instanceof Error && error.stack) {
+    return error.stack.toString();
+  }
+
+  return "";
 };
 
 // START SETUP
@@ -224,7 +240,7 @@ terminalManager.setEditCommandHandler(async (args, terminalId, cwd, write) => {
           writeFileSync(filePath, "", { encoding: "utf-8" });
           write(`Created: ${filePath}\r\n`);
         } catch (err) {
-          write(`\x1b[31mError creating file: ${err.message}\x1b[0m\r\n`);
+          write(`\x1b[31mError creating file: ${getErrorMessage(err)}\x1b[0m\r\n`);
           continue;
         }
       }
@@ -247,7 +263,7 @@ const checkForUpdate = async () => {
 
     const updateInfo = await Electrobun.Updater.checkForUpdate();
 
-    track.checkForUpdate({
+    track.versionCheck({
       hash: updateInfo.hash,
       version: updateInfo.version,
       updateAvailable: updateInfo.updateAvailable,
@@ -297,8 +313,8 @@ const checkForUpdate = async () => {
     updateCache.status = "error";
 
     updateCache.error = {
-      message: err.message,
-      stack: err.stack?.toString() || "",
+      message: getErrorMessage(err),
+      stack: getErrorStack(err),
     };
     broadcastToAllWindows("updateStatus", updateCache);
   }
@@ -795,7 +811,7 @@ tray.on("tray-clicked", (e) => {
   } else if (action === "check-for-update") {
     checkForUpdate();
   } else if (action === "quit-and-install-update") {
-    track.installUpdateNow({ triggeredBy: "user" });
+    track.updateInstall({ triggeredBy: "user" });
     cleanupLlamaProcesses();
     Electrobun.Updater.applyUpdate();
   } else if (action === "quit") {
@@ -806,9 +822,13 @@ tray.on("tray-clicked", (e) => {
 });
 
 // Get the db ids for workspace and window from the electrobun window id
-const broadcastToElectrobunWindow = (nativeWindowId, method, opts) => {
-  let workspaceId;
-  let windowId;
+const broadcastToElectrobunWindow = (
+  nativeWindowId: number,
+  method: string,
+  opts: unknown,
+) => {
+  let workspaceId: string | undefined;
+  let windowId: string | undefined;
 
   Object.keys(workspaceWindows).find((_workspaceId) => {
     return Object.keys(workspaceWindows[_workspaceId]).find((winId) => {
@@ -1055,6 +1075,7 @@ const updateTrayMenu = () => {
   const trayMenu = [
     ...workspaces.map((workspace) => {
       return {
+        type: "normal" as const,
         label: workspace.name || "",
         checked: Boolean(workspace.visible && workspace.windows?.length),
         action: `toggle-workspace:${workspace.id}`,
@@ -1064,6 +1085,7 @@ const updateTrayMenu = () => {
       type: "divider",
     },
     {
+      type: "normal" as const,
       label: "Create New Workspace",
       action: "create-workspace",
     },
@@ -1071,9 +1093,11 @@ const updateTrayMenu = () => {
       type: "divider",
     },
     {
+      type: "normal" as const,
       label: "Emergency Stuff",
       submenu: [
         {
+          type: "normal" as const,
           label: "Reset Database",
           action: "reset-database",
         },
@@ -1083,10 +1107,12 @@ const updateTrayMenu = () => {
       type: "divider",
     },
     {
+      type: "normal" as const,
       label: "Check for update",
       action: "check-for-update",
     },
     {
+      type: "normal" as const,
       hidden: !canQuitAndInstall(),
       label: `Quit and install Update (${updateCache.info?.version})`,
       action: "quit-and-install-update",
@@ -2840,7 +2866,7 @@ const createWindow = (
           toggleWorkspace(workspaceId);
         },
         installUpdateNow: () => {
-          track.installUpdateNow({ triggeredBy: "user" });
+          track.updateInstall({ triggeredBy: "user" });
           cleanupLlamaProcesses();
           Electrobun.Updater.applyUpdate();
         },

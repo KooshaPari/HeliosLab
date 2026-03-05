@@ -23,6 +23,7 @@ export type WorkspaceRPC = {
           // todo: electrobun should expose menu items type
           menuItems: any[];
         };
+        response: void;
       };
       newPreviewNode: {
         params: {
@@ -542,6 +543,7 @@ export type WorkspaceRPC = {
         params: {
           absolutePath: string;
         };
+        response: void;
       };
       execSpawnSync: {
         params: {
@@ -555,6 +557,7 @@ export type WorkspaceRPC = {
         params: {
           path: string;
         };
+        response: void;
       };
       createTerminal: {
         params: {
