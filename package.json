@@ -37,7 +37,7 @@
     "test": "vitest run",
     "format": "oxfmt .",
     "format:check": "oxfmt --check .",
-    "tsgolint": "tsgolint --tsconfig tsconfig.json",
+    "tsgolint": "bun run scripts/tsgolint-safe.ts",
     "lint": "oxlint -c .oxlintrc.json . && bun run tsgolint",
     "lint:fix": "oxlint -c .oxlintrc.json --fix . && bun run tsgolint",
     "typecheck": "tsgo --noEmit"
