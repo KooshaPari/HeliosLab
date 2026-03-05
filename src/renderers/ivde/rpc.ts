@@ -304,6 +304,20 @@ export type WorkspaceRPC = {
         };
         response: string;
       };
+      gitRevList: {
+        params: {
+          repoRoot: string;
+          options: string[];
+        };
+        response: string[];
+      };
+      gitMergeBase: {
+        params: {
+          repoRoot: string;
+          refs: string[];
+        };
+        response: string;
+      };
       gitCreateBranch: {
         params: {
           repoRoot: string;
@@ -328,13 +342,21 @@ export type WorkspaceRPC = {
         };
         response: string;
       };
+      gitAddRemote: {
+        params: {
+          repoRoot: string;
+          remoteName: string;
+          remoteUrl: string;
+        };
+        response: string;
+      };
       gitLogRemoteOnly: {
         params: {
           repoRoot: string;
           localBranch: string;
           remoteBranch: string;
         };
-        response: { all: any[] };
+        response: LogResult<DefaultLogFields> | { all: never[] };
       };
       gitClone: {
         params: {
