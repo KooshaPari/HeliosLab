@@ -107,6 +107,19 @@ interface CloudProjectConfig {
   };
 }
 
+interface SettingsValues {
+  accessToken?: string | number | boolean;
+}
+
+interface ReadFileResult {
+  textContent: string;
+}
+
+interface WriteFileResult {
+  success: boolean;
+  error?: string;
+}
+
 const PLUGIN_NAME = "colab-webflow";
 
 export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
@@ -168,9 +181,9 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
         }
       }
       // Fallback to old accessToken setting
-      const values = await electrobun.rpc?.request.pluginGetSettingsValues({
+      const values = (await electrobun.rpc?.request.pluginGetSettingsValues({
         pluginName: PLUGIN_NAME,
-      });
+      })) as SettingsValues | undefined;
       if (values?.accessToken && String(values.accessToken).trim()) {
         setConnected(true);
         return String(values.accessToken);
@@ -239,10 +252,10 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
       console.log("[WebflowSlate] Writing config to:", props.node.path);
       console.log("[WebflowSlate] JSON content:", jsonContent);
 
-      const result = await electrobun.rpc?.request.writeFile({
+      const result = (await electrobun.rpc?.request.writeFile({
         path: props.node.path,
         value: jsonContent,
-      });
+      })) as WriteFileResult | undefined;
 
       console.log("[WebflowSlate] writeFile result:", JSON.stringify(result));
 
@@ -275,7 +288,9 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
     // Read existing webflow.json if it exists
     let existing: any = {};
     try {
-      const result = await electrobun.rpc?.request.readFile({ path: webflowJsonPath });
+      const result = (await electrobun.rpc?.request.readFile({
+        path: webflowJsonPath,
+      })) as ReadFileResult | undefined;
       if (result?.textContent) {
         existing = JSON.parse(result.textContent);
       }
@@ -307,7 +322,9 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
     // Read existing webflow.json if it exists
     let existing: any = {};
     try {
-      const result = await electrobun.rpc?.request.readFile({ path: webflowJsonPath });
+      const result = (await electrobun.rpc?.request.readFile({
+        path: webflowJsonPath,
+      })) as ReadFileResult | undefined;
       if (result?.textContent) {
         existing = JSON.parse(result.textContent);
       }
@@ -346,9 +363,9 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
     if (!props.node?.path) return;
 
     try {
-      const result = await electrobun.rpc?.request.readFile({
+      const result = (await electrobun.rpc?.request.readFile({
         path: props.node.path,
-      });
+      })) as ReadFileResult | undefined;
       if (result?.textContent) {
         const parsed = JSON.parse(result.textContent);
         setConfig(parsed);
@@ -801,7 +818,7 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
 
       // Create a terminal and start the server
       setCommandOutput((prev) => (prev || "") + "\nStarting dev server...\n");
-      const terminalId = await electrobun.rpc?.request.createTerminal({ cwd });
+      const terminalId = (await electrobun.rpc?.request.createTerminal({ cwd })) as string | undefined;
       if (terminalId) {
         setDevServerTerminalId(terminalId);
         // Send the serve command to the terminal
@@ -857,7 +874,9 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
 
     try {
       // Read current config
-      const result = await electrobun.rpc?.request.readFile({ path: configPath });
+      const result = (await electrobun.rpc?.request.readFile({
+        path: configPath,
+      })) as ReadFileResult | undefined;
       if (!result?.textContent) return;
 
       const currentConfig = JSON.parse(result.textContent);
@@ -917,7 +936,9 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
 
     try {
       // Read current config
-      const result = await electrobun.rpc?.request.readFile({ path: props.node.path });
+      const result = (await electrobun.rpc?.request.readFile({
+        path: props.node.path,
+      })) as ReadFileResult | undefined;
       if (!result?.textContent) {
         setError("Failed to read config file");
         return;
@@ -938,10 +959,10 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
       const jsonContent = JSON.stringify(newConfig, null, 2);
       console.log("[WebflowSlate] Writing cloud config to:", props.node.path);
 
-      const writeResult = await electrobun.rpc?.request.writeFile({
+      const writeResult = (await electrobun.rpc?.request.writeFile({
         path: props.node.path,
         value: jsonContent,
-      });
+      })) as WriteFileResult | undefined;
 
       if (writeResult?.success) {
         setConfig(newConfig as any);
@@ -961,7 +982,9 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
     if (!props.node?.path) return;
 
     try {
-      const result = await electrobun.rpc?.request.readFile({ path: props.node.path });
+      const result = (await electrobun.rpc?.request.readFile({
+        path: props.node.path,
+      })) as ReadFileResult | undefined;
       if (!result?.textContent) return;
 
       const currentConfig = JSON.parse(result.textContent);

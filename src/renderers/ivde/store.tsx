@@ -87,6 +87,11 @@ export interface AgentTabType extends BaseTabType {
 }
 
 export type TabType = FileTabType | WebTabType | TerminalTabType | AgentTabType;
+type OpenTabConfig =
+  | Omit<FileTabType, "id" | "paneId" | "isPreview">
+  | Omit<WebTabType, "id" | "paneId" | "isPreview">
+  | Omit<TerminalTabType, "id" | "paneId" | "isPreview">
+  | Omit<AgentTabType, "id" | "paneId" | "isPreview">;
 
 export type LayoutPaneType = {
   id: string;
@@ -221,7 +226,8 @@ export interface AppState {
           | "llama-settings"
           | "github-settings"
           | "colab-cloud-settings"
-          | "plugin-marketplace";
+          | "plugin-marketplace"
+          | "plugin-settings";
         data: {};
       };
 
@@ -679,7 +685,7 @@ export const getCurrentPane = (_state: AppState = state) => {
 };
 
 export const openNewTab = (
-  config: Omit<TabType, "id" | "paneId" | "isPreview">,
+  config: OpenTabConfig,
   makePreviewTab = true,
   opts: {} | { targetPaneId: string; targetTabIndex: number } = {},
 ) => {
