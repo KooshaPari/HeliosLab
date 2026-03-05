@@ -34,6 +34,7 @@ type CommitType = {
   hash: string;
   files: FileChangesType;
   message: string;
+  body?: string;
   shortStat: string;
   refs: string[];
   isRemoteOnly?: boolean;
@@ -91,7 +92,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 
   const repoRootPath = node.path.replace(/\.git/, "");
 
-  let refreshLogAndStageTimeout: Timer;
+  let refreshLogAndStageTimeout: ReturnType<typeof setTimeout>;
 
   createEffect(() => {
     if (state.lastFileChange) {
@@ -774,7 +775,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
     ]);
 
     // Fetch remote-only commits if we have a tracking branch
-    let gitRemoteOnlyLog = { all: [] };
+    let gitRemoteOnlyLog: { all: Array<any> } = { all: [] };
     if (gitStatus?.tracking && gitBranches?.current) {
       try {
         gitRemoteOnlyLog = (await electrobun.rpc?.request.gitLogRemoteOnly({
@@ -1035,7 +1036,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 
     // Expand all remotes by default
     if (remotes.length > 0) {
-      const allRemoteNames = new Set(remotes.map((r: any) => r.name as string));
+      const allRemoteNames = new Set<string>(remotes.map((r: any) => r.name as string));
       setExpandedRemotes(allRemoteNames);
     }
 
@@ -1319,10 +1320,11 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 
   const fetchStashFiles = async (stashName: string) => {
     try {
-      const stashContent = await electrobun.rpc?.request.gitStashShow({
-        repoRoot: repoRootPath,
-        stashName: stashName,
-      });
+      const stashContent =
+        (await electrobun.rpc?.request.gitStashShow({
+          repoRoot: repoRootPath,
+          stashName: stashName,
+        })) || "";
 
       // Parse the name-status output into file changes
       const files = stashContent

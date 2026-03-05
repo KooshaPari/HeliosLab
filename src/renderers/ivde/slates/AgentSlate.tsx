@@ -26,6 +26,10 @@ export const AgentSlate = ({ node, tabId }: { node?: CachedFileType; tabId: stri
   }
 
   const slate = () => getSlateForNode(node);
+  const getSlateDisplayName = () => {
+    const slateData = slate();
+    return slateData && "name" in slateData ? slateData.name : "AI Assistant";
+  };
   const [message, setMessage] = createSignal("");
   const [isLoading, setIsLoading] = createSignal(false);
   const [availableModels, setAvailableModels] = createSignal<Array<{ name: string; path: string }>>(
@@ -39,7 +43,7 @@ export const AgentSlate = ({ node, tabId }: { node?: CachedFileType; tabId: stri
   const [contextContent, setContextContent] = createSignal("");
 
   // Chat scroll ref
-  let chatContainerRef: HTMLDivElement;
+  let chatContainerRef: HTMLDivElement | undefined;
 
   // Auto-scroll to bottom when new messages arrive
   const scrollToBottom = () => {
@@ -608,7 +612,7 @@ export const AgentSlate = ({ node, tabId }: { node?: CachedFileType; tabId: stri
                 </button>
               </Show>
               <h3 style="margin: 0; color: #fff; font-size: 14px;">
-                {slate()?.name || "AI Assistant"}
+                {getSlateDisplayName()}
                 <Show when={currentChatId()}>
                   <span style="color: #888; font-weight: normal; margin-left: 8px;">
                     • {chatHistories().find((c) => c.id === currentChatId())?.title || "New Chat"}
@@ -781,7 +785,9 @@ export const AgentSlate = ({ node, tabId }: { node?: CachedFileType; tabId: stri
 
           {/* Conversation History */}
           <div
-            ref={chatContainerRef}
+            ref={(el) => {
+              chatContainerRef = el;
+            }}
             style="flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px;"
           >
             <Show when={conversationHistory().length === 0}>

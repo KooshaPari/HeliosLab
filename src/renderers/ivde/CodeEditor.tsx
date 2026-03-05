@@ -618,6 +618,7 @@ export const Editor = ({ currentTabId }: { currentTabId: string }) => {
 
         openNewTab({
           type: "web",
+          path,
           url: path,
         });
 
@@ -1098,7 +1099,8 @@ type HoverResolverType =
   | undefined
   | (({ contents }: { contents: monaco.IMarkdownString[] }) => void);
 let hoverProviderResolver: HoverResolverType;
-let definitionProviderResolver;
+type DefinitionResolverType = undefined | ((value?: monaco.languages.Location[]) => void);
+let definitionProviderResolver: DefinitionResolverType;
 
 // let tsServerResponse = {
 //   contentLength: 0,
@@ -1493,7 +1495,7 @@ const handleDiagnosticResponse = (
         hoverProviderResolver = undefined;
       }
     } else if (command === "findSourceDefinition") {
-      const rawDefinitions = body || []; // as ts.server.protocol.DefinitionResponse.body;
+      const rawDefinitions = (body || []) as ts.server.protocol.DefinitionInfo[];
       if (parsedResponse.success === false) {
         console.error("response error", parsedResponse.message);
         // return;
@@ -1509,12 +1511,12 @@ const handleDiagnosticResponse = (
             startLineNumber: rawDefinition.start.line,
             startColumn: rawDefinition.start.offset,
             endLineNumber: rawDefinition.end.line,
-            endcolumn: rawDefinition.end.offset,
+            endColumn: rawDefinition.end.offset,
           },
         };
       });
 
-      definitionProviderResolver(definitions);
+      definitionProviderResolver?.(definitions);
     } else if (!parsedResponse.success) {
       console.error("response error", parsedResponse);
       return;

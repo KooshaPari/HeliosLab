@@ -181,11 +181,11 @@ export function isAbsolute(path: string) {
   return path.length > 0 && path.charCodeAt(0) === 47 /*/*/;
 }
 
-export function join() {
-  if (arguments.length === 0) return ".";
+export function join(...paths: string[]) {
+  if (paths.length === 0) return ".";
   var joined;
-  for (var i = 0; i < arguments.length; ++i) {
-    var arg = arguments[i];
+  for (var i = 0; i < paths.length; ++i) {
+    var arg = paths[i];
     assertPath(arg);
     if (arg.length > 0) {
       if (joined === undefined) joined = arg;
