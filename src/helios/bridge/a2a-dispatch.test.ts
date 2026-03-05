@@ -4,7 +4,7 @@
  * Verifies agent delegation dispatch and subprocess execution
  */
 
-import { describe, it, expect, beforeEach, expectTypeOf } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { createA2ADispatch } from "./a2a-dispatch";
 import type { LocalBusEnvelope } from "../runtime/protocol/types";
 
@@ -24,7 +24,7 @@ describe(createA2ADispatch, () => {
   });
 
   it("returns a function", () => {
-    expectTypeOf(dispatch).toBeFunction();
+    expect(typeof dispatch).toBe("function");
   });
 
   describe("agent.run", () => {
@@ -102,11 +102,11 @@ describe(createA2ADispatch, () => {
 
       expect(response.status).toBe("ok");
       expect(response.result?.configured).toBeDefined();
-      expectTypeOf(response.result?.configured).toBeBoolean();
+      expect(typeof response.result?.configured).toBe("boolean");
       expect(response.result?.acpClientInitialized).toBeDefined();
-      expectTypeOf(response.result?.acpClientInitialized).toBeBoolean();
+      expect(typeof response.result?.acpClientInitialized).toBe("boolean");
       expect(response.result?.activeAgentCount).toBeDefined();
-      expectTypeOf(response.result?.activeAgentCount).toBeNumber();
+      expect(typeof response.result?.activeAgentCount).toBe("number");
     });
 
     it("returns zero active agents when none running", async () => {
@@ -177,7 +177,7 @@ describe(createA2ADispatch, () => {
       const command = createCommand("agent.list");
       const response = await dispatch(command);
 
-      expectTypeOf(response.ts).toBeString();
+      expect(typeof response.ts).toBe("string");
       expect(response.ts).toMatch(/^\d{4}-\d{2}-\d{2}T/);
     });
 
@@ -196,8 +196,8 @@ describe(createA2ADispatch, () => {
       const response = await dispatch(command);
 
       expect(response.error).toBeDefined();
-      expectTypeOf(response.error?.code).toBeString();
-      expectTypeOf(response.error?.message).toBeString();
+      expect(typeof response.error?.code).toBe("string");
+      expect(typeof response.error?.message).toBe("string");
       expect(response.error?.retryable).toBeFalsy();
     });
 

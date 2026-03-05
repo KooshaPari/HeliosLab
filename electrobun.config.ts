@@ -20,9 +20,6 @@ export default {
         entrypoint: "src/renderers/helios/index.ts",
       },
     },
-    buildVars: {
-      HELIOS_SURFACE_EDITOR: process.env.HELIOS_SURFACE_EDITOR ?? "false",
-    },
     copy: {
       "src/renderers/ivde/index.html": "views/ivde/index.html",
       "assets/custom.editor.worker.js": "views/ivde/custom.editor.worker.js",
@@ -39,8 +36,6 @@ export default {
       bundleCEF: false,
       entitlements: {},
     },
-    watch: [],
-    watchIgnore: ["assets/licenses.html"],
   },
   runtime: {
     exitOnLastWindowClosed: false,

@@ -4,7 +4,7 @@
  * Verifies muxer dispatch routing and error handling
  */
 
-import { describe, it, expect, beforeEach, expectTypeOf } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { createMuxerDispatch } from "./muxer-dispatch";
 import type { LocalBusEnvelope } from "../runtime/protocol/types";
 
@@ -24,7 +24,7 @@ describe(createMuxerDispatch, () => {
   });
 
   it("returns a function", () => {
-    expectTypeOf(dispatch).toBeFunction();
+    expect(typeof dispatch).toBe("function");
   });
 
   describe("muxer.list", () => {
@@ -157,7 +157,7 @@ describe(createMuxerDispatch, () => {
 
       expect(response.status).toBe("ok");
       expect(response.result?.name).toBeDefined();
-      expectTypeOf(response.result?.name).toBeString();
+      expect(typeof response.result?.name).toBe("string");
     });
 
     it("returns proper success envelope structure", async () => {
@@ -177,7 +177,7 @@ describe(createMuxerDispatch, () => {
 
       expect(response.status).toBe("ok");
       expect(response.result?.createdAt).toBeDefined();
-      expectTypeOf(response.result?.createdAt).toBeString();
+      expect(typeof response.result?.createdAt).toBe("string");
     });
   });
 
@@ -397,7 +397,7 @@ describe(createMuxerDispatch, () => {
       const command = createCommand("muxer.list");
       const response = await dispatch(command);
 
-      expectTypeOf(response.ts).toBeString();
+      expect(typeof response.ts).toBe("string");
       expect(response.ts).toMatch(/^\d{4}-\d{2}-\d{2}T/);
     });
 
@@ -416,8 +416,8 @@ describe(createMuxerDispatch, () => {
       const response = await dispatch(command);
 
       expect(response.error).toBeDefined();
-      expectTypeOf(response.error?.code).toBeString();
-      expectTypeOf(response.error?.message).toBeString();
+      expect(typeof response.error?.code).toBe("string");
+      expect(typeof response.error?.message).toBe("string");
       expect(response.error?.retryable).toBeFalsy();
     });
 

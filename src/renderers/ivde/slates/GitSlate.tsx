@@ -775,7 +775,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
     ]);
 
     // Fetch remote-only commits if we have a tracking branch
-    let gitRemoteOnlyLog: { all: Array<any> } = { all: [] };
+    let gitRemoteOnlyLog: { all?: Array<any> } = { all: [] };
     if (gitStatus?.tracking && gitBranches?.current) {
       try {
         gitRemoteOnlyLog = (await electrobun.rpc?.request.gitLogRemoteOnly({
@@ -793,8 +793,8 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
     const refsMap = new Map<string, string[]>();
 
     // Add current branch to HEAD commit
-    if (gitBranches?.current && gitLog?.all?.length > 0) {
-      const headCommit = gitLog.all[0];
+    if (gitBranches?.current && (gitLog?.all?.length ?? 0) > 0) {
+      const headCommit = gitLog?.all?.[0];
       if (headCommit) {
         const refs = [gitBranches.current];
         refsMap.set(headCommit.hash, refs);
@@ -824,8 +824,8 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
           remoteCommitIndex,
         );
 
-        if (gitLog?.all?.length > remoteCommitIndex) {
-          const remoteCommit = gitLog.all[remoteCommitIndex];
+        if ((gitLog?.all?.length ?? 0) > remoteCommitIndex) {
+          const remoteCommit = gitLog?.all?.[remoteCommitIndex];
           if (remoteCommit) {
             const existingRefs = refsMap.get(remoteCommit.hash) || [];
             existingRefs.push(trackingBranch);
@@ -847,8 +847,8 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
       } else if (gitStatus.ahead === 0 && gitStatus.behind === 0) {
         // We are in sync - remote is at the same commit as us
         console.log("In sync with remote, adding remote ref to HEAD commit");
-        if (gitLog?.all?.length > 0) {
-          const headCommit = gitLog.all[0];
+        if ((gitLog?.all?.length ?? 0) > 0) {
+          const headCommit = gitLog?.all?.[0];
           const existingRefs = refsMap.get(headCommit.hash) || [];
           if (!existingRefs.includes(trackingBranch)) {
             existingRefs.push(trackingBranch);

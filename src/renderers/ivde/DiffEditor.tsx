@@ -10,7 +10,9 @@ declare global {
 
 // IDiffNavigator type is incomplete defined at esm/vs/editor/editor.api.d.ts
 // DiffNavigator class is defined at esm/vs/editor/browser/widget/diffNavigator.js
-type ActualDiffEditorClassType = monaco.editor.IDiffNavigator & {
+type ActualDiffEditorClassType = {
+  next: () => void;
+  previous: () => void;
   nextIdx: number;
   // The range class is defined at esm/vs/editor/common/core/range.js
   // but we only really care about the length of the array for now
@@ -149,26 +151,26 @@ export const DiffEditor = ({
       inherit: true,
       rules: [],
       colors: {
-        "diffEditor.insertedTextBackground": "#0c451a",
-        // "diffEditor.insertedTextBorder": "#fff",
-        "diffEditor.removedTextBackground": "#4a1c1e",
-        // "diffEditor.removedTextBorder": "#fff",
-        // "diffEditor.border": "#fff",
-        // "diffEditor.diagonalFill": "#fff",
-        "diffEditor.insertedLineBackground": "#0c451a",
-        "diffEditor.removedLineBackground": "#4a1c1e",
-        "diffEditorGutter.insertedLineBackground": "#0c451a",
-        "diffEditorGutter.removedLineBackground": "#4a1c1e",
-        "diffEditorOverview.insertedForeground": "#0c451a",
-        "diffEditorOverview.removedForeground": "#4a1c1e",
+        "editor.insertedTextBackground": "#0c451a",
+        // "editor.insertedTextBorder": "#fff",
+        "editor.removedTextBackground": "#4a1c1e",
+        // "editor.removedTextBorder": "#fff",
+        // "editor.border": "#fff",
+        // "editor.diagonalFill": "#fff",
+        "editor.insertedLineBackground": "#0c451a",
+        "editor.removedLineBackground": "#4a1c1e",
+        "editorGutter.insertedLineBackground": "#0c451a",
+        "editorGutter.removedLineBackground": "#4a1c1e",
+        "editorOverview.insertedForeground": "#0c451a",
+        "editorOverview.removedForeground": "#4a1c1e",
 
         // Note: might need to upgrade for these to work
-        // "diffEditor.unchangedRegionBackground": "#fff",
-        // "diffEditor.unchangedRegionForeground": "#fff",
-        // "diffEditor.unchangedRegionShadow": "#fff",
-        // "diffEditor.unchangedCodeBackground": "#fff",
-        // "diffEditor.move": "#fff",
-        // "diffEditor.moveActive": "#fff",
+        // "editor.unchangedRegionBackground": "#fff",
+        // "editor.unchangedRegionForeground": "#fff",
+        // "editor.unchangedRegionShadow": "#fff",
+        // "editor.unchangedCodeBackground": "#fff",
+        // "editor.move": "#fff",
+        // "editor.moveActive": "#fff",
         // "multiDiffEditor.headerBackground": "#fff",
       },
     });
@@ -193,6 +195,7 @@ export const DiffEditor = ({
     }
 
     editor.onDidUpdateDiff(() => {
+      if (!editor) return;
       console.log("Diff updated!");
 
       // Get line changes from the diff editor
@@ -331,12 +334,12 @@ export const DiffEditor = ({
 
     // Track selection changes to show/hide selection buttons
     const modifiedEditor = editor.getModifiedEditor();
-    modifiedEditor.onDidChangeCursorSelection((e) => {
+    modifiedEditor.onDidChangeCursorSelection((e: any) => {
       setHasSelection(!e.selection.isEmpty());
     });
 
     // Handle clicks on the glyph margin for staging
-    modifiedEditor.onMouseDown((e) => {
+    modifiedEditor.onMouseDown((e: any) => {
       if (e.target.type === monaco.editor.MouseTargetType.GUTTER_GLYPH_MARGIN) {
         const lineNumber = e.target.position?.lineNumber;
 
@@ -769,7 +772,7 @@ export const DiffEditor = ({
         }
 
         // Handle clicks on the glyph margin
-        const mouseDownDisposable = modifiedEditor.onMouseDown((e) => {
+        const mouseDownDisposable = modifiedEditor.onMouseDown((e: any) => {
           console.log("Mouse down on:", e.target.type);
           if (e.target.type === monaco.editor.MouseTargetType.GUTTER_GLYPH_MARGIN) {
             const lineNumber = e.target.position?.lineNumber;

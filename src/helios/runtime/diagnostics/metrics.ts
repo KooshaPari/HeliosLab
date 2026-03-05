@@ -88,16 +88,16 @@ export class RuntimeMetrics {
     const summaries: RuntimeMetricSummary[] = [];
     for (const [metric, items] of byMetric.entries()) {
       const sortedValues = items.map((item) => item.value).sort((a, b) => a - b);
-      const unit = items[0].unit;
+      const unit = items[0]?.unit ?? "count";
       summaries.push({
         metric,
         unit,
         count: sortedValues.length,
         min: sortedValues[0],
-        max: sortedValues.at(-1),
+        max: sortedValues[sortedValues.length - 1] ?? 0,
         p50: percentile(sortedValues, 0.5),
         p95: percentile(sortedValues, 0.95),
-        latest: items.at(-1).value,
+        latest: items[items.length - 1]?.value ?? 0,
       });
     }
 

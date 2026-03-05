@@ -55,12 +55,12 @@ export const AgentSlate = ({ node, tabId }: { node?: CachedFileType; tabId: stri
   // Get chat histories from slate config
   const getChatHistories = (): ChatHistory[] => {
     const slateData = slate();
-    if (slateData?.type === "agent" && slateData.config.chatHistories) {
-      return slateData.config.chatHistories;
+    if (slateData?.type === "agent" && (slateData.config as any).chatHistories) {
+      return (slateData.config as any).chatHistories;
     }
     // Migrate old single conversation history to new format
-    if (slateData?.type === "agent" && slateData.config.conversationHistory) {
-      const oldHistory = slateData.config.conversationHistory as Message[];
+    if (slateData?.type === "agent" && (slateData.config as any).conversationHistory) {
+      const oldHistory = (slateData.config as any).conversationHistory as Message[];
       if (oldHistory.length > 0) {
         return [
           {
@@ -95,8 +95,8 @@ export const AgentSlate = ({ node, tabId }: { node?: CachedFileType; tabId: stri
   // Get current model from slate config or app settings
   const getCurrentModel = () => {
     const slateData = slate();
-    if (slateData?.type === "agent" && slateData.config.model) {
-      return slateData.config.model;
+    if (slateData?.type === "agent" && (slateData.config as any).model) {
+      return (slateData.config as any).model;
     }
     return state.appSettings.llama.model;
   };
@@ -106,8 +106,8 @@ export const AgentSlate = ({ node, tabId }: { node?: CachedFileType; tabId: stri
   // AI Settings
   const getAISettings = () => {
     const slateData = slate();
-    if (slateData?.type === "agent" && slateData.config.aiSettings) {
-      return slateData.config.aiSettings;
+    if (slateData?.type === "agent" && (slateData.config as any).aiSettings) {
+      return (slateData.config as any).aiSettings;
     }
     return {
       temperature: 0.7,
@@ -217,7 +217,7 @@ export const AgentSlate = ({ node, tabId }: { node?: CachedFileType; tabId: stri
       };
 
       // Update slate cache
-      setState("slateCache", node.path + "/.colab.json", updatedSlate);
+      setState("slateCache", node.path + "/.colab.json", updatedSlate as any);
 
       // Save to file
       const configPath = node.path + "/.colab.json";
