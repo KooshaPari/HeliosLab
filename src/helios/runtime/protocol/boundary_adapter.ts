@@ -8,7 +8,7 @@ export interface BoundaryDispatchDecision {
   adapter: BoundaryAdapterName;
 }
 
-type CommandDispatch = (command: LocalBusEnvelope) => Promise<LocalBusEnvelope>;
+type CommandDispatch = (command: Readonly<LocalBusEnvelope>) => Promise<LocalBusEnvelope>;
 
 interface BoundaryDispatcherInput {
   dispatchLocal: CommandDispatch;
@@ -55,10 +55,10 @@ const TOOL_METHODS = new Set([
 const A2A_METHODS = new Set(["agent.run", "agent.cancel", "boundary.a2a.dispatch"]);
 
 function normalizedBoundaryError(
-  command: LocalBusEnvelope,
+  command: Readonly<LocalBusEnvelope>,
   code: string,
   message: string,
-  details: Record<string, unknown>,
+  details: Readonly<Record<string, unknown>>,
 ): ResponseEnvelope {
   return {
     id: command.id,
@@ -96,7 +96,7 @@ export function getBoundaryDispatchDecision(method: string): BoundaryDispatchDec
 export function createBoundaryDispatcher(input: BoundaryDispatcherInput): CommandDispatch {
   const dispatchTool =
     input.dispatchTool ??
-    (async (command) =>
+    ((command) =>
       normalizedBoundaryError(
         command,
         "UNSUPPORTED_BOUNDARY_ADAPTER",
@@ -109,7 +109,7 @@ export function createBoundaryDispatcher(input: BoundaryDispatcherInput): Comman
       ));
   const dispatchA2A =
     input.dispatchA2A ??
-    (async (command) =>
+    ((command) =>
       normalizedBoundaryError(
         command,
         "UNSUPPORTED_BOUNDARY_ADAPTER",
@@ -121,7 +121,7 @@ export function createBoundaryDispatcher(input: BoundaryDispatcherInput): Comman
         },
       ));
 
-  return async (command: LocalBusEnvelope): Promise<LocalBusEnvelope> => {
+  return async (command: Readonly<LocalBusEnvelope>): Promise<LocalBusEnvelope> => {
     if (command.type !== "command") {
       return normalizedBoundaryError(
         command,

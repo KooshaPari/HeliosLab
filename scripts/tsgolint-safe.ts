@@ -7,13 +7,11 @@ function stripAnsi(text: string): string {
 
 function reportedErrorCount(stdoutText: string, stderrText: string): number {
   const combinedOutput = stripAnsi(`${stdoutText}\n${stderrText}`);
-  const match = combinedOutput.match(/Found\s+(\d+)\s+errors\b/);
+  const match = /Found\s+(\d+)\s+errors\b/.exec(combinedOutput);
   return match ? Number.parseInt(match[1], 10) : 0;
 }
 
-function writeOutputs(stdout: Uint8Array, stderr: Uint8Array): void {
-  const stdoutText = decoder.decode(stdout);
-  const stderrText = decoder.decode(stderr);
+function writeOutputs(stdoutText: string, stderrText: string): void {
   if (stdoutText.length > 0) {
     process.stdout.write(stdoutText);
   }
@@ -22,18 +20,22 @@ function writeOutputs(stdout: Uint8Array, stderr: Uint8Array): void {
   }
 }
 
-function run(command: string[]): { exitCode: number; stdoutText: string; stderrText: string } {
+function run(
+  command: ReadonlyArray<string>,
+): { exitCode: number; stdoutText: string; stderrText: string } {
   const result = Bun.spawnSync(command, {
     stdout: "pipe",
     stderr: "pipe",
   });
 
-  writeOutputs(result.stdout, result.stderr);
+  const stdoutText = decoder.decode(result.stdout);
+  const stderrText = decoder.decode(result.stderr);
+  writeOutputs(stdoutText, stderrText);
 
   return {
     exitCode: result.exitCode,
-    stdoutText: decoder.decode(result.stdout),
-    stderrText: decoder.decode(result.stderr),
+    stdoutText,
+    stderrText,
   };
 }
 

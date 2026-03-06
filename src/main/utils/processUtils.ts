@@ -4,8 +4,8 @@ import { BUN_PATH } from "../consts/paths";
 // An execSync-like wrapper around spawnSync in the ~/.colab/.bun/ folder as cwd
 export const execSpawnSync = (
   command: string,
-  args: string[] = [],
-  opts: SpawnSyncOptionsWithBufferEncoding = {},
+  args: readonly string[] = [],
+  opts: Readonly<SpawnSyncOptionsWithBufferEncoding> = {},
 ): { stdout: string; stderr: string; exitCode: number | null } => {
   const result = spawnSync(command, args, {
     cwd: BUN_PATH,
@@ -21,8 +21,8 @@ export const execSpawnSync = (
     console.error(`error running ${command}`, result.error);
   }
 
-  const stdout = result.stdout?.toString().trim() || "";
-  const stderr = result.stderr?.toString().trim() || "";
+  const stdout = result.stdout.toString().trim();
+  const stderr = result.stderr.toString().trim();
 
   if (stderr) {
     console.error("stderr: ", stderr);

@@ -33,7 +33,7 @@ export interface RendererSwitchResult {
 
 function toCommandEnvelope(
   method: string,
-  payload: Record<string, unknown>,
+  payload: Readonly<Record<string, unknown>>,
   workspaceId: string | null,
   sessionId: string | null,
   terminalId: string | null,
@@ -51,7 +51,7 @@ function toCommandEnvelope(
 }
 
 function toResponse<T extends Record<string, unknown>>(
-  response: LocalBusEnvelope,
+  response: Readonly<LocalBusEnvelope>,
 ): RuntimeResponse<T> {
   if (response.status === "error") {
     return {
@@ -63,7 +63,10 @@ function toResponse<T extends Record<string, unknown>>(
 
   return {
     ok: true,
-    result: (response.result as T | null) ?? ({} as T | null),
+    result:
+      typeof response.result === "object" && response.result !== null
+        ? (response.result as T)
+        : null,
     error: null,
   };
 }
@@ -88,7 +91,7 @@ function normalizeDiagnostics(result: Record<string, unknown> | null): Transport
 export class DesktopRuntimeClient {
   private readonly bus: LocalBus;
 
-  constructor(bus: LocalBus) {
+  constructor(bus: Readonly<LocalBus>) {
     this.bus = bus;
   }
 
@@ -114,7 +117,7 @@ export class DesktopRuntimeClient {
     const parsed = toResponse<Record<string, unknown>>(response);
     return {
       ok: parsed.ok,
-      runtimeState: (parsed.result?.state as RuntimeState | undefined) ?? null,
+      runtimeState: isRuntimeState(parsed.result?.state) ? parsed.result.state : null,
       id: typeof parsed.result?.lane_id === "string" ? parsed.result.lane_id : null,
       diagnostics: normalizeDiagnostics(parsed.result),
       error: parsed.error,
@@ -141,7 +144,7 @@ export class DesktopRuntimeClient {
     const parsed = toResponse<Record<string, unknown>>(response);
     return {
       ok: parsed.ok,
-      runtimeState: (parsed.result?.state as RuntimeState | undefined) ?? null,
+      runtimeState: isRuntimeState(parsed.result?.state) ? parsed.result.state : null,
       id: typeof parsed.result?.session_id === "string" ? parsed.result.session_id : null,
       diagnostics: normalizeDiagnostics(parsed.result),
       error: parsed.error,
@@ -170,7 +173,7 @@ export class DesktopRuntimeClient {
     const parsed = toResponse<Record<string, unknown>>(response);
     return {
       ok: parsed.ok,
-      runtimeState: (parsed.result?.state as RuntimeState | undefined) ?? null,
+      runtimeState: isRuntimeState(parsed.result?.state) ? parsed.result.state : null,
       id: typeof parsed.result?.terminal_id === "string" ? parsed.result.terminal_id : null,
       diagnostics: normalizeDiagnostics(parsed.result),
       error: parsed.error,
@@ -184,10 +187,10 @@ export class DesktopRuntimeClient {
     const parsed = toResponse<Record<string, unknown>>(response);
     const activeEngine = parsed.result?.active_engine === "rio" ? "rio" : "ghostty";
     const available = Array.isArray(parsed.result?.available_engines)
-      ? (parsed.result.available_engines.filter(
+      ? parsed.result.available_engines.filter(
           (value): value is RendererEngine => value === "ghostty" || value === "rio",
-        ) as RendererEngine[])
-      : (["ghostty", "rio"] as RendererEngine[]);
+        )
+      : ["ghostty", "rio"];
     return {
       activeEngine,
       availableEngines: available,
@@ -220,4 +223,22 @@ export class DesktopRuntimeClient {
       error: parsed.error,
     };
   }
+}
+
+function isRuntimeState(value: unknown): value is RuntimeState {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+
+  const candidate = value as {
+    lane?: string;
+    session?: string;
+    terminal?: string;
+  };
+
+  return (
+    typeof candidate.lane === "string" &&
+    typeof candidate.session === "string" &&
+    typeof candidate.terminal === "string"
+  );
 }

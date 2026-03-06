@@ -95,7 +95,7 @@ export const INITIAL_ACTIVE_CONTEXT_STATE: ActiveContextState = {
 };
 
 function appendTrace(
-  trace: ContextActionTrace[],
+  trace: readonly ContextActionTrace[],
   action: string,
   detail?: unknown,
 ): ContextActionTrace[] {
@@ -103,8 +103,8 @@ function appendTrace(
 }
 
 export function reduceActiveContextState(
-  state: ActiveContextState,
-  action: ActiveContextAction,
+  state: Readonly<ActiveContextState>,
+  action: Readonly<ActiveContextAction>,
 ): ActiveContextState {
   switch (action.type) {
     case "workspace.set": {

@@ -5,7 +5,7 @@ export interface LaneSpec {
 }
 
 export interface ParAdapter {
-  createLane(spec: LaneSpec): Promise<{ worktreePath: string }>;
+  createLane(spec: Readonly<LaneSpec>): Promise<{ worktreePath: string }>;
   attachLane(laneId: string): Promise<void>;
   cleanupLane(laneId: string): Promise<void>;
 }

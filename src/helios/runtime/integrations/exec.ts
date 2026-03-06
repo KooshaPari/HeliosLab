@@ -4,7 +4,7 @@ export interface ExecResult {
   stderr: string;
 }
 
-export async function execCommand(command: string, args: string[]): Promise<ExecResult> {
+export async function execCommand(command: string, args: readonly string[]): Promise<ExecResult> {
   const proc = Bun.spawn([command, ...args], {
     stdout: "pipe",
     stderr: "pipe",

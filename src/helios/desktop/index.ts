@@ -24,7 +24,7 @@ export class EditorlessControlPlane {
   readonly runtimeClient: DesktopRuntimeClient;
   private settings: DesktopSettings;
 
-  constructor(input: BootDesktopInput = {}) {
+  constructor(input: Readonly<BootDesktopInput> = {}) {
     const bus = input.bus ?? new InMemoryLocalBus();
     this.store = new ActiveContextStore(INITIAL_ACTIVE_CONTEXT_STATE);
     this.runtimeClient = new DesktopRuntimeClient(bus);
@@ -151,8 +151,8 @@ export class EditorlessControlPlane {
       targetEngine,
       runtimeClient: this.runtimeClient,
       contextStore: this.store,
-      forceError: options?.forceError,
-      forceRollbackError: options?.forceRollbackError,
+      forceError: options?.forceError === true,
+      forceRollbackError: options?.forceRollbackError === true,
     });
     this.settings = outcome.settings;
     return {
@@ -164,11 +164,11 @@ export class EditorlessControlPlane {
   }
 }
 
-export function bootDesktop(input: BootDesktopInput = {}) {
+export function bootDesktop(input: Readonly<BootDesktopInput> = {}) {
   return new EditorlessControlPlane(input);
 }
 
-export function renderTabSnapshot(surface: TabSurface): string {
+export function renderTabSnapshot(surface: Readonly<TabSurface>): string {
   return [
     `<section data-testid="tab-${surface.tab}" data-state="${surface.state}">`,
     `<h2>${surface.title}</h2>`,
@@ -182,7 +182,9 @@ export function renderTabSnapshot(surface: TabSurface): string {
   ].join("");
 }
 
-export function renderControlPlaneSnapshot(controlPlane: EditorlessControlPlane): string {
+export function renderControlPlaneSnapshot(
+  controlPlane: Readonly<EditorlessControlPlane>,
+): string {
   const tabs = controlPlane.getTabs();
   const settings = controlPlane.getSettings();
   return [

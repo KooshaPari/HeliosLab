@@ -10,9 +10,9 @@ export const getVersion = () => {
 
 export const getPath = (name: string) => {
   if (name === "home") {
-    console.log("getPath", process.env["HOME"], path.resolve("~"));
-    return process.env["HOME"] || path.resolve("~");
-  } else {
-    return "";
+    const homePath = process.env.HOME;
+    console.log("getPath", homePath, path.resolve("~"));
+    return homePath ?? path.resolve("~");
   }
+  return "";
 };
