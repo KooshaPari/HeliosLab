@@ -2,6 +2,7 @@ import {
   type Accessor,
   For,
   type JSX,
+  type JSXElement,
   Match,
   Show,
   Switch,

@@ -4,6 +4,7 @@ import { dirname, basename } from "../../utils/pathUtils";
 import { getProjectForNodePath } from "../files";
 import { electrobun } from "../init";
 import {
+  type AppState,
   state,
   setState,
   type AppState,
