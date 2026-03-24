@@ -125,11 +125,21 @@ jobs:
       - name: Verify dependencies are available
         run: |
           echo "Checking for required dependencies..."
-          if [ ! -f "vendors/zig/zig" ]; then
+          ZIG_DIR=""
+          if [ -f "vendors/zig/zig" ]; then
+            ZIG_DIR="vendors/zig"
+          elif [ -f "vendor/zig/zig" ]; then
+            # Accept legacy singular path and normalize to canonical vendors/zig.
+            mkdir -p vendors
+            ln -sfn ../vendor/zig vendors/zig
+            ZIG_DIR="vendor/zig"
+          fi
+
+          if [ -z "${ZIG_DIR}" ]; then
             echo "❌ Zig not found, running setup"
             bun setup
           else
-            echo "✅ Zig found at vendors/zig/zig"
+            echo "✅ Zig found at ${ZIG_DIR}/zig"
           fi
 
           if [ ! -f "llama-cli/deps/llama.cpp/include/llama.h" ]; then

@@ -37,10 +37,16 @@
     "test": "vitest run",
     "format": "oxfmt .",
     "format:check": "oxfmt --check .",
+<<<<<<< HEAD
     "tsgolint": "bun run scripts/tsgolint-safe.ts",
     "lint": "oxlint -c .oxlintrc.json . && bun run tsgolint",
     "lint:fix": "oxlint -c .oxlintrc.json --fix . && bun run tsgolint",
     "typecheck": "tsgo --noEmit"
+=======
+    "lint": "oxlint -c .oxlintrc.json .",
+    "lint:fix": "oxlint -c .oxlintrc.json --fix .",
+    "typecheck": "tsc -p tsconfig.ci.json --noEmit"
+>>>>>>> 303c1255ef5b2bb68a8ddb8c1616720e9a14f0cc
   },
   "dependencies": {
     "@webflow/webflow-cli": "^1.1.1",
