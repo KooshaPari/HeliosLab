@@ -1,4 +1,6 @@
-# Agent Rules for Spec Kitty Projects
+# Agent Rules for Co(lab) (KooshaPari/colab)
+
+**Canonical Phenotype workspace:** feature work and quality gates run under `Phenotype/repos/worktrees/<project>/...`; keep canonical repo checkouts on `main` except explicit pull/merge (see org `AGENTS.md` / `CLAUDE.md`).
 
 **⚠️ CRITICAL**: All AI agents working in this project must follow these rules.
 
@@ -11,8 +13,8 @@ These rules apply to **all commands** (specify, plan, research, tasks, implement
 **When you mention directories or files, provide either the absolute path or a path relative to the project root.**
 
 ✅ **CORRECT**:
-- `kitty-specs/001-feature/tasks/WP01.md`
-- `/Users/robert/Code/myproject/kitty-specs/001-feature/spec.md`
+- `agileplus/001-feature/tasks/WP01.md`
+- `/Users/robert/Code/myproject/agileplus/001-feature/spec.md`
 - `tasks/WP01.md` (relative to feature directory)
 
 ❌ **WRONG**:
@@ -65,8 +67,8 @@ These rules apply to **all commands** (specify, plan, research, tasks, implement
 1. Paste into a plain-text buffer first (VS Code, TextEdit in plain mode)
 2. Replace smart quotes and dashes
 3. Verify no � replacement characters appear
-4. Run `spec-kitty validate-encoding --feature <feature-id>` to check
-5. Run `spec-kitty validate-encoding --feature <feature-id> --fix` to auto-repair
+4. Run `agileplus validate-encoding --feature <feature-id>` to check
+5. Run `agileplus validate-encoding --feature <feature-id> --fix` to auto-repair
 
 **Failure to follow this rule causes the dashboard to render blank pages.**
 
@@ -75,13 +77,13 @@ These rules apply to **all commands** (specify, plan, research, tasks, implement
 If you accidentally introduce problematic characters:
 ```bash
 # Check for encoding issues
-spec-kitty validate-encoding --feature 001-my-feature
+agileplus validate-encoding --feature 001-my-feature
 
 # Automatically fix all issues (creates .bak backups)
-spec-kitty validate-encoding --feature 001-my-feature --fix
+agileplus validate-encoding --feature 001-my-feature --fix
 
 # Check all features at once
-spec-kitty validate-encoding --all --fix
+agileplus validate-encoding --all --fix
 ```
 
 ---
@@ -148,8 +150,8 @@ Agent directories like `.claude/`, `.codex/`, `.gemini/` contain:
 
 ### Automatic Protection
 
-Spec Kitty automatically:
-1. Adds all agent directories to `.gitignore` during `spec-kitty init`
+AgilePlus automatically:
+1. Adds all agent directories to `.gitignore` during `agileplus init`
 2. Installs pre-commit hook to block accidental commits
 3. Creates `.claudeignore` to optimize AI scanning
 
@@ -216,3 +218,9 @@ This is intentional and correct - it ensures a single source of truth for projec
 - Prefer completing unused stubs into production-quality implementations when they represent intended product direction; avoid leaving stubs ignored indefinitely.
 - Do not merge any PR while any check is failing, including non-required checks, unless the user gives explicit exception approval.
 - When proposing a quick fix, include a scheduled follow-up path to a stable solution in the same plan.
+## Child-Agent and Delegation Policy
+- Use child agents for scoped discovery, audits, multi-repo scans, and implementation planning before direct parent-agent edits.
+- Delegate high-context or high-churn tasks to subagents and keep parent-agent writes narrowly focused on integration.
+- Reserve parent-agent direct writes for the final decision layer.
+- Favor clean, auditable handoffs and explicit integration checkpoints.
+
