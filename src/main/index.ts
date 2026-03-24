@@ -2,6 +2,7 @@ import Electrobun, {
   ApplicationMenu,
   BrowserView,
   BrowserWindow,
+  type MenuItemConfig,
   Screen,
   Tray,
   Updater,
@@ -140,6 +141,21 @@ import { pluginManager, searchPlugins, getPackageInfo } from "./plugins";
 import { bootstrapHelios, getHeliosRuntime } from "../helios/bridge/helios-main-bootstrap";
 import { getLanesForWorkspace, getRecentAudit } from "../helios/bridge/persistence";
 
+declare global {
+  var llamaProcesses: Map<string, Subprocess>;
+  var modelDownloads: Map<
+    string,
+    {
+      status: "downloading" | "completed" | "failed";
+      progress: number;
+      fileName: string;
+      downloadedBytes?: number;
+      totalBytes?: number;
+      error?: string;
+    }
+  >;
+}
+
 /** When true, helios terminal-first mode is active and editor surfaces are excluded */
 const HELIOS_MODE = process.env.HELIOS_SURFACE_EDITOR !== "true";
 
@@ -150,7 +166,7 @@ const appName = localInfo.name;
 const version = localInfo.version;
 const hash = localInfo.hash;
 
-track.appOpen({ channel, appName, version, hash });
+track.appLaunch({ channel, appName, version, hash });
 
 // This is a main process cache of the state sent to windows
 // ie: if a window is created after the state is updated they should
@@ -171,6 +187,22 @@ const updateCache: {
   progress: null,
   downloadedFile: false,
   error: null,
+};
+
+const getErrorMessage = (error: unknown): string => {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return String(error);
+};
+
+const getErrorStack = (error: unknown): string => {
+  if (error instanceof Error && error.stack) {
+    return error.stack.toString();
+  }
+
+  return "";
 };
 
 // START SETUP
@@ -224,7 +256,7 @@ terminalManager.setEditCommandHandler(async (args, terminalId, cwd, write) => {
           writeFileSync(filePath, "", { encoding: "utf-8" });
           write(`Created: ${filePath}\r\n`);
         } catch (err) {
-          write(`\x1b[31mError creating file: ${err.message}\x1b[0m\r\n`);
+          write(`\x1b[31mError creating file: ${getErrorMessage(err)}\x1b[0m\r\n`);
           continue;
         }
       }
@@ -247,7 +279,7 @@ const checkForUpdate = async () => {
 
     const updateInfo = await Electrobun.Updater.checkForUpdate();
 
-    track.checkForUpdate({
+    track.versionCheck({
       hash: updateInfo.hash,
       version: updateInfo.version,
       updateAvailable: updateInfo.updateAvailable,
@@ -297,8 +329,8 @@ const checkForUpdate = async () => {
     updateCache.status = "error";
 
     updateCache.error = {
-      message: err.message,
-      stack: err.stack?.toString() || "",
+      message: getErrorMessage(err),
+      stack: getErrorStack(err),
     };
     broadcastToAllWindows("updateStatus", updateCache);
   }
@@ -341,7 +373,7 @@ function deleteProject(workspaceId: string, projectId: string) {
   const workspace = db.collection("workspaces").queryById(workspaceId).data;
   if (workspace) {
     db.collection("workspaces").update(workspaceId, {
-      projectIds: workspace.projectIds.filter((projectIds) => projectIds !== projectId),
+      projectIds: workspace.projectIds.filter((projectIds: string) => projectIds !== projectId),
     });
   }
 
@@ -682,8 +714,26 @@ setInterval(syncPluginKeybindings, 5000);
 // Initial sync after plugins are loaded
 setTimeout(syncPluginKeybindings, 1000);
 
+const extractAction = (event: unknown): string | null => {
+  if (
+    typeof event === "object" &&
+    event !== null &&
+    "data" in event &&
+    typeof (event as { data?: unknown }).data === "object" &&
+    (event as { data?: unknown }).data !== null &&
+    "action" in ((event as { data?: unknown }).data as Record<string, unknown>) &&
+    typeof ((event as { data?: unknown }).data as { action?: unknown }).action === "string"
+  ) {
+    return ((event as { data?: unknown }).data as { action: string }).action;
+  }
+  return null;
+};
+
 ApplicationMenu.on("application-menu-clicked", (e) => {
-  const { action } = e.data;
+  const action = extractAction(e);
+  if (!action) {
+    return;
+  }
 
   if (action === "terms-of-service") {
     createAboutWindow("https://colab.dev/terms-of-service");
@@ -775,7 +825,10 @@ const tray = new Tray({
 });
 
 tray.on("tray-clicked", (e) => {
-  const { action } = e.data;
+  const action = extractAction(e);
+  if (!action) {
+    return;
+  }
 
   if (action.startsWith("toggle-workspace:")) {
     const workspaceId = action.split(":")[1];
@@ -795,7 +848,7 @@ tray.on("tray-clicked", (e) => {
   } else if (action === "check-for-update") {
     checkForUpdate();
   } else if (action === "quit-and-install-update") {
-    track.installUpdateNow({ triggeredBy: "user" });
+    track.updateInstall({ triggeredBy: "user" });
     cleanupLlamaProcesses();
     Electrobun.Updater.applyUpdate();
   } else if (action === "quit") {
@@ -806,9 +859,13 @@ tray.on("tray-clicked", (e) => {
 });
 
 // Get the db ids for workspace and window from the electrobun window id
-const broadcastToElectrobunWindow = (nativeWindowId, method, opts) => {
-  let workspaceId;
-  let windowId;
+const broadcastToElectrobunWindow = (
+  nativeWindowId: number,
+  method: string,
+  opts: unknown,
+) => {
+  let workspaceId: string | undefined;
+  let windowId: string | undefined;
 
   Object.keys(workspaceWindows).find((_workspaceId) => {
     return Object.keys(workspaceWindows[_workspaceId]).find((winId) => {
@@ -1052,9 +1109,10 @@ let findFilesTimeout: ReturnType<typeof setTimeout> | undefined;
 const updateTrayMenu = () => {
   const workspaces = db.collection("workspaces").query()?.data || {};
 
-  const trayMenu = [
-    ...workspaces.map((workspace) => {
+  const trayMenu: MenuItemConfig[] = [
+    ...workspaces.map((workspace: CurrentDocumentTypes["workspaces"]) => {
       return {
+        type: "normal" as const,
         label: workspace.name || "",
         checked: Boolean(workspace.visible && workspace.windows?.length),
         action: `toggle-workspace:${workspace.id}`,
@@ -1064,6 +1122,7 @@ const updateTrayMenu = () => {
       type: "divider",
     },
     {
+      type: "normal" as const,
       label: "Create New Workspace",
       action: "create-workspace",
     },
@@ -1071,9 +1130,11 @@ const updateTrayMenu = () => {
       type: "divider",
     },
     {
+      type: "normal" as const,
       label: "Emergency Stuff",
       submenu: [
         {
+          type: "normal" as const,
           label: "Reset Database",
           action: "reset-database",
         },
@@ -1083,10 +1144,12 @@ const updateTrayMenu = () => {
       type: "divider",
     },
     {
+      type: "normal" as const,
       label: "Check for update",
       action: "check-for-update",
     },
     {
+      type: "normal" as const,
       hidden: !canQuitAndInstall(),
       label: `Quit and install Update (${updateCache.info?.version})`,
       action: "quit-and-install-update",
@@ -1136,7 +1199,7 @@ const openWorkspaceWindows = (workspace: CurrentDocumentTypes["workspaces"]) => 
   if (!workspace.windows?.length) {
     const newWindow = createWindow(workspace.id);
   } else {
-    workspace.windows.forEach((window) => {
+    workspace.windows.forEach((window: WindowConfigType) => {
       const newWindow = createWindow(workspace.id, window);
     });
   }
@@ -1161,8 +1224,8 @@ type WindowConfigType = NonNullable<CurrentDocumentTypes["workspaces"]["windows"
 const getWorkspaceForWindow = (windowId: number) => {
   const { data: workspaces } = db.collection("workspaces").query();
 
-  return workspaces?.find((workspace) => {
-    return workspace.windows.find((win) => {
+  return workspaces?.find((workspace: CurrentDocumentTypes["workspaces"]) => {
+    return workspace.windows.find((win: WindowConfigType) => {
       console.log("win: ", win, windowId);
       return win.id === String(windowId);
     });
@@ -1551,6 +1614,9 @@ const createWindow = (
             // This should only happen if analytics.ts hasn't run yet
             db.collection("appSettings").insert({
               distinctId: String(Date.now() + Math.random()), // Same pattern as analytics.ts
+              userId: "",
+              analyticsEnabled: appSettings.analyticsEnabled ?? false,
+              analyticsConsentPrompted: appSettings.analyticsConsentPrompted ?? false,
               ...appSettings,
             });
           }
@@ -1610,7 +1676,7 @@ const createWindow = (
           };
 
           // Start new searches for each project
-          findAllProcesses = workspace.projectIds.map((projectId) => {
+          findAllProcesses = workspace.projectIds.map((projectId: string) => {
             const project = db.collection("projects").queryById(projectId).data;
 
             if (!project || !project.path) {
@@ -1689,7 +1755,7 @@ const createWindow = (
               return [];
             }
 
-            findFilesProcesses = workspace.projectIds.map((projectId) => {
+            findFilesProcesses = workspace.projectIds.map((projectId: string) => {
               const project = db.collection("projects").queryById(projectId).data;
 
               if (!project || !project.path) {
@@ -2001,7 +2067,7 @@ const createWindow = (
           console.log("syncRpc safeDeleteFileOrFolder", absolutePath);
           return safeDeleteFileOrFolder(absolutePath);
         },
-        execSpawnSync: ({ cmd, args, opts } = { cmd: "", args: [], opts: {} }) => {
+        execSpawnSync: ({ cmd, args, opts }) => {
           if (!cmd) {
             throw new Error("cmd is required");
           }
@@ -2095,7 +2161,7 @@ const createWindow = (
             // Ignore pkill errors (no processes found, etc.)
           }
 
-          let proc = null;
+          let proc: ReturnType<typeof Bun.spawn> | null = null;
           try {
             // First, check for local llama.cpp models in COLAB_MODELS_PATH
             let modelPath: string | null = null;
@@ -2176,18 +2242,18 @@ const createWindow = (
             });
 
             // Store this process globally so it can be killed by future requests
-            const requestId = Date.now();
+            const requestId = String(Date.now());
             processTracker.set(requestId, proc);
 
             // Wait for completion with timeout
-            const result = await Promise.race([
+            await Promise.race([
               proc.exited,
               new Promise(
                 (_, reject) =>
                   setTimeout(() => {
                     // Kill the process on timeout
                     try {
-                      proc.kill();
+                      proc?.kill();
                     } catch (e) {
                       console.warn("Failed to kill timed-out llama-cli process:", e);
                     }
@@ -2208,17 +2274,9 @@ const createWindow = (
             }
 
             // Read stdout (stderr is ignored to suppress verbose output)
-            const stdout = await new Response(proc.stdout).text();
+            const stdout =
+              proc.stdout instanceof ReadableStream ? await new Response(proc.stdout).text() : "";
             const response = stdout.trim();
-
-            // Check if the process actually succeeded
-            if (result && result.exitCode !== 0) {
-              console.error("llama-cli exited with code:", result.exitCode);
-              return {
-                ok: false,
-                error: `llama-cli exited with code ${result.exitCode}`,
-              };
-            }
 
             return {
               ok: true,
@@ -2238,7 +2296,7 @@ const createWindow = (
 
             return {
               ok: false,
-              error: error.message,
+              error: getErrorMessage(error),
             };
           }
         },
@@ -2840,7 +2898,7 @@ const createWindow = (
           toggleWorkspace(workspaceId);
         },
         installUpdateNow: () => {
-          track.installUpdateNow({ triggeredBy: "user" });
+          track.updateInstall({ triggeredBy: "user" });
           cleanupLlamaProcesses();
           Electrobun.Updater.applyUpdate();
         },
@@ -2882,7 +2940,7 @@ const createWindow = (
             win.close();
           });
           delete workspaceWindows[workspaceId];
-          _workspace?.projectIds?.forEach((projectId) => {
+          _workspace?.projectIds?.forEach((projectId: string) => {
             db.collection("projects").remove(projectId);
           });
           db.collection("workspaces").remove(workspaceId);
@@ -2893,7 +2951,7 @@ const createWindow = (
             win.close();
           });
           delete workspaceWindows[workspaceId];
-          _workspace?.projectIds?.forEach((projectId) => {
+          _workspace?.projectIds?.forEach((projectId: string) => {
             const { data: _project } = db.collection("projects").queryById(projectId);
             const path = _project?.path;
             if (path) {
@@ -2983,7 +3041,7 @@ const createWindow = (
     // We never want the main window to navigate or reload once it's loaded
     mainWindow.webview.on("will-navigate", (e) => {
       console.log("---->:: 3 main window will navigate");
-      e.response = { allow: false };
+      (e as { response: { allow: boolean } }).response = { allow: false };
     });
   });
 
@@ -2995,24 +3053,31 @@ const createWindow = (
 
   // Set up terminal manager message handler for this window
   terminalManager.setWindowMessageHandler(windowId, (message) => {
-    mainWindow.webview.rpc?.send(message.type, {
-      terminalId: message.terminalId,
-      data: message.data,
-      exitCode: message.exitCode,
-      signal: message.signal,
-    });
+    if (message.type === "terminalOutput") {
+      mainWindow.webview.rpc?.proxy.send.terminalOutput({
+        terminalId: message.terminalId,
+        data: message.data,
+      });
+      return;
+    }
+    if (message.type === "terminalExit") {
+      mainWindow.webview.rpc?.proxy.send.terminalExit({
+        terminalId: message.terminalId,
+        exitCode: message.exitCode,
+        signal: message.signal,
+      });
+    }
   });
 
   // Set up slate render message handler for plugin slates
   pluginManager.setSlateWindowMessageHandler((targetWindowId, message) => {
     if (targetWindowId === windowId && mainWindow.webview.rpc) {
       const slateMessage = message as {
-        type: string;
         instanceId: string;
         html?: string;
         script?: string;
       };
-      mainWindow.webview.rpc.send("slateRender", {
+      mainWindow.webview.rpc.proxy.send.slateRender({
         instanceId: slateMessage.instanceId,
         html: slateMessage.html,
         script: slateMessage.script,
@@ -3036,10 +3101,10 @@ const createWindow = (
   // });
 
   mainWindow.on("move", (e) => {
-    const { x, y } = e.data;
+    const { x, y } = (e as { data: { x: number; y: number } }).data;
     const { data: workspaceToUpdate } = db.collection("workspaces").queryById(workspaceId);
     if (workspaceToUpdate) {
-      workspaceToUpdate.windows = workspaceToUpdate.windows?.map((w) => {
+      workspaceToUpdate.windows = workspaceToUpdate.windows?.map((w: WindowConfigType) => {
         if (w.id === windowId) {
           w.position = {
             ...w.position,
@@ -3056,11 +3121,13 @@ const createWindow = (
   });
 
   mainWindow.on("resize", (e) => {
-    const { x, y, width, height } = e.data;
+    const { x, y, width, height } = (e as {
+      data: { x: number; y: number; width: number; height: number };
+    }).data;
 
     const { data: workspaceToUpdate } = db.collection("workspaces").queryById(workspaceId);
     if (workspaceToUpdate) {
-      workspaceToUpdate.windows = workspaceToUpdate.windows?.map((w) => {
+      workspaceToUpdate.windows = workspaceToUpdate.windows?.map((w: WindowConfigType) => {
         if (w.id === windowId) {
           w.position = {
             x,
@@ -3110,7 +3177,7 @@ const createWindow = (
       const visible = workspaceToUpdate.windows?.length > 1;
 
       db.collection("workspaces").update(workspaceId, {
-        windows: workspaceToUpdate.windows.filter((w) => w.id !== windowId),
+        windows: workspaceToUpdate.windows.filter((w: WindowConfigType) => w.id !== windowId),
         visible,
       });
 
@@ -3146,7 +3213,8 @@ const createWindow = (
     watchProjectDirectories();
 
     const { data: projects } = db.collection("projects").query({
-      where: (project) => Boolean(workspace.projectIds?.includes(project.id)),
+      where: (project: CurrentDocumentTypes["projects"]) =>
+        Boolean(workspace.projectIds?.includes(project.id)),
     });
     const { data: tokens } = db.collection("tokens").query();
     const { data: appSettingsArray } = db.collection("appSettings").query();
@@ -3180,7 +3248,7 @@ if (workspaces.length === 0) {
   workspaces = db.collection("workspaces").query()?.data || [];
 }
 
-workspaces.forEach((workspace) => {
+workspaces.forEach((workspace: CurrentDocumentTypes["workspaces"]) => {
   if (workspace.visible) {
     openWorkspaceWindows(workspace);
   }
@@ -3290,7 +3358,6 @@ function openBunnyWindow(screenX?: number, screenY?: number) {
     url: "views://bunny/index.html",
     titleBarStyle: "hidden",
     transparent: true,
-    passthrough: true,
     frame: { width: size, height: size, x, y },
     rpc: bunnyRpc,
   });

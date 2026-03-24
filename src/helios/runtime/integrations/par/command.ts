@@ -2,7 +2,7 @@ import { execCommand } from "../exec";
 import type { LaneSpec, ParAdapter } from "./adapter";
 
 export class ParCommandAdapter implements ParAdapter {
-  async createLane(spec: LaneSpec): Promise<{ worktreePath: string }> {
+  async createLane(spec: Readonly<LaneSpec>): Promise<{ worktreePath: string }> {
     const args = [
       "lane",
       "create",

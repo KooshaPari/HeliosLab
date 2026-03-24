@@ -142,7 +142,7 @@ export const WebSlate = ({ node, tabId }: { node?: CachedFileType; tabId: string
   const getNodeUrl = () => {
     const slate = getSlateForNode(node);
     // Ensure we return a valid URL or undefined (not an empty string or invalid value)
-    return slate?.type === "web" ? slate.url : undefined;
+    return slate?.type === "web" ? (slate as any).url : undefined;
   };
   const tab = () => getWindow()?.tabs[tabId];
 
@@ -1456,9 +1456,11 @@ console.log('Preload script loaded for:', window.location.href);
                       electrobun.rpc?.request
                         .readFile({ path: slateConfigPath })
                         .then((content) => {
-                          if (content) {
+                          const rawContent = typeof content === "string" ? content : content?.textContent;
+
+                          if (rawContent) {
                             try {
-                              const slateConfig = JSON.parse(content);
+                              const slateConfig = JSON.parse(rawContent);
                               slateConfig.icon = favicon;
                               electrobun.rpc?.request.writeFile({
                                 path: slateConfigPath,

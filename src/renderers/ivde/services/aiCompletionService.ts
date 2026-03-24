@@ -109,7 +109,7 @@ class AICompletionService {
 
     try {
       const result = await electrobun.rpc?.request.llamaListModels();
-      return result?.ok && result.models?.length > 0;
+      return Boolean(result?.ok && (result.models?.length ?? 0) > 0);
     } catch {
       return false;
     }
@@ -302,7 +302,7 @@ class AICompletionService {
       return { items: [inlineItem] };
     } catch (error) {
       // Check if the error is due to abortion
-      if (error.name === "AbortError") {
+      if (error instanceof Error && error.name === "AbortError") {
         return { items: [] };
       }
       return { items: [] };

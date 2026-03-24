@@ -44,7 +44,7 @@ export const watchProjectDirectories = () => {
     }
 
     const { data: workspaces } = db.collection("workspaces").query({
-      where: (workspace) => {
+      where: (workspace: CurrentDocumentTypes["workspaces"]) => {
         return workspace.projectIds.includes(projectId);
       },
     });

@@ -87,6 +87,11 @@ export interface AgentTabType extends BaseTabType {
 }
 
 export type TabType = FileTabType | WebTabType | TerminalTabType | AgentTabType;
+type OpenTabConfig =
+  | Omit<FileTabType, "id" | "paneId" | "isPreview">
+  | Omit<WebTabType, "id" | "paneId" | "isPreview">
+  | Omit<TerminalTabType, "id" | "paneId" | "isPreview">
+  | Omit<AgentTabType, "id" | "paneId" | "isPreview">;
 
 export type LayoutPaneType = {
   id: string;
@@ -221,7 +226,8 @@ export interface AppState {
           | "llama-settings"
           | "github-settings"
           | "colab-cloud-settings"
-          | "plugin-marketplace";
+          | "plugin-marketplace"
+          | "plugin-settings";
         data: {};
       };
 
@@ -338,6 +344,7 @@ export interface AppState {
       name: string;
       emailVerified: boolean;
       connectedAt: number | undefined;
+      syncPassphrase?: string;
     };
   };
   // Download notifications for web slates
@@ -353,7 +360,7 @@ export interface AppState {
 
 const initialState: AppState = {
   port: null,
-  buildVars: { channel: "", version: "" },
+  buildVars: { channel: "", version: "", hash: "" },
   update: {
     status: null,
     info: null,
@@ -459,6 +466,7 @@ const initialState: AppState = {
       name: "",
       emailVerified: false,
       connectedAt: undefined,
+      syncPassphrase: "",
     },
   },
   downloadNotification: null,
@@ -679,13 +687,14 @@ export const getCurrentPane = (_state: AppState = state) => {
 };
 
 export const openNewTab = (
-  config: Omit<TabType, "id" | "paneId" | "isPreview">,
+  config: OpenTabConfig,
   makePreviewTab = true,
   opts: {} | { targetPaneId: string; targetTabIndex: number } = {},
 ) => {
   let newTabId = getUniqueId();
-  trackFrontend("tabOpen", {
-    type: config.type,
+  trackFrontend("featureUsed", {
+    feature: "tab_open",
+    metadata: { tabType: config.type },
   });
 
   setState(
@@ -812,8 +821,7 @@ export const openNewTabForNode = (
           // to a not-preview tab
           win.tabs[currentTabId] = {
             ...existingTab,
-            isPreview: false,
-          };
+            };
         } else {
           // if we're clicking through stuff and the current tab is a preview tab,
           // close the old preview tab completely and let a new one be created below.
@@ -826,14 +834,14 @@ export const openNewTabForNode = (
         }
       }
 
-      const targetUrl = "url" in opts ? opts.url : slate?.url;
+      const targetUrl = "url" in opts ? opts.url : slate && "url" in slate ? slate.url : undefined;
 
       const webTabSettings = slateType === "web" ? { type: "web" as const, url: targetUrl } : {};
       const agentTabSettings =
         slateType === "agent" ? { type: "agent" as const, title: slate?.name } : {};
       const gitTabSettings = slateType === "git" ? { title: slate?.name } : {};
       const tabId = getUniqueId();
-      const newPreviewTab: TabType = {
+      const newPreviewTab = {
         id: tabId,
         type: "file",
         paneId: pane.id,
@@ -842,10 +850,11 @@ export const openNewTabForNode = (
         ...webTabSettings,
         ...agentTabSettings,
         ...gitTabSettings,
-      };
+      } as TabType;
 
-      trackFrontend("tabOpen", {
-        type: newPreviewTab.type,
+      trackFrontend("featureUsed", {
+        feature: "tab_open",
+        metadata: { tabType: newPreviewTab.type },
       });
 
       win.tabs[tabId] = newPreviewTab;
@@ -868,14 +877,13 @@ export const openNewTerminalTab = (
   cwd?: string,
   opts: {} | { targetPaneId: string; targetTabIndex: number } = {},
 ) => {
-  const terminalConfig: TerminalTabType = {
+  const terminalConfig: Omit<TerminalTabType, "id" | "paneId" | "isPreview"> = {
     type: "terminal",
     path: cwd || "/",
     cwd: cwd || "/",
     cmd: "/bin/zsh", // This will be overridden by the terminal manager based on platform
     args: [],
-    isPreview: false,
-  };
+    };
 
   return openNewTab(terminalConfig, false, opts);
 };
@@ -930,12 +938,12 @@ export const editNodeSettings = (node: CachedFileType) => {
           type: "edit-node",
           data: {
             node,
-            previewNode: {
+            previewNode: ({
               ...node,
               isExpanded: false,
               children: [],
               slate: getSlateForNode(node),
-            },
+            } as PreviewFileTreeType),
           },
         });
       }
@@ -966,7 +974,7 @@ export const removeProjectFromColab = (projectId: string) => {
     produce((_state: AppState) => {
       const _project = _state.projects[projectId];
       Object.keys(_state.fileCache).forEach((path) => {
-        if (path.startsWith(_project.path)) {
+        if (_project?.path && path.startsWith(_project.path)) {
           console.log("deleting path");
           delete _state.fileCache[path];
         }

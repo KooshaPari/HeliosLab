@@ -77,7 +77,9 @@ export const TerminalSlate = ({ tabId }: { tabId: string }) => {
         produce((_state) => {
           const win = getWindow(_state);
           if (win && win.tabs[tabId]) {
-            win.tabs[tabId].terminalId = id;
+            if (win.tabs[tabId].type === "terminal") {
+              win.tabs[tabId].terminalId = id;
+            }
           }
         }),
       );

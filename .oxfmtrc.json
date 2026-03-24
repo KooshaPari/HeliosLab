@@ -10,6 +10,7 @@
     "**/vendor/**",
     "**/vendors/**",
     "**/llama-cli/**",
-    "**/assets/**"
+    "**/assets/**",
+    ".github/workflows/build-release.yml"
   ]
 }

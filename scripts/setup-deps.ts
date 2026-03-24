@@ -7,16 +7,16 @@ import path from "path";
 console.log("Setting up build dependencies...");
 
 // Vendor and build Zig PTY binary
-await vendorZig();
+vendorZig();
 
 // Vendor llama.cpp and build llama-cli
-await vendorLlama();
-await buildLlamaLibraries();
+vendorLlama();
+buildLlamaLibraries();
 
 console.log("✅ All dependencies ready!");
 
 // Zig vendoring functions
-async function vendorCmake() {
+function vendorCmake() {
   const cmakeBinary = process.platform === "win32" ? "cmake.exe" : "cmake";
   const cmakeBinPath =
     process.platform === "darwin"
@@ -70,7 +70,7 @@ async function vendorCmake() {
   }
 }
 
-async function vendorZig() {
+function vendorZig() {
   const zigBinary = process.platform === "win32" ? "zig.exe" : "zig";
   const zigBinPath = path.join("./vendors/zig", zigBinary);
 
@@ -107,7 +107,7 @@ async function vendorZig() {
   }
 }
 
-async function vendorLlama() {
+function vendorLlama() {
   const llamaPath = path.join("llama-cli", "deps", "llama.cpp");
   const cmakeListsPath = path.join(llamaPath, "CMakeLists.txt");
 
@@ -165,7 +165,7 @@ async function vendorLlama() {
   }
 }
 
-async function buildLlamaLibraries() {
+function buildLlamaLibraries() {
   const zigBinary = process.platform === "win32" ? "zig.exe" : "zig";
   const zigBinPath = path.join("./vendors/zig", zigBinary);
 
@@ -178,7 +178,7 @@ async function buildLlamaLibraries() {
 
   try {
     // Ensure llama.cpp is vendored
-    await vendorLlama();
+    vendorLlama();
 
     // Build the llama.cpp libraries using CMake first
     const llamaCppDir = path.resolve("llama-cli", "deps", "llama.cpp");
@@ -194,7 +194,7 @@ async function buildLlamaLibraries() {
     console.log("--------> Building llama.cpp libraries...");
 
     // Ensure cmake is available
-    await vendorCmake();
+    vendorCmake();
 
     const cmakeBinary = process.platform === "win32" ? "cmake.exe" : "cmake";
     const cmakeBinPath =

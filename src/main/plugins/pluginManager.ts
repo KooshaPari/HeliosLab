@@ -1327,6 +1327,9 @@ class PluginManager {
 
   broadcastEvent(eventType: string, payload: unknown): void {
     for (const [name, workerState] of this.activeWorkers) {
+      if (!workerState.worker) {
+        continue;
+      }
       const msg: MainToWorkerMessage = {
         type: "event",
         eventType,
@@ -1423,6 +1426,9 @@ class PluginManager {
       result,
       error,
     };
+    if (!workerState.worker) {
+      return;
+    }
     workerState.worker.postMessage(response);
   }
 
@@ -1481,7 +1487,7 @@ class PluginManager {
         return;
 
       case "shell": {
-        const manifest = this.loadedManifests.get(pluginName);
+        const manifest = this.activeWorkers.get(pluginName)?.plugin.manifest;
         if (!manifest?.entitlements?.process?.spawn) {
           throw new Error("Permission denied: process.spawn entitlement required");
         }
@@ -1570,14 +1576,21 @@ class PluginManager {
         reject(new Error("Worker ready timeout"));
       }, timeout);
 
-      const originalHandler = workerState.worker.onmessage;
-      workerState.worker.onmessage = (event: MessageEvent<WorkerToMainMessage>) => {
+      const worker = workerState.worker;
+      if (!worker) {
+        clearTimeout(timeoutId);
+        reject(new Error("Worker not available"));
+        return;
+      }
+
+      const originalHandler = worker.onmessage;
+      worker.onmessage = (event: MessageEvent<WorkerToMainMessage>) => {
         if (event.data.type === "ready") {
           clearTimeout(timeoutId);
-          workerState.worker.onmessage = originalHandler;
+          worker.onmessage = originalHandler;
           resolve();
         }
-        originalHandler?.call(workerState.worker, event);
+        originalHandler?.call(worker, event);
       };
     });
   }

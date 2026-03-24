@@ -23,6 +23,7 @@ export type WorkspaceRPC = {
           // todo: electrobun should expose menu items type
           menuItems: any[];
         };
+        response: void;
       };
       newPreviewNode: {
         params: {
@@ -303,6 +304,20 @@ export type WorkspaceRPC = {
         };
         response: string;
       };
+      gitRevList: {
+        params: {
+          repoRoot: string;
+          options: string[];
+        };
+        response: string[];
+      };
+      gitMergeBase: {
+        params: {
+          repoRoot: string;
+          refs: string[];
+        };
+        response: string;
+      };
       gitCreateBranch: {
         params: {
           repoRoot: string;
@@ -327,13 +342,21 @@ export type WorkspaceRPC = {
         };
         response: string;
       };
+      gitAddRemote: {
+        params: {
+          repoRoot: string;
+          remoteName: string;
+          remoteUrl: string;
+        };
+        response: string;
+      };
       gitLogRemoteOnly: {
         params: {
           repoRoot: string;
           localBranch: string;
           remoteBranch: string;
         };
-        response: { all: any[] };
+        response: LogResult<DefaultLogFields> | { all: never[] };
       };
       gitClone: {
         params: {
@@ -542,6 +565,7 @@ export type WorkspaceRPC = {
         params: {
           absolutePath: string;
         };
+        response: void;
       };
       execSpawnSync: {
         params: {
@@ -549,12 +573,17 @@ export type WorkspaceRPC = {
           args: string[];
           opts?: any;
         };
-        response: string;
+        response: {
+          stdout: string;
+          stderr: string;
+          exitCode: number | null;
+        };
       };
       safeTrashFileOrFolder: {
         params: {
           path: string;
         };
+        response: void;
       };
       createTerminal: {
         params: {
@@ -853,7 +882,7 @@ export type WorkspaceRPC = {
             fields: Array<{
               key: string;
               label: string;
-              type: "string" | "number" | "boolean" | "select" | "color";
+              type: "string" | "number" | "boolean" | "select" | "color" | "secret";
               default?: string | number | boolean;
               description?: string;
               options?: Array<{ label: string; value: string | number }>;
@@ -872,7 +901,7 @@ export type WorkspaceRPC = {
           fields: Array<{
             key: string;
             label: string;
-            type: "string" | "number" | "boolean" | "select" | "color";
+            type: "string" | "number" | "boolean" | "select" | "color" | "secret";
             default?: string | number | boolean;
             description?: string;
             options?: Array<{ label: string; value: string | number }>;
@@ -903,6 +932,102 @@ export type WorkspaceRPC = {
           label: string;
           description: string;
         }>;
+      };
+      pluginGetSettingValidationStatuses: {
+        params: { pluginName: string };
+        response: Record<
+          string,
+          {
+            state: "idle" | "validating" | "valid" | "invalid";
+            message?: string;
+          }
+        >;
+      };
+      pluginGetState: {
+        params: { pluginName: string };
+        response: Record<string, unknown>;
+      };
+      pluginGetStateValue: {
+        params: { pluginName: string; key: string };
+        response: unknown;
+      };
+      pluginSetStateValue: {
+        params: { pluginName: string; key: string; value: unknown };
+        response: { ok: boolean };
+      };
+      pluginSendSettingsMessage: {
+        params: { pluginName: string; message: unknown };
+        response: { ok: boolean };
+      };
+      pluginGetPendingSettingsMessages: {
+        params: { pluginName: string };
+        response: unknown[];
+      };
+      pluginGetAllSlates: {
+        params: void;
+        response: Array<{
+          id: string;
+          pluginName: string;
+          name: string;
+          description?: string;
+          icon?: string;
+          patterns?: string[];
+          component?: string;
+          folderHandler?: boolean;
+        }>;
+      };
+      pluginFindSlateForFile: {
+        params: { filePath: string };
+        response:
+          | {
+              id: string;
+              pluginName: string;
+              name: string;
+              description?: string;
+              icon?: string;
+              patterns?: string[];
+              component?: string;
+              folderHandler?: boolean;
+            }
+          | null;
+      };
+      pluginFindSlateForFolder: {
+        params: { folderPath: string };
+        response:
+          | {
+              id: string;
+              pluginName: string;
+              name: string;
+              description?: string;
+              icon?: string;
+              patterns?: string[];
+              component?: string;
+              folderHandler?: boolean;
+            }
+          | null;
+      };
+      pluginMountSlate: {
+        params: { slateId: string; filePath: string; windowId: string };
+        response: {
+          instanceId: string;
+          initialRenders: Array<{ html?: string; script?: string }>;
+        };
+      };
+      pluginUnmountSlate: {
+        params: { instanceId: string };
+        response: { ok: boolean };
+      };
+      pluginSlateEvent: {
+        params: { instanceId: string; eventType: string; payload?: unknown };
+        response: { ok: boolean };
+      };
+      pluginGetSlateInstance: {
+        params: { instanceId: string };
+        response: unknown | null;
+      };
+      pluginGetPendingSlateRenders: {
+        params: { instanceId: string };
+        response: Array<{ html?: string; script?: string }>;
       };
       // Helios runtime RPC (active when HELIOS_SURFACE_EDITOR != "true")
       heliosRequest: {
@@ -1051,6 +1176,9 @@ export type WorkspaceRPC = {
       openNewTab: {
         nodePath: string;
       };
+      openAsText: {
+        nodePath: string;
+      };
       openUrlInNewTab: {
         url: string;
       };
@@ -1093,7 +1221,14 @@ export type WorkspaceRPC = {
       closeCurrentTab: void;
       closeCurrentWindow: void;
       openSettings: {
-        settingsType: string;
+        settingsType:
+          | "global-settings"
+          | "workspace-settings"
+          | "llama-settings"
+          | "github-settings"
+          | "colab-cloud-settings"
+          | "plugin-marketplace"
+          | "plugin-settings";
       };
       handleGlobalShortcut: {
         key: string;
@@ -1110,6 +1245,11 @@ export type WorkspaceRPC = {
         terminalId: string;
         exitCode: number;
         signal?: number;
+      };
+      slateRender: {
+        instanceId: string;
+        html?: string;
+        script?: string;
       };
       // Open a file in the editor (from edit command, Open menu, or drag-drop)
       openFileInEditor: {
@@ -1128,6 +1268,22 @@ export type WorkspaceRPC = {
       removeOpenFile: {
         filePath: string;
       };
+      downloadStarted: {
+        filename: string;
+        path: string;
+      };
+      downloadProgress: {
+        progress: number;
+      };
+      downloadCompleted: {
+        filename: string;
+        path: string;
+      };
+      downloadFailed: {
+        filename: string;
+        path: string;
+        error: string;
+      };
       // Helios runtime state/event broadcasts
       "helios:state": {
         state: any;
@@ -1139,6 +1295,9 @@ export type WorkspaceRPC = {
       "helios:terminal-data": {
         terminalId: string;
         data: string;
+      };
+      copyToClipboard: {
+        text: string;
       };
     };
   }>;

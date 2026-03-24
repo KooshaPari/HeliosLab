@@ -93,7 +93,7 @@ const rpc = Electroview.defineRPC<WorkspaceRPC>({
       fileWatchEvent: async ({ absolutePath, exists, isDelete, isAdding, isFile, isDir }) => {
         const stateFile = state.fileCache[absolutePath];
         // Force reactivity by resetting then setting (ensures change even for same file)
-        setState("lastFileChange", null);
+        setState("lastFileChange", "");
         setState("lastFileChange", absolutePath);
 
         if (!stateFile && !isAdding) {
@@ -193,7 +193,16 @@ const rpc = Electroview.defineRPC<WorkspaceRPC>({
                 return;
               }
 
-              const { textContent: newContents, isBinary, loadedBytes, totalBytes } = response;
+              const { textContent: newContents } = response;
+              const isBinary = "isBinary" in response ? Boolean(response.isBinary) : false;
+              const loadedBytes =
+                "loadedBytes" in response && typeof response.loadedBytes === "number"
+                  ? response.loadedBytes
+                  : undefined;
+              const totalBytes =
+                "totalBytes" in response && typeof response.totalBytes === "number"
+                  ? response.totalBytes
+                  : undefined;
 
               console.log(
                 "Got file ",
@@ -321,34 +330,45 @@ const rpc = Electroview.defineRPC<WorkspaceRPC>({
             baseName,
           });
 
-          const childNode: CachedFileType | PreviewFolderNodeType =
-            actualNodeType === "repo"
-              ? {
-                  type: "dir",
-                  name: nodeName,
-                  path: join(node.path, nodeName),
-                  isExpanded: true,
-                  previewChildren: [],
-                  slate: {
-                    v: 1,
-                    name: nodeName,
-                    type: "repo",
-                    icon: "🔀",
-                    config: {
-                      gitUrl: "",
-                      branch: "main",
-                    },
-                  },
-                }
-              : {
-                  type: actualNodeType === "dir" ? "dir" : "file",
-                  name: nodeName,
-                  path: join(node.path, nodeName),
-                  persistedContent: "",
-                  model: null,
-                  isDirty: false,
-                  editors: {},
-                };
+          const resolvedName = nodeName || baseName;
+          const resolvedPath = join(node.path, resolvedName);
+          let childNode: CachedFileType | PreviewFolderNodeType;
+
+          if (actualNodeType === "repo") {
+            childNode = {
+              type: "dir",
+              name: resolvedName,
+              path: resolvedPath,
+              isExpanded: true,
+              previewChildren: [],
+              slate: {
+                v: 1,
+                name: resolvedName,
+                type: "repo",
+                icon: "🔀",
+                config: {
+                  gitUrl: "",
+                },
+              },
+            };
+          } else if (actualNodeType === "dir") {
+            childNode = {
+              type: "dir",
+              name: resolvedName,
+              path: resolvedPath,
+              children: [],
+            };
+          } else {
+            childNode = {
+              type: "file",
+              name: resolvedName,
+              path: resolvedPath,
+              persistedContent: "",
+              model: null,
+              isDirty: false,
+              editors: {},
+            };
+          }
 
           setState("settingsPane", {
             type: "add-node",
@@ -425,8 +445,9 @@ const rpc = Electroview.defineRPC<WorkspaceRPC>({
         );
       },
       openCommandPalette: () => {
-        trackFrontend("commandPaletteOpen", {
-          fromShortcut: true,
+        trackFrontend("featureUsed", {
+          feature: "commandPaletteOpen",
+          metadata: { fromShortcut: true },
         });
         setState("ui", "showCommandPalette", !state.ui.showCommandPalette);
       },

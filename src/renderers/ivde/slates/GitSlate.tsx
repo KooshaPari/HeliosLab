@@ -34,6 +34,7 @@ type CommitType = {
   hash: string;
   files: FileChangesType;
   message: string;
+  body?: string;
   shortStat: string;
   refs: string[];
   isRemoteOnly?: boolean;
@@ -91,7 +92,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 
   const repoRootPath = node.path.replace(/\.git/, "");
 
-  let refreshLogAndStageTimeout: Timer;
+  let refreshLogAndStageTimeout: ReturnType<typeof setTimeout>;
 
   createEffect(() => {
     if (state.lastFileChange) {
@@ -774,7 +775,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
     ]);
 
     // Fetch remote-only commits if we have a tracking branch
-    let gitRemoteOnlyLog = { all: [] };
+    let gitRemoteOnlyLog: { all?: ReadonlyArray<any> } = { all: [] };
     if (gitStatus?.tracking && gitBranches?.current) {
       try {
         gitRemoteOnlyLog = (await electrobun.rpc?.request.gitLogRemoteOnly({
@@ -792,8 +793,8 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
     const refsMap = new Map<string, string[]>();
 
     // Add current branch to HEAD commit
-    if (gitBranches?.current && gitLog?.all?.length > 0) {
-      const headCommit = gitLog.all[0];
+    if (gitBranches?.current && (gitLog?.all?.length ?? 0) > 0) {
+      const headCommit = gitLog?.all?.[0];
       if (headCommit) {
         const refs = [gitBranches.current];
         refsMap.set(headCommit.hash, refs);
@@ -823,8 +824,8 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
           remoteCommitIndex,
         );
 
-        if (gitLog?.all?.length > remoteCommitIndex) {
-          const remoteCommit = gitLog.all[remoteCommitIndex];
+        if ((gitLog?.all?.length ?? 0) > remoteCommitIndex) {
+          const remoteCommit = gitLog?.all?.[remoteCommitIndex];
           if (remoteCommit) {
             const existingRefs = refsMap.get(remoteCommit.hash) || [];
             existingRefs.push(trackingBranch);
@@ -846,18 +847,20 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
       } else if (gitStatus.ahead === 0 && gitStatus.behind === 0) {
         // We are in sync - remote is at the same commit as us
         console.log("In sync with remote, adding remote ref to HEAD commit");
-        if (gitLog?.all?.length > 0) {
-          const headCommit = gitLog.all[0];
-          const existingRefs = refsMap.get(headCommit.hash) || [];
-          if (!existingRefs.includes(trackingBranch)) {
-            existingRefs.push(trackingBranch);
-            refsMap.set(headCommit.hash, existingRefs);
-            console.log(
-              "Added remote tracking refs to HEAD:",
-              existingRefs,
-              "to commit",
-              headCommit.hash,
-            );
+        if ((gitLog?.all?.length ?? 0) > 0) {
+          const headCommit = gitLog?.all?.[0];
+          if (headCommit) {
+            const existingRefs = refsMap.get(headCommit.hash) || [];
+            if (!existingRefs.includes(trackingBranch)) {
+              existingRefs.push(trackingBranch);
+              refsMap.set(headCommit.hash, existingRefs);
+              console.log(
+                "Added remote tracking refs to HEAD:",
+                existingRefs,
+                "to commit",
+                headCommit.hash,
+              );
+            }
           }
         }
       }
@@ -890,7 +893,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 
     // Process local commits
     const localCommits =
-      gitLog?.all?.map((commit, index) => {
+      gitLog?.all?.map((commit: any, index: number) => {
         // Debug the first commit to see what properties are available
         if (index === 0) {
           console.log("Raw commit object:", commit);
@@ -1035,7 +1038,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 
     // Expand all remotes by default
     if (remotes.length > 0) {
-      const allRemoteNames = new Set(remotes.map((r: any) => r.name as string));
+      const allRemoteNames = new Set<string>(remotes.map((r: any) => r.name as string));
       setExpandedRemotes(allRemoteNames);
     }
 
@@ -1319,16 +1322,17 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 
   const fetchStashFiles = async (stashName: string) => {
     try {
-      const stashContent = await electrobun.rpc?.request.gitStashShow({
-        repoRoot: repoRootPath,
-        stashName: stashName,
-      });
+      const stashContent =
+        ((await electrobun.rpc?.request.gitStashShow({
+          repoRoot: repoRootPath,
+          stashName: stashName,
+        })) as string | undefined) || "";
 
       // Parse the name-status output into file changes
       const files = stashContent
         .split("\n")
         .filter((line) => line.trim())
-        .map((line) => {
+        .map((line: string) => {
           const parts = line.trim().split("\t");
           const changeType = parts[0];
           const filePath = parts[1];
@@ -1518,8 +1522,8 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
       "-temp-" +
       Date.now();
     const backupPath = tempRootPath + "-backup";
-    const tempGitPath = join(tempRootPath, ".git");
-    const originalGitPath = join(repoRootPath, ".git");
+    const tempGitPath = `${tempRootPath}/.git`;
+    const originalGitPath = `${repoRootPath}/.git`;
 
     const project = getProjectForNodePath(node.path);
 
@@ -1528,7 +1532,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
       return;
     }
     // Recreate the file watchers because we're actually going to move and replace the entire folder.
-    electrobun.rpc?.send("removeProjectDirectoryWatcher", {
+    (electrobun.rpc?.send as any)?.("removeProjectDirectoryWatcher", {
       projectId: project.id,
     });
 
@@ -1578,7 +1582,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 
     await onClickSaveBackup();
 
-    electrobun.rpc?.send("removeProjectDirectoryWatcher", {
+    (electrobun.rpc?.send as any)?.("removeProjectDirectoryWatcher", {
       projectId: project.id,
     });
 

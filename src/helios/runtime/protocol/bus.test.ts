@@ -71,7 +71,7 @@ describe(InMemoryLocalBus, () => {
       expect(response.status).toBe("ok");
       expect(response.result).toBeDefined();
       expect((response.result as any)?.lane_id).toBeDefined();
-      expectTypeOf((response.result as any)?.lane_id).toBeString();
+      expect(typeof (response.result as any)?.lane_id).toBe("string");
       expect((response.result as any)?.diagnostics).toBeDefined();
       expect((response.result as any)?.diagnostics?.preferred_transport).toBe("cliproxy_harness");
       expect((response.result as any)?.diagnostics?.resolved_transport).toBe("cliproxy_harness");
@@ -143,7 +143,7 @@ describe(InMemoryLocalBus, () => {
       expect(response.status).toBe("ok");
       expect(response.result).toBeDefined();
       expect((response.result as any)?.session_id).toBeDefined();
-      expectTypeOf((response.result as any)?.session_id).toBeString();
+      expect(typeof (response.result as any)?.session_id).toBe("string");
       expect((response.result as any)?.diagnostics).toBeDefined();
     });
 
@@ -195,7 +195,7 @@ describe(InMemoryLocalBus, () => {
       expect(response.status).toBe("ok");
       expect(response.result).toBeDefined();
       expect((response.result as any)?.terminal_id).toBeDefined();
-      expectTypeOf((response.result as any)?.terminal_id).toBeString();
+      expect(typeof (response.result as any)?.terminal_id).toBe("string");
       expect((response.result as any)?.diagnostics).toBeDefined();
     });
 
@@ -439,7 +439,7 @@ describe(InMemoryLocalBus, () => {
     it("should return initial state", () => {
       const state = bus.getState();
       expect(state).toBeDefined();
-      expectTypeOf(state).toBeObject();
+      expect(typeof state).toBe("object");
     });
 
     it("should return consistent state across calls", () => {

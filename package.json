@@ -37,9 +37,10 @@
     "test": "vitest run",
     "format": "oxfmt .",
     "format:check": "oxfmt --check .",
-    "lint": "oxlint -c .oxlintrc.json .",
-    "lint:fix": "oxlint -c .oxlintrc.json --fix .",
-    "typecheck": "tsc -p tsconfig.ci.json --noEmit"
+    "tsgolint": "bun run scripts/tsgolint-safe.ts",
+    "lint": "oxlint -c .oxlintrc.json . && bun run tsgolint",
+    "lint:fix": "oxlint -c .oxlintrc.json --fix . && bun run tsgolint",
+    "typecheck": "tsgo --noEmit"
   },
   "dependencies": {
     "@webflow/webflow-cli": "^1.1.1",
@@ -65,6 +66,7 @@
     "@typescript/native-preview": "^7.0.0-dev.20260228.1",
     "oxfmt": "^0.27.0",
     "oxlint": "^1.43.0",
+    "oxlint-tsgolint": "^0.16.0",
     "typescript": "^5.4.5",
     "vitest": "^4.0.18"
   }

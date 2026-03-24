@@ -10,6 +10,19 @@ import { join } from "path";
 
 const BIOME_VERSION = "2.3.13";
 
+function parseVersionPackageJson(contents: string): string | null {
+  const parsed: unknown = JSON.parse(contents);
+  if (
+    typeof parsed === "object" &&
+    parsed !== null &&
+    "version" in parsed &&
+    typeof parsed.version === "string"
+  ) {
+    return parsed.version;
+  }
+  return null;
+}
+
 export const isInstalled = () => {
   console.log(
     "is biome installed? ",
@@ -22,7 +35,7 @@ export const isInstalled = () => {
 };
 
 let _version: string = "";
-export const getVersion = (forceRefetch = false) => {
+export const getVersion = (forceRefetch = false): string | null => {
   if (!forceRefetch && _version) {
     return _version;
   }
@@ -34,11 +47,15 @@ export const getVersion = (forceRefetch = false) => {
   }
 
   try {
-    const packageJson = JSON.parse(readFileSync(join(BIOME_PACKAGE_PATH, "package.json"), "utf8"));
-    _version = packageJson.version;
+    const version = parseVersionPackageJson(readFileSync(packgeJsonPath, "utf8"));
+    if (version === null) {
+      return null;
+    }
+    _version = version;
     return _version;
   } catch (e) {
     console.error("error reading package.json", e);
+    return null;
   }
 };
 

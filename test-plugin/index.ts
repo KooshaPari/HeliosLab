@@ -27,7 +27,14 @@
  * ✅ Utils (getUniqueNewName)
  */
 
-import type { PluginAPI, Disposable } from "../colab/src/main/plugins/types";
+import type {
+  PluginAPI,
+  Disposable,
+  TerminalCommandContext,
+  FileChangeEvent,
+  EditorInfo,
+  SlateContext,
+} from "../src/main/plugins/types";
 
 let electrobunModeEnabled = false;
 const disposables: Disposable[] = [];
@@ -159,7 +166,7 @@ export async function activate(api: PluginAPI): Promise<void> {
   // --------------------------------------------------------------------------
 
   // Main "zap" terminal command
-  const terminalZapDisposable = api.terminal.registerCommand("zap", async (ctx) => {
+  const terminalZapDisposable = api.terminal.registerCommand("zap", async (ctx: TerminalCommandContext) => {
     const { args, cwd, write } = ctx;
     const count = parseInt(args[0]) || 3;
 
@@ -181,7 +188,7 @@ export async function activate(api: PluginAPI): Promise<void> {
   disposables.push(terminalZapDisposable);
 
   // "bunny" terminal command - shows bunny art
-  const terminalBunnyDisposable = api.terminal.registerCommand("bunny", async (ctx) => {
+  const terminalBunnyDisposable = api.terminal.registerCommand("bunny", async (ctx: TerminalCommandContext) => {
     const { write } = ctx;
     write("\x1b[35m"); // Magenta
     write("   /)  /)\r\n");
@@ -191,7 +198,9 @@ export async function activate(api: PluginAPI): Promise<void> {
   disposables.push(terminalBunnyDisposable);
 
   // "paths" terminal command - shows bundled binary paths
-  const terminalPathsDisposable = api.terminal.registerCommand("paths", async (ctx) => {
+  const terminalPathsDisposable = api.terminal.registerCommand(
+    "paths",
+    async (ctx: TerminalCommandContext) => {
     const { write } = ctx;
     write("\x1b[36m⚡ Bundled Binary Paths:\x1b[0m\r\n\r\n");
     write(`  bun:       ${api.paths.bun}\r\n`);
@@ -200,7 +209,8 @@ export async function activate(api: PluginAPI): Promise<void> {
     write(`  rg:        ${api.paths.rg}\r\n`);
     write(`  colabHome: ${api.paths.colabHome}\r\n`);
     write(`  plugins:   ${api.paths.plugins}\r\n\r\n`);
-  });
+    },
+  );
   disposables.push(terminalPathsDisposable);
 
   api.log.info("✓ Terminal commands registered (zap, bunny, paths)");
@@ -213,7 +223,7 @@ export async function activate(api: PluginAPI): Promise<void> {
     ["typescript", "javascript", "typescriptreact", "javascriptreact"],
     {
       triggerCharacters: ["."],
-      provideCompletions(ctx) {
+      provideCompletions(ctx: { linePrefix: string }) {
         if (!ctx.linePrefix.endsWith("console.")) {
           return [];
         }
@@ -302,7 +312,7 @@ export async function activate(api: PluginAPI): Promise<void> {
   // --------------------------------------------------------------------------
 
   const decorationDisposable = api.fileDecorations.registerProvider({
-    provideDecoration(filePath) {
+    provideDecoration(filePath: string) {
       // TypeScript files get a lightning bolt
       if (filePath.endsWith(".ts") || filePath.endsWith(".tsx")) {
         return {
@@ -343,7 +353,7 @@ export async function activate(api: PluginAPI): Promise<void> {
       context: "both",
       shortcutHint: "Cmd+Shift+E",
     },
-    async (ctx) => {
+    async (ctx: { filePath?: string; selection?: string }) => {
       api.log.info(`Electrify requested for: ${ctx.filePath || "selection"}`);
 
       // Demo: if it's a file, try to read it and show stats in status bar
@@ -384,7 +394,7 @@ export async function activate(api: PluginAPI): Promise<void> {
       label: "🐰 Create .bunny file",
       context: "fileTree",
     },
-    async (ctx) => {
+    async (ctx: { filePath?: string; selection?: string }) => {
       // Get the directory path - if a file is selected, use its parent directory
       let dirPath = ctx.filePath || "";
 
@@ -517,7 +527,7 @@ Created: ${new Date().toLocaleString()}
   disposables.push(settingsDisposable);
 
   // Listen for settings changes
-  const settingsChangeDisposable = api.settings.onChange((key, value) => {
+  const settingsChangeDisposable = api.settings.onChange((key: string, value: string | number | boolean) => {
     api.log.info(`Setting changed: ${key} = ${value}`);
 
     if (key === "statusBarColor") {
@@ -561,7 +571,7 @@ Created: ${new Date().toLocaleString()}
   // 11. EVENTS: Subscribe to file and editor changes
   // --------------------------------------------------------------------------
 
-  const fileChangeDisposable = api.events.onFileChange((event) => {
+  const fileChangeDisposable = api.events.onFileChange((event: FileChangeEvent) => {
     api.log.debug(`File ${event.type}: ${event.path}`);
     // Demo: track changed files in state
     const changedFiles = api.state.get<string[]>("changedFiles") || [];
@@ -573,7 +583,7 @@ Created: ${new Date().toLocaleString()}
   });
   disposables.push(fileChangeDisposable);
 
-  const editorChangeDisposable = api.events.onActiveEditorChange((editor) => {
+  const editorChangeDisposable = api.events.onActiveEditorChange((editor: EditorInfo | null) => {
     if (editor) {
       api.log.debug(`Active editor changed: ${editor.path} (${editor.languageId})`);
     } else {
@@ -598,7 +608,7 @@ Created: ${new Date().toLocaleString()}
   disposables.push(slateDisposable);
 
   // Handle slate mount
-  const slateMountDisposable = api.slates.onMount("bunny-viewer", async (context) => {
+  const slateMountDisposable = api.slates.onMount("bunny-viewer", async (context: SlateContext) => {
     api.log.info(`Bunny slate mounting for: ${context.filePath}`);
 
     // Store the file path for this instance so we can access it in event handlers
@@ -715,7 +725,7 @@ Created: ${new Date().toLocaleString()}
   disposables.push(slateMountDisposable);
 
   // Handle slate unmount
-  const slateUnmountDisposable = api.slates.onUnmount("bunny-viewer", (instanceId) => {
+  const slateUnmountDisposable = api.slates.onUnmount("bunny-viewer", (instanceId: string) => {
     api.log.info(`Bunny slate unmounting: ${instanceId}`);
 
     // Clean up the stored file path
@@ -728,7 +738,7 @@ Created: ${new Date().toLocaleString()}
   // Handle slate events
   const slateEventDisposable = api.slates.onEvent(
     "bunny-viewer",
-    async (instanceId, eventType, payload) => {
+    async (instanceId: string, eventType: string, payload: unknown) => {
       api.log.info(`Bunny slate event: ${eventType}`, payload);
 
       if (eventType === "appendToFile") {

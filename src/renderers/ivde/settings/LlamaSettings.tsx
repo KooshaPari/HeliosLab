@@ -156,7 +156,9 @@ export const LlamaSettings = (): JSXElement => {
         const result = await electrobun.rpc?.request.llamaDownloadStatus({ downloadId });
 
         if (result?.ok && result.status) {
-          const { status, progress, fileName, error, downloadedBytes, totalBytes } = result.status;
+          const { status, progress, fileName, error } = result.status;
+          const downloadedBytes = (result.status as any).downloadedBytes as number | undefined;
+          const totalBytes = (result.status as any).totalBytes as number | undefined;
 
           if (status === "downloading") {
             let progressText = `Downloading ${fileName}... ${progress}%`;

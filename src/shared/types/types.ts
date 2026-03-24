@@ -91,6 +91,26 @@ export type SlateType =
       config: {
         model?: string;
         temperature?: number;
+        maxTokens?: number;
+        topP?: number;
+        repeatPenalty?: number;
+        aiSettings?: {
+          temperature?: number;
+          maxTokens?: number;
+          topP?: number;
+          repeatPenalty?: number;
+        };
+        chatHistories?: Array<{
+          id: string;
+          title: string;
+          messages: Array<{
+            role: "user" | "assistant";
+            content: string;
+            timestamp: number;
+          }>;
+          createdAt: number;
+          updatedAt: number;
+        }>;
         systemPrompt?: string;
         conversationHistory?: Array<{
           role: "user" | "assistant";
@@ -140,9 +160,11 @@ export type ParsedResponseType =
   | ts.server.protocol.ProjectLoadingFinishEvent
   | ts.server.protocol.TelemetryEvent
   | ts.server.protocol.DiagnosticEvent
+  | ts.server.protocol.RequestCompletedEvent
   | ts.server.protocol.SemanticDiagnosticsSyncResponse
   | ts.server.protocol.SyntacticDiagnosticsSyncResponse
   | ts.server.protocol.CompletionsResponse
-  | (ts.server.protocol.QuickInfoResponse & { command: "quickinfo" });
+  | (ts.server.protocol.QuickInfoResponse & { command: "quickinfo" })
+  | (ts.server.protocol.DefinitionResponse & { command: "findSourceDefinition" });
 
 export type PanePathType = Array<number>;

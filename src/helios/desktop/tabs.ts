@@ -23,8 +23,8 @@ const TAB_TITLES: Record<ActiveTab, string> = {
   project: "Project",
 };
 
-function deriveTabState(state: ActiveContextState): TabViewState {
-  if (state.operations.error) {
+function deriveTabState(state: Readonly<ActiveContextState>): TabViewState {
+  if (state.operations.error !== null) {
     return "error";
   }
   if (
@@ -34,13 +34,13 @@ function deriveTabState(state: ActiveContextState): TabViewState {
   ) {
     return "loading";
   }
-  if (!state.workspaceId || !state.laneId || !state.sessionId) {
+  if (state.workspaceId === null || state.laneId === null || state.sessionId === null) {
     return "empty";
   }
   return "ready";
 }
 
-function deriveMessage(tab: ActiveTab, state: ActiveContextState): string {
+function deriveMessage(tab: ActiveTab, state: Readonly<ActiveContextState>): string {
   const tabState = deriveTabState(state);
   if (tabState === "error") {
     return state.operations.error ?? `${TAB_TITLES[tab]} failed`;
@@ -54,7 +54,10 @@ function deriveMessage(tab: ActiveTab, state: ActiveContextState): string {
   return `${TAB_TITLES[tab]} bound to active context`;
 }
 
-export function buildTabSurface(state: ActiveContextState, tab: ActiveTab): TabSurface {
+export function buildTabSurface(
+  state: Readonly<ActiveContextState>,
+  tab: ActiveTab,
+): TabSurface {
   return {
     tab,
     title: TAB_TITLES[tab],
@@ -68,7 +71,9 @@ export function buildTabSurface(state: ActiveContextState, tab: ActiveTab): TabS
   };
 }
 
-export function buildAllTabSurfaces(state: ActiveContextState): Record<ActiveTab, TabSurface> {
+export function buildAllTabSurfaces(
+  state: Readonly<ActiveContextState>,
+): Record<ActiveTab, TabSurface> {
   return {
     terminal: buildTabSurface(state, "terminal"),
     agent: buildTabSurface(state, "agent"),

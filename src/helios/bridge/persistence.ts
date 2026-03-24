@@ -65,10 +65,24 @@ export interface PersistedLane {
   state: string;
   lastUpdated: string;
 }
+type PersistedAudit = {
+  timestamp: string;
+  action: string;
+  workspaceId: string;
+  laneId?: string | null;
+  sessionId?: string | null;
+  detail: string;
+};
+
+type PersistedSessionSnapshot = {
+  id: string;
+  workspaceId: string;
+  lanes?: string;
+};
 
 export function upsertLane(lane: Omit<PersistedLane, "id">): PersistedLane {
   const { data } = db.collection("helios_lanes").query();
-  const existing = data.find((d) => d.laneId === lane.laneId);
+  const existing = data.find((d: PersistedLane) => d.laneId === lane.laneId);
 
   if (existing) {
     const updated = db.collection("helios_lanes").update(existing.id, {
@@ -104,8 +118,8 @@ export function upsertLane(lane: Omit<PersistedLane, "id">): PersistedLane {
 export function getLanesForWorkspace(workspaceId: string): PersistedLane[] {
   const { data } = db.collection("helios_lanes").query();
   return data
-    .filter((d) => d.workspaceId === workspaceId)
-    .map((d) => ({
+    .filter((d: PersistedLane) => d.workspaceId === workspaceId)
+    .map((d: PersistedLane) => ({
       id: d.id,
       workspaceId: d.workspaceId,
       laneId: d.laneId,
@@ -146,9 +160,9 @@ export function getRecentAudit(limit = 50): {
 }[] {
   const { data } = db.collection("helios_audit").query();
   return data
-    .sort((a, b) => b.timestamp.localeCompare(a.timestamp))
+    .sort((a: PersistedAudit, b: PersistedAudit) => b.timestamp.localeCompare(a.timestamp))
     .slice(0, limit)
-    .map((d) => ({
+    .map((d: PersistedAudit) => ({
       timestamp: d.timestamp,
       action: d.action,
       workspaceId: d.workspaceId,
@@ -165,7 +179,7 @@ export type SessionSnapshot = BusLaneState;
 export function saveSessionSnapshot(workspaceId: string, lanes: SessionSnapshot[]): void {
   try {
     const { data } = db.collection("helios_session_snapshots").query();
-    const existing = data.find((d) => d.workspaceId === workspaceId);
+    const existing = data.find((d: PersistedSessionSnapshot) => d.workspaceId === workspaceId);
 
     const snapshotData = {
       workspaceId,
@@ -186,7 +200,7 @@ export function saveSessionSnapshot(workspaceId: string, lanes: SessionSnapshot[
 export function loadSessionSnapshot(workspaceId: string): SessionSnapshot[] | null {
   try {
     const { data } = db.collection("helios_session_snapshots").query();
-    const snapshot = data.find((d) => d.workspaceId === workspaceId);
+    const snapshot = data.find((d: PersistedSessionSnapshot) => d.workspaceId === workspaceId);
 
     if (!snapshot || !snapshot.lanes) {
       return null;
@@ -201,7 +215,7 @@ export function loadSessionSnapshot(workspaceId: string): SessionSnapshot[] | nu
 export function clearSessionSnapshot(workspaceId: string): void {
   try {
     const { data } = db.collection("helios_session_snapshots").query();
-    const snapshot = data.find((d) => d.workspaceId === workspaceId);
+    const snapshot = data.find((d: PersistedSessionSnapshot) => d.workspaceId === workspaceId);
 
     if (snapshot) {
       db.collection("helios_session_snapshots").remove(snapshot.id);

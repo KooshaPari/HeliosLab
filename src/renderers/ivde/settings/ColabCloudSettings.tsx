@@ -44,7 +44,7 @@ export const ColabCloudSettings = (): JSXElement => {
   } | null>(null);
 
   // Check if passphrase is set
-  const hasPassphrase = () => !!state.appSettings.colabCloud?.syncPassphrase;
+  const hasPassphrase = () => Boolean(state.appSettings.colabCloud?.syncPassphrase);
 
   const isConnected = () => {
     return state.appSettings.colabCloud?.accessToken && state.appSettings.colabCloud?.email;

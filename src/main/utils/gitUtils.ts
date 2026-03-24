@@ -633,12 +633,17 @@ export const gitLogRemoteOnly = async (
   }
 };
 
-export const gitApply = (repoRoot: string, options: string[], patch?: string) => {
+export const gitApply = async (repoRoot: string, options: string[], patch?: string) => {
   // Apply a patch to the working directory or index
   const gitInstance = git(repoRoot);
   if (patch) {
-    // For applying patches from strings, we'll need to use raw commands
-    return gitInstance.raw(["apply", ...options], patch);
+    const tmpFile = path.join(os.tmpdir(), `git-apply-${Date.now()}.patch`);
+    fs.writeFileSync(tmpFile, patch);
+    try {
+      return await gitInstance.raw(["apply", ...options, tmpFile]);
+    } finally {
+      fs.rmSync(tmpFile, { force: true });
+    }
   }
   return gitInstance.raw(["apply", ...options]);
 };

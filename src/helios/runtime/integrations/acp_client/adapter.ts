@@ -16,7 +16,7 @@ export interface AcpExecuteResult {
 export type ProviderHealthState = "healthy" | "degraded" | "unavailable";
 
 export interface AcpClientAdapter {
-  init(config: AcpConfig): Promise<void>;
+  init(config: Readonly<AcpConfig>): Promise<void>;
   execute(prompt: string, correlationId: string): Promise<AcpExecuteResult>;
   cancel(taskId: string): Promise<void>;
   health(): Promise<{ state: ProviderHealthState; failureCount: number }>;

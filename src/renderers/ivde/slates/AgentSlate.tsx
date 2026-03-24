@@ -26,6 +26,10 @@ export const AgentSlate = ({ node, tabId }: { node?: CachedFileType; tabId: stri
   }
 
   const slate = () => getSlateForNode(node);
+  const getSlateDisplayName = () => {
+    const slateData = slate();
+    return slateData && "name" in slateData ? slateData.name : "AI Assistant";
+  };
   const [message, setMessage] = createSignal("");
   const [isLoading, setIsLoading] = createSignal(false);
   const [availableModels, setAvailableModels] = createSignal<Array<{ name: string; path: string }>>(
@@ -39,7 +43,7 @@ export const AgentSlate = ({ node, tabId }: { node?: CachedFileType; tabId: stri
   const [contextContent, setContextContent] = createSignal("");
 
   // Chat scroll ref
-  let chatContainerRef: HTMLDivElement;
+  let chatContainerRef: HTMLDivElement | undefined;
 
   // Auto-scroll to bottom when new messages arrive
   const scrollToBottom = () => {
@@ -51,12 +55,12 @@ export const AgentSlate = ({ node, tabId }: { node?: CachedFileType; tabId: stri
   // Get chat histories from slate config
   const getChatHistories = (): ChatHistory[] => {
     const slateData = slate();
-    if (slateData?.type === "agent" && slateData.config.chatHistories) {
-      return slateData.config.chatHistories;
+    if (slateData?.type === "agent" && (slateData.config as any).chatHistories) {
+      return (slateData.config as any).chatHistories;
     }
     // Migrate old single conversation history to new format
-    if (slateData?.type === "agent" && slateData.config.conversationHistory) {
-      const oldHistory = slateData.config.conversationHistory as Message[];
+    if (slateData?.type === "agent" && (slateData.config as any).conversationHistory) {
+      const oldHistory = (slateData.config as any).conversationHistory as Message[];
       if (oldHistory.length > 0) {
         return [
           {
@@ -91,8 +95,8 @@ export const AgentSlate = ({ node, tabId }: { node?: CachedFileType; tabId: stri
   // Get current model from slate config or app settings
   const getCurrentModel = () => {
     const slateData = slate();
-    if (slateData?.type === "agent" && slateData.config.model) {
-      return slateData.config.model;
+    if (slateData?.type === "agent" && (slateData.config as any).model) {
+      return (slateData.config as any).model;
     }
     return state.appSettings.llama.model;
   };
@@ -102,8 +106,8 @@ export const AgentSlate = ({ node, tabId }: { node?: CachedFileType; tabId: stri
   // AI Settings
   const getAISettings = () => {
     const slateData = slate();
-    if (slateData?.type === "agent" && slateData.config.aiSettings) {
-      return slateData.config.aiSettings;
+    if (slateData?.type === "agent" && (slateData.config as any).aiSettings) {
+      return (slateData.config as any).aiSettings;
     }
     return {
       temperature: 0.7,
@@ -213,7 +217,7 @@ export const AgentSlate = ({ node, tabId }: { node?: CachedFileType; tabId: stri
       };
 
       // Update slate cache
-      setState("slateCache", node.path + "/.colab.json", updatedSlate);
+      setState("slateCache", node.path + "/.colab.json", updatedSlate as any);
 
       // Save to file
       const configPath = node.path + "/.colab.json";
@@ -608,7 +612,7 @@ export const AgentSlate = ({ node, tabId }: { node?: CachedFileType; tabId: stri
                 </button>
               </Show>
               <h3 style="margin: 0; color: #fff; font-size: 14px;">
-                {slate()?.name || "AI Assistant"}
+                {getSlateDisplayName()}
                 <Show when={currentChatId()}>
                   <span style="color: #888; font-weight: normal; margin-left: 8px;">
                     • {chatHistories().find((c) => c.id === currentChatId())?.title || "New Chat"}
@@ -781,7 +785,9 @@ export const AgentSlate = ({ node, tabId }: { node?: CachedFileType; tabId: stri
 
           {/* Conversation History */}
           <div
-            ref={chatContainerRef}
+            ref={(el) => {
+              chatContainerRef = el;
+            }}
             style="flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px;"
           >
             <Show when={conversationHistory().length === 0}>

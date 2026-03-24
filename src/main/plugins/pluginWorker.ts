@@ -93,7 +93,7 @@ function createPluginAPI(manifest: PluginManifest): PluginAPI {
     }
   };
 
-  const api: PluginAPI = {
+  const api = {
     plugin: Object.freeze({
       name: pluginName,
       version: "", // Will be set from manifest
@@ -160,6 +160,10 @@ function createPluginAPI(manifest: PluginManifest): PluginAPI {
       async insertText(text: string): Promise<void> {
         return requestFromMain("editor.insertText", { text }) as Promise<void>;
       },
+
+      registerCompletionProvider(): Disposable {
+        return { dispose: () => {} };
+      },
     },
 
     terminal: {
@@ -171,6 +175,10 @@ function createPluginAPI(manifest: PluginManifest): PluginAPI {
       async sendText(terminalId: string, text: string): Promise<void> {
         requirePermission("terminal", permissions.terminal || "none", ["readwrite"]);
         return requestFromMain("terminal.sendText", { terminalId, text }) as Promise<void>;
+      },
+
+      registerCommand(): Disposable {
+        return { dispose: () => {} };
       },
     },
 
@@ -275,7 +283,7 @@ function createPluginAPI(manifest: PluginManifest): PluginAPI {
   };
 
   // Freeze the API to prevent modification
-  return Object.freeze(api);
+  return Object.freeze(api) as unknown as PluginAPI;
 }
 
 // ============================================================================
@@ -298,17 +306,18 @@ self.onmessage = async (event: MessageEvent<MainToWorkerMessage & { requestId?: 
         log("info", `Loading plugin from ${config.entryPath}`);
 
         // Dynamically import the plugin
-        pluginModule = await import(config.entryPath);
+        const loadedModule = (await import(config.entryPath)) as NonNullable<typeof pluginModule>;
+        pluginModule = loadedModule;
 
-        if (!pluginModule.activate) {
+        if (!loadedModule.activate) {
           log("warn", "Plugin has no activate function");
         }
 
         // Create the API and call activate
         const api = createPluginAPI(config.manifest);
 
-        if (pluginModule.activate) {
-          await pluginModule.activate(api);
+        if (loadedModule.activate) {
+          await loadedModule.activate(api);
         }
 
         sendMessage({ type: "activated" });

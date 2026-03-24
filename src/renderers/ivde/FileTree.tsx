@@ -89,7 +89,7 @@ async function getFileDecoration(filePath: string): Promise<FileDecoration | nul
 const makeSafeSerializer = () => {
   const seen = new WeakSet();
 
-  return (key, value) => {
+  return (key: string, value: unknown) => {
     if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
       return value;
     }
@@ -214,7 +214,7 @@ const CategoryRow = ({
                 const projectPreviewNode = {
                   ...newNode,
                   slate: {
-                    v: 1,
+                    v: 1 as const,
                     name: newNode.name,
                     type: "project" as const,
                     url: "",
@@ -299,6 +299,11 @@ const TemplateNodeItem = ({ template }: { template: (typeof TEMPLATE_NODES)[numb
       return;
     }
 
+    if (state.dragState.type !== "node") {
+      setState("dragState", null);
+      return;
+    }
+
     const { targetPaneId, targetTabIndex, targetFolderPath, templateId } = state.dragState;
 
     // Handle drop onto pane (opens ephemeral tab)
@@ -353,6 +358,10 @@ const TemplateNodeItem = ({ template }: { template: (typeof TEMPLATE_NODES)[numb
           parentPath: targetFolderPath,
           baseName,
         });
+        if (!uniqueName) {
+          setState("dragState", null);
+          return;
+        }
         const browserProfilePath = join(targetFolderPath, uniqueName);
 
         await electrobun.rpc?.request.mkdir({ path: browserProfilePath });
@@ -381,6 +390,10 @@ const TemplateNodeItem = ({ template }: { template: (typeof TEMPLATE_NODES)[numb
           parentPath: targetFolderPath,
           baseName,
         });
+        if (!uniqueName) {
+          setState("dragState", null);
+          return;
+        }
         const agentPath = join(targetFolderPath, uniqueName);
 
         await electrobun.rpc?.request.mkdir({ path: agentPath });
@@ -412,7 +425,7 @@ const TemplateNodeItem = ({ template }: { template: (typeof TEMPLATE_NODES)[numb
       // Use home directory if available, otherwise fall back to current directory
       const homeDir = state.paths?.COLAB_HOME_FOLDER || undefined;
       openNewTerminalTab(homeDir);
-    } else if (template.id === "browser-chromium" || template.id === "browser-webkit") {
+    } else if (template.id === "browser-webkit") {
       // For browser templates, create a unique internal path for each tab instance
       // This prevents multiple tabs from sharing the same node/webview instance
       const uniqueId = Math.random().toString(36).substring(2, 11);
@@ -855,7 +868,7 @@ export const FileTree = ({
           {numResultsHidden() > 0 && (
             <TreeUL>
               {/* <FileTree node={_node} readonly={true}></FileTree> */}
-              <TreeLI node={null}>
+              <li>
                 <div
                   style={`cursor: pointer;
                     margin-left: 20px;
@@ -885,7 +898,7 @@ export const FileTree = ({
                 >
                   {`Show ${numResultsHidden()} more match${numResultsHidden() === 1 ? "" : "es"}`}
                 </div>
-              </TreeLI>
+              </li>
             </TreeUL>
           )}
         </TreeUL>
@@ -1741,7 +1754,8 @@ const NodeName = ({
               parentPath: targetFolderPath,
               baseName: node.name,
             });
-            const newPath = join(targetFolderPath, uniqueFileName);
+            const resolvedFileName = uniqueFileName || node.name;
+            const newPath = join(targetFolderPath, resolvedFileName);
 
             setNodeExpanded(targetFolderPath, true);
 
@@ -1760,14 +1774,14 @@ const NodeName = ({
                       const previewNode = _state.settingsPane.data.previewNode;
 
                       previewNode.path = newPath;
-                      previewNode.name = uniqueFileName;
+                      previewNode.name = resolvedFileName;
                     }
 
                     if ("node" in _state.settingsPane.data) {
                       const originalNode = _state.settingsPane.data.node;
 
                       originalNode.path = newPath;
-                      originalNode.name = uniqueFileName;
+                      originalNode.name = resolvedFileName;
                     }
                   }),
                 );
@@ -1889,8 +1903,8 @@ const NodeName = ({
               const node = nodeToRender();
 
               // If we're hovering and it's a slate with a different display name, show folder name
-              if (isHovered() && slate && slate.name && slate.name !== node.name) {
-                return slate?.name || node.name;
+              if (isHovered() && slate && "name" in slate && slate.name !== node.name) {
+                return slate.name || node.name;
               }
 
               // Otherwise show the display name (slate name or folder name)
@@ -2004,7 +2018,7 @@ export const getIconForNode = (node: CachedFileType | PreviewFileTreeType): stri
     }
 
     // For other slates with custom icons, use them
-    if (slate?.icon) {
+    if (slate && "icon" in slate && slate.icon) {
       return slate.icon;
     }
 
@@ -2096,10 +2110,16 @@ export const FindAllResultsTree = () => {
   );
 };
 
-const FindAllResultProjectTree = ({ projectId, projectNode }) => {
+const FindAllResultProjectTree = ({
+  projectId,
+  projectNode,
+}: {
+  projectId: string;
+  projectNode: CachedFileType | null;
+}) => {
   const [isExpanded, setIsExpanded] = createSignal(true);
 
-  const numResultsToIncremenet = 5;
+  const numResultsToIncrement = 5;
   const [numResultsToShow, setNumResultsToShow] = createSignal(5);
   const [numResultsHidden, setNumResultsHidden] = createSignal(0);
 
@@ -2116,6 +2136,10 @@ const FindAllResultProjectTree = ({ projectId, projectNode }) => {
 
     return [];
   };
+
+  if (!projectNode) {
+    return null;
+  }
 
   return (
     <TreeLI node={projectNode}>
@@ -2168,10 +2192,10 @@ const FindAllResultProjectTree = ({ projectId, projectNode }) => {
               e.currentTarget.style.color = "rgba(0, 0, 0, 0.55)";
             }}
             onClick={() => {
-              setNumResultsToShow(numResultsToShow() + numResultsToIncremenet);
+              setNumResultsToShow(numResultsToShow() + numResultsToIncrement);
             }}
           >
-            {`Show ${numResultsToIncremenet} more file${numResultsToIncremenet === 1 ? "" : "s"} (${numResultsHidden()} hidden)`}
+            {`Show ${numResultsToIncrement} more files (${numResultsHidden()} hidden)`}
           </div>
         )}
       </Show>

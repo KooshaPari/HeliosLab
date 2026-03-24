@@ -18,7 +18,10 @@ const upterm = new UptermCommandAdapter();
 const tmate = new TmateCommandAdapter();
 const zmx = new ZmxCommandAdapter();
 
-function okResponse(command: LocalBusEnvelope, result: Record<string, unknown>): LocalBusEnvelope {
+function okResponse(
+  command: Readonly<LocalBusEnvelope>,
+  result: Readonly<Record<string, unknown>>,
+): LocalBusEnvelope {
   return {
     id: command.id,
     type: "response",
@@ -28,7 +31,11 @@ function okResponse(command: LocalBusEnvelope, result: Record<string, unknown>):
   };
 }
 
-function errorResponse(command: LocalBusEnvelope, code: string, message: string): LocalBusEnvelope {
+function errorResponse(
+  command: Readonly<LocalBusEnvelope>,
+  code: string,
+  message: string,
+): LocalBusEnvelope {
   return {
     id: command.id,
     type: "response",
@@ -42,32 +49,64 @@ function errorResponse(command: LocalBusEnvelope, code: string, message: string)
 export function createToolDispatch(): CommandDispatch {
   return async (command: LocalBusEnvelope): Promise<LocalBusEnvelope> => {
     const method = command.method;
-    const payload = (command.payload ?? {}) as Record<string, unknown>;
+    const payload =
+      typeof command.payload === "object" && command.payload !== null
+        ? command.payload
+        : {};
+
+    const readString = (key: string): string | null => {
+      const value = payload[key];
+      return typeof value === "string" ? value : null;
+    };
 
     try {
       switch (method) {
         case "share.upterm.start": {
-          const { shareUrl } = await upterm.startShare(payload.terminalId as string);
+          const terminalId = readString("terminalId");
+          if (terminalId === null) {
+            return errorResponse(command, "INVALID_TOOL_PAYLOAD", "terminalId must be a string");
+          }
+          const { shareUrl } = await upterm.startShare(terminalId);
           return okResponse(command, { shareUrl });
         }
         case "share.upterm.stop": {
-          await upterm.stopShare(payload.terminalId as string);
+          const terminalId = readString("terminalId");
+          if (terminalId === null) {
+            return errorResponse(command, "INVALID_TOOL_PAYLOAD", "terminalId must be a string");
+          }
+          await upterm.stopShare(terminalId);
           return okResponse(command, {});
         }
         case "share.tmate.start": {
-          const result = await tmate.startShare(payload.terminalId as string);
+          const terminalId = readString("terminalId");
+          if (terminalId === null) {
+            return errorResponse(command, "INVALID_TOOL_PAYLOAD", "terminalId must be a string");
+          }
+          const result = await tmate.startShare(terminalId);
           return okResponse(command, result);
         }
         case "share.tmate.stop": {
-          await tmate.stopShare(payload.terminalId as string);
+          const terminalId = readString("terminalId");
+          if (terminalId === null) {
+            return errorResponse(command, "INVALID_TOOL_PAYLOAD", "terminalId must be a string");
+          }
+          await tmate.stopShare(terminalId);
           return okResponse(command, {});
         }
         case "zmx.checkpoint": {
-          const checkpointId = await zmx.checkpoint(payload.sessionId as string);
+          const sessionId = readString("sessionId");
+          if (sessionId === null) {
+            return errorResponse(command, "INVALID_TOOL_PAYLOAD", "sessionId must be a string");
+          }
+          const checkpointId = await zmx.checkpoint(sessionId);
           return okResponse(command, { checkpointId });
         }
         case "zmx.restore": {
-          await zmx.restore(payload.checkpointId as string);
+          const checkpointId = readString("checkpointId");
+          if (checkpointId === null) {
+            return errorResponse(command, "INVALID_TOOL_PAYLOAD", "checkpointId must be a string");
+          }
+          await zmx.restore(checkpointId);
           return okResponse(command, {});
         }
         default: {
