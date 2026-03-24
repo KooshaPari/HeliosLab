@@ -53,10 +53,10 @@ export const TerminalSlate = ({ tabId }: { tabId: string }) => {
   };
 
   const initializeTerminal = async () => {
-    if (!terminalElement) return;
+    if (!terminalElement) {return;}
 
     const _tab = tab();
-    if (!_tab) return;
+    if (!_tab) {return;}
 
     try {
       // Create terminal in bun process
@@ -96,7 +96,7 @@ export const TerminalSlate = ({ tabId }: { tabId: string }) => {
           background: "#000005",
           foreground: "#888888",
         },
-        scrollback: 10000,
+        scrollback: 10_000,
         convertEol: true,
       });
 
@@ -136,7 +136,7 @@ export const TerminalSlate = ({ tabId }: { tabId: string }) => {
               max-width: 400px;
               word-break: break-all;
             `;
-            document.body.appendChild(tooltip);
+            document.body.append(tooltip);
           },
           leave: () => {
             // Remove tooltip when mouse leaves the link
@@ -183,7 +183,7 @@ export const TerminalSlate = ({ tabId }: { tabId: string }) => {
           if (terminalId()) {
             electrobun.rpc?.request.writeToTerminal({
               terminalId: terminalId()!,
-              data: "\x0c", // Form feed character (clear screen)
+              data: "\u000C", // Form feed character (clear screen)
             });
           }
           return false;
@@ -285,7 +285,7 @@ export const TerminalSlate = ({ tabId }: { tabId: string }) => {
     const handleTerminalExit = (event: CustomEvent<{ terminalId: string; exitCode: number }>) => {
       const data = event.detail;
       if (data.terminalId === terminalId() && terminal) {
-        terminal.write(`\r\n\x1b[31mProcess exited with code ${data.exitCode}\x1b[0m\r\n`);
+        terminal.write(`\r\n\u001B[31mProcess exited with code ${data.exitCode}\u001B[0m\r\n`);
       }
     };
 

@@ -48,41 +48,49 @@ export async function handleWfCommand(
     switch (subcommand) {
       case "help":
       case "--help":
-      case "-h":
+      case "-h": {
         printHelp(write);
         break;
+      }
 
-      case "auth":
+      case "auth": {
         await handleAuthCommand(subArgs, write, client, storage, api);
         break;
+      }
 
-      case "sites":
+      case "sites": {
         await handleSitesCommand(write, client);
         break;
+      }
 
-      case "devlink":
+      case "devlink": {
         await handleDevlinkCommand(subArgs, write, cwd, client, storage, api);
         break;
+      }
 
-      case "components":
+      case "components": {
         await handleComponentsCommand(subArgs, write, cwd, client, storage, api);
         break;
+      }
 
-      case "cloud":
+      case "cloud": {
         await handleCloudCommand(subArgs, write, cwd, client, storage, api);
         break;
+      }
 
-      case "assets":
+      case "assets": {
         await handleAssetsCommand(subArgs, write, cwd, client, storage, api);
         break;
+      }
 
-      default:
-        write(`\x1b[31mUnknown command: ${subcommand}\x1b[0m\r\n`);
+      default: {
+        write(`\u001B[31mUnknown command: ${subcommand}\u001B[0m\r\n`);
         write('Run "wf help" for available commands.\r\n');
+      }
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    write(`\x1b[31mError: ${message}\x1b[0m\r\n`);
+    write(`\u001B[31mError: ${message}\u001B[0m\r\n`);
   }
 }
 
@@ -90,7 +98,7 @@ async function handleSitesCommand(
   write: (text: string) => void,
   client: WebflowClient,
 ): Promise<void> {
-  write("\x1b[36mFetching sites...\x1b[0m\r\n\r\n");
+  write("\u001B[36mFetching sites...\u001B[0m\r\n\r\n");
 
   const sites = await client.listSites();
 
@@ -102,7 +110,7 @@ async function handleSitesCommand(
   write(`Found ${sites.length} site(s):\r\n\r\n`);
 
   for (const site of sites) {
-    write(`  \x1b[1m${site.displayName}\x1b[0m\r\n`);
+    write(`  \u001B[1m${site.displayName}\u001B[0m\r\n`);
     write(`  ID: ${site.id}\r\n`);
     write(`  Short name: ${site.shortName}\r\n`);
     if (site.previewUrl) {
@@ -116,42 +124,42 @@ async function handleSitesCommand(
 }
 
 function printHelp(write: (text: string) => void): void {
-  write("\x1b[1;36mWebflow CLI for Colab\x1b[0m\r\n");
+  write("\u001B[1;36mWebflow CLI for Colab\u001B[0m\r\n");
   write("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\r\n\r\n");
 
-  write("\x1b[1mAuthentication:\x1b[0m\r\n");
+  write("\u001B[1mAuthentication:\u001B[0m\r\n");
   write("  wf auth              Connect your Webflow account\r\n");
   write("  wf auth logout       Clear stored credentials\r\n");
   write("  wf auth status       Show current auth status\r\n");
   write("  wf sites             List accessible sites\r\n");
   write("\r\n");
 
-  write("\x1b[1mDevLink (Webflow → Code):\x1b[0m\r\n");
+  write("\u001B[1mDevLink (Webflow → Code):\u001B[0m\r\n");
   write("  wf devlink init      Initialize DevLink in current directory\r\n");
   write("  wf devlink pull      Pull components from Webflow Designer\r\n");
   write("  wf devlink status    Show sync status\r\n");
   write("  wf devlink watch     Watch for changes and auto-sync\r\n");
   write("\r\n");
 
-  write("\x1b[1mCode Components (Code → Webflow):\x1b[0m\r\n");
+  write("\u001B[1mCode Components (Code → Webflow):\u001B[0m\r\n");
   write("  wf components init   Initialize a Code Components library\r\n");
   write("  wf components share  Share library to Webflow Designer\r\n");
   write("  wf components list   List components in library\r\n");
   write("\r\n");
 
-  write("\x1b[1mWebflow Cloud:\x1b[0m\r\n");
+  write("\u001B[1mWebflow Cloud:\u001B[0m\r\n");
   write("  wf cloud init        Scaffold a new Cloud project\r\n");
   write("  wf cloud deploy      Deploy to Webflow Cloud\r\n");
   write("  wf cloud logs        View deployment logs\r\n");
   write("  wf cloud status      Show deployment status\r\n");
   write("\r\n");
 
-  write("\x1b[1mAssets:\x1b[0m\r\n");
+  write("\u001B[1mAssets:\u001B[0m\r\n");
   write("  wf assets upload     Upload file to Webflow CDN\r\n");
   write("  wf assets sync       Sync all assets in project\r\n");
   write("  wf assets inject     Update custom code references\r\n");
   write("  wf assets list       List uploaded assets\r\n");
   write("\r\n");
 
-  write('\x1b[90mRun "wf <command> --help" for more info on a command.\x1b[0m\r\n');
+  write('\u001B[90mRun "wf <command> --help" for more info on a command.\u001B[0m\r\n');
 }

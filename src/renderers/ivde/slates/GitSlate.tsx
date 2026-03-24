@@ -10,25 +10,25 @@ import { join } from "../../utils/pathUtils";
 import { electrobun } from "../init";
 import { Dialog } from "../components/Dialog";
 
-type FileChangeType = {
+interface FileChangeType {
   changeType: "A" | "M" | "D" | "?" | "";
   relPath: string;
-};
+}
 
-type FileChangesType = { [relPath: string]: FileChangeType };
+type FileChangesType = Record<string, FileChangeType>;
 
 type FileChangeWithCommitType = FileChangeType & {
   commitHash: string;
   isFromStaged?: boolean;
 };
 
-type UncommittedChangesType = {
+interface UncommittedChangesType {
   staged: FileChangesType;
   unstaged: FileChangesType;
   shortStat: string;
-};
+}
 
-type CommitType = {
+interface CommitType {
   author: string;
   date: number;
   hash: string;
@@ -38,29 +38,29 @@ type CommitType = {
   shortStat: string;
   refs: string[];
   isRemoteOnly?: boolean;
-};
+}
 
-type RemoteType = {
+interface RemoteType {
   name: string;
   refs: {
     fetch: string;
     push: string;
   };
-};
+}
 
-type BranchInfo = {
+interface BranchInfo {
   current: string;
   all: string[];
   remote: string[];
   trackingBranch?: string;
-};
+}
 
-type SyncStatusType = {
+interface SyncStatusType {
   ahead: number;
   behind: number;
-};
+}
 
-type UIStateType = {
+interface UIStateType {
   changes: UncommittedChangesType;
   log: CommitType[];
   stashes: { all: any[]; latest: any; total: number };
@@ -70,11 +70,11 @@ type UIStateType = {
   branches: BranchInfo;
   syncStatus: SyncStatusType;
   activeSection: "branches" | "remotes" | "stashes";
-};
+}
 
-// const relGitDirectory = join(__dirname, "/git");
+// Const relGitDirectory = join(__dirname, "/git");
 
-// process.env.LOCAL_GIT_DIRECTORY = relGitDirectory;
+// Process.env.LOCAL_GIT_DIRECTORY = relGitDirectory;
 const parseStatusLine = (line: string) => {
   const changeType = line.slice(0, 1);
   const relPath = line.slice(3);
@@ -84,7 +84,7 @@ const parseStatusLine = (line: string) => {
   };
 };
 
-// todo (yoav): maybe we just give it a path and it fetches the node as needed
+// Todo (yoav): maybe we just give it a path and it fetches the node as needed
 export const GitSlate = ({ node }: { node?: CachedFileType }) => {
   if (!node) {
     return null;
@@ -131,8 +131,8 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
       refreshLogAndStageTimeout = setTimeout(() => {
         getLogAndStatus();
         // Note: We no longer clear/reset selectedFile here to avoid remounting
-        // the DiffEditor component. The diff content comparison in setUiState
-        // will prevent unnecessary re-renders.
+        // The DiffEditor component. The diff content comparison in setUiState
+        // Will prevent unnecessary re-renders.
       }, 100);
     }
   });
@@ -142,11 +142,11 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
     clearTimeout(refreshLogAndStageTimeout);
   });
 
-  // startWatching();
+  // StartWatching();
 
   // Note: InitialState must be defined inside the component
-  // if it's global then the same object reference (which gets solidjs store setters/getters)
-  // will be shared across GitSlate tabs even for different repos
+  // If it's global then the same object reference (which gets solidjs store setters/getters)
+  // Will be shared across GitSlate tabs even for different repos
   const initialState: UIStateType = {
     changes: { staged: {}, unstaged: {}, shortStat: "" },
     log: [],
@@ -171,7 +171,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 
   // Add CSS animation for loading spinner
   const addSpinnerAnimation = () => {
-    if (!document.getElementById("spinner-keyframes")) {
+    if (!document.querySelector("#spinner-keyframes")) {
       const style = document.createElement("style");
       style.id = "spinner-keyframes";
       style.innerHTML = `
@@ -180,21 +180,21 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
           100% { transform: rotate(360deg); }
         }
       `;
-      document.head.appendChild(style);
+      document.head.append(style);
     }
   };
   addSpinnerAnimation();
 
   const [selectedFile, setSelectedFile] = createSignal<FileChangeWithCommitType>({
     commitHash: "",
-    // oldPath: "",
+    // OldPath: "",
     relPath: "",
     changeType: "",
   });
 
   const getFileContents = async (filepath: string, commitRef: string = "HEAD") => {
     console.log("getFileContents called:", filepath, commitRef);
-    // todo (yoav): revisit this with simplegit, HEAD may have a different meaning
+    // Todo (yoav): revisit this with simplegit, HEAD may have a different meaning
     if (commitRef === "WORKING") {
       // Special case: read from working directory
       const absolutePath = join(repoRootPath, filepath);
@@ -226,7 +226,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
           return "";
         });
       return content || "";
-    } else {
+    }
       console.log("Reading from HEAD");
       // HEAD - get from git
       const content = await electrobun.rpc?.request
@@ -239,7 +239,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
           return "";
         });
       return content || "";
-    }
+    
   };
 
   const getFileDiff = async (
@@ -260,15 +260,15 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
           // Staged deleted file - compare HEAD with empty
           const originalText = await getFileContents(filepath, "HEAD");
           return { originalText: originalText || "", modifiedText: "" };
-        } else {
+        }
           // Staged modified file - compare HEAD with INDEX (staged version)
           const [originalText, modifiedText] = await Promise.all([
             getFileContents(filepath, "HEAD"), // Last committed version
             getFileContents(filepath, "INDEX"), // Staged version from index
           ]);
           return { originalText: originalText || "", modifiedText: modifiedText || "" };
-        }
-      } else {
+        
+      }
         // Unstaged changes: compare HEAD with working directory
         if (changeType === "A") {
           // Unstaged added file - compare empty with working directory
@@ -278,16 +278,16 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
           // Unstaged deleted file - compare HEAD with empty
           const originalText = await getFileContents(filepath, "HEAD");
           return { originalText: originalText || "", modifiedText: "" };
-        } else {
+        }
           // Unstaged modified file - compare INDEX (staged version) with working directory
           const [originalText, modifiedText] = await Promise.all([
             getFileContents(filepath, "INDEX"), // Use staged version as baseline
             getFileContents(filepath, "WORKING"),
           ]);
           return { originalText: originalText || "", modifiedText: modifiedText || "" };
-        }
-      }
-    } else {
+        
+      
+    }
       // For historical commits, handle A/D files specially
       if (changeType === "A") {
         // Added file - no previous version exists
@@ -297,15 +297,15 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
         // Deleted file - no current version exists
         const originalText = await getFileContents(filepath, commitHash + "^");
         return { originalText: originalText || "", modifiedText: "" };
-      } else {
+      }
         // Modified file - compare with previous commit
         const [originalText, modifiedText] = await Promise.all([
           getFileContents(filepath, commitHash + "^"),
           getFileContents(filepath, commitHash),
         ]);
         return { originalText: originalText || "", modifiedText: modifiedText || "" };
-      }
-    }
+      
+    
   };
 
   const onClickChange = async (
@@ -315,7 +315,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
   ) => {
     setSelectedFile({
       commitHash,
-      // oldPath: change.oldPath,
+      // OldPath: change.oldPath,
       relPath: change.relPath,
       changeType: change.changeType,
       isFromStaged: isFromStaged, // Track which section was clicked
@@ -408,7 +408,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
     // - Cannot start with . or /
     // - Cannot end with .lock
     // - Cannot contain ..
-    const invalidChars = /[\s~^:\\?*\[]/;
+    const invalidChars = /[\s~^:\\?*[]/;
     if (invalidChars.test(name)) {
       return {
         isValid: false,
@@ -470,7 +470,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
     // Git remote name rules:
     // - No spaces
     // - No special characters
-    const invalidChars = /[\s~^:\\?*\[]/;
+    const invalidChars = /[\s~^:\\?*[]/;
     if (invalidChars.test(name)) {
       return { isValid: false, error: "Remote name cannot contain spaces or special characters" };
     }
@@ -534,7 +534,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
   // Remote expansion state
   const [expandedRemotes, setExpandedRemotes] = createSignal<Set<string>>(new Set());
   const [expandedStashes, setExpandedStashes] = createSignal<Set<string>>(new Set());
-  const [stashFiles, setStashFiles] = createSignal<{ [stashName: string]: any[] }>({});
+  const [stashFiles, setStashFiles] = createSignal<Record<string, any[]>>({});
 
   // Dialog state
   const [dialogOpen, setDialogOpen] = createSignal(false);
@@ -645,7 +645,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
   const stageAllFiles = async () => {
     try {
       const unstagedFiles = Object.keys(uiState.changes.unstaged || {});
-      if (unstagedFiles.length === 0) return;
+      if (unstagedFiles.length === 0) {return;}
 
       console.log("Staging all files:", unstagedFiles);
 
@@ -666,7 +666,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
   const unstageAllFiles = async () => {
     try {
       const stagedFiles = Object.keys(uiState.changes.staged || {});
-      if (stagedFiles.length === 0) return;
+      if (stagedFiles.length === 0) {return;}
 
       console.log("Unstaging all files:", stagedFiles);
 
@@ -710,7 +710,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
     // Construct commit message (subject + description with blank line between)
     const commitMessage = description ? `${subject}\n\n${description}` : subject;
 
-    console.log("commit message: ", commitMessage);
+    console.log("commit message:", commitMessage);
     // Clear form
     setSubjectValue("");
     setSubjectLength(0);
@@ -723,8 +723,8 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
     // Only commit what's already staged - don't auto-stage unstaged files
     const numPendingChanges = Object.keys(uiState.changes.staged || {}).length;
 
-    // todo (yoav): let user specify git config in SlateBun per project
-    // todo (yoav): fetch system git config if it exists
+    // Todo (yoav): let user specify git config in SlateBun per project
+    // Todo (yoav): fetch system git config if it exists
     if (numPendingChanges) {
       if (isAmend) {
         // For amend, we use git commit --amend
@@ -775,7 +775,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
     ]);
 
     // Fetch remote-only commits if we have a tracking branch
-    let gitRemoteOnlyLog: { all?: ReadonlyArray<any> } = { all: [] };
+    let gitRemoteOnlyLog: { all?: readonly any[] } = { all: [] };
     if (gitStatus?.tracking && gitBranches?.current) {
       try {
         gitRemoteOnlyLog = (await electrobun.rpc?.request.gitLogRemoteOnly({
@@ -946,8 +946,8 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
         console.log(
           `File: ${file.path}, index: "${file.index}", working_dir: "${file.working_dir}"`,
         );
-        // file.index = staged changes (ready to commit)
-        // file.working_dir = unstaged changes (not yet staged)
+        // File.index = staged changes (ready to commit)
+        // File.working_dir = unstaged changes (not yet staged)
         if (
           file.index &&
           file.index.trim() !== " " &&
@@ -1002,7 +1002,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
     });
 
     // Calculate sync status (ahead/behind)
-    let syncStatus = { ahead: 0, behind: 0 };
+    const syncStatus = { ahead: 0, behind: 0 };
     if (branches.current && remotes.length > 0) {
       // Check tracking branch
       const trackingBranch = gitStatus?.tracking;
@@ -1050,7 +1050,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 
   // Function to load more commits for infinite scroll
   const loadMoreCommits = async () => {
-    if (pagination.isLoading || !pagination.hasMore) return;
+    if (pagination.isLoading || !pagination.hasMore) {return;}
 
     setPagination("isLoading", true);
 
@@ -1139,7 +1139,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
       const currentSelection = selectedFile();
 
       // If we're viewing the staged version and it gets completely unstaged,
-      // we should switch to showing the unstaged version or clear the diff
+      // We should switch to showing the unstaged version or clear the diff
       if (currentSelection.isFromStaged) {
         // Check if the file still has unstaged changes
         const hasUnstagedChanges = Object.keys(uiState.changes.unstaged || {}).includes(filePath);
@@ -1450,7 +1450,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
                   args: ["checkout", "--", filePath],
                   opts: { cwd: repoRootPath },
                 });
-              } catch (checkoutError) {
+              } catch {
                 // If unmerged, reset then checkout
                 await electrobun.rpc?.request.execSpawnSync({
                   cmd: "git",
@@ -1474,7 +1474,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
     setDialogOpen(true);
   };
 
-  // todo (yoav): you could add filewatchers in here for just the .git folder for both status and log
+  // Todo (yoav): you could add filewatchers in here for just the .git folder for both status and log
   getLogAndStatus();
 
   // Alt key tracking for modifier actions
@@ -1507,12 +1507,12 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
     });
   });
 
-  // setTimeout(() => {
-  // getLogAndStage({ justStage: true });
+  // SetTimeout(() => {
+  // GetLogAndStage({ justStage: true });
   // }, 5000)
 
-  // setTimeout(() => {
-  //     stageAllFiles()
+  // SetTimeout(() => {
+  //     StageAllFiles()
   // }, 10000)
 
   const onClickRestore = async (commit: CommitType) => {
@@ -1536,16 +1536,16 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
       projectId: project.id,
     });
 
-    // const oldGitWatcher = watcher;
-    // oldGitWatcher.close();
+    // Const oldGitWatcher = watcher;
+    // OldGitWatcher.close();
 
-    // maybe save a backup if their are uncommitted changes
+    // Maybe save a backup if their are uncommitted changes
     if (backupLabelRef) {
       backupLabelRef.value = backupLabelRef.value || "Pre—restore backup -> " + Date().toString();
     }
     await onClickSaveBackup();
 
-    // duplicate the repo and checkout the target commit in that duplicate repo
+    // Duplicate the repo and checkout the target commit in that duplicate repo
     await electrobun.rpc?.request.copy({
       src: repoRootPath,
       dest: tempRootPath,
@@ -1555,7 +1555,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
       repoRoot: tempRootPath,
       hash: commit.hash,
     });
-    // replace that duplicate repo's .git folder with the original
+    // Replace that duplicate repo's .git folder with the original
     await electrobun.rpc?.request.safeDeleteFileOrFolder({
       absolutePath: tempGitPath,
     });
@@ -1565,7 +1565,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
       dest: tempGitPath,
     });
 
-    // save the original repo as -backup just in case and replace the duplicate to the original
+    // Save the original repo as -backup just in case and replace the duplicate to the original
     await electrobun.rpc?.request.rename({
       oldPath: repoRootPath,
       newPath: backupPath,
@@ -2351,10 +2351,10 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
                                         }}
                                         title={
                                           isRemote
-                                            ? uiState.syncStatus.ahead > 0 ||
+                                            ? (uiState.syncStatus.ahead > 0 ||
                                               uiState.syncStatus.behind > 0
                                               ? `${ref} (common ancestor - this is where local and remote branches diverged)`
-                                              : `Remote branch: ${ref}`
+                                              : `Remote branch: ${ref}`)
                                             : `Local branch: ${ref}`
                                         }
                                       >
@@ -2436,7 +2436,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
                             }}
                             onMouseEnter={(e) => (e.currentTarget.style.background = "#555")}
                             onMouseLeave={(e) => (e.currentTarget.style.background = "#252526")}
-                            title={`Checkout commit ${commit.hash.substring(0, 7)}`}
+                            title={`Checkout commit ${commit.hash.slice(0, 7)}`}
                           >
                             Checkout
                           </button>
@@ -2562,8 +2562,8 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
                           <For each={Object.entries(commit.files)}>
                             {([filepath, filechange]) => {
                               const dirname =
-                                filepath.substring(0, filepath.lastIndexOf("/")) || "";
-                              const filename = filepath.substring(filepath.lastIndexOf("/") + 1);
+                                filepath.slice(0, filepath.lastIndexOf("/")) || "";
+                              const filename = filepath.slice(filepath.lastIndexOf("/") + 1);
 
                               return (
                                 <div
@@ -2811,7 +2811,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
                           }}
                         >
                           {uiState.branches.current.length > 12
-                            ? uiState.branches.current.substring(0, 12)
+                            ? uiState.branches.current.slice(0, 12)
                             : uiState.branches.current}
                         </div>
                       </Show>
@@ -3566,7 +3566,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
                                                     ? "#555"
                                                     : "#4fc3f7";
                                                   if (!hasLocalBranch)
-                                                    e.currentTarget.style.color = "#fff";
+                                                    {e.currentTarget.style.color = "#fff";}
                                                 }}
                                                 onMouseLeave={(e) => {
                                                   e.currentTarget.style.opacity = "0.7";
@@ -4033,35 +4033,41 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 
 const changeTypeStyles = (changeType: string) => {
   switch (changeType) {
-    case "A":
+    case "A": {
       return {
         background: "#44987e",
         // color: '#fff',
       };
-    case "M":
+    }
+    case "M": {
       return {
         background: "#4886f8",
         // color: '#fff',
       };
-    case "D":
+    }
+    case "D": {
       return {
         background: "#b4432a",
         // color: '#fff',
       };
-    case "R":
+    }
+    case "R": {
       return {
         background: "#df893c",
         // color: '#fff',
       };
-    case "?":
+    }
+    case "?": {
       return {
         background: "#8a5cf5", // Purple for untracked
         // color: '#fff',
       };
-    default:
+    }
+    default: {
       return {
         background: "#666", // Gray for unknown statuses
       };
+    }
   }
 };
 
@@ -4071,18 +4077,24 @@ const ChangeTypeSpan = ({ changeType }: { changeType: FileChangeType["changeType
   // Get display label and tooltip for different change types
   const getChangeInfo = (type: string) => {
     switch (type) {
-      case "A":
+      case "A": {
         return { label: "A", tooltip: "Added" };
-      case "M":
+      }
+      case "M": {
         return { label: "M", tooltip: "Modified" };
-      case "D":
+      }
+      case "D": {
         return { label: "D", tooltip: "Deleted" };
-      case "R":
+      }
+      case "R": {
         return { label: "R", tooltip: "Renamed" };
-      case "?":
-        return { label: "U", tooltip: "Untracked" }; // Use "U" for better visibility
-      default:
+      }
+      case "?": {
+        return { label: "U", tooltip: "Untracked" };
+      } // Use "U" for better visibility
+      default: {
         return { label: type || "?", tooltip: "Unknown status" };
+      }
     }
   };
 
@@ -4272,7 +4284,7 @@ const FileListItem = ({
                 "min-width": 0,
               }}
             >
-              {change.relPath.substring(0, change.relPath.lastIndexOf("/"))}
+              {change.relPath.slice(0, change.relPath.lastIndexOf("/"))}
             </span>
           </Show>
         </span>

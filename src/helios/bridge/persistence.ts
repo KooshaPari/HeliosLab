@@ -65,20 +65,20 @@ export interface PersistedLane {
   state: string;
   lastUpdated: string;
 }
-type PersistedAudit = {
+interface PersistedAudit {
   timestamp: string;
   action: string;
   workspaceId: string;
   laneId?: string | null;
   sessionId?: string | null;
   detail: string;
-};
+}
 
-type PersistedSessionSnapshot = {
+interface PersistedSessionSnapshot {
   id: string;
   workspaceId: string;
   lanes?: string;
-};
+}
 
 export function upsertLane(lane: Omit<PersistedLane, "id">): PersistedLane {
   const { data } = db.collection("helios_lanes").query();

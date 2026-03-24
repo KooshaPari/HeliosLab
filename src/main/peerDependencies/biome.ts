@@ -25,7 +25,7 @@ function parseVersionPackageJson(contents: string): string | null {
 
 export const isInstalled = () => {
   console.log(
-    "is biome installed? ",
+    "is biome installed?",
     BIOME_BINARY_PATH,
     existsSync(BIOME_BINARY_PATH),
     getVersion(),
@@ -53,8 +53,8 @@ export const getVersion = (forceRefetch = false): string | null => {
     }
     _version = version;
     return _version;
-  } catch (e) {
-    console.error("error reading package.json", e);
+  } catch (error) {
+    console.error("error reading package.json", error);
     return null;
   }
 };
@@ -81,7 +81,7 @@ export const install = () => {
     renameSync(installedBiomeBinaryPath, BIOME_BINARY_PATH);
   }
 
-  // invalidate the cache
+  // Invalidate the cache
   getVersion(true);
 
   console.info("biome installResult", installResult);

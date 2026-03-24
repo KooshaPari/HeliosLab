@@ -16,7 +16,7 @@ export function extractHostnameFromUrl(url: string): string {
     const parts = hostname.split(".");
 
     // If we have at least 3 parts (subdomain.domain.tld) and the first part is 3 chars or less,
-    // remove it (e.g., www.google.com -> google.com, api.github.com -> github.com)
+    // Remove it (e.g., www.google.com -> google.com, api.github.com -> github.com)
     // But keep longer subdomains (e.g., admin.github.com stays as admin.github.com)
     if (parts.length >= 3 && parts[0].length < 4) {
       hostname = parts.slice(1).join(".");

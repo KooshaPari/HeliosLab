@@ -44,10 +44,10 @@ function loadRegistry(): PluginRegistry {
     return { version: REGISTRY_VERSION, plugins: {} };
   }
   try {
-    const data = readFileSync(COLAB_PLUGINS_REGISTRY_PATH, "utf-8");
+    const data = readFileSync(COLAB_PLUGINS_REGISTRY_PATH, "utf8");
     return JSON.parse(data);
-  } catch (e) {
-    console.error("Failed to load plugin registry:", e);
+  } catch (error) {
+    console.error("Failed to load plugin registry:", error);
     return { version: REGISTRY_VERSION, plugins: {} };
   }
 }
@@ -61,7 +61,7 @@ function saveRegistry(registry: PluginRegistry): void {
 // ============================================================================
 
 interface PluginWorkerState {
-  worker: Worker | null; // null in v1 (no worker isolation)
+  worker: Worker | null; // Null in v1 (no worker isolation)
   plugin: InstalledPlugin;
   pendingRequests: Map<
     string,
@@ -155,37 +155,37 @@ interface RegisteredSettingsSchema {
 
 class PluginManager {
   private registry: PluginRegistry;
-  private activeWorkers: Map<string, PluginWorkerState> = new Map();
-  private eventSubscribers: Map<string, Set<string>> = new Map(); // event -> plugin names
-  private commandHandlers: Map<
+  private activeWorkers = new Map<string, PluginWorkerState>();
+  private eventSubscribers = new Map<string, Set<string>>(); // Event -> plugin names
+  private commandHandlers = new Map<
     string,
     { pluginName: string; handler: (...args: unknown[]) => unknown }
-  > = new Map(); // command id -> handler
-  private preloadScripts: Map<string, Set<string>> = new Map(); // plugin name -> set of scripts
-  private terminalCommands: Map<string, { pluginName: string; handler: TerminalCommandHandler }> =
-    new Map(); // command name -> handler
-  private completionProviders: Map<string, RegisteredCompletionProvider> = new Map(); // provider id -> provider
-  private statusBarItems: Map<string, RegisteredStatusBarItem> = new Map(); // item id -> item
-  private decorationProviders: Map<string, RegisteredDecorationProvider> = new Map(); // provider id -> provider
-  private contextMenuItems: Map<string, RegisteredContextMenuItem> = new Map(); // item id -> item
-  private keybindings: Map<string, RegisteredKeybinding> = new Map(); // keybinding id -> keybinding
-  private settingsSchemas: Map<string, RegisteredSettingsSchema> = new Map(); // plugin name -> schema
-  private settingsValues: Map<string, PluginSettingsValues> = new Map(); // plugin name -> values
-  private settingsChangeCallbacks: Map<string, Set<SettingsChangeCallback>> = new Map(); // plugin name -> callbacks
-  private settingsValidationStatuses: Map<string, SettingValidationStatuses> = new Map(); // plugin name -> key -> validation status
-  private settingsMessageCallbacks: Map<string, Set<(message: unknown) => void>> = new Map(); // plugin name -> message callbacks
-  private pendingSettingsMessages: Map<string, unknown[]> = new Map(); // plugin name -> messages to send to renderer
-  private pluginState: Map<string, Record<string, unknown>> = new Map(); // plugin name -> arbitrary state
-  private slates: Map<string, RegisteredSlate> = new Map(); // slate id -> slate config
-  private slateMountHandlers: Map<string, SlateMountHandler> = new Map(); // slate id -> mount handler
-  private slateUnmountHandlers: Map<string, SlateUnmountHandler> = new Map(); // slate id -> unmount handler
-  private slateEventHandlers: Map<string, SlateEventHandler> = new Map(); // slate id -> event handler
-  private slateRenderCallbacks: Map<string, (message: SlateRenderMessage) => void> = new Map(); // instanceId -> render callback
-  private activeSlateInstances: Map<
+  >(); // Command id -> handler
+  private preloadScripts = new Map<string, Set<string>>(); // Plugin name -> set of scripts
+  private terminalCommands =
+    new Map<string, { pluginName: string; handler: TerminalCommandHandler }>(); // Command name -> handler
+  private completionProviders = new Map<string, RegisteredCompletionProvider>(); // Provider id -> provider
+  private statusBarItems = new Map<string, RegisteredStatusBarItem>(); // Item id -> item
+  private decorationProviders = new Map<string, RegisteredDecorationProvider>(); // Provider id -> provider
+  private contextMenuItems = new Map<string, RegisteredContextMenuItem>(); // Item id -> item
+  private keybindings = new Map<string, RegisteredKeybinding>(); // Keybinding id -> keybinding
+  private settingsSchemas = new Map<string, RegisteredSettingsSchema>(); // Plugin name -> schema
+  private settingsValues = new Map<string, PluginSettingsValues>(); // Plugin name -> values
+  private settingsChangeCallbacks = new Map<string, Set<SettingsChangeCallback>>(); // Plugin name -> callbacks
+  private settingsValidationStatuses = new Map<string, SettingValidationStatuses>(); // Plugin name -> key -> validation status
+  private settingsMessageCallbacks = new Map<string, Set<(message: unknown) => void>>(); // Plugin name -> message callbacks
+  private pendingSettingsMessages = new Map<string, unknown[]>(); // Plugin name -> messages to send to renderer
+  private pluginState = new Map<string, Record<string, unknown>>(); // Plugin name -> arbitrary state
+  private slates = new Map<string, RegisteredSlate>(); // Slate id -> slate config
+  private slateMountHandlers = new Map<string, SlateMountHandler>(); // Slate id -> mount handler
+  private slateUnmountHandlers = new Map<string, SlateUnmountHandler>(); // Slate id -> unmount handler
+  private slateEventHandlers = new Map<string, SlateEventHandler>(); // Slate id -> event handler
+  private slateRenderCallbacks = new Map<string, (message: SlateRenderMessage) => void>(); // InstanceId -> render callback
+  private activeSlateInstances = new Map<
     string,
     { slateId: string; pluginName: string; filePath: string; windowId?: string }
-  > = new Map(); // instanceId -> info
-  private pendingSlateRenders: Map<string, SlateRenderMessage[]> = new Map(); // instanceId -> queued renders
+  >(); // InstanceId -> info
+  private pendingSlateRenders = new Map<string, SlateRenderMessage[]>(); // InstanceId -> queued renders
   private slateWindowMessageHandler: ((windowId: string, message: unknown) => void) | null = null;
 
   constructor() {
@@ -199,7 +199,7 @@ class PluginManager {
   // ==========================================================================
 
   private getSettingsFilePath(pluginName: string): string {
-    return join(COLAB_PLUGINS_PATH, `${pluginName.replace(/\//g, "__")}.settings.json`);
+    return join(COLAB_PLUGINS_PATH, `${pluginName.replaceAll('/', "__")}.settings.json`);
   }
 
   private loadPluginSettings(pluginName: string): PluginSettingsValues {
@@ -208,10 +208,10 @@ class PluginManager {
       return {};
     }
     try {
-      const data = readFileSync(settingsPath, "utf-8");
+      const data = readFileSync(settingsPath, "utf8");
       return JSON.parse(data);
-    } catch (e) {
-      console.error(`Failed to load settings for plugin ${pluginName}:`, e);
+    } catch (error) {
+      console.error(`Failed to load settings for plugin ${pluginName}:`, error);
       return {};
     }
   }
@@ -221,8 +221,8 @@ class PluginManager {
     const settingsPath = this.getSettingsFilePath(pluginName);
     try {
       writeFileSync(settingsPath, JSON.stringify(values, null, 2));
-    } catch (e) {
-      console.error(`Failed to save settings for plugin ${pluginName}:`, e);
+    } catch (error) {
+      console.error(`Failed to save settings for plugin ${pluginName}:`, error);
     }
   }
 
@@ -238,7 +238,7 @@ class PluginManager {
   // ==========================================================================
 
   private getStateFilePath(pluginName: string): string {
-    return join(COLAB_PLUGINS_PATH, `${pluginName.replace(/\//g, "__")}.state.json`);
+    return join(COLAB_PLUGINS_PATH, `${pluginName.replaceAll('/', "__")}.state.json`);
   }
 
   private loadPluginState(pluginName: string): Record<string, unknown> {
@@ -247,10 +247,10 @@ class PluginManager {
       return {};
     }
     try {
-      const data = readFileSync(statePath, "utf-8");
+      const data = readFileSync(statePath, "utf8");
       return JSON.parse(data);
-    } catch (e) {
-      console.error(`Failed to load state for plugin ${pluginName}:`, e);
+    } catch (error) {
+      console.error(`Failed to load state for plugin ${pluginName}:`, error);
       return {};
     }
   }
@@ -260,8 +260,8 @@ class PluginManager {
     const statePath = this.getStateFilePath(pluginName);
     try {
       writeFileSync(statePath, JSON.stringify(state, null, 2));
-    } catch (e) {
-      console.error(`Failed to save state for plugin ${pluginName}:`, e);
+    } catch (error) {
+      console.error(`Failed to save state for plugin ${pluginName}:`, error);
     }
   }
 
@@ -308,7 +308,7 @@ class PluginManager {
     }
 
     // Read package.json to get the name
-    const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf-8"));
+    const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf8"));
     const packageName = packageJson.name;
 
     if (!packageName) {
@@ -335,7 +335,7 @@ class PluginManager {
       );
     }
 
-    const installedPackageJson = JSON.parse(readFileSync(installedPackageJsonPath, "utf-8"));
+    const installedPackageJson = JSON.parse(readFileSync(installedPackageJsonPath, "utf8"));
     const manifest: PluginManifest = installedPackageJson["colab-plugin"] || {};
 
     const installedPlugin: InstalledPlugin = {
@@ -399,7 +399,7 @@ class PluginManager {
       throw new Error(`Failed to install plugin: package.json not found at ${packageJsonPath}`);
     }
 
-    const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf-8"));
+    const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf8"));
     const manifest: PluginManifest = packageJson["colab-plugin"] || {};
 
     const installedPlugin: InstalledPlugin = {
@@ -468,7 +468,7 @@ class PluginManager {
     // Re-read manifest
     const packagePath = join(COLAB_PLUGINS_PATH, "node_modules", packageName);
     const packageJsonPath = join(packagePath, "package.json");
-    const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf-8"));
+    const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf8"));
     const manifest: PluginManifest = packageJson["colab-plugin"] || {};
 
     const plugin = this.registry.plugins[packageName];
@@ -554,7 +554,7 @@ class PluginManager {
       plugin.error = undefined;
 
       // Note: Commands are now registered dynamically via api.commands.registerCommand()
-      // in the plugin's activate() function, not from manifest.contributes.commands
+      // In the plugin's activate() function, not from manifest.contributes.commands
 
       console.info(`[PluginManager] Plugin ${packageName} activated successfully`);
     } catch (error) {
@@ -657,7 +657,7 @@ class PluginManager {
         },
         async readFile(path: string) {
           const { readFileSync } = await import("fs");
-          return readFileSync(path, "utf-8");
+          return readFileSync(path, "utf8");
         },
         async writeFile(path: string, content: string) {
           const { writeFileSync } = await import("fs");
@@ -760,7 +760,7 @@ class PluginManager {
             const result = await execAsync(command, {
               cwd: options?.cwd,
               env: options?.env ? { ...process.env, ...options.env } : undefined,
-              timeout: options?.timeout || 60000,
+              timeout: options?.timeout || 60_000,
               maxBuffer: 10 * 1024 * 1024, // 10MB
             });
             console.info(`[Plugin:${pluginName}] shell.exec completed successfully`);
@@ -769,12 +769,12 @@ class PluginManager {
               stderr: result.stderr,
               exitCode: 0,
             };
-          } catch (e: any) {
-            console.warn(`[Plugin:${pluginName}] shell.exec failed:`, e.message);
+          } catch (error: any) {
+            console.warn(`[Plugin:${pluginName}] shell.exec failed:`, error.message);
             return {
-              stdout: e.stdout || "",
-              stderr: e.stderr || e.message,
-              exitCode: e.code || 1,
+              stdout: error.stdout || "",
+              stderr: error.stderr || error.message,
+              exitCode: error.code || 1,
             };
           }
         },
@@ -993,10 +993,10 @@ class PluginManager {
               for (const callback of callbacks) {
                 try {
                   callback(key, value);
-                } catch (e) {
+                } catch (error) {
                   console.error(
                     `[PluginManager] Error in settings change callback for ${pluginName}:`,
-                    e,
+                    error,
                   );
                 }
               }
@@ -1347,52 +1347,62 @@ class PluginManager {
     const workerState = this.activeWorkers.get(pluginName);
 
     switch (message.type) {
-      case "ready":
+      case "ready": {
         // Worker is ready to receive activation
         break;
+      }
 
-      case "activated":
+      case "activated": {
         // Plugin activated successfully
         if (workerState) {
           workerState.plugin.state = "active";
         }
         break;
+      }
 
-      case "deactivated":
+      case "deactivated": {
         if (workerState) {
           workerState.plugin.state = "inactive";
         }
         break;
+      }
 
-      case "error":
+      case "error": {
         console.error(`[Plugin:${pluginName}] Error:`, message.error);
         if (workerState) {
           workerState.plugin.error = message.error;
         }
         break;
+      }
 
-      case "request":
+      case "request": {
         // Plugin is requesting something from the main process
         this.handlePluginRequest(pluginName, message.requestId, message.method, message.params);
         break;
+      }
 
-      case "log":
+      case "log": {
         const prefix = `[Plugin:${pluginName}]`;
         switch (message.level) {
-          case "debug":
+          case "debug": {
             console.debug(prefix, message.message, ...(message.args || []));
             break;
-          case "info":
+          }
+          case "info": {
             console.info(prefix, message.message, ...(message.args || []));
             break;
-          case "warn":
+          }
+          case "warn": {
             console.warn(prefix, message.message, ...(message.args || []));
             break;
-          case "error":
+          }
+          case "error": {
             console.error(prefix, message.message, ...(message.args || []));
             break;
+          }
         }
         break;
+      }
     }
   }
 
@@ -1403,7 +1413,7 @@ class PluginManager {
     params: unknown,
   ): Promise<void> {
     const workerState = this.activeWorkers.get(pluginName);
-    if (!workerState) return;
+    if (!workerState) {return;}
 
     const plugin = workerState.plugin;
     // Support both old `permissions` and new `entitlements` systems
@@ -1416,8 +1426,8 @@ class PluginManager {
 
     try {
       result = await this.executeApiMethod(pluginName, permissions, method, params);
-    } catch (e) {
-      error = e instanceof Error ? e.message : String(e);
+    } catch (error) {
+      error = error instanceof Error ? error.message : String(error);
     }
 
     const response: MainToWorkerMessage = {
@@ -1444,7 +1454,7 @@ class PluginManager {
     const [namespace, action] = method.split(".");
 
     switch (namespace) {
-      case "workspace":
+      case "workspace": {
         if (action === "readFile") {
           if (permissions.fs === "none") {
             throw new Error("Permission denied: fs access required");
@@ -1460,22 +1470,25 @@ class PluginManager {
           return;
         }
         break;
+      }
 
-      case "git":
+      case "git": {
         if (permissions.git === "none") {
           throw new Error("Permission denied: git access required");
         }
         // TODO: implement git operations
         break;
+      }
 
-      case "terminal":
+      case "terminal": {
         if (permissions.terminal === "none") {
           throw new Error("Permission denied: terminal access required");
         }
         // TODO: implement terminal operations
         break;
+      }
 
-      case "notifications":
+      case "notifications": {
         // Notifications are allowed if permission is not explicitly false
         if (permissions.notifications === false) {
           throw new Error("Permission denied: notifications access required");
@@ -1485,6 +1498,7 @@ class PluginManager {
         // TODO: implement actual UI notifications
         // For now, just log to console
         return;
+      }
 
       case "shell": {
         const manifest = this.activeWorkers.get(pluginName)?.plugin.manifest;
@@ -1507,7 +1521,7 @@ class PluginManager {
               env: execParams.options?.env
                 ? { ...process.env, ...execParams.options.env }
                 : undefined,
-              timeout: execParams.options?.timeout || 60000,
+              timeout: execParams.options?.timeout || 60_000,
               maxBuffer: 10 * 1024 * 1024,
             });
             return {
@@ -1515,11 +1529,11 @@ class PluginManager {
               stderr: result.stderr,
               exitCode: 0,
             };
-          } catch (e: any) {
+          } catch (error: any) {
             return {
-              stdout: e.stdout || "",
-              stderr: e.stderr || e.message,
-              exitCode: e.code || 1,
+              stdout: error.stdout || "",
+              stderr: error.stderr || error.message,
+              exitCode: error.code || 1,
             };
           }
         }
@@ -1543,7 +1557,7 @@ class PluginManager {
               if (error) {
                 reject(error);
               } else {
-                resolve(undefined);
+                resolve();
               }
             });
           });
@@ -1552,9 +1566,10 @@ class PluginManager {
         throw new Error(`Unknown shell action: ${action}`);
       }
 
-      default:
+      default: {
         console.warn(`[PluginManager] Unknown API method: ${method}`);
         throw new Error(`Unknown API method: ${method}`);
+      }
     }
 
     return undefined;
@@ -1650,8 +1665,8 @@ class PluginManager {
         // Activate the plugin if it's being enabled
         try {
           await this.activatePlugin(name);
-        } catch (e) {
-          console.error(`[PluginManager] Failed to activate plugin ${name}:`, e);
+        } catch (error) {
+          console.error(`[PluginManager] Failed to activate plugin ${name}:`, error);
         }
       }
     }
@@ -1662,21 +1677,21 @@ class PluginManager {
    */
   private refreshPluginManifest(name: string): PluginManifest | undefined {
     const plugin = this.registry.plugins[name];
-    if (!plugin) return undefined;
+    if (!plugin) {return undefined;}
 
     try {
       // For local dev plugins, use localPath as the source of truth
       const basePath = plugin.isLocal && plugin.localPath ? plugin.localPath : plugin.installPath;
       const packageJsonPath = join(basePath, "package.json");
       if (existsSync(packageJsonPath)) {
-        const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf-8"));
+        const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf8"));
         const manifest: PluginManifest = packageJson["colab-plugin"] || {};
         // Update the cached manifest
         plugin.manifest = manifest;
         return manifest;
       }
-    } catch (e) {
-      console.error(`[PluginManager] Failed to refresh manifest for ${name}:`, e);
+    } catch (error) {
+      console.error(`[PluginManager] Failed to refresh manifest for ${name}:`, error);
     }
     return plugin.manifest;
   }
@@ -1686,7 +1701,7 @@ class PluginManager {
    */
   getPluginEntitlements(name: string): EntitlementSummary[] {
     const plugin = this.registry.plugins[name];
-    if (!plugin) return [];
+    if (!plugin) {return [];}
     // Refresh manifest from disk to get latest entitlements (especially for local dev plugins)
     const manifest = this.refreshPluginManifest(name);
     return summarizeEntitlements(manifest?.entitlements);
@@ -1697,7 +1712,7 @@ class PluginManager {
    */
   getPluginEntitlementsRaw(name: string): PluginEntitlements | undefined {
     const plugin = this.registry.plugins[name];
-    if (!plugin) return undefined;
+    if (!plugin) {return undefined;}
     // Refresh manifest from disk to get latest entitlements
     const manifest = this.refreshPluginManifest(name);
     return manifest?.entitlements;
@@ -1780,7 +1795,7 @@ class PluginManager {
       await cmd.handler(ctx);
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
-      write(`\x1b[31mError: ${errorMsg}\x1b[0m\r\n`);
+      write(`\u001B[31mError: ${errorMsg}\u001B[0m\r\n`);
       console.error(`[PluginManager] Terminal command "${commandName}" failed:`, error);
     }
 
@@ -1834,7 +1849,7 @@ class PluginManager {
       }
     }
 
-    return Array.from(triggers);
+    return [...triggers];
   }
 
   // ==========================================================================
@@ -1844,8 +1859,8 @@ class PluginManager {
   /**
    * Get all status bar items from plugins
    */
-  getStatusBarItems(): Array<StatusBarItem & { pluginName: string; hasSettings: boolean }> {
-    return Array.from(this.statusBarItems.values()).map((r) => ({
+  getStatusBarItems(): (StatusBarItem & { pluginName: string; hasSettings: boolean })[] {
+    return [...this.statusBarItems.values()].map((r) => ({
       ...r.item,
       pluginName: r.pluginName,
       hasSettings: this.settingsSchemas.has(r.pluginName),
@@ -1882,8 +1897,8 @@ class PluginManager {
    */
   getContextMenuItems(
     contextType: "editor" | "fileTree",
-  ): Array<{ id: string; label: string; shortcutHint?: string }> {
-    const items: Array<{ id: string; label: string; shortcutHint?: string }> = [];
+  ): { id: string; label: string; shortcutHint?: string }[] {
+    const items: { id: string; label: string; shortcutHint?: string }[] = [];
 
     for (const [, registered] of this.contextMenuItems) {
       if (registered.item.context === contextType || registered.item.context === "both") {
@@ -1926,7 +1941,7 @@ class PluginManager {
    * Get all registered keybindings
    */
   getKeybindings(): KeyboardShortcut[] {
-    return Array.from(this.keybindings.values()).map((r) => r.shortcut);
+    return [...this.keybindings.values()].map((r) => r.shortcut);
   }
 
   // ==========================================================================
@@ -1936,16 +1951,16 @@ class PluginManager {
   /**
    * Get all plugins that have registered settings schemas
    */
-  getPluginsWithSettings(): Array<{
+  getPluginsWithSettings(): {
     pluginName: string;
     displayName?: string;
     schema: PluginSettingsSchema;
-  }> {
-    const result: Array<{
+  }[] {
+    const result: {
       pluginName: string;
       displayName?: string;
       schema: PluginSettingsSchema;
-    }> = [];
+    }[] = [];
     for (const [pluginName, registered] of this.settingsSchemas) {
       const plugin = this.registry.plugins[pluginName];
       result.push({
@@ -1989,10 +2004,10 @@ class PluginManager {
         for (const callback of callbacks) {
           try {
             callback(key, value);
-          } catch (e) {
+          } catch (error) {
             console.error(
               `[PluginManager] Error in settings change callback for ${pluginName}:`,
-              e,
+              error,
             );
           }
         }
@@ -2060,8 +2075,8 @@ class PluginManager {
         try {
           console.log(`[PluginManager] Calling callback for ${pluginName}`);
           callback(message);
-        } catch (e) {
-          console.error(`[PluginManager] Error in settings message callback for ${pluginName}:`, e);
+        } catch (error) {
+          console.error(`[PluginManager] Error in settings message callback for ${pluginName}:`, error);
         }
       }
     } else {
@@ -2086,7 +2101,7 @@ class PluginManager {
    * Get all registered slates
    */
   getAllSlates(): RegisteredSlate[] {
-    return Array.from(this.slates.values());
+    return [...this.slates.values()];
   }
 
   /**
@@ -2110,7 +2125,7 @@ class PluginManager {
 
         // Handle simple wildcard patterns
         if (pattern.startsWith("*.")) {
-          const suffix = pattern.slice(1); // e.g., ".webflowrc.json"
+          const suffix = pattern.slice(1); // E.g., ".webflowrc.json"
           if (filename.endsWith(suffix)) {
             return slate;
           }
@@ -2136,7 +2151,7 @@ class PluginManager {
    */
   findSlateForFolder(folderPath: string): RegisteredSlate | null {
     for (const [, slate] of this.slates) {
-      if (!slate.config.folderHandler) continue;
+      if (!slate.config.folderHandler) {continue;}
 
       // For folder handlers, check if any of the patterns exist in the folder
       const fs = require("fs");
@@ -2199,7 +2214,7 @@ class PluginManager {
     }
 
     // Generate unique instance ID
-    const instanceId = `${slateId}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const instanceId = `${slateId}-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 
     // Store instance info and callback
     this.activeSlateInstances.set(instanceId, {
@@ -2323,7 +2338,7 @@ class PluginManager {
   }
 
   async deactivateAll(): Promise<void> {
-    const activeNames = Array.from(this.activeWorkers.keys());
+    const activeNames = [...this.activeWorkers.keys()];
     for (const name of activeNames) {
       try {
         await this.deactivatePlugin(name);

@@ -21,9 +21,9 @@ const MIXPANEL_TOKEN = "BUILD_TIME_MIXPANEL_TOKEN";
 
 // Get user plan for analytics
 const getUserPlan = (): "community" | "pro" | "team" => {
-  if (!isAuthenticated()) return "community";
-  if (isTeam()) return "team";
-  if (isPro()) return "pro";
+  if (!isAuthenticated()) {return "community";}
+  if (isTeam()) {return "team";}
+  if (isPro()) {return "pro";}
   return "community";
 };
 
@@ -49,7 +49,7 @@ export const getUniqueId = () => {
 
 // Initialize app settings if needed
 const _settings = db.collection("appSettings").query()?.data || [];
-if (!_settings.length || !_settings[0]?.distinctId) {
+if (_settings.length === 0 || !_settings[0]?.distinctId) {
   console.log("Creating initial app settings");
   db.collection("appSettings").insert({
     distinctId: getUniqueId(),
@@ -121,9 +121,9 @@ const shouldTrackEvent = (eventName: string): boolean => {
 
   if (isAuthenticated()) {
     return config.registered.enabled && config.registered.events.includes(eventName);
-  } else {
-    return config.community.enabled && config.community.events.includes(eventName);
   }
+    return config.community.enabled && config.community.events.includes(eventName);
+  
 };
 
 // Initialize Mixpanel if analytics is enabled and token is available
@@ -140,7 +140,7 @@ if (
   // Set up user profile for authenticated users
   if (config.registered.enabled && config.registered.userId) {
     mixpanel.people.set(config.registered.userId, {
-      plan: isPro() ? "pro" : isTeam() ? "team" : "community",
+      plan: isPro() ? "pro" : (isTeam() ? "team" : "community"),
       // Additional user properties will be added when auth is implemented
     });
   }
@@ -158,7 +158,7 @@ const getClientId = (): string => {
 // Core tracking function with event filtering
 export const sendToMixpanel = async (event: string, properties: any) => {
   // Map old event names to new standardized ones
-  const eventMapping: { [key: string]: string } = {
+  const eventMapping: Record<string, string> = {
     "app open": "app_launch",
     "update check": "version_check",
     "update install": "update_install",
@@ -231,7 +231,7 @@ export const track = {
 
   crashReport: (props: { error: string; stack?: string; context?: string }) => {
     // Strip sensitive paths from stack traces
-    const sanitizedStack = props.stack?.replace(/\/Users\/[^\/]+/g, "/Users/***");
+    const sanitizedStack = props.stack?.replaceAll(/\/Users\/[^/]+/g, "/Users/***");
     sendToMixpanel("crash_report", {
       ...props,
       stack: sanitizedStack,

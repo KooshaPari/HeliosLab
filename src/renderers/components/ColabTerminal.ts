@@ -108,7 +108,7 @@ export class ColabTerminal extends HTMLElement {
   }
 
   attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null) {
-    if (oldValue === newValue) return;
+    if (oldValue === newValue) {return;}
 
     // Sync attributes to properties
     if (name === "cwd") {
@@ -119,7 +119,7 @@ export class ColabTerminal extends HTMLElement {
   }
 
   private render() {
-    if (!this.shadowRoot) return;
+    if (!this.shadowRoot) {return;}
 
     // Add xterm.js CSS
     const style = document.createElement("style");
@@ -270,16 +270,16 @@ export class ColabTerminal extends HTMLElement {
         position: relative;
       }
     `;
-    this.shadowRoot.appendChild(style);
+    this.shadowRoot.append(style);
 
     // Create container
     this.container = document.createElement("div");
     this.container.className = "terminal-container";
-    this.shadowRoot.appendChild(this.container);
+    this.shadowRoot.append(this.container);
   }
 
   private async initTerminal() {
-    if (this.isInitialized || !this.container) return;
+    if (this.isInitialized || !this.container) {return;}
     this.isInitialized = true;
 
     // Use properties (set via property or attribute)
@@ -362,7 +362,7 @@ export class ColabTerminal extends HTMLElement {
               max-width: 400px;
               word-break: break-all;
             `;
-            document.body.appendChild(tooltip);
+            document.body.append(tooltip);
           },
           leave: () => {
             // Remove tooltip when mouse leaves the link
@@ -424,7 +424,7 @@ export class ColabTerminal extends HTMLElement {
         const customEvent = event as CustomEvent<{ terminalId: string; exitCode: number }>;
         if (customEvent.detail.terminalId === this.terminalId) {
           this.terminal?.write(
-            `\r\n\x1b[90mProcess exited with code ${customEvent.detail.exitCode}\x1b[0m\r\n`,
+            `\r\n\u001B[90mProcess exited with code ${customEvent.detail.exitCode}\u001B[0m\r\n`,
           );
           this.dispatchEvent(
             new CustomEvent("terminal-exit", {
@@ -455,7 +455,7 @@ export class ColabTerminal extends HTMLElement {
 
   /** Process queued commands */
   private async processQueue() {
-    if (this.isProcessingQueue || !this.terminalId) return;
+    if (this.isProcessingQueue || !this.terminalId) {return;}
     this.isProcessingQueue = true;
 
     while (this.commandQueue.length > 0) {

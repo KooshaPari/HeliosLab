@@ -27,34 +27,41 @@ export async function handleAssetsCommand(
   const subcommand = args[0] || "list";
 
   switch (subcommand) {
-    case "upload":
+    case "upload": {
       await handleUpload(args.slice(1), write, cwd, client, storage, api);
       break;
+    }
 
-    case "sync":
+    case "sync": {
       await handleSync(write, cwd, client, storage, api);
       break;
+    }
 
-    case "inject":
+    case "inject": {
       await handleInject(args.slice(1), write, cwd, client, storage, api);
       break;
+    }
 
-    case "list":
+    case "list": {
       await handleList(write, cwd, client, storage);
       break;
+    }
 
-    case "connect":
+    case "connect": {
       await handleConnect(args.slice(1), write, cwd, client, storage, api);
       break;
+    }
 
     case "--help":
-    case "help":
+    case "help": {
       printHelp(write);
       break;
+    }
 
-    default:
-      write(`\x1b[31mUnknown assets command: ${subcommand}\x1b[0m\r\n`);
+    default: {
+      write(`\u001B[31mUnknown assets command: ${subcommand}\u001B[0m\r\n`);
       write('Run "wf assets --help" for available commands.\r\n');
+    }
   }
 }
 
@@ -67,7 +74,7 @@ async function handleUpload(
   api: PluginAPI,
 ): Promise<void> {
   if (args.length === 0) {
-    write("\x1b[31mUsage: wf assets upload <file> [--site <site_id>]\x1b[0m\r\n");
+    write("\u001B[31mUsage: wf assets upload <file> [--site <site_id>]\u001B[0m\r\n");
     return;
   }
 
@@ -87,7 +94,7 @@ async function handleUpload(
   }
 
   if (!existsSync(filePath)) {
-    write(`\x1b[31mFile not found: ${filePath}\x1b[0m\r\n`);
+    write(`\u001B[31mFile not found: ${filePath}\u001B[0m\r\n`);
     return;
   }
 
@@ -97,19 +104,19 @@ async function handleUpload(
   }
 
   if (!siteId) {
-    write("\x1b[31mNo site specified.\x1b[0m\r\n");
+    write("\u001B[31mNo site specified.\u001B[0m\r\n");
     write("Use --site <site_id> or run from a directory with .webflowrc.json\r\n");
     return;
   }
 
   // Check authentication
   if (!(await client.isAuthenticated())) {
-    write('\x1b[31mNot authenticated.\x1b[0m Run "wf auth" first.\r\n');
+    write('\u001B[31mNot authenticated.\u001B[0m Run "wf auth" first.\r\n');
     return;
   }
 
   const fileName = basename(filePath);
-  write(`\x1b[36mUploading ${fileName}...\x1b[0m\r\n`);
+  write(`\u001B[36mUploading ${fileName}...\u001B[0m\r\n`);
 
   try {
     const fileContent = readFileSync(filePath);
@@ -124,16 +131,16 @@ async function handleUpload(
       connections: [],
     });
 
-    write(`\x1b[32m✓ Uploaded successfully!\x1b[0m\r\n\r\n`);
+    write(`\u001B[32m✓ Uploaded successfully!\u001B[0m\r\n\r\n`);
     write(`CDN URL: ${asset.hostedUrl}\r\n`);
     write(`\r\nTo inject this asset, run:\r\n`);
     write(`  wf assets connect ${fileName} --site-head\r\n`);
 
     api.log.info(`Asset uploaded: ${fileName} -> ${asset.hostedUrl}`);
-  } catch (e) {
-    const message = e instanceof Error ? e.message : String(e);
-    write(`\x1b[31mUpload failed: ${message}\x1b[0m\r\n`);
-    api.log.error("Asset upload failed:", e);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    write(`\u001B[31mUpload failed: ${message}\u001B[0m\r\n`);
+    api.log.error("Asset upload failed:", error);
   }
 }
 
@@ -147,7 +154,7 @@ async function handleSync(
   // Look for assets directory
   const assetsDir = join(cwd, "assets");
   if (!existsSync(assetsDir)) {
-    write("\x1b[33mNo assets/ directory found.\x1b[0m\r\n");
+    write("\u001B[33mNo assets/ directory found.\u001B[0m\r\n");
     write("Create an assets/ directory with files to sync.\r\n");
     return;
   }
@@ -155,16 +162,16 @@ async function handleSync(
   // Get site ID
   const siteId = await getSiteIdFromConfig(cwd);
   if (!siteId) {
-    write('\x1b[31mNo site configured.\x1b[0m Run "wf devlink init" first.\r\n');
+    write('\u001B[31mNo site configured.\u001B[0m Run "wf devlink init" first.\r\n');
     return;
   }
 
   if (!(await client.isAuthenticated())) {
-    write('\x1b[31mNot authenticated.\x1b[0m Run "wf auth" first.\r\n');
+    write('\u001B[31mNot authenticated.\u001B[0m Run "wf auth" first.\r\n');
     return;
   }
 
-  write(`\x1b[36mScanning assets directory...\x1b[0m\r\n\r\n`);
+  write(`\u001B[36mScanning assets directory...\u001B[0m\r\n\r\n`);
 
   // Find all uploadable files
   const files = findAssetFiles(assetsDir);
@@ -188,7 +195,7 @@ async function handleSync(
     const existingAsset = await storage.getAsset(file);
     if (existingAsset) {
       // TODO: Check hash to see if file changed
-      write(`  \x1b[90m○ ${relativePath} (already uploaded)\x1b[0m\r\n`);
+      write(`  \u001B[90m○ ${relativePath} (already uploaded)\u001B[0m\r\n`);
       skipped++;
       continue;
     }
@@ -205,10 +212,10 @@ async function handleSync(
         connections: [],
       });
 
-      write(`  \x1b[32m✓ ${relativePath}\x1b[0m\r\n`);
+      write(`  \u001B[32m✓ ${relativePath}\u001B[0m\r\n`);
       uploaded++;
-    } catch (e) {
-      write(`  \x1b[31m✗ ${relativePath}\x1b[0m\r\n`);
+    } catch {
+      write(`  \u001B[31m✗ ${relativePath}\u001B[0m\r\n`);
       failed++;
     }
   }
@@ -231,16 +238,16 @@ async function handleInject(
 ): Promise<void> {
   const siteId = await getSiteIdFromConfig(cwd);
   if (!siteId) {
-    write("\x1b[31mNo site configured.\x1b[0m\r\n");
+    write("\u001B[31mNo site configured.\u001B[0m\r\n");
     return;
   }
 
   if (!(await client.isAuthenticated())) {
-    write('\x1b[31mNot authenticated.\x1b[0m Run "wf auth" first.\r\n');
+    write('\u001B[31mNot authenticated.\u001B[0m Run "wf auth" first.\r\n');
     return;
   }
 
-  write(`\x1b[36mGenerating custom code from asset connections...\x1b[0m\r\n\r\n`);
+  write(`\u001B[36mGenerating custom code from asset connections...\u001B[0m\r\n\r\n`);
 
   // Get all assets for this site
   const assets = await storage.getAssetsBySite(siteId);
@@ -254,7 +261,7 @@ async function handleInject(
   // Group by connection type
   const siteHead: string[] = [];
   const siteFooter: string[] = [];
-  const pageConnections: Map<string, { head: string[]; footer: string[] }> = new Map();
+  const pageConnections = new Map<string, { head: string[]; footer: string[] }>();
 
   for (const asset of assets) {
     for (const conn of asset.connections) {
@@ -295,9 +302,9 @@ async function handleInject(
         headCode: siteHead.join("\n"),
         footerCode: siteFooter.join("\n"),
       });
-      write("  \x1b[32m✓ Updated site custom code\x1b[0m\r\n");
-    } catch (e) {
-      write(`  \x1b[31m✗ Failed to update site custom code\x1b[0m\r\n`);
+      write("  \u001B[32m✓ Updated site custom code\u001B[0m\r\n");
+    } catch {
+      write(`  \u001B[31m✗ Failed to update site custom code\u001B[0m\r\n`);
     }
   }
 
@@ -306,12 +313,12 @@ async function handleInject(
     write("\r\nPage-specific custom code:\r\n");
 
     // We'd need to get page IDs from slugs - this is a simplification
-    write("  \x1b[33m⚠ Page-specific injection requires page IDs.\x1b[0m\r\n");
+    write("  \u001B[33m⚠ Page-specific injection requires page IDs.\u001B[0m\r\n");
     write("  Use the Webflow Designer for page-specific code.\r\n");
   }
 
-  write("\r\n\x1b[32m✓ Injection complete!\x1b[0m\r\n");
-  write("\r\n\x1b[33mNote: Publish your site for changes to go live.\x1b[0m\r\n");
+  write("\r\n\u001B[32m✓ Injection complete!\u001B[0m\r\n");
+  write("\r\n\u001B[33mNote: Publish your site for changes to go live.\u001B[0m\r\n");
 
   api.log.info("Custom code injected");
 }
@@ -325,7 +332,7 @@ async function handleConnect(
   api: PluginAPI,
 ): Promise<void> {
   if (args.length === 0) {
-    write("\x1b[31mUsage: wf assets connect <file> [options]\x1b[0m\r\n");
+    write("\u001B[31mUsage: wf assets connect <file> [options]\u001B[0m\r\n");
     write("\r\nOptions:\r\n");
     write("  --site-head       Inject in site head\r\n");
     write("  --site-body       Inject before site </body>\r\n");
@@ -344,24 +351,29 @@ async function handleConnect(
 
   for (let i = 1; i < args.length; i++) {
     switch (args[i]) {
-      case "--site-head":
+      case "--site-head": {
         type = "site";
         location = "head";
         break;
-      case "--site-body":
+      }
+      case "--site-body": {
         type = "site";
         location = "body";
         break;
-      case "--page":
+      }
+      case "--page": {
         type = "page";
         pageSlug = args[++i];
         break;
-      case "--async":
+      }
+      case "--async": {
         loadStrategy = "async";
         break;
-      case "--defer":
+      }
+      case "--defer": {
         loadStrategy = "defer";
         break;
+      }
     }
   }
 
@@ -371,7 +383,7 @@ async function handleConnect(
 
   const asset = await storage.getAsset(filePath);
   if (!asset) {
-    write(`\x1b[31mAsset not found: ${fileName}\x1b[0m\r\n`);
+    write(`\u001B[31mAsset not found: ${fileName}\u001B[0m\r\n`);
     write("Upload the asset first with: wf assets upload\r\n");
     return;
   }
@@ -390,7 +402,7 @@ async function handleConnect(
   asset.connections.push(connection);
   await storage.setAsset(asset);
 
-  write(`\x1b[32m✓ Connection added\x1b[0m\r\n\r\n`);
+  write(`\u001B[32m✓ Connection added\u001B[0m\r\n\r\n`);
   write(`Asset: ${fileName}\r\n`);
   write(`CDN URL: ${asset.cdnUrl}\r\n`);
   write(`Location: ${type} ${location}\r\n`);
@@ -410,17 +422,17 @@ async function handleList(
   const assets = await storage.getAssets();
 
   if (assets.length === 0) {
-    write("\x1b[33mNo assets uploaded yet.\x1b[0m\r\n");
+    write("\u001B[33mNo assets uploaded yet.\u001B[0m\r\n");
     write('Use "wf assets upload <file>" to upload assets.\r\n');
     return;
   }
 
-  write("\x1b[1mUploaded Assets\x1b[0m\r\n");
+  write("\u001B[1mUploaded Assets\u001B[0m\r\n");
   write("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\r\n\r\n");
 
   for (const asset of assets) {
     const fileName = basename(asset.localPath);
-    write(`\x1b[1m${fileName}\x1b[0m\r\n`);
+    write(`\u001B[1m${fileName}\u001B[0m\r\n`);
     write(`  CDN: ${asset.cdnUrl}\r\n`);
     write(`  Uploaded: ${new Date(asset.lastUploaded).toLocaleString()}\r\n`);
 
@@ -434,7 +446,7 @@ async function handleList(
         }
       }
     } else {
-      write("  \x1b[90mNo connections configured\x1b[0m\r\n");
+      write("  \u001B[90mNo connections configured\u001B[0m\r\n");
     }
     write("\r\n");
   }
@@ -446,14 +458,14 @@ async function getSiteIdFromConfig(cwd: string): Promise<string | undefined> {
   // Try .webflowrc.json
   const webflowrcPath = join(cwd, ".webflowrc.json");
   if (existsSync(webflowrcPath)) {
-    const config = JSON.parse(readFileSync(webflowrcPath, "utf-8"));
+    const config = JSON.parse(readFileSync(webflowrcPath, "utf8"));
     return config.siteId;
   }
 
   // Try .colab.json
   const colabPath = join(cwd, ".colab.json");
   if (existsSync(colabPath)) {
-    const config = JSON.parse(readFileSync(colabPath, "utf-8"));
+    const config = JSON.parse(readFileSync(colabPath, "utf8"));
     return config.siteId;
   }
 
@@ -522,12 +534,12 @@ function generateTag(cdnUrl: string, conn: AssetConnection): string {
 }
 
 function printHelp(write: (text: string) => void): void {
-  write("\x1b[1;36mAssets Commands\x1b[0m\r\n");
+  write("\u001B[1;36mAssets Commands\u001B[0m\r\n");
   write("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\r\n\r\n");
 
   write("Upload assets to Webflow CDN and inject them as custom code.\r\n\r\n");
 
-  write("\x1b[1mCommands:\x1b[0m\r\n");
+  write("\u001B[1mCommands:\u001B[0m\r\n");
   write("  wf assets upload <file>   Upload a file to Webflow CDN\r\n");
   write("  wf assets sync            Sync all files in assets/ directory\r\n");
   write("  wf assets connect         Configure where an asset is injected\r\n");
@@ -535,7 +547,7 @@ function printHelp(write: (text: string) => void): void {
   write("  wf assets list            List uploaded assets\r\n");
   write("\r\n");
 
-  write("\x1b[1mWorkflow:\x1b[0m\r\n");
+  write("\u001B[1mWorkflow:\u001B[0m\r\n");
   write("  1. Create an assets/ directory in your project\r\n");
   write("  2. Add your JS/CSS/SVG files\r\n");
   write('  3. Run "wf assets sync" to upload them\r\n');

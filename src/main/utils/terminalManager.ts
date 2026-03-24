@@ -55,9 +55,9 @@ type BuiltinCommandHandler = (
 ) => Promise<boolean>;
 
 class TerminalManager {
-  private terminals: Map<string, TerminalSession> = new Map();
-  private terminalToWindow: Map<string, string> = new Map(); // terminalId -> windowId
-  private windowHandlers: Map<string, (message: any) => void> = new Map(); // windowId -> handler
+  private terminals = new Map<string, TerminalSession>();
+  private terminalToWindow = new Map<string, string>(); // TerminalId -> windowId
+  private windowHandlers = new Map<string, (message: any) => void>(); // WindowId -> handler
   private pluginCommandChecker?: PluginCommandChecker;
   private pluginCommandExecutor?: PluginCommandExecutor;
   private editCommandHandler?: BuiltinCommandHandler;
@@ -172,12 +172,12 @@ class TerminalManager {
     const defaultShell =
       process.platform === "win32"
         ? "cmd.exe"
-        : process.platform === "darwin"
+        : (process.platform === "darwin"
           ? "/bin/zsh"
-          : "/bin/bash";
+          : "/bin/bash");
     const terminalShell = shell || process.env.SHELL || defaultShell;
 
-    // console.log(`Creating PTY terminal ${terminalId} with shell: ${terminalShell}, cwd: ${cwd}, windowId: ${windowId}`);
+    // Console.log(`Creating PTY terminal ${terminalId} with shell: ${terminalShell}, cwd: ${cwd}, windowId: ${windowId}`);
 
     // Path to the Zig PTY binary - in the MacOS directory alongside the main executable
     const ptyBinaryPath = path.join(process.cwd(), "colab-pty");
@@ -187,7 +187,7 @@ class TerminalManager {
       stdout: "pipe",
       stderr: "pipe",
       cwd: process.cwd(),
-      // @ts-ignore - Bun specific option
+      // @ts-expect-error - Bun specific option
       allowUnsafeCustomBinary: true,
     });
 
@@ -211,7 +211,7 @@ class TerminalManager {
 
     // Handle process exit
     proc.exited.then((exitCode) => {
-      // console.log(`PTY process ${terminalId} exited with code ${exitCode}`);
+      // Console.log(`PTY process ${terminalId} exited with code ${exitCode}`);
       const terminal = this.terminals.get(terminalId);
       if (terminal) {
         this.cleanupReaders(terminal);
@@ -245,7 +245,7 @@ class TerminalManager {
 
   private sendPtyMessage(terminalId: string, message: PtyMessage) {
     const terminal = this.terminals.get(terminalId);
-    if (!terminal) return;
+    if (!terminal) {return;}
 
     try {
       const jsonMessage = JSON.stringify(message) + "\n";
@@ -273,7 +273,7 @@ class TerminalManager {
           let buffer = "";
           while (true) {
             const { done, value } = await stdoutReader.read();
-            if (done) break;
+            if (done) {break;}
 
             const text = new TextDecoder().decode(value);
             buffer += text;
@@ -306,7 +306,7 @@ class TerminalManager {
         try {
           while (true) {
             const { done, value } = await stderrReader.read();
-            if (done) break;
+            if (done) {break;}
 
             const text = new TextDecoder().decode(value);
             console.error(`PTY ${terminalId} stderr:`, text);
@@ -326,30 +326,31 @@ class TerminalManager {
   private cleanupReaders(terminal: TerminalSession) {
     try {
       terminal.stdoutReader?.cancel();
-    } catch (e) {
+    } catch {
       // Already closed or cancelled
     }
     try {
       terminal.stderrReader?.cancel();
-    } catch (e) {
+    } catch {
       // Already closed or cancelled
     }
   }
 
   private handlePtyResponse(terminalId: string, response: PtyResponse) {
     const terminal = this.terminals.get(terminalId);
-    if (!terminal) return;
+    if (!terminal) {return;}
 
     const messageHandler = this.getMessageHandler(terminalId);
-    // console.log(`PTY ${terminalId} response:`, response);
+    // Console.log(`PTY ${terminalId} response:`, response);
 
     switch (response.type) {
-      case "ready":
+      case "ready": {
         terminal.ready = true;
         // console.log(`PTY terminal ${terminalId} is ready`);
         break;
+      }
 
-      case "data":
+      case "data": {
         if (response.data) {
           messageHandler?.({
             type: "terminalOutput",
@@ -358,15 +359,17 @@ class TerminalManager {
           });
         }
         break;
+      }
 
-      case "cwd_update":
+      case "cwd_update": {
         if (response.data) {
           // Update the stored current working directory
           terminal.currentCwd = response.data;
         }
         break;
+      }
 
-      case "error":
+      case "error": {
         console.error(`PTY error for ${terminalId}:`, response.error_msg);
         messageHandler?.({
           type: "terminalOutput",
@@ -374,14 +377,15 @@ class TerminalManager {
           data: `Error: ${response.error_msg}\r\n`,
         });
         break;
+      }
     }
   }
 
   writeToTerminal(terminalId: string, data: string): boolean {
-    // console.log(`Writing to PTY terminal ${terminalId}:`, JSON.stringify(data));
+    // Console.log(`Writing to PTY terminal ${terminalId}:`, JSON.stringify(data));
     const terminal = this.terminals.get(terminalId);
     if (!terminal) {
-      console.log("Terminal not found:", { terminal: !!terminal });
+      console.log("Terminal not found:", { terminal: Boolean(terminal) });
       return false;
     }
 
@@ -396,7 +400,7 @@ class TerminalManager {
       // But pasted content should never contain EOF (\x04) as it can accidentally close the shell
       if (data.length > 1) {
         // Remove \x04 (Ctrl+D/EOF) from pasted content to prevent accidental shell exit
-        data = data.replace(/\x04/g, "");
+        data = data.replaceAll('', "");
         // If filtering removed all content, nothing to send
         if (data.length === 0) {
           return true;
@@ -484,23 +488,23 @@ class TerminalManager {
 
         // Not a built-in or plugin command, clear buffer and send to PTY
         terminal.inputBuffer = "";
-      } else if (data === "\x7f" || data === "\b") {
+      } else if (data === "\u007F" || data === "\b") {
         // Backspace - remove last char from buffer
         terminal.inputBuffer = terminal.inputBuffer.slice(0, -1);
-      } else if (data === "\x03") {
+      } else if (data === "\u0003") {
         // Ctrl+C - clear buffer
         terminal.inputBuffer = "";
-      } else if (data === "\x15") {
+      } else if (data === "\u0015") {
         // Ctrl+U - clear line/buffer
         terminal.inputBuffer = "";
-      } else if (data.length === 1 && data.charCodeAt(0) >= 32) {
+      } else if (data.length === 1 && data.codePointAt(0) >= 32) {
         // Regular printable character - add to buffer
         terminal.inputBuffer += data;
       }
 
       // Send input to PTY binary, chunking large inputs to avoid buffer overflow
       // The Zig PTY binary has an 8192 byte buffer. We chunk at 2048 to be safe
-      // because JSON escaping can significantly increase size (e.g., \n -> \\n, \x1b -> \\u001b)
+      // Because JSON escaping can significantly increase size (e.g., \n -> \\n, \x1b -> \\u001b)
       const MAX_CHUNK_SIZE = 2048;
 
       if (data.length <= MAX_CHUNK_SIZE) {
@@ -532,9 +536,9 @@ class TerminalManager {
   }
 
   resizeTerminal(terminalId: string, cols: number, rows: number): boolean {
-    // console.log(`Resizing PTY terminal ${terminalId}: ${cols}x${rows}`);
+    // Console.log(`Resizing PTY terminal ${terminalId}: ${cols}x${rows}`);
     const terminal = this.terminals.get(terminalId);
-    if (!terminal) return false;
+    if (!terminal) {return false;}
 
     try {
       this.sendPtyMessage(terminalId, {
@@ -589,7 +593,7 @@ class TerminalManager {
   }
 
   getAllTerminals(): TerminalSession[] {
-    return Array.from(this.terminals.values());
+    return [...this.terminals.values()];
   }
 
   cleanup() {

@@ -142,7 +142,7 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
 
   // Get the project root path (parent of the config file)
   const getProjectRoot = () => {
-    if (!props.node?.path) return "";
+    if (!props.node?.path) {return "";}
     const parts = props.node.path.split("/");
     parts.pop(); // Remove filename
     return parts.join("/");
@@ -188,8 +188,8 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
         setConnected(true);
         return String(values.accessToken);
       }
-    } catch (e) {
-      console.error("Failed to check Webflow connection:", e);
+    } catch (error) {
+      console.error("Failed to check Webflow connection:", error);
     }
     return null;
   };
@@ -208,7 +208,7 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
     // If siteId specified, try to find a token for that site
     if (siteId) {
       const siteToken = tokens.find((t) => t.type === "site" && t.siteId === siteId);
-      if (siteToken) return siteToken.token;
+      if (siteToken) {return siteToken.token;}
     }
     // Otherwise return any valid token (oauth/workspace tokens can access sites too)
     return tokens[0]?.token || null;
@@ -226,8 +226,8 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
       if (sitesFromState && Array.isArray(sitesFromState)) {
         setSites(sitesFromState);
       }
-    } catch (e) {
-      console.error("[WebflowSlate] Failed to load sites from state:", e);
+    } catch (error) {
+      console.error("[WebflowSlate] Failed to load sites from state:", error);
     }
   };
 
@@ -272,8 +272,8 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
 
       // Refresh sync status after changing site
       checkSyncStatus();
-    } catch (e) {
-      console.error("[WebflowSlate] Failed to update config:", e);
+    } catch (error) {
+      console.error("[WebflowSlate] Failed to update config:", error);
       setError("Failed to update configuration");
     }
   };
@@ -281,7 +281,7 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
   // Create/update webflow.json with the structure the CLI expects
   const ensureWebflowJson = async (cfg: DevLinkConfig) => {
     const projectRoot = getProjectRoot();
-    if (!projectRoot) return;
+    if (!projectRoot) {return;}
 
     const webflowJsonPath = projectRoot + "/webflow.json";
 
@@ -294,7 +294,7 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
       if (result?.textContent) {
         existing = JSON.parse(result.textContent);
       }
-    } catch (e) {
+    } catch {
       // File doesn't exist, that's fine
     }
 
@@ -328,7 +328,7 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
       if (result?.textContent) {
         existing = JSON.parse(result.textContent);
       }
-    } catch (e) {
+    } catch {
       // File doesn't exist, that's fine
     }
 
@@ -360,7 +360,7 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
 
   // Load config file content
   const loadConfig = async () => {
-    if (!props.node?.path) return;
+    if (!props.node?.path) {return;}
 
     try {
       const result = (await electrobun.rpc?.request.readFile({
@@ -370,8 +370,8 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
         const parsed = JSON.parse(result.textContent);
         setConfig(parsed);
       }
-    } catch (e) {
-      console.error("Failed to read config:", e);
+    } catch (error) {
+      console.error("Failed to read config:", error);
       setError("Failed to read configuration file");
     }
   };
@@ -413,10 +413,10 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
       }
 
       return output;
-    } catch (e) {
-      const errMsg = e instanceof Error ? e.message : String(e);
+    } catch (error) {
+      const errMsg = error instanceof Error ? error.message : String(error);
       setError(errMsg);
-      throw e;
+      throw error;
     }
   };
 
@@ -454,10 +454,10 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
       }
 
       return output;
-    } catch (e) {
-      const errMsg = e instanceof Error ? e.message : String(e);
+    } catch (error) {
+      const errMsg = error instanceof Error ? error.message : String(error);
       setError(errMsg);
-      throw e;
+      throw error;
     }
   };
 
@@ -496,10 +496,10 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
       }
 
       return output;
-    } catch (e) {
-      const errMsg = e instanceof Error ? e.message : String(e);
+    } catch (error) {
+      const errMsg = error instanceof Error ? error.message : String(error);
       setError(errMsg);
-      throw e;
+      throw error;
     }
   };
 
@@ -555,7 +555,7 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
       } else {
         setSyncStatus("error");
       }
-    } catch (e) {
+    } catch {
       setSyncStatus("error");
     } finally {
       setPullRunning(false);
@@ -601,8 +601,8 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
               (f) => !f.startsWith("index") && !f.startsWith("_"),
             ).length;
           }
-        } catch (e) {
-          console.error("[WebflowSlate] Error listing devlink dir:", e);
+        } catch (error) {
+          console.error("[WebflowSlate] Error listing devlink dir:", error);
         }
       }
 
@@ -623,21 +623,21 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
       }
 
       // Build status output
-      output += `\x1b[1mDevLink Status\x1b[0m\r\n`;
+      output += `\u001B[1mDevLink Status\u001B[0m\r\n`;
       output += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\r\n\r\n`;
       output += `Site: ${siteName}\r\n`;
       output += `Path: ${componentsPath}\r\n\r\n`;
 
       if (!exists) {
         setSyncStatus("needs-sync");
-        output += `\x1b[33m⚠ DevLink folder not found.\x1b[0m\r\n`;
+        output += `\u001B[33m⚠ DevLink folder not found.\u001B[0m\r\n`;
         output += `Click "Pull Components" to sync your Webflow components.\r\n`;
       } else if (localComponentCount === 0) {
         setSyncStatus("needs-sync");
-        output += `\x1b[33m⚠ No components synced yet.\x1b[0m\r\n`;
+        output += `\u001B[33m⚠ No components synced yet.\u001B[0m\r\n`;
         output += `Click "Pull Components" to sync your Webflow components.\r\n`;
       } else {
-        output += `\x1b[32m✓ ${localComponentCount} component${localComponentCount !== 1 ? "s" : ""} synced locally\x1b[0m\r\n\r\n`;
+        output += `\u001B[32m✓ ${localComponentCount} component${localComponentCount !== 1 ? "s" : ""} synced locally\u001B[0m\r\n\r\n`;
 
         // List first few components
         const componentNames = localFiles
@@ -657,7 +657,7 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
 
         if (siteLastPublished) {
           output += `\r\nSite last published: ${siteLastPublished.toLocaleString()}\r\n`;
-          output += `\r\n\x1b[36mTip: Click "Pull Components" to check for updates.\x1b[0m\r\n`;
+          output += `\r\n\u001B[36mTip: Click "Pull Components" to check for updates.\u001B[0m\r\n`;
         }
 
         setSyncStatus("synced");
@@ -665,8 +665,8 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
 
       setCommandOutput(output);
       setLastChecked(new Date());
-    } catch (e) {
-      const errMsg = e instanceof Error ? e.message : String(e);
+    } catch (error) {
+      const errMsg = error instanceof Error ? error.message : String(error);
       setSyncStatus("unknown");
       setError(`Failed to check status: ${errMsg}`);
     } finally {
@@ -738,12 +738,12 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
               // Remove the spawn line
               output = output.replace(/^spawn bunx @webflow\/webflow-cli library share\n?/m, "");
               // Remove stray 'y' lines from expect auto-responses
-              output = output.replace(/^y\n/gm, "");
+              output = output.replaceAll(/^y\n/gm, "");
               // Remove deprecation warnings
-              output = output.replace(/\(node:\d+\).*DeprecationWarning.*\n?/g, "");
-              output = output.replace(/\(Use `node --trace-deprecation.*\n?/g, "");
+              output = output.replaceAll(/\(node:\d+\).*DeprecationWarning.*\n?/g, "");
+              output = output.replaceAll(/\(Use `node --trace-deprecation.*\n?/g, "");
               // Clean up any double newlines
-              output = output.replace(/\n{3,}/g, "\n\n");
+              output = output.replaceAll(/\n{3,}/g, "\n\n");
               output = output.trim();
 
               setCommandOutput(`✓ Library shared successfully!\n\n${output}`);
@@ -766,8 +766,8 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
             );
             setShareRunning(false);
           }
-        } catch (e) {
-          console.error("[WebflowSlate] Error polling for status:", e);
+        } catch (error) {
+          console.error("[WebflowSlate] Error polling for status:", error);
           if (attempts < maxAttempts && shareRunning()) {
             setTimeout(pollForStatus, 1000);
           }
@@ -776,8 +776,8 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
 
       // Start polling after a short delay
       setTimeout(pollForStatus, 500);
-    } catch (e) {
-      const errMsg = e instanceof Error ? e.message : String(e);
+    } catch (error) {
+      const errMsg = error instanceof Error ? error.message : String(error);
       setError(errMsg);
       setShareRunning(false);
     }
@@ -835,8 +835,8 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
             "\n✓ Dev server running at http://localhost:4000\n\nTo preview in Webflow Designer:\n1. Open your site in Webflow Designer\n2. Go to Apps panel → Code Components\n3. Click 'Load dev library' → http://localhost:4000\n",
         );
       }
-    } catch (e) {
-      const errMsg = e instanceof Error ? e.message : String(e);
+    } catch (error) {
+      const errMsg = error instanceof Error ? error.message : String(error);
       setError(errMsg);
     } finally {
       setBundleRunning(false);
@@ -850,7 +850,7 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
       // Send Ctrl+C to stop the server
       await electrobun.rpc?.request.writeToTerminal({
         terminalId,
-        data: "\x03", // Ctrl+C
+        data: "\u0003", // Ctrl+C
       });
       // Kill the terminal
       await electrobun.rpc?.request.killTerminal({ terminalId });
@@ -872,14 +872,14 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
   // Update Code Components config (webflow.json)
   const updateCodeComponentsConfig = async (key: string, value: string) => {
     const configPath = props.node?.path;
-    if (!configPath) return;
+    if (!configPath) {return;}
 
     try {
       // Read current config
       const result = (await electrobun.rpc?.request.readFile({
         path: configPath,
       })) as ReadFileResult | undefined;
-      if (!result?.textContent) return;
+      if (!result?.textContent) {return;}
 
       const currentConfig = JSON.parse(result.textContent);
 
@@ -908,9 +908,9 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
 
       // Update local config state
       setConfig(currentConfig);
-    } catch (e) {
-      console.error("[WebflowSlate] Failed to update config:", e);
-      setError(`Failed to update config: ${e instanceof Error ? e.message : String(e)}`);
+    } catch (error) {
+      console.error("[WebflowSlate] Failed to update config:", error);
+      setError(`Failed to update config: ${error instanceof Error ? error.message : String(error)}`);
     }
   };
 
@@ -973,21 +973,21 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
         console.error("[WebflowSlate] writeFile failed:", writeResult?.error);
         setError("Failed to save configuration: " + (writeResult?.error || "unknown error"));
       }
-    } catch (e) {
-      console.error("[WebflowSlate] Failed to update cloud config:", e);
+    } catch (error) {
+      console.error("[WebflowSlate] Failed to update cloud config:", error);
       setError("Failed to update configuration");
     }
   };
 
   // Update Cloud config field (e.g., mountPath)
   const updateCloudConfigField = async (key: string, value: string) => {
-    if (!props.node?.path) return;
+    if (!props.node?.path) {return;}
 
     try {
       const result = (await electrobun.rpc?.request.readFile({
         path: props.node.path,
       })) as ReadFileResult | undefined;
-      if (!result?.textContent) return;
+      if (!result?.textContent) {return;}
 
       const currentConfig = JSON.parse(result.textContent);
 
@@ -1011,8 +1011,8 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
       });
 
       setConfig(newConfig as any);
-    } catch (e) {
-      console.error("[WebflowSlate] Failed to update cloud config field:", e);
+    } catch (error) {
+      console.error("[WebflowSlate] Failed to update cloud config field:", error);
       setError(`Failed to update ${key}`);
     }
   };
@@ -1024,10 +1024,10 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
   // This allows a single webflow.json pattern to render different UIs based on content
   const effectiveSlateType = () => {
     // If not code-components, use the passed slateType
-    if (props.slateType !== "code-components") return props.slateType;
+    if (props.slateType !== "code-components") {return props.slateType;}
 
     const cfg = config() as any;
-    if (!cfg) return props.slateType;
+    if (!cfg) {return props.slateType;}
 
     // If webflow.json has "cloud" section but no "library" section, show cloud UI
     if (cfg.cloud && !cfg.library) {
@@ -1042,7 +1042,7 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
     console.log("[WebflowSlate] onMount, slateType:", props.slateType);
 
     const token = await checkConnection();
-    console.log("[WebflowSlate] token found:", !!token);
+    console.log("[WebflowSlate] token found:", Boolean(token));
     if (token) {
       setAuthToken(token);
       await loadSitesFromState();
@@ -1102,7 +1102,7 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
               onOpenSettings={openSettings}
               onChangeSite={(site) => {
                 const token = authToken();
-                if (token) updateConfigSite(site, token);
+                if (token) {updateConfigSite(site, token);}
               }}
               syncStatus={syncStatus()}
               lastChecked={lastChecked()}
@@ -1144,7 +1144,7 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
               onOpenSettings={openSettings}
               onChangeSite={(site) => {
                 const token = authToken();
-                if (token) updateCloudConfigSite(site, token);
+                if (token) {updateCloudConfigSite(site, token);}
               }}
               onConfigChange={updateCloudConfigField}
               error={error()}
@@ -1187,7 +1187,7 @@ const DevLinkSlateContent = (props: {
 
   // Get the working directory
   const getTerminalCwd = () => {
-    if (props.cwd) return props.cwd;
+    if (props.cwd) {return props.cwd;}
     if (props.nodePath) {
       const parts = props.nodePath.split("/");
       parts.pop();
@@ -1198,7 +1198,7 @@ const DevLinkSlateContent = (props: {
 
   // Build command with env vars for site credentials
   const getEnvPrefix = () => {
-    if (!props.siteId || !props.siteToken) return "";
+    if (!props.siteId || !props.siteToken) {return "";}
     return `export WEBFLOW_SITE_ID="${props.siteId}" WEBFLOW_SITE_API_TOKEN="${props.siteToken}" && clear && `;
   };
 
@@ -1235,7 +1235,7 @@ const DevLinkSlateContent = (props: {
 
   // Format time as "today at 1:09pm" or just "1:09pm"
   const formatLastChecked = () => {
-    if (!props.lastChecked) return null;
+    if (!props.lastChecked) {return null;}
     const hours = props.lastChecked.getHours();
     const minutes = props.lastChecked.getMinutes();
     const ampm = hours >= 12 ? "pm" : "am";
@@ -1246,14 +1246,18 @@ const DevLinkSlateContent = (props: {
 
   const badge = () => {
     switch (props.syncStatus) {
-      case "synced":
+      case "synced": {
         return { text: "Synced", color: "#00c853", bg: "#1b4332" };
-      case "needs-sync":
+      }
+      case "needs-sync": {
         return { text: "Updates Available", color: "#fbbf24", bg: "#4a4026" };
-      case "error":
+      }
+      case "error": {
         return { text: "Error", color: "#f87171", bg: "#5c2626" };
-      default:
+      }
+      default: {
         return { text: "Unknown", color: "#888", bg: "#333" };
+      }
     }
   };
 
@@ -1697,7 +1701,7 @@ const CodeComponentsSlateContent = (props: {
 
   // Get the working directory
   const getTerminalCwd = () => {
-    if (props.cwd) return props.cwd;
+    if (props.cwd) {return props.cwd;}
     if (props.nodePath) {
       const parts = props.nodePath.split("/");
       parts.pop();
@@ -1850,13 +1854,13 @@ const CodeComponentsSlateContent = (props: {
             mono
             validate={(value) => {
               // Convert to slug: lowercase, replace spaces with hyphens, remove invalid chars
-              let slug = value
+              const slug = value
                 .toLowerCase()
                 .trim()
-                .replace(/\s+/g, "-")
-                .replace(/[^a-z0-9-]/g, "")
-                .replace(/-+/g, "-")
-                .replace(/^-|-$/g, "");
+                .replaceAll(/\s+/g, "-")
+                .replaceAll(/[^a-z0-9-]/g, "")
+                .replaceAll(/-+/g, "-")
+                .replaceAll(/^-|-$/g, "");
               // If empty after validation, don't save (return original to prevent empty)
               return slug || value;
             }}
@@ -2027,9 +2031,9 @@ const CloudSlateContent = (props: {
 
   // Get the working directory - derive from nodePath if cwd not provided
   const getTerminalCwd = () => {
-    if (props.cwd) return props.cwd;
+    if (props.cwd) {return props.cwd;}
     if (props.nodePath) {
-      // nodePath is the config file path, get its directory
+      // NodePath is the config file path, get its directory
       const parts = props.nodePath.split("/");
       parts.pop(); // Remove filename
       return parts.join("/");
@@ -2039,23 +2043,29 @@ const CloudSlateContent = (props: {
 
   const getFrameworkIcon = () => {
     switch (props.config?.framework) {
-      case "astro":
+      case "astro": {
         return "🚀";
-      case "nextjs":
+      }
+      case "nextjs": {
         return "▲";
-      default:
+      }
+      default: {
         return "☁";
+      }
     }
   };
 
   const getFrameworkColor = () => {
     switch (props.config?.framework) {
-      case "astro":
+      case "astro": {
         return "#ff5d01";
-      case "nextjs":
+      }
+      case "nextjs": {
         return "#000";
-      default:
+      }
+      default: {
         return "#4353ff";
+      }
     }
   };
 
@@ -2763,14 +2773,14 @@ const ActionButton = (props: {
   active?: boolean;
 }): JSXElement => {
   const getBackground = () => {
-    if (props.primary) return "#4353ff";
-    if (props.active) return "#1a3a1a";
+    if (props.primary) {return "#4353ff";}
+    if (props.active) {return "#1a3a1a";}
     return "#2a2a2a";
   };
 
   const getBorder = () => {
-    if (props.primary) return "none";
-    if (props.active) return "1px solid #2d5a2d";
+    if (props.primary) {return "none";}
+    if (props.active) {return "1px solid #2d5a2d";}
     return "1px solid #444";
   };
 
@@ -2812,7 +2822,7 @@ const ActionButton = (props: {
       <div
         style={{
           "font-size": "12px",
-          color: props.primary ? "rgba(255,255,255,0.7)" : props.active ? "#6ee7a0" : "#888",
+          color: props.primary ? "rgba(255,255,255,0.7)" : (props.active ? "#6ee7a0" : "#888"),
         }}
       >
         {props.loading ? "Running..." : props.description}
@@ -2833,7 +2843,7 @@ const TerminalOutputPanel = (props: {
   let lastWrittenOutput = "";
 
   const initTerminal = () => {
-    if (!containerRef || initialized) return;
+    if (!containerRef || initialized) {return;}
     initialized = true;
 
     terminal = new Terminal({

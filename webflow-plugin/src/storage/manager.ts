@@ -80,8 +80,8 @@ export class StorageManager {
           this.api.log.warn(`Storage version mismatch: ${parsed.version} vs ${STORAGE_VERSION}`);
         }
       }
-    } catch (e) {
-      this.api.log.error("Failed to load storage:", e);
+    } catch (error) {
+      this.api.log.error("Failed to load storage:", error);
     }
   }
 
@@ -91,8 +91,8 @@ export class StorageManager {
   private async save(): Promise<void> {
     try {
       this.api.settings.set("_storage", JSON.stringify(this.data));
-    } catch (e) {
-      this.api.log.error("Failed to save storage:", e);
+    } catch (error) {
+      this.api.log.error("Failed to save storage:", error);
     }
   }
 

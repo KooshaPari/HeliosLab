@@ -1,4 +1,4 @@
-import * as monaco from "monaco-editor";
+import type * as monaco from "monaco-editor";
 import { electrobun } from "../init";
 import { createSignal } from "solid-js";
 import { state } from "../store";
@@ -40,7 +40,7 @@ export interface LlamaCompletionResponse {
 
 function cleanInlineCompletion(
   raw: string,
-  langHint: string | undefined, // e.g. "typescript" or file extension
+  langHint: string | undefined, // E.g. "typescript" or file extension
   {
     maxLines = 3,
     stopAtDoubleNewline = true,
@@ -49,18 +49,18 @@ function cleanInlineCompletion(
   // Minimal cleaning - just remove FIM tokens and trim
   let s = raw.trim();
 
-  if (!s) return "";
+  if (!s) {return "";}
 
   // Remove FIM special tokens that might appear in responses
   s = s
-    .replace(/<\|fim_(?:prefix|middle|suffix|end)\|>/g, "")
-    .replace(/<\|endoftext\|>/g, "")
-    .replace(/<\|im_end\|>/g, "")
+    .replaceAll(/<\|fim_(?:prefix|middle|suffix|end)\|>/g, "")
+    .replaceAll('<|endoftext|>', "")
+    .replaceAll('<|im_end|>', "")
     .trim();
 
   // Stop at double newlines for inline completions
   const blankIdx = s.indexOf("\n\n");
-  if (blankIdx !== -1) s = s.slice(0, blankIdx).trim();
+  if (blankIdx !== -1) {s = s.slice(0, blankIdx).trim();}
 
   // Filter out obviously bad completions (repeated characters)
   if (/^(.)\1{10,}$/.test(s)) {
@@ -81,7 +81,7 @@ function cleanInlineCompletion(
 const [activeRequests, setActiveRequests] = createSignal(0);
 
 class AICompletionService {
-  private readonly COMPLETION_TIMEOUT = 30000; // 30 seconds max for tab completion (increased for VM)
+  private readonly COMPLETION_TIMEOUT = 30_000; // 30 seconds max for tab completion (increased for VM)
 
   private get modelName() {
     return state.appSettings.llama.model;
@@ -122,7 +122,7 @@ class AICompletionService {
 
     try {
       const result = await electrobun.rpc?.request.llamaListModels();
-      if (!result?.ok) return false;
+      if (!result?.ok) {return false;}
 
       const modelName = this.modelName;
       return (
@@ -195,9 +195,9 @@ class AICompletionService {
       const fileContext = ""; //`// File: ${request.filename} (${languageContext})\n// Task: Code completion\n`;
 
       let prompt: string;
-      // if (request.suffix && request.suffix.trim().length > 0) {
+      // If (request.suffix && request.suffix.trim().length > 0) {
       //   // Use FIM format when we have both prefix and suffix context
-      //   prompt = `${fileContext}<|fim_prefix|>${request.prefix}<|fim_suffix|>${request.suffix}<|fim_middle|>`;
+      //   Prompt = `${fileContext}<|fim_prefix|>${request.prefix}<|fim_suffix|>${request.suffix}<|fim_middle|>`;
       // } else {
       // Fallback to simple completion when no suffix context
       prompt = `${fileContext}Complete this ${languageContext} code:\n${request.prefix}`;
@@ -214,12 +214,12 @@ class AICompletionService {
       }
 
       // First try llama-cli for better performance
-      let result = await electrobun.rpc?.request.llamaCompletion({
+      const result = await electrobun.rpc?.request.llamaCompletion({
         model: this.modelName,
         prompt,
         options: {
           temperature: this.temperature, // Use configured temperature
-          top_p: 1.0,
+          top_p: 1,
           max_tokens: 100, // Allow longer completions for inline
           stop: ["<|fim_end|>", "<|endoftext|>"], // Only stop on special model tokens, not valid TypeScript
         },
@@ -231,7 +231,7 @@ class AICompletionService {
         return { items: [] };
       }
 
-      console.log("raw result: ", result.response);
+      console.log("raw result:", result.response);
 
       let completion = (result.response || "").trim();
 
@@ -259,7 +259,7 @@ class AICompletionService {
       const lastWord = currentLineContent.match(/[a-zA-Z_$][a-zA-Z0-9_$]*$/)?.[0] || "";
 
       // If there's a partial word typed and the completion starts with those characters,
-      // remove the duplicated part from the completion
+      // Remove the duplicated part from the completion
       if (lastWord.length > 0 && completion.toLowerCase().startsWith(lastWord.toLowerCase())) {
         completion = completion.slice(lastWord.length);
       }
@@ -320,7 +320,7 @@ class AICompletionService {
       // For now, return true since model installation is handled through LlamaSettings
       // TODO: Could integrate with llamaInstallModel RPC method
       return true;
-    } catch (error) {
+    } catch {
       return false;
     }
   }

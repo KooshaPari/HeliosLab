@@ -35,31 +35,37 @@ export async function handleDevlinkCommand(
   const subcommand = args[0] || "status";
 
   switch (subcommand) {
-    case "init":
+    case "init": {
       await handleInit(args.slice(1), write, cwd, client, storage, api);
       break;
+    }
 
     case "pull":
-    case "sync":
+    case "sync": {
       await handlePull(write, cwd, api);
       break;
+    }
 
-    case "status":
+    case "status": {
       await handleStatus(write, cwd, client);
       break;
+    }
 
-    case "watch":
+    case "watch": {
       await handleWatch(write, cwd, api);
       break;
+    }
 
     case "--help":
-    case "help":
+    case "help": {
       printHelp(write);
       break;
+    }
 
-    default:
-      write(`\x1b[31mUnknown devlink command: ${subcommand}\x1b[0m\r\n`);
+    default: {
+      write(`\u001B[31mUnknown devlink command: ${subcommand}\u001B[0m\r\n`);
       write('Run "wf devlink --help" for available commands.\r\n');
+    }
   }
 }
 
@@ -74,27 +80,27 @@ async function handleInit(
   // Check if already initialized
   const configPath = join(cwd, ".webflowrc.json");
   if (existsSync(configPath)) {
-    write("\x1b[33mDevLink is already initialized in this directory.\x1b[0m\r\n");
+    write("\u001B[33mDevLink is already initialized in this directory.\u001B[0m\r\n");
     write('Run "wf devlink pull" to sync components.\r\n');
     return;
   }
 
   // Check authentication
   if (!(await client.isAuthenticated())) {
-    write('\x1b[31mNot authenticated.\x1b[0m Run "wf auth" first.\r\n');
+    write('\u001B[31mNot authenticated.\u001B[0m Run "wf auth" first.\r\n');
     return;
   }
 
   // Get site ID from args or prompt
-  let siteId = args[0];
+  const siteId = args[0];
 
   if (!siteId) {
-    write("\x1b[36mFetching your sites...\x1b[0m\r\n\r\n");
+    write("\u001B[36mFetching your sites...\u001B[0m\r\n\r\n");
     const sites = await client.listSites();
 
     if (sites.length === 0) {
       write(
-        "\x1b[31mNo sites found.\x1b[0m Make sure your token has access to at least one site.\r\n",
+        "\u001B[31mNo sites found.\u001B[0m Make sure your token has access to at least one site.\r\n",
       );
       return;
     }
@@ -110,14 +116,14 @@ async function handleInit(
   }
 
   // Verify site access
-  write("\x1b[36mVerifying site access...\x1b[0m\r\n");
+  write("\u001B[36mVerifying site access...\u001B[0m\r\n");
   let siteName = siteId;
   try {
     const site = await client.getSite(siteId);
     siteName = site.displayName;
-    write(`\x1b[32m✓ Found site: ${siteName}\x1b[0m\r\n\r\n`);
-  } catch (e) {
-    write(`\x1b[31mCould not access site: ${siteId}\x1b[0m\r\n`);
+    write(`\u001B[32m✓ Found site: ${siteName}\u001B[0m\r\n\r\n`);
+  } catch {
+    write(`\u001B[31mCould not access site: ${siteId}\u001B[0m\r\n`);
     write("Make sure the site ID is correct and your token has access.\r\n");
     return;
   }
@@ -132,14 +138,14 @@ async function handleInit(
   write("Creating configuration files...\r\n");
 
   writeFileSync(configPath, JSON.stringify(config, null, 2));
-  write(`  \x1b[32m✓\x1b[0m .webflowrc.json\r\n`);
+  write(`  \u001B[32m✓\u001B[0m .webflowrc.json\r\n`);
 
   // Create or update package.json with webflow-cli dependency
   const packageJsonPath = join(cwd, "package.json");
   let packageJson: Record<string, unknown> = {};
 
   if (existsSync(packageJsonPath)) {
-    packageJson = JSON.parse(readFileSync(packageJsonPath, "utf-8"));
+    packageJson = JSON.parse(readFileSync(packageJsonPath, "utf8"));
   } else {
     packageJson = {
       name: "webflow-project",
@@ -161,16 +167,16 @@ async function handleInit(
   };
 
   writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
-  write(`  \x1b[32m✓\x1b[0m package.json (added @webflow/webflow-cli)\r\n`);
+  write(`  \u001B[32m✓\u001B[0m package.json (added @webflow/webflow-cli)\r\n`);
 
   // Create devlink directory
   const devlinkPath = join(cwd, "devlink");
   if (!existsSync(devlinkPath)) {
     mkdirSync(devlinkPath, { recursive: true });
-    write(`  \x1b[32m✓\x1b[0m devlink/ directory\r\n`);
+    write(`  \u001B[32m✓\u001B[0m devlink/ directory\r\n`);
   }
 
-  write("\r\n\x1b[32m✓ DevLink initialized successfully!\x1b[0m\r\n\r\n");
+  write("\r\n\u001B[32m✓ DevLink initialized successfully!\u001B[0m\r\n\r\n");
   write("Next steps:\r\n");
   write("  1. Run: bun install\r\n");
   write("  2. Run: wf devlink pull\r\n");
@@ -187,7 +193,7 @@ async function handlePull(
   // Check for config
   const configPath = join(cwd, ".webflowrc.json");
   if (!existsSync(configPath)) {
-    write("\x1b[31mNo DevLink configuration found.\x1b[0m\r\n");
+    write("\u001B[31mNo DevLink configuration found.\u001B[0m\r\n");
     write('Run "wf devlink init" first.\r\n');
     return;
   }
@@ -202,14 +208,14 @@ async function handlePull(
   const validToken = tokens.find((t) => t.status === "valid");
 
   if (!validToken) {
-    write("\x1b[31mNot authenticated.\x1b[0m\r\n");
+    write("\u001B[31mNot authenticated.\u001B[0m\r\n");
     write("Connect your Webflow account in Settings → Webflow first.\r\n");
     return;
   }
 
-  const config = JSON.parse(readFileSync(configPath, "utf-8")) as DevLinkConfig;
+  const config = JSON.parse(readFileSync(configPath, "utf8")) as DevLinkConfig;
 
-  write(`\x1b[36mSyncing components from ${config.siteName || config.siteId}...\x1b[0m\r\n\r\n`);
+  write(`\u001B[36mSyncing components from ${config.siteName || config.siteId}...\u001B[0m\r\n\r\n`);
 
   // Run webflow devlink sync via bun
   const bunPath = process.env.BUN_BINARY_PATH || "bun";
@@ -229,11 +235,11 @@ async function handlePull(
       });
 
       proc.stdout.on("data", (data: Buffer) => {
-        write(data.toString().replace(/\n/g, "\r\n"));
+        write(data.toString().replaceAll('\n', "\r\n"));
       });
 
       proc.stderr.on("data", (data: Buffer) => {
-        write(`\x1b[33m${data.toString().replace(/\n/g, "\r\n")}\x1b[0m`);
+        write(`\u001B[33m${data.toString().replaceAll('\n', "\r\n")}\u001B[0m`);
       });
 
       proc.on("close", (code) => {
@@ -249,20 +255,20 @@ async function handlePull(
       });
     });
 
-    write("\r\n\x1b[32m✓ Sync complete!\x1b[0m\r\n");
+    write("\r\n\u001B[32m✓ Sync complete!\u001B[0m\r\n");
     api.log.info("DevLink sync completed successfully");
-  } catch (e) {
-    const message = e instanceof Error ? e.message : String(e);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
 
     // If webflow CLI not found, give helpful message
     if (message.includes("not found") || message.includes("ENOENT")) {
-      write("\x1b[31mWebflow CLI not found.\x1b[0m\r\n");
+      write("\u001B[31mWebflow CLI not found.\u001B[0m\r\n");
       write('Run "bun install" to install dependencies.\r\n');
     } else {
-      write(`\x1b[31mSync failed: ${message}\x1b[0m\r\n`);
+      write(`\u001B[31mSync failed: ${message}\u001B[0m\r\n`);
     }
 
-    api.log.error("DevLink sync failed:", e);
+    api.log.error("DevLink sync failed:", error);
   }
 }
 
@@ -274,14 +280,14 @@ async function handleStatus(
   const configPath = join(cwd, ".webflowrc.json");
 
   if (!existsSync(configPath)) {
-    write("\x1b[33mNo DevLink configuration found in this directory.\x1b[0m\r\n");
+    write("\u001B[33mNo DevLink configuration found in this directory.\u001B[0m\r\n");
     write('Run "wf devlink init" to initialize.\r\n');
     return;
   }
 
-  const config = JSON.parse(readFileSync(configPath, "utf-8")) as DevLinkConfig;
+  const config = JSON.parse(readFileSync(configPath, "utf8")) as DevLinkConfig;
 
-  write("\x1b[1mDevLink Status\x1b[0m\r\n");
+  write("\u001B[1mDevLink Status\u001B[0m\r\n");
   write("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\r\n\r\n");
 
   write(`Site: ${config.siteName || "Unknown"}\r\n`);
@@ -306,11 +312,11 @@ async function handleStatus(
           write(`  ... and ${componentFiles.length - 10} more\r\n`);
         }
       }
-    } catch (e) {
-      write("\x1b[33mCould not read components directory.\x1b[0m\r\n");
+    } catch {
+      write("\u001B[33mCould not read components directory.\u001B[0m\r\n");
     }
   } else {
-    write('\x1b[33mComponents directory not found. Run "wf devlink pull".\x1b[0m\r\n');
+    write('\u001B[33mComponents directory not found. Run "wf devlink pull".\u001B[0m\r\n');
   }
 
   // Try to get site info from API
@@ -321,7 +327,7 @@ async function handleStatus(
       if (site.lastPublished) {
         write(`Last published: ${new Date(site.lastPublished).toLocaleString()}\r\n`);
       }
-    } catch (e) {
+    } catch {
       // Silently ignore API errors for status
     }
   }
@@ -332,7 +338,7 @@ async function handleWatch(
   cwd: string,
   api: PluginAPI,
 ): Promise<void> {
-  write("\x1b[33mWatch mode not yet implemented.\x1b[0m\r\n");
+  write("\u001B[33mWatch mode not yet implemented.\u001B[0m\r\n");
   write('For now, run "wf devlink pull" manually to sync.\r\n');
 
   // TODO: Implement watch mode using fs.watch or chokidar
@@ -340,20 +346,20 @@ async function handleWatch(
 }
 
 function printHelp(write: (text: string) => void): void {
-  write("\x1b[1;36mDevLink Commands\x1b[0m\r\n");
+  write("\u001B[1;36mDevLink Commands\u001B[0m\r\n");
   write("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\r\n\r\n");
 
   write("DevLink syncs visual components from Webflow Designer to your codebase.\r\n");
   write("Components are exported as React code that you can use in your apps.\r\n\r\n");
 
-  write("\x1b[1mCommands:\x1b[0m\r\n");
+  write("\u001B[1mCommands:\u001B[0m\r\n");
   write("  wf devlink init [site_id]   Initialize DevLink for a site\r\n");
   write("  wf devlink pull             Pull latest components from Webflow\r\n");
   write("  wf devlink status           Show current sync status\r\n");
   write("  wf devlink watch            Watch for changes (coming soon)\r\n");
   write("\r\n");
 
-  write("\x1b[1mExamples:\x1b[0m\r\n");
+  write("\u001B[1mExamples:\u001B[0m\r\n");
   write("  wf devlink init                    # List available sites\r\n");
   write("  wf devlink init 64abc123def456     # Init with site ID\r\n");
   write("  wf devlink pull                    # Sync components\r\n");

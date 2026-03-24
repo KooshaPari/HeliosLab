@@ -97,7 +97,7 @@ async function main() {
     while (true) {
       const index = nextIndex++;
       const filePath = files[index];
-      if (!filePath) break;
+      if (!filePath) {break;}
 
       try {
         await uploadFile(filePath);

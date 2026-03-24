@@ -84,8 +84,8 @@ export async function activate(api: PluginAPI): Promise<void> {
         api.state.set("sites", data.sites || []);
         api.log.info(`Fetched ${data.sites?.length || 0} sites`);
       }
-    } catch (e) {
-      api.log.warn("Failed to fetch sites:", e);
+    } catch (error) {
+      api.log.warn("Failed to fetch sites:", error);
     }
   };
 
@@ -229,8 +229,8 @@ export async function activate(api: PluginAPI): Promise<void> {
             setTimeout(() => updateStatusBar(), 500);
             return;
           }
-        } catch (e) {
-          api.log.warn("Site listing failed:", e);
+        } catch (error) {
+          api.log.warn("Site listing failed:", error);
         }
 
         // Both introspect and site listing failed
@@ -248,12 +248,12 @@ export async function activate(api: PluginAPI): Promise<void> {
           });
         }
       }
-    } catch (e) {
-      api.log.error("Token validation error:", e);
+    } catch (error) {
+      api.log.error("Token validation error:", error);
       api.settings.postMessage({
         type: "tokenInvalid",
         id,
-        error: e instanceof Error ? e.message : "Network error",
+        error: error instanceof Error ? error.message : "Network error",
       });
     }
     await updateStatusBar();
@@ -279,8 +279,8 @@ export async function activate(api: PluginAPI): Promise<void> {
 
       try {
         await mkdir(authDir, { recursive: true });
-      } catch (e) {
-        api.log.warn("Could not create auth dir:", e);
+      } catch (error) {
+        api.log.warn("Could not create auth dir:", error);
       }
 
       api.log.info("Step 3: Running auth command...");
@@ -313,13 +313,13 @@ export async function activate(api: PluginAPI): Promise<void> {
       api.shell
         .exec(expectScript, {
           cwd: authDir,
-          timeout: 130000,
+          timeout: 130_000,
         })
         .then((r) => {
           api.log.info("Auth command finished:", r.exitCode);
         })
-        .catch((e) => {
-          api.log.warn("Auth command error:", e);
+        .catch((error) => {
+          api.log.warn("Auth command error:", error);
         });
 
       api.notifications.showInfo("Complete authentication in your browser...");
@@ -332,19 +332,19 @@ export async function activate(api: PluginAPI): Promise<void> {
           const fileExists = existsSync(envPath);
           api.log.info(`Checking ${envPath}: exists=${fileExists}`);
           if (fileExists) {
-            const content = readFileSync(envPath, "utf-8");
+            const content = readFileSync(envPath, "utf8");
             api.log.info(`File content (${content.length} chars): ${content.slice(0, 100)}`);
             // Look for either WEBFLOW_SITE_API_TOKEN or WEBFLOW_WORKSPACE_API_TOKEN
             const match = content.match(/WEBFLOW_(?:SITE_API|WORKSPACE_API)_TOKEN="?([^"\n]+)"?/);
             if (match) {
               api.log.info("Found token match!");
               return match[1].trim();
-            } else {
-              api.log.warn("No token match in content");
             }
+              api.log.warn("No token match in content");
+            
           }
-        } catch (e) {
-          api.log.warn("checkForToken error:", e);
+        } catch (error) {
+          api.log.warn("checkForToken error:", error);
         }
         return null;
       };
@@ -387,11 +387,11 @@ export async function activate(api: PluginAPI): Promise<void> {
 
       // Start polling immediately
       setTimeout(poll, 1000);
-    } catch (e) {
-      api.log.error("Browser auth error:", e);
+    } catch (error) {
+      api.log.error("Browser auth error:", error);
       api.settings.postMessage({
         type: "browserAuthFailed",
-        error: e instanceof Error ? e.message : "Failed to start authentication",
+        error: error instanceof Error ? error.message : "Failed to start authentication",
       });
     }
   };
@@ -489,7 +489,7 @@ export async function activate(api: PluginAPI): Promise<void> {
       api.shell
         .exec(expectScript, {
           cwd,
-          timeout: 310000, // 5+ minutes
+          timeout: 310_000, // 5+ minutes
         })
         .then((result) => {
           api.log.info("Share command finished:", result.exitCode);
@@ -515,25 +515,25 @@ export async function activate(api: PluginAPI): Promise<void> {
             });
           }
         })
-        .catch((e) => {
-          api.log.error("Share library error:", e);
+        .catch((error) => {
+          api.log.error("Share library error:", error);
           api.notifications.showError(
-            "Failed to share library: " + (e instanceof Error ? e.message : String(e)),
+            "Failed to share library: " + (error instanceof Error ? error.message : String(error)),
           );
           api.state.set("shareLibraryStatus", {
             status: "error",
-            error: e instanceof Error ? e.message : "Failed to share library",
+            error: error instanceof Error ? error.message : "Failed to share library",
             timestamp: Date.now(),
           });
         });
-    } catch (e) {
-      api.log.error("Share library setup error:", e);
+    } catch (error) {
+      api.log.error("Share library setup error:", error);
       api.notifications.showError(
-        "Failed to start share: " + (e instanceof Error ? e.message : String(e)),
+        "Failed to start share: " + (error instanceof Error ? error.message : String(error)),
       );
       api.state.set("shareLibraryStatus", {
         status: "error",
-        error: e instanceof Error ? e.message : "Failed to share library",
+        error: error instanceof Error ? error.message : "Failed to share library",
         timestamp: Date.now(),
       });
     }
@@ -651,7 +651,7 @@ export async function activate(api: PluginAPI): Promise<void> {
       api.shell
         .exec(expectScript, {
           cwd,
-          timeout: 310000, // 5+ minutes
+          timeout: 310_000, // 5+ minutes
         })
         .then((result) => {
           api.log.info("Deploy command finished:", result.exitCode);
@@ -676,25 +676,25 @@ export async function activate(api: PluginAPI): Promise<void> {
             });
           }
         })
-        .catch((e) => {
-          api.log.error("Cloud deploy error:", e);
+        .catch((error) => {
+          api.log.error("Cloud deploy error:", error);
           api.notifications.showError(
-            "Failed to deploy: " + (e instanceof Error ? e.message : String(e)),
+            "Failed to deploy: " + (error instanceof Error ? error.message : String(error)),
           );
           api.state.set("cloudDeployStatus", {
             status: "error",
-            error: e instanceof Error ? e.message : "Failed to deploy",
+            error: error instanceof Error ? error.message : "Failed to deploy",
             timestamp: Date.now(),
           });
         });
-    } catch (e) {
-      api.log.error("Cloud deploy setup error:", e);
+    } catch (error) {
+      api.log.error("Cloud deploy setup error:", error);
       api.notifications.showError(
-        "Failed to start deploy: " + (e instanceof Error ? e.message : String(e)),
+        "Failed to start deploy: " + (error instanceof Error ? error.message : String(error)),
       );
       api.state.set("cloudDeployStatus", {
         status: "error",
-        error: e instanceof Error ? e.message : "Failed to deploy",
+        error: error instanceof Error ? error.message : "Failed to deploy",
         timestamp: Date.now(),
       });
     }
@@ -704,7 +704,7 @@ export async function activate(api: PluginAPI): Promise<void> {
   const loadEnvToken = async () => {
     try {
       const workspaceFolders = await api.workspace.getWorkspaceFolders();
-      if (workspaceFolders.length === 0) return;
+      if (workspaceFolders.length === 0) {return;}
 
       const cwd = workspaceFolders[0].path;
       const envPath = `${cwd}/.env`;
@@ -727,8 +727,8 @@ export async function activate(api: PluginAPI): Promise<void> {
           }
         }
       }
-    } catch (e) {
-      api.log.warn("Could not load token from .env:", e);
+    } catch (error) {
+      api.log.warn("Could not load token from .env:", error);
     }
   };
 
@@ -763,9 +763,9 @@ export async function activate(api: PluginAPI): Promise<void> {
         await deployToCloudWithExpect(cwd, siteId, siteToken);
       } else {
         api.log.error("deployToCloud missing required params:", {
-          cwd: !!cwd,
-          siteId: !!siteId,
-          siteToken: !!siteToken,
+          cwd: Boolean(cwd),
+          siteId: Boolean(siteId),
+          siteToken: Boolean(siteToken),
         });
       }
     }
@@ -836,7 +836,7 @@ export async function activate(api: PluginAPI): Promise<void> {
         };
       }
 
-      return undefined;
+      return;
     },
   });
   disposables.push(decorationDisposable);
@@ -858,7 +858,7 @@ export async function activate(api: PluginAPI): Promise<void> {
       context: "fileTree",
     },
     async (ctx) => {
-      if (!ctx.filePath) return;
+      if (!ctx.filePath) {return;}
 
       // Get the directory path (if file selected, use parent directory)
       const { existsSync, writeFileSync, mkdirSync } = await import("fs");
@@ -910,7 +910,7 @@ export async function activate(api: PluginAPI): Promise<void> {
         }
 
         const { sites } = (await sitesResponse.json()) as {
-          sites: Array<{ id: string; displayName: string; shortName: string }>;
+          sites: { id: string; displayName: string; shortName: string }[];
         };
 
         if (sites.length === 0) {
@@ -925,7 +925,7 @@ export async function activate(api: PluginAPI): Promise<void> {
 
         // Create .webflowrc.json without siteId - user will select site in the slate UI
         const config = {
-          // siteId and siteName will be set when user selects a site in the DevLink slate
+          // SiteId and siteName will be set when user selects a site in the DevLink slate
           componentsPath: "./devlink",
         };
         writeFileSync(configPath, JSON.stringify(config, null, 2));
@@ -936,14 +936,14 @@ export async function activate(api: PluginAPI): Promise<void> {
           const { readFileSync: readFs } = await import("fs");
           let gitignore = "";
           if (existsSync(gitignorePath)) {
-            gitignore = readFs(gitignorePath, "utf-8");
+            gitignore = readFs(gitignorePath, "utf8");
           }
           if (!gitignore.includes(".webflowrc.json")) {
             const addition = "\n# Webflow DevLink config (contains auth token)\n.webflowrc.json\n";
             writeFileSync(gitignorePath, gitignore + addition);
           }
-        } catch (e) {
-          api.log.warn("Could not update .gitignore:", e);
+        } catch (error) {
+          api.log.warn("Could not update .gitignore:", error);
         }
 
         // Create devlink directory
@@ -957,14 +957,14 @@ export async function activate(api: PluginAPI): Promise<void> {
         if (existsSync(packageJsonPath)) {
           try {
             const { readFileSync } = await import("fs");
-            const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf-8"));
+            const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf8"));
             packageJson.devDependencies = {
               ...(packageJson.devDependencies || {}),
               "@webflow/webflow-cli": "^1.1.1",
             };
             writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
-          } catch (e) {
-            api.log.warn("Could not update package.json:", e);
+          } catch (error) {
+            api.log.warn("Could not update package.json:", error);
           }
         }
 
@@ -972,10 +972,10 @@ export async function activate(api: PluginAPI): Promise<void> {
           `DevLink initialized! Click on .webflowrc.json to select a Webflow site.`,
         );
         api.log.info(`DevLink initialized in ${targetDir}`);
-      } catch (e) {
-        const message = e instanceof Error ? e.message : String(e);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
         api.notifications.showError(`Failed to initialize DevLink: ${message}`);
-        api.log.error("DevLink init error:", e);
+        api.log.error("DevLink init error:", error);
       }
     },
   );
@@ -989,7 +989,7 @@ export async function activate(api: PluginAPI): Promise<void> {
       context: "fileTree",
     },
     async (ctx) => {
-      if (!ctx.filePath) return;
+      if (!ctx.filePath) {return;}
 
       const { existsSync, writeFileSync, mkdirSync, readFileSync } = await import("fs");
       const { statSync } = await import("fs");
@@ -1034,13 +1034,13 @@ export async function activate(api: PluginAPI): Promise<void> {
       // Use parent folder name for the library name (sanitized)
       const rawProjectName = basename(parentDir);
       const projectName = rawProjectName
-        .replace(/[^a-zA-Z0-9]/g, " ") // Replace special chars with spaces
+        .replaceAll(/[^a-zA-Z0-9]/g, " ") // Replace special chars with spaces
         .split(" ")
         .filter(Boolean)
         .map((word, i) =>
           i === 0 ? word.toLowerCase() : word.charAt(0).toUpperCase() + word.slice(1).toLowerCase(),
         )
-        .join(""); // camelCase
+        .join(""); // CamelCase
 
       const config = {
         library: {
@@ -1052,7 +1052,7 @@ export async function activate(api: PluginAPI): Promise<void> {
       writeFileSync(configPath, JSON.stringify(config, null, 2));
 
       // Note: We don't automatically add the workspace token to .env for Code Components
-      // because the CLI requires specific OAuth scopes that may differ from workspace API tokens.
+      // Because the CLI requires specific OAuth scopes that may differ from workspace API tokens.
       // The CLI will prompt for browser auth on first share, which ensures correct scopes.
       // The CLI then stores its own token in .env after successful auth.
 
@@ -1061,14 +1061,14 @@ export async function activate(api: PluginAPI): Promise<void> {
       try {
         let gitignore = "";
         if (existsSync(gitignorePath)) {
-          gitignore = readFileSync(gitignorePath, "utf-8");
+          gitignore = readFileSync(gitignorePath, "utf8");
         }
         if (!gitignore.includes(".env")) {
           const addition = "\n# Environment variables (contains API tokens)\n.env\n";
           writeFileSync(gitignorePath, gitignore + addition);
         }
-      } catch (e) {
-        api.log.warn("Could not update .gitignore:", e);
+      } catch (error) {
+        api.log.warn("Could not update .gitignore:", error);
       }
 
       // Create src/components directory structure
@@ -1228,7 +1228,7 @@ export default declareComponent(ColabBadge, {
       const packageJsonPath = join(targetDir, "package.json");
       let packageJson: Record<string, unknown> = {};
       if (existsSync(packageJsonPath)) {
-        packageJson = JSON.parse(readFileSync(packageJsonPath, "utf-8"));
+        packageJson = JSON.parse(readFileSync(packageJsonPath, "utf8"));
       } else {
         packageJson = {
           name: projectName,
@@ -1277,8 +1277,8 @@ export default declareComponent(ColabBadge, {
             api.log.warn(`bun install stderr: ${installResult.stderr.toString()}`);
           }
         }
-      } catch (err) {
-        api.log.warn(`Failed to run bun install: ${err}`);
+      } catch (error) {
+        api.log.warn(`Failed to run bun install: ${error}`);
       }
 
       api.notifications.showInfo(
@@ -1297,7 +1297,7 @@ export default declareComponent(ColabBadge, {
       context: "fileTree",
     },
     async (ctx) => {
-      if (!ctx.filePath) return;
+      if (!ctx.filePath) {return;}
 
       const { existsSync, writeFileSync, mkdirSync, readFileSync } = await import("fs");
       const { statSync } = await import("fs");
@@ -1369,7 +1369,7 @@ export default declareComponent(ColabBadge, {
 
       // Create astro.config.mjs
       // Note: Webflow CLI will override this with their own config during deploy,
-      // but we set up a basic config for local development
+      // But we set up a basic config for local development
       const astroConfigPath = join(targetDir, "astro.config.mjs");
       const astroConfig = `import { defineConfig } from 'astro/config';
 
@@ -1551,13 +1551,13 @@ pnpm-debug.log*
             stdio: ["ignore", "pipe", "pipe"],
           });
           proc.on("close", (code) => {
-            if (code === 0) resolve();
-            else reject(new Error(`bun install failed with code ${code}`));
+            if (code === 0) {resolve();}
+            else {reject(new Error(`bun install failed with code ${code}`));}
           });
           proc.on("error", reject);
         });
-      } catch (err) {
-        api.log.warn(`Failed to run bun install: ${err}`);
+      } catch (error) {
+        api.log.warn(`Failed to run bun install: ${error}`);
       }
 
       api.notifications.showInfo(`Webflow Cloud app created! Click on webflow.json to configure.`);
@@ -1607,7 +1607,7 @@ pnpm-debug.log*
 
   // Note: Cloud slate uses webflow.json with a "cloud" section.
   // The code-components slate (which matches webflow.json) auto-detects the content
-  // and renders the cloud UI when appropriate via effectiveSlateType().
+  // And renders the cloud UI when appropriate via effectiveSlateType().
   // This registration is kept for the component mapping but patterns are empty.
   const cloudSlateDisposable = api.slates.register({
     id: "cloud",

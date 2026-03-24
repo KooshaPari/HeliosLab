@@ -27,7 +27,7 @@ const createMockCollectionWithRemove = () => ({
 });
 
 // Mock GoldfishDB module
-vi.mock("../../main/goldfishdb/db", () => {
+vi.mock(import('../../main/goldfishdb/db'), () => {
   return {
     default: {
       collection: vi.fn(() => mockCollectionInstance),

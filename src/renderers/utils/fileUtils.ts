@@ -3,8 +3,8 @@ import { dirname } from "./pathUtils";
 
 export const parentNodePath = (node: Readonly<CachedFileType | PreviewFileTreeType>) => {
   // Note: this is used while editing a node. can think of node.name as being
-  // the input value renaming the file/folder. the path is also kept up to date
-  // if it's empty then treat the whole node.path as the parent path
+  // The input value renaming the file/folder. the path is also kept up to date
+  // If it's empty then treat the whole node.path as the parent path
   if (node.name) {
     return dirname(node.path);
   }

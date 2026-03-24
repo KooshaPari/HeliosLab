@@ -6,8 +6,8 @@ import { uploadSettings, downloadSettings, getSyncStatus } from "../services/set
 // API URLs - use 127.0.0.1 in dev, canary-cloud for canary, cloud for stable
 const getApiBaseUrl = () => {
   const channel = state.buildVars.channel;
-  if (channel === "dev") return "http://127.0.0.1:8788";
-  if (channel === "canary") return "https://canary-cloud.blackboard.sh";
+  if (channel === "dev") {return "http://127.0.0.1:8788";}
+  if (channel === "canary") {return "https://canary-cloud.blackboard.sh";}
   return "https://cloud.blackboard.sh";
 };
 
@@ -51,12 +51,12 @@ export const ColabCloudSettings = (): JSXElement => {
   };
 
   const formatDate = (timestamp: number | undefined | null) => {
-    if (!timestamp) return "Never";
+    if (!timestamp) {return "Never";}
     return new Date(timestamp * 1000).toLocaleString();
   };
 
   const formatDateShort = (timestamp: number | undefined) => {
-    if (!timestamp) return "Never";
+    if (!timestamp) {return "Never";}
     return new Date(timestamp).toLocaleDateString();
   };
 
@@ -76,7 +76,7 @@ export const ColabCloudSettings = (): JSXElement => {
   };
 
   const verifyConnection = async () => {
-    if (!state.appSettings.colabCloud?.accessToken) return;
+    if (!state.appSettings.colabCloud?.accessToken) {return;}
 
     setConnectionStatus("Verifying connection...");
 
@@ -209,7 +209,7 @@ export const ColabCloudSettings = (): JSXElement => {
           body: JSON.stringify({ refreshToken: refreshTokenValue }),
         });
       }
-    } catch (error) {
+    } catch {
       // Ignore errors, we're logging out anyway
     }
 

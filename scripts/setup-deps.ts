@@ -154,7 +154,7 @@ function vendorLlama() {
       console.error("--------> Debug: Contents of deps dir:");
       try {
         execSync("ls -la llama-cli/deps/", { stdio: "inherit" });
-      } catch (e) {
+      } catch {
         console.error("Could not list deps directory");
       }
       throw new Error("llama.cpp was not cloned properly - CMakeLists.txt not found");

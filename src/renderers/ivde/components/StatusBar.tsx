@@ -27,8 +27,8 @@ export const StatusBar = () => {
         if (items) {
           setPluginItems(items);
         }
-      } catch (err) {
-        console.warn("Failed to fetch plugin status bar items:", err);
+      } catch (error) {
+        console.warn("Failed to fetch plugin status bar items:", error);
       }
     };
 
@@ -289,7 +289,7 @@ const Llama = () => {
       checkLlamaStatus();
     }, 2000);
     // Check every 30 seconds
-    const interval = setInterval(checkLlamaStatus, 30000);
+    const interval = setInterval(checkLlamaStatus, 30_000);
     return () => clearInterval(interval);
   });
 
@@ -436,8 +436,8 @@ const ColabCloud = () => {
   };
 
   const getStatusColor = () => {
-    if (!isConnected()) return "#666"; // Gray if not connected
-    if (!state.appSettings.colabCloud.emailVerified) return "#ffa500"; // Orange if email not verified
+    if (!isConnected()) {return "#666";} // Gray if not connected
+    if (!state.appSettings.colabCloud.emailVerified) {return "#ffa500";} // Orange if email not verified
     return "#51cf66"; // Green if fully connected
   };
 
@@ -564,7 +564,7 @@ const Helios = () => {
     if (state?.lane) {
       return `Lane: ${state.lane}`;
     }
-    return undefined;
+    return;
   };
 
   return (

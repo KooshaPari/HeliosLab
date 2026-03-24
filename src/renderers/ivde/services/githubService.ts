@@ -173,11 +173,11 @@ class GitHubService {
     owner: string,
     repo: string,
   ): Promise<
-    Array<{
+    {
       name: string;
       commit: { sha: string };
       protected: boolean;
-    }>
+    }[]
   > {
     // Add pagination support - GitHub API returns max 30 branches per page by default
     const url = new URL(`${this.baseUrl}/repos/${owner}/${repo}/branches`);
@@ -197,7 +197,7 @@ class GitHubService {
   }
 
   isConnected(): boolean {
-    return !!(state.appSettings.github.accessToken && state.appSettings.github.username);
+    return Boolean(state.appSettings.github.accessToken && state.appSettings.github.username);
   }
 
   getUsername(): string {

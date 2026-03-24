@@ -228,7 +228,7 @@ export interface PluginEntitlements {
 export function summarizeEntitlements(
   entitlements: PluginEntitlements | undefined,
 ): EntitlementSummary[] {
-  if (!entitlements) return [];
+  if (!entitlements) {return [];}
 
   const summary: EntitlementSummary[] = [];
 
@@ -387,10 +387,10 @@ export function summarizeEntitlements(
   if (entitlements.ui) {
     const ui = entitlements.ui;
     const features: string[] = [];
-    if (ui.statusBar) features.push("status bar");
-    if (ui.contextMenu) features.push("context menus");
-    if (ui.fileDecorations) features.push("file badges");
-    if (ui.notifications) features.push("notifications");
+    if (ui.statusBar) {features.push("status bar");}
+    if (ui.contextMenu) {features.push("context menus");}
+    if (ui.fileDecorations) {features.push("file badges");}
+    if (ui.notifications) {features.push("notifications");}
     if (features.length > 0) {
       summary.push({
         category: "ui",
@@ -405,10 +405,10 @@ export function summarizeEntitlements(
   if (entitlements.editor) {
     const ed = entitlements.editor;
     const features: string[] = [];
-    if (ed.completions) features.push("completions");
-    if (ed.hover) features.push("hover info");
-    if (ed.codeActions) features.push("code actions");
-    if (ed.diagnostics) features.push("diagnostics");
+    if (ed.completions) {features.push("completions");}
+    if (ed.hover) {features.push("hover info");}
+    if (ed.codeActions) {features.push("code actions");}
+    if (ed.diagnostics) {features.push("diagnostics");}
     if (features.length > 0) {
       summary.push({
         category: "editor",
@@ -485,8 +485,8 @@ export type ActivationEvent =
   | "*" // Always activate on startup
   | `onCommand:${string}`
   | `onLanguage:${string}`
-  | `onFileOpen:${string}` // glob pattern
-  | `workspaceContains:${string}`; // glob pattern
+  | `onFileOpen:${string}` // Glob pattern
+  | `workspaceContains:${string}`; // Glob pattern
 
 // ============================================================================
 // Plugin Runtime Types
@@ -501,9 +501,9 @@ export type PluginState =
   | "error"; // Failed to load/activate
 
 export interface InstalledPlugin {
-  /** npm package name */
+  /** Npm package name */
   name: string;
-  /** npm package version */
+  /** Npm package version */
   version: string;
   /** Resolved manifest from package.json */
   manifest: PluginManifest;
@@ -1031,7 +1031,7 @@ export interface PluginSettingField {
   /** Description/help text */
   description?: string;
   /** For 'select' type: available options */
-  options?: Array<{ label: string; value: string | number }>;
+  options?: { label: string; value: string | number }[];
   /** For 'number' type: min value */
   min?: number;
   /** For 'number' type: max value */
@@ -1178,7 +1178,7 @@ export interface SlateEventMessage {
 }
 
 // ============================================================================
-// npm Registry Types
+// Npm Registry Types
 // ============================================================================
 
 export interface NpmPackageInfo {
@@ -1195,7 +1195,7 @@ export interface NpmPackageInfo {
 }
 
 export interface NpmSearchResult {
-  objects: Array<{
+  objects: {
     package: {
       name: string;
       version: string;
@@ -1213,6 +1213,6 @@ export interface NpmSearchResult {
         maintenance: number;
       };
     };
-  }>;
+  }[];
   total: number;
 }

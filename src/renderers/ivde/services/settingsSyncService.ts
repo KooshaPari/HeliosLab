@@ -34,20 +34,20 @@ export interface SyncedSettings {
   };
 
   // Third-party API tokens
-  tokens: Array<{
+  tokens: {
     name: string;
     url?: string;
     endpoint: string;
     token: string;
-  }>;
+  }[];
 
   // Installed plugins
-  plugins: Array<{
+  plugins: {
     name: string;
     version: string;
     enabled: boolean;
     settings?: Record<string, unknown>;
-  }>;
+  }[];
 
   // UI preferences (future)
   ui?: {
@@ -63,8 +63,8 @@ const SCHEMA_VERSION = 1;
  */
 function getApiBaseUrl(): string {
   const channel = state.buildVars.channel;
-  if (channel === "dev") return "http://127.0.0.1:8788";
-  if (channel === "canary") return "https://canary-cloud.blackboard.sh";
+  if (channel === "dev") {return "http://127.0.0.1:8788";}
+  if (channel === "canary") {return "https://canary-cloud.blackboard.sh";}
   return "https://cloud.blackboard.sh";
 }
 
@@ -108,7 +108,7 @@ export async function gatherSyncableSettings(): Promise<SyncedSettings> {
   }
 
   // Get installed plugins via RPC
-  let plugins: SyncedSettings["plugins"] = [];
+  const plugins: SyncedSettings["plugins"] = [];
   try {
     const pluginsResult = await (electrobun.rpc as any)?.request.pluginGetInstalled?.();
     if (Array.isArray(pluginsResult)) {
@@ -299,7 +299,7 @@ export async function downloadSettings(
     let settings: SyncedSettings;
     try {
       settings = await decryptSettings<SyncedSettings>(encryptedPayload, passphrase);
-    } catch (decryptError) {
+    } catch {
       return { success: false, error: "Wrong passphrase" };
     }
 
@@ -350,7 +350,7 @@ export async function getSyncStatus(): Promise<{
     }
 
     return data;
-  } catch (error) {
+  } catch {
     return { hasSyncedSettings: false, error: "Failed to fetch status" };
   }
 }

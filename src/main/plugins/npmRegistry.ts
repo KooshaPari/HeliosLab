@@ -1,5 +1,5 @@
 /**
- * npm Registry integration for discovering Colab plugins
+ * Npm Registry integration for discovering Colab plugins
  *
  * Searches npm for packages with the "colab-plugin" keyword
  */
@@ -71,8 +71,8 @@ export async function searchPlugins(options: SearchOptions = {}): Promise<{
   }));
 
   // If there's a search query, filter results to only include packages where
-  // the query appears in the name, description, or keywords.
-  // npm's fuzzy search returns low-relevance results when the result set is small.
+  // The query appears in the name, description, or keywords.
+  // Npm's fuzzy search returns low-relevance results when the result set is small.
   if (query) {
     const lowerQuery = query.toLowerCase();
     results = results.filter((pkg) => {
@@ -153,8 +153,8 @@ export async function getPackageVersions(packageName: string): Promise<string[]>
     // Simple semver comparison - could use a proper library
     const [aMajor, aMinor, aPatch] = a.split(".").map(Number);
     const [bMajor, bMinor, bPatch] = b.split(".").map(Number);
-    if (bMajor !== aMajor) return bMajor - aMajor;
-    if (bMinor !== aMinor) return bMinor - aMinor;
+    if (bMajor !== aMajor) {return bMajor - aMajor;}
+    if (bMinor !== aMinor) {return bMinor - aMinor;}
     return bPatch - aPatch;
   });
 }
@@ -212,7 +212,7 @@ export async function getPopularPlugins(limit = 10): Promise<SearchResultItem[]>
     size: limit,
   });
 
-  // npm search already sorts by popularity/quality/maintenance combined
+  // Npm search already sorts by popularity/quality/maintenance combined
   return result.results;
 }
 

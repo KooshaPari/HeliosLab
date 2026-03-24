@@ -33,31 +33,37 @@ export async function handleComponentsCommand(
   const subcommand = args[0] || "list";
 
   switch (subcommand) {
-    case "init":
+    case "init": {
       await handleInit(args.slice(1), write, cwd, api);
       break;
+    }
 
     case "share":
-    case "publish":
+    case "publish": {
       await handleShare(write, cwd, api);
       break;
+    }
 
-    case "list":
+    case "list": {
       await handleList(write, cwd);
       break;
+    }
 
-    case "add":
+    case "add": {
       await handleAdd(args.slice(1), write, cwd, api);
       break;
+    }
 
     case "--help":
-    case "help":
+    case "help": {
       printHelp(write);
       break;
+    }
 
-    default:
-      write(`\x1b[31mUnknown components command: ${subcommand}\x1b[0m\r\n`);
+    default: {
+      write(`\u001B[31mUnknown components command: ${subcommand}\u001B[0m\r\n`);
       write('Run "wf components --help" for available commands.\r\n');
+    }
   }
 }
 
@@ -70,14 +76,14 @@ async function handleInit(
   // Check if already initialized
   const configPath = join(cwd, "webflow.json");
   if (existsSync(configPath)) {
-    write("\x1b[33mCode Components library already initialized.\x1b[0m\r\n");
+    write("\u001B[33mCode Components library already initialized.\u001B[0m\r\n");
     write('Run "wf components share" to publish your library.\r\n');
     return;
   }
 
   const libraryName = args[0] || basename(cwd) + "-components";
 
-  write(`\x1b[36mInitializing Code Components library: ${libraryName}\x1b[0m\r\n\r\n`);
+  write(`\u001B[36mInitializing Code Components library: ${libraryName}\u001B[0m\r\n\r\n`);
 
   // Create webflow.json
   const config: WebflowLibraryConfig = {
@@ -86,14 +92,14 @@ async function handleInit(
     components: ["./src/**/*.webflow.tsx"],
   };
   writeFileSync(configPath, JSON.stringify(config, null, 2));
-  write(`  \x1b[32m✓\x1b[0m webflow.json\r\n`);
+  write(`  \u001B[32m✓\u001B[0m webflow.json\r\n`);
 
   // Create or update package.json
   const packageJsonPath = join(cwd, "package.json");
   let packageJson: Record<string, unknown> = {};
 
   if (existsSync(packageJsonPath)) {
-    packageJson = JSON.parse(readFileSync(packageJsonPath, "utf-8"));
+    packageJson = JSON.parse(readFileSync(packageJsonPath, "utf8"));
   } else {
     packageJson = {
       name: libraryName,
@@ -124,7 +130,7 @@ async function handleInit(
   };
 
   writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
-  write(`  \x1b[32m✓\x1b[0m package.json\r\n`);
+  write(`  \u001B[32m✓\u001B[0m package.json\r\n`);
 
   // Create src directory with example component
   const srcDir = join(cwd, "src");
@@ -167,7 +173,7 @@ export function Badge({ text, variant = 'primary' }: BadgeProps) {
 }
 `;
   writeFileSync(join(srcDir, "Badge.tsx"), exampleComponent);
-  write(`  \x1b[32m✓\x1b[0m src/Badge.tsx (example component)\r\n`);
+  write(`  \u001B[32m✓\u001B[0m src/Badge.tsx (example component)\r\n`);
 
   // Create webflow declaration file
   const webflowDeclaration = `import { declareComponent } from '@webflow/react';
@@ -194,7 +200,7 @@ export const WebflowBadge = declareComponent(Badge, {
 });
 `;
   writeFileSync(join(srcDir, "Badge.webflow.tsx"), webflowDeclaration);
-  write(`  \x1b[32m✓\x1b[0m src/Badge.webflow.tsx (component declaration)\r\n`);
+  write(`  \u001B[32m✓\u001B[0m src/Badge.webflow.tsx (component declaration)\r\n`);
 
   // Create tsconfig.json if not exists
   const tsconfigPath = join(cwd, "tsconfig.json");
@@ -218,10 +224,10 @@ export const WebflowBadge = declareComponent(Badge, {
       exclude: ["node_modules", "dist"],
     };
     writeFileSync(tsconfigPath, JSON.stringify(tsconfig, null, 2));
-    write(`  \x1b[32m✓\x1b[0m tsconfig.json\r\n`);
+    write(`  \u001B[32m✓\u001B[0m tsconfig.json\r\n`);
   }
 
-  write("\r\n\x1b[32m✓ Code Components library initialized!\x1b[0m\r\n\r\n");
+  write("\r\n\u001B[32m✓ Code Components library initialized!\u001B[0m\r\n\r\n");
   write("Next steps:\r\n");
   write("  1. Run: bun install\r\n");
   write("  2. Create your components in src/\r\n");
@@ -240,7 +246,7 @@ async function handleShare(
 ): Promise<void> {
   const configPath = join(cwd, "webflow.json");
   if (!existsSync(configPath)) {
-    write("\x1b[31mNo webflow.json found.\x1b[0m\r\n");
+    write("\u001B[31mNo webflow.json found.\u001B[0m\r\n");
     write('Run "wf components init" first.\r\n');
     return;
   }
@@ -255,14 +261,14 @@ async function handleShare(
   const validToken = tokens.find((t) => t.status === "valid");
 
   if (!validToken) {
-    write("\x1b[31mNot authenticated.\x1b[0m\r\n");
+    write("\u001B[31mNot authenticated.\u001B[0m\r\n");
     write("Connect your Webflow account in Settings → Webflow first.\r\n");
     return;
   }
 
-  const config = JSON.parse(readFileSync(configPath, "utf-8")) as WebflowLibraryConfig;
+  const config = JSON.parse(readFileSync(configPath, "utf8")) as WebflowLibraryConfig;
 
-  write(`\x1b[36mSharing library: ${config.name}...\x1b[0m\r\n\r\n`);
+  write(`\u001B[36mSharing library: ${config.name}...\u001B[0m\r\n\r\n`);
 
   const bunPath = process.env.BUN_BINARY_PATH || "bun";
 
@@ -278,11 +284,11 @@ async function handleShare(
       });
 
       proc.stdout.on("data", (data: Buffer) => {
-        write(data.toString().replace(/\n/g, "\r\n"));
+        write(data.toString().replaceAll('\n', "\r\n"));
       });
 
       proc.stderr.on("data", (data: Buffer) => {
-        write(data.toString().replace(/\n/g, "\r\n"));
+        write(data.toString().replaceAll('\n', "\r\n"));
       });
 
       proc.on("close", (code) => {
@@ -296,7 +302,7 @@ async function handleShare(
       proc.on("error", reject);
     });
 
-    write("\r\n\x1b[32m✓ Library shared successfully!\x1b[0m\r\n\r\n");
+    write("\r\n\u001B[32m✓ Library shared successfully!\u001B[0m\r\n\r\n");
     write("To use your components:\r\n");
     write("  1. Open Webflow Designer\r\n");
     write("  2. Go to the Libraries panel\r\n");
@@ -304,31 +310,31 @@ async function handleShare(
     write("  4. Drag components onto the canvas\r\n");
 
     api.log.info(`Code Components library shared: ${config.name}`);
-  } catch (e) {
-    const message = e instanceof Error ? e.message : String(e);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
 
     if (message.includes("not found") || message.includes("ENOENT")) {
-      write("\x1b[31mWebflow CLI not found.\x1b[0m\r\n");
+      write("\u001B[31mWebflow CLI not found.\u001B[0m\r\n");
       write('Run "bun install" to install dependencies.\r\n');
     } else {
-      write(`\x1b[31mShare failed: ${message}\x1b[0m\r\n`);
+      write(`\u001B[31mShare failed: ${message}\u001B[0m\r\n`);
     }
 
-    api.log.error("Code Components share failed:", e);
+    api.log.error("Code Components share failed:", error);
   }
 }
 
 async function handleList(write: (text: string) => void, cwd: string): Promise<void> {
   const configPath = join(cwd, "webflow.json");
   if (!existsSync(configPath)) {
-    write("\x1b[33mNo webflow.json found.\x1b[0m\r\n");
+    write("\u001B[33mNo webflow.json found.\u001B[0m\r\n");
     write('Run "wf components init" to create a library.\r\n');
     return;
   }
 
-  const config = JSON.parse(readFileSync(configPath, "utf-8")) as WebflowLibraryConfig;
+  const config = JSON.parse(readFileSync(configPath, "utf8")) as WebflowLibraryConfig;
 
-  write(`\x1b[1m${config.name}\x1b[0m v${config.version}\r\n`);
+  write(`\u001B[1m${config.name}\u001B[0m v${config.version}\r\n`);
   write("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\r\n\r\n");
 
   // Find .webflow.tsx files
@@ -351,7 +357,7 @@ async function handleList(write: (text: string) => void, cwd: string): Promise<v
   for (const file of webflowFiles) {
     const componentName = basename(file).replace(".webflow.tsx", "");
     write(`  • ${componentName}\r\n`);
-    write(`    \x1b[90m${file.replace(cwd + "/", "")}\x1b[0m\r\n\r\n`);
+    write(`    \u001B[90m${file.replace(cwd + "/", "")}\u001B[0m\r\n\r\n`);
   }
 
   write(`Total: ${webflowFiles.length} component(s)\r\n`);
@@ -364,7 +370,7 @@ async function handleAdd(
   api: PluginAPI,
 ): Promise<void> {
   if (args.length === 0) {
-    write("\x1b[31mUsage: wf components add <ComponentName>\x1b[0m\r\n");
+    write("\u001B[31mUsage: wf components add <ComponentName>\u001B[0m\r\n");
     return;
   }
 
@@ -378,7 +384,7 @@ async function handleAdd(
   // Check if component already exists
   const componentPath = join(srcDir, `${componentName}.tsx`);
   if (existsSync(componentPath)) {
-    write(`\x1b[31mComponent ${componentName} already exists.\x1b[0m\r\n`);
+    write(`\u001B[31mComponent ${componentName} already exists.\u001B[0m\r\n`);
     return;
   }
 
@@ -399,7 +405,7 @@ export function ${componentName}({ }: ${componentName}Props) {
 }
 `;
   writeFileSync(componentPath, componentContent);
-  write(`  \x1b[32m✓\x1b[0m src/${componentName}.tsx\r\n`);
+  write(`  \u001B[32m✓\u001B[0m src/${componentName}.tsx\r\n`);
 
   // Create webflow declaration file
   const declarationPath = join(srcDir, `${componentName}.webflow.tsx`);
@@ -421,9 +427,9 @@ export const Webflow${componentName} = declareComponent(${componentName}, {
 });
 `;
   writeFileSync(declarationPath, declarationContent);
-  write(`  \x1b[32m✓\x1b[0m src/${componentName}.webflow.tsx\r\n`);
+  write(`  \u001B[32m✓\u001B[0m src/${componentName}.webflow.tsx\r\n`);
 
-  write(`\r\n\x1b[32m✓ Component ${componentName} created!\x1b[0m\r\n\r\n`);
+  write(`\r\n\u001B[32m✓ Component ${componentName} created!\u001B[0m\r\n\r\n`);
   write("Edit the files to add your component logic and Webflow props.\r\n");
   write('Then run "wf components share" to publish.\r\n');
 
@@ -448,21 +454,21 @@ function findWebflowFiles(dir: string): string[] {
 }
 
 function printHelp(write: (text: string) => void): void {
-  write("\x1b[1;36mCode Components Commands\x1b[0m\r\n");
+  write("\u001B[1;36mCode Components Commands\u001B[0m\r\n");
   write("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\r\n\r\n");
 
   write("Create and share React components to use in Webflow Designer.\r\n");
   write("Designers can drag your components onto the canvas and configure\r\n");
   write("them using the props you define.\r\n\r\n");
 
-  write("\x1b[1mCommands:\x1b[0m\r\n");
+  write("\u001B[1mCommands:\u001B[0m\r\n");
   write("  wf components init [name]   Initialize a component library\r\n");
   write("  wf components add <name>    Create a new component\r\n");
   write("  wf components list          List components in library\r\n");
   write("  wf components share         Share library to Webflow\r\n");
   write("\r\n");
 
-  write("\x1b[1mWorkflow:\x1b[0m\r\n");
+  write("\u001B[1mWorkflow:\u001B[0m\r\n");
   write("  1. Create component: src/MyComponent.tsx\r\n");
   write("  2. Create declaration: src/MyComponent.webflow.tsx\r\n");
   write("  3. Use declareComponent() to define props for Designer\r\n");
@@ -470,7 +476,7 @@ function printHelp(write: (text: string) => void): void {
   write("  5. Install library in Webflow Designer\r\n");
   write("\r\n");
 
-  write("\x1b[1mExample:\x1b[0m\r\n");
+  write("\u001B[1mExample:\u001B[0m\r\n");
   write("  wf components init my-ui\r\n");
   write("  wf components add Button\r\n");
   write("  wf components share\r\n");

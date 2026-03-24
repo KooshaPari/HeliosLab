@@ -9,7 +9,7 @@ import { registerSlateComponent, unregisterSlateComponent } from "./PluginSlate"
 
 // Settings component registry
 type SettingsComponent = (props: any) => any;
-const settingsComponentRegistry: Map<string, SettingsComponent> = new Map();
+const settingsComponentRegistry = new Map<string, SettingsComponent>();
 
 export function registerSettingsComponent(componentId: string, component: SettingsComponent): void {
   settingsComponentRegistry.set(componentId, component);
@@ -31,7 +31,7 @@ const pluginRendererAPI = {
 };
 
 // Track loaded plugins to avoid duplicate initialization
-const loadedPlugins: Set<string> = new Set();
+const loadedPlugins = new Set<string>();
 
 // Promise that resolves when initial plugin renderers are loaded
 let renderersReadyResolve: (() => void) | null = null;
@@ -90,8 +90,8 @@ export async function initializePluginRenderer(pluginName: string): Promise<void
       module.initializeRenderer(pluginRendererAPI);
       loadedPlugins.add(pluginName);
     }
-  } catch (e) {
-    console.error(`[pluginSlateRegistry] Failed to load renderer for plugin ${pluginName}:`, e);
+  } catch (error) {
+    console.error(`[pluginSlateRegistry] Failed to load renderer for plugin ${pluginName}:`, error);
   }
 }
 

@@ -94,10 +94,10 @@ export class RuntimeMetrics {
         unit,
         count: sortedValues.length,
         min: sortedValues[0],
-        max: sortedValues[sortedValues.length - 1] ?? 0,
+        max: sortedValues.at(-1) ?? 0,
         p50: percentile(sortedValues, 0.5),
         p95: percentile(sortedValues, 0.95),
-        latest: items[items.length - 1]?.value ?? 0,
+        latest: items.at(-1)?.value ?? 0,
       });
     }
 

@@ -1,6 +1,6 @@
 import type { RPCSchema } from "electrobun/view";
 
-export type BunnyRPC = {
+export interface BunnyRPC {
   bun: RPCSchema<{
     requests: {};
     messages: {
@@ -20,4 +20,4 @@ export type BunnyRPC = {
       };
     };
   }>;
-};
+}

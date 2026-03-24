@@ -28,15 +28,15 @@ let pluginModule: {
 let pluginName: string = "";
 let pluginManifest: PluginManifest | null = null;
 
-const commandHandlers: Map<string, (...args: unknown[]) => unknown> = new Map();
-const eventDisposables: Map<string, Set<Disposable>> = new Map();
-const pendingRequests: Map<
+const commandHandlers = new Map<string, (...args: unknown[]) => unknown>();
+const eventDisposables = new Map<string, Set<Disposable>>();
+const pendingRequests = new Map<
   string,
   {
     resolve: (value: unknown) => void;
     reject: (error: Error) => void;
   }
-> = new Map();
+>();
 
 let requestIdCounter = 0;
 
@@ -75,7 +75,7 @@ async function requestFromMain(method: string, params: unknown): Promise<unknown
         pendingRequests.delete(requestId);
         reject(new Error(`Request timeout: ${method}`));
       }
-    }, 30000);
+    }, 30_000);
   });
 }
 
@@ -138,7 +138,7 @@ function createPluginAPI(manifest: PluginManifest): PluginAPI {
       },
 
       async exists(path: string): Promise<boolean> {
-        // exists is allowed with any fs permission
+        // Exists is allowed with any fs permission
         return requestFromMain("workspace.exists", { path }) as Promise<boolean>;
       },
 

@@ -41,8 +41,8 @@ export const getVersion = (forceRefetch = false): string | null => {
     }
     _version = version;
     return _version;
-  } catch (e) {
-    console.error("error reading package.json", e);
+  } catch (error) {
+    console.error("error reading package.json", error);
     return null;
   }
 };
@@ -58,7 +58,7 @@ export const install = () => {
     `typescript@${TYPESCRIPT_VERSION}`,
   ]);
 
-  // invalidate the cache
+  // Invalidate the cache
   getVersion(true);
 
   const installedTsserverPath = join(TYPESCRIPT_PACKAGE_PATH, "lib", "tsserver.js");

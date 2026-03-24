@@ -17,18 +17,18 @@ import { spawn } from "child_process";
 import path from "path";
 import type { Subprocess } from "bun";
 
-// helps prevent rmDirSync/unlink from being called on the system root or other important directories
+// Helps prevent rmDirSync/unlink from being called on the system root or other important directories
 export const safeTrashFileOrFolder = (absolutePath: string) => {
   if (isPathSafe(absolutePath)) {
     // Note: this puts things in the recycle bin, but without
-    // the "put back" functionality
-    // todo (yoav): maybe we can implement undo delete in colab
+    // The "put back" functionality
+    // Todo (yoav): maybe we can implement undo delete in colab
 
     Utils.moveToTrash(absolutePath);
   }
 };
 
-// helps prevent rmDirSync/unlink from being called on the system root or other important directories
+// Helps prevent rmDirSync/unlink from being called on the system root or other important directories
 export const safeDeleteFileOrFolder = (absolutePath: string) => {
   if (isPathSafe(absolutePath)) {
     const info = statSync(absolutePath);
@@ -52,7 +52,7 @@ export const getUniqueNewName = (parentPath: string, baseName: string) => {
 };
 
 // Note: this can be used to read and cache any slate config file .colab.json, package.json, etc.
-// currently only supports json files
+// Currently only supports json files
 export const readSlateConfigFile = (path: string, cacheResult = true) => {
   try {
     if (existsSync(path)) {
@@ -60,20 +60,20 @@ export const readSlateConfigFile = (path: string, cacheResult = true) => {
         throw new Error(`Must give a file path (eg: to .colab.json), path given: ${path}`);
       }
 
-      const slateJson = readFileSync(path, "utf-8");
+      const slateJson = readFileSync(path, "utf8");
       const slate = JSON.parse(slateJson);
       // NOTE: We want to update the cache whether it successfully reads or not
-      // that way the user can see immediately if there's a problem with the config
+      // That way the user can see immediately if there's a problem with the config
       if (cacheResult) {
         // XXX send to windows
-        // setState("slateCache", path, slate);
+        // SetState("slateCache", path, slate);
       }
-      // todo (yoav): [blocking] add versioning and migration flow here
+      // Todo (yoav): [blocking] add versioning and migration flow here
       return slate;
     }
-  } catch (err) {
+  } catch (error) {
     // todo (yoav): report this error to the user
-    console.error(err);
+    console.error(error);
   }
 
   return null;
@@ -81,10 +81,10 @@ export const readSlateConfigFile = (path: string, cacheResult = true) => {
 
 export const syncDevlink = (nodePath: string) => {
   const cwd = nodePath;
-  // todo (yoav): maybe a status bar system with ids so we can show running jobs
-  // in the status bar, and open up their terminal windows from there if you want?
-  // or the sidebar or anywhere else.
-  // for now just run it sync and show a tiny indicator
+  // Todo (yoav): maybe a status bar system with ids so we can show running jobs
+  // In the status bar, and open up their terminal windows from there if you want?
+  // Or the sidebar or anywhere else.
+  // For now just run it sync and show a tiny indicator
   const cmd = BUN_BINARY_PATH;
   const args = ["run", "--bun", "sync"];
   const process = spawn(cmd, args, {
@@ -94,12 +94,12 @@ export const syncDevlink = (nodePath: string) => {
 
   process.stdout.on("data", (data) => {
     console.log("out", data.toString());
-    // todo (yoav): do more processing here, like colorizing
+    // Todo (yoav): do more processing here, like colorizing
     console.log(data.toString());
   });
   process.stderr.on("data", (data) => {
     console.log("err", data.toString());
-    // todo (yoav): do more processing here, like colorizing
+    // Todo (yoav): do more processing here, like colorizing
     console.log(data.toString());
   });
 
@@ -109,16 +109,16 @@ export const syncDevlink = (nodePath: string) => {
 
   process.addListener("exit", (code, signal) => {
     console.log("exit", code, signal);
-    // setDevlinkSyncing(false);
+    // SetDevlinkSyncing(false);
   });
 };
 
-type FindAllInFolderResult = {
+interface FindAllInFolderResult {
   path: string;
   line: number;
   column: number;
   match: string;
-};
+}
 
 export function findAllInFolder(
   path: string,
@@ -126,7 +126,7 @@ export function findAllInFolder(
   onResult: (result: FindAllInFolderResult) => void,
 ): Subprocess {
   // Use bundled ripgrep for fast content search
-  // ripgrep automatically respects .gitignore files
+  // Ripgrep automatically respects .gitignore files
   const findAllProcess = Bun.spawn(
     [
       RG_BINARY_PATH,
@@ -136,7 +136,7 @@ export function findAllInFolder(
       "--color=never", // No ANSI color codes
       "--case-sensitive", // Case sensitive (can be toggled later)
       "--max-count=500", // Limit to 500 matches per file (prevents massive result sets)
-      // ripgrep respects .gitignore by default
+      // Ripgrep respects .gitignore by default
       query,
       path,
     ],
@@ -147,7 +147,7 @@ export function findAllInFolder(
   );
 
   function processLine(line: string) {
-    // ripgrep format: path:line:column:match
+    // Ripgrep format: path:line:column:match
     const parts = line.split(":");
     if (parts.length >= 4) {
       const path = parts[0];
@@ -180,9 +180,9 @@ export function findAllInFolder(
     }
 
     // Keep the last incomplete line in the buffer
-    stdoutBuffer = lines[lines.length - 1];
+    stdoutBuffer = lines.at(-1);
 
-    // recurse
+    // Recurse
     if (!done) {
       readStream();
     }
@@ -199,10 +199,10 @@ export function findFilesInFolder(
   onResult: (result: string) => void,
 ): Subprocess {
   // Use bundled fd (faster alternative to find) if available, otherwise fall back to find
-  // fd is much faster and has better defaults for developer workflows
+  // Fd is much faster and has better defaults for developer workflows
 
   // Create fuzzy match pattern (e.g., "abc" -> ".*a.*b.*c.*")
-  const fuzzyPattern = query.split("").join(".*");
+  const fuzzyPattern = [...query].join(".*");
 
   // Check if bundled fd exists
   const useFd = existsSync(FD_BINARY_PATH);
@@ -249,7 +249,7 @@ export function findFilesInFolder(
   });
 
   function processLine(line: string) {
-    if (line.length >= 1) {
+    if (line.length > 0) {
       onResult(line);
     }
   }
@@ -274,9 +274,9 @@ export function findFilesInFolder(
     }
 
     // Keep the last incomplete line in the buffer
-    stdoutBuffer = lines[lines.length - 1];
+    stdoutBuffer = lines.at(-1);
 
-    // recurse
+    // Recurse
     if (!done) {
       readStream();
     }

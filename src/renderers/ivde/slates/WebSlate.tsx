@@ -1,5 +1,5 @@
 // YYY - DidNAvigateEvent types
-// import { DidNavigateEvent, DidNavigateInPageEvent } from "electron";
+// Import { DidNavigateEvent, DidNavigateInPageEvent } from "electron";
 type DidNavigateEvent = any;
 type DidNavigateInPageEvent = any;
 import {
@@ -29,21 +29,21 @@ import { getNode } from "../FileWatcher";
 import { createBrowserProfileFolderName } from "../../utils/browserProfileUtils";
 
 // Give the window layout 1 second to settle (sidebar animation, pane sizing, etc.)
-// before revealing any web slates. All WebSlate instances share this signal so
-// tabs opened after startup are not delayed.
+// Before revealing any web slates. All WebSlate instances share this signal so
+// Tabs opened after startup are not delayed.
 const [windowStartupSettled, setWindowStartupSettled] = createSignal(false);
 setTimeout(() => setWindowStartupSettled(true), 1000);
 
 // Not needed anymore - using regex pattern instead
-// const hasValidProtocol = (url: string) => {
-//   return (
-//     url.startsWith("http://") ||
-//     url.startsWith("https://") ||
-//     url.startsWith("file://")
+// Const hasValidProtocol = (url: string) => {
+//   Return (
+//     Url.startsWith("http://") ||
+//     Url.startsWith("https://") ||
+//     Url.startsWith("file://")
 //   );
 // };
 
-// todo: implement cmd + click to open in new tab. needs more thought
+// Todo: implement cmd + click to open in new tab. needs more thought
 const colabPreloadScript = `
 (function() {
   // Notify host that the page loaded successfully (preload script executed)
@@ -120,8 +120,8 @@ async function getPluginPreloads(): Promise<string> {
       const scripts = await electrobun.rpc?.request.pluginGetPreloadScripts();
       cachedPluginPreloads = scripts || "";
       return cachedPluginPreloads;
-    } catch (err) {
-      console.warn("Failed to load plugin preload scripts:", err);
+    } catch (error) {
+      console.warn("Failed to load plugin preload scripts:", error);
       cachedPluginPreloads = "";
       return "";
     }
@@ -130,9 +130,9 @@ async function getPluginPreloads(): Promise<string> {
 }
 
 // WebSlates typically have a 'home' path, saved to the node's web slate
-// and a 'current url' saved to the tab's url. This lets you open multiple tabs to
-// say google or webflow, and have each one navigate around independently and remember
-// their current url
+// And a 'current url' saved to the tab's url. This lets you open multiple tabs to
+// Say google or webflow, and have each one navigate around independently and remember
+// Their current url
 export const WebSlate = ({ node, tabId }: { node?: CachedFileType; tabId: string }) => {
   console.log("WebSlate component created:", { tabId, nodePath: node?.path });
   if (!node) {
@@ -179,16 +179,16 @@ export const WebSlate = ({ node, tabId }: { node?: CachedFileType; tabId: string
 
     // Check for other common corrupted patterns
     // (null bytes, control characters except newline/tab)
-    if (/[\x00-\x08\x0B-\x0C\x0E-\x1F]/.test(title)) {
+    if (/[\u0000-\u0008\u000B-\u000C\u000E-\u001F]/.test(title)) {
       return true;
     }
 
     return false;
   };
 
-  // just get this once, so we have unidirectinoal flow on navigate -> update store
+  // Just get this once, so we have unidirectinoal flow on navigate -> update store
   // Note: initialUrl must be a valid url, otherwise webview will not initialize properly
-  // and will throw. eg: when editing the url in the url bar there won't be a webcontents initialized
+  // And will throw. eg: when editing the url in the url bar there won't be a webcontents initialized
   const initialUrl = tabUrl() || getNodeUrl() || "https://www.google.com";
 
   console.log("WebSlate init:", {
@@ -200,16 +200,16 @@ export const WebSlate = ({ node, tabId }: { node?: CachedFileType; tabId: string
     renderer: renderer(),
   });
 
-  // use a different partition for each workspace and renderer type
+  // Use a different partition for each workspace and renderer type
   // CEF and WebKit need separate partitions to avoid conflicts
-  // todo (yoav): make this a util
+  // Todo (yoav): make this a util
   const partition = `persist:sites:${state.workspace.id}:${renderer()}`;
   // YYY - any was Electron.WebviewTag
   let webviewRef: any | undefined;
   let findInputRef: HTMLInputElement | undefined;
   const [isWebviewReady, setIsWebviewReady] = createSignal(false);
   // Delay revealing webview after each tab activation (covers both initial
-  // creation and subsequent tab switches). Reset on every activation.
+  // Creation and subsequent tab switches). Reset on every activation.
   const [revealReady, setRevealReady] = createSignal(false);
   let revealTimer: ReturnType<typeof setTimeout> | null = null;
   let hasBeenRevealedOnce = false;
@@ -241,7 +241,7 @@ export const WebSlate = ({ node, tabId }: { node?: CachedFileType; tabId: string
       webviewRef?.addMaskSelector(".webslate-find-bar");
       requestAnimationFrame(() => {
         webviewRef?.syncDimensions(true);
-        // todo: focusing the input doesn't work when the OOPIF has native focus.
+        // Todo: focusing the input doesn't work when the OOPIF has native focus.
         // Needs a native focusHost/blur API on BrowserView to transfer focus back.
         findInputRef?.focus();
         findInputRef?.select();
@@ -270,12 +270,12 @@ export const WebSlate = ({ node, tabId }: { node?: CachedFileType; tabId: string
 
   const findNext = () => {
     const q = findQuery();
-    if (q) webviewRef?.findInPage(q, { forward: true });
+    if (q) {webviewRef?.findInPage(q, { forward: true });}
   };
 
   const findPrev = () => {
     const q = findQuery();
-    if (q) webviewRef?.findInPage(q, { forward: false });
+    if (q) {webviewRef?.findInPage(q, { forward: false });}
   };
 
   const handleFindKeyDown = (e: KeyboardEvent) => {
@@ -379,7 +379,7 @@ console.log('Preload script loaded for:', window.location.href);
           try {
             const url = new URL(newUrl);
             _tab.title = url.hostname;
-          } catch (err) {
+          } catch {
             _tab.title = newUrl;
           }
         }),
@@ -424,7 +424,7 @@ console.log('Preload script loaded for:', window.location.href);
 
   createEffect(async () => {
     // Note: wait for it to be ready, and wire reactivity to tabUrl
-    // which is updated on did-navigate
+    // Which is updated on did-navigate
     const currentTabUrl = tabUrl();
     console.log("WebSlate effect:", {
       tabId,
@@ -433,7 +433,7 @@ console.log('Preload script loaded for:', window.location.href);
     });
 
     if (isReady() && currentTabUrl) {
-      // give it a second for cross language rpc to resolve before checking
+      // Give it a second for cross language rpc to resolve before checking
 
       // Note: currently in-page-navigations don't trigger canGoBack/Forward
       // TODO: electrobun should likely account for this
@@ -469,12 +469,12 @@ console.log('Preload script loaded for:', window.location.href);
   });
 
   createEffect(() => {
-    if (!isWebviewReady()) return;
+    if (!isWebviewReady()) {return;}
 
     if (isTabActive()) {
-      if (!windowStartupSettled() || !revealReady()) return;
+      if (!windowStartupSettled() || !revealReady()) {return;}
       // Tabs are always slotted now (display:none hides inactive tabs),
-      // syncDimensions runs after the tab becomes visible so dimensions are correct.
+      // SyncDimensions runs after the tab becomes visible so dimensions are correct.
       webviewRef?.syncDimensions(true);
       webviewRef?.toggleTransparent(false);
       webviewRef?.togglePassthrough(false);
@@ -522,14 +522,14 @@ console.log('Preload script loaded for:', window.location.href);
     if (state.dragState?.targetPaneId === tab()?.paneId) {
       if (!webviewRef?.transparent) {
         webviewRef?.toggleTransparent(true);
-        // webviewRef?.syncScreenshot();
+        // WebviewRef?.syncScreenshot();
         webviewRef?.syncDimensions(true);
       }
     } else if (revealReady()) {
       requestAnimationFrame(() => {
         if (webviewRef?.transparent) {
           webviewRef?.toggleTransparent(false);
-          // webviewRef?.clearScreenImage();
+          // WebviewRef?.clearScreenImage();
           webviewRef?.syncDimensions(true);
         }
       });
@@ -544,8 +544,8 @@ console.log('Preload script loaded for:', window.location.href);
     // Create a single boolean for toggling the menu
     if (state.isResizingPane) {
       // Perform the syncDimensions call and force it to trigger the
-      // accelerated syncDimensions loop so dragging is immediately responsive
-      // when the mouse starts moving
+      // Accelerated syncDimensions loop so dragging is immediately responsive
+      // When the mouse starts moving
       webviewRef?.syncDimensions(true);
     }
   });
@@ -784,13 +784,13 @@ console.log('Preload script loaded for:', window.location.href);
     }
   };
 
-  // todo (yoav): https://www.electronjs.org/docs/latest/api/webview-tag
-  // reload
-  // reloadIgnoringCache
-  // open devtools
-  // context menues
-  // capturePage
-  // showDefinitionForSelection
+  // Todo (yoav): https://www.electronjs.org/docs/latest/api/webview-tag
+  // Reload
+  // ReloadIgnoringCache
+  // Open devtools
+  // Context menues
+  // CapturePage
+  // ShowDefinitionForSelection
 
   const isRealNode = createMemo(
     () =>
@@ -840,7 +840,7 @@ console.log('Preload script loaded for:', window.location.href);
           setPreloadLoaded(true);
           return;
         }
-      } catch (err) {
+      } catch {
         // File doesn't exist or can't be read, ignore error
       }
 
@@ -861,7 +861,7 @@ console.log('Preload script loaded for:', window.location.href);
 
   // Also watch for changes in the file cache for this specific preload file
   createEffect(() => {
-    if (!preloadFilePath()) return;
+    if (!preloadFilePath()) {return;}
 
     const cachedNode = getNode(preloadFilePath());
 
@@ -967,9 +967,9 @@ console.log('Preload script loaded for:', window.location.href);
                 title={
                   state.downloadNotification?.status === "downloading"
                     ? `Downloading: ${state.downloadNotification?.filename} (${state.downloadNotification?.progress || 0}%)`
-                    : state.downloadNotification?.status === "completed"
+                    : (state.downloadNotification?.status === "completed"
                       ? `Show ${state.downloadNotification?.filename} in Finder`
-                      : `Download failed: ${state.downloadNotification?.filename}`
+                      : `Download failed: ${state.downloadNotification?.filename}`)
                 }
               >
                 <Show when={state.downloadNotification?.status === "downloading"}>
@@ -1333,7 +1333,7 @@ console.log('Preload script loaded for:', window.location.href);
           </div>
         }
       >
-        {/* @ts-ignore */}
+        {/* @ts-expect-error */}
         <electrobun-webview
           data-type="webslate"
           masks=".webview-overlay"
@@ -1403,7 +1403,7 @@ console.log('Preload script loaded for:', window.location.href);
             });
 
             // YYYY - DidNavigateEvent
-            // @ts-ignore
+            // @ts-expect-error
             webviewRef.on("did-navigate", async (e: DidNavigateEvent) => {
               console.log("did-navigate event:", e.detail);
 
@@ -1437,7 +1437,7 @@ console.log('Preload script loaded for:', window.location.href);
                     try {
                       const url = new URL(e.detail);
                       _tab.title = url.hostname;
-                    } catch (err) {
+                    } catch {
                       // Invalid URL, don't set a title - wait for page-title-updated event
                       console.warn("Invalid URL in did-navigate:", e.detail);
                     }
@@ -1518,15 +1518,15 @@ console.log('Preload script loaded for:', window.location.href);
             webviewRef.on("new-window-open", (e: any) => {
               console.log("----->>> new window open fired in webview");
               try {
-                // const data = JSON.parse(e.detail)
+                // Const data = JSON.parse(e.detail)
                 const targetUrl = e.detail.url;
                 openNewTabForNode(node.path, false, {
                   url: targetUrl,
                   focusNewTab: false,
                   targetPaneId: tab()?.paneId,
                 });
-              } catch (e) {
-                console.log(e);
+              } catch (error) {
+                console.log(error);
               }
             });
 
@@ -1554,7 +1554,7 @@ console.log('Preload script loaded for:', window.location.href);
                   return;
                 }
                 // Dispatch a synthetic keyboard event to the document so it bubbles up
-                // to the global keydown handler in index.tsx
+                // To the global keydown handler in index.tsx
                 const syntheticEvent = new KeyboardEvent("keydown", {
                   key: msg.key,
                   ctrlKey: msg.ctrlKey,
@@ -1569,8 +1569,8 @@ console.log('Preload script loaded for:', window.location.href);
             });
 
             // XXX - webview focus
-            // webviewRef.addEventListener("focus", () => {
-            //   focusTabWithId(tabId);
+            // WebviewRef.addEventListener("focus", () => {
+            //   FocusTabWithId(tabId);
             // });
           }}
         ></electrobun-webview>

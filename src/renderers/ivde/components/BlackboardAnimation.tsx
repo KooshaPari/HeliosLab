@@ -61,13 +61,13 @@ export const BlackboardAnimation = () => {
                   ...formula,
                   progress: Math.min(formula.progress + 0.015, 1), // Reveal over ~67 frames (1+ seconds)
                 };
-              } else {
+              }
                 // Fade out phase after writing is complete
                 return {
                   ...formula,
                   opacity: Math.max(formula.opacity - 0.001, 0), // Slowly fade out
                 };
-              }
+              
             })
             .filter((formula) => formula.opacity > 0.001), // Remove fully faded formulas
       );
@@ -102,7 +102,7 @@ export const BlackboardAnimation = () => {
     >
       {formulas().map((formula) => {
         const visibleLength = Math.floor(formula.text.length * formula.progress);
-        const visibleText = formula.text.substring(0, visibleLength);
+        const visibleText = formula.text.slice(0, visibleLength);
 
         return (
           <div
@@ -121,7 +121,7 @@ export const BlackboardAnimation = () => {
             }}
           >
             <span style={{ visibility: "visible" }}>{visibleText}</span>
-            <span style={{ visibility: "hidden" }}>{formula.text.substring(visibleLength)}</span>
+            <span style={{ visibility: "hidden" }}>{formula.text.slice(visibleLength)}</span>
           </div>
         );
       })}

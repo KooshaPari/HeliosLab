@@ -36,34 +36,41 @@ export async function handleCloudCommand(
   const subcommand = args[0] || "status";
 
   switch (subcommand) {
-    case "init":
+    case "init": {
       await handleInit(args.slice(1), write, cwd, client, storage, api);
       break;
+    }
 
-    case "deploy":
+    case "deploy": {
       await handleDeploy(args.slice(1), write, cwd, api);
       break;
+    }
 
-    case "logs":
+    case "logs": {
       await handleLogs(write, cwd, api);
       break;
+    }
 
-    case "status":
+    case "status": {
       await handleStatus(write, cwd, client);
       break;
+    }
 
-    case "dev":
+    case "dev": {
       await handleDev(write, cwd, api);
       break;
+    }
 
     case "--help":
-    case "help":
+    case "help": {
       printHelp(write);
       break;
+    }
 
-    default:
-      write(`\x1b[31mUnknown cloud command: ${subcommand}\x1b[0m\r\n`);
+    default: {
+      write(`\u001B[31mUnknown cloud command: ${subcommand}\u001B[0m\r\n`);
       write('Run "wf cloud --help" for available commands.\r\n');
+    }
   }
 }
 
@@ -95,18 +102,18 @@ async function handleInit(
 
   // Check authentication
   if (!(await client.isAuthenticated())) {
-    write('\x1b[31mNot authenticated.\x1b[0m Run "wf auth" first.\r\n');
+    write('\u001B[31mNot authenticated.\u001B[0m Run "wf auth" first.\r\n');
     return;
   }
 
   // Get site ID if not provided
   if (!siteId) {
-    write("\x1b[36mFetching your sites...\x1b[0m\r\n\r\n");
+    write("\u001B[36mFetching your sites...\u001B[0m\r\n\r\n");
     const sites = await client.listSites();
 
     if (sites.length === 0) {
       write(
-        "\x1b[31mNo sites found.\x1b[0m Make sure your token has access to at least one site.\r\n",
+        "\u001B[31mNo sites found.\u001B[0m Make sure your token has access to at least one site.\r\n",
       );
       return;
     }
@@ -122,14 +129,14 @@ async function handleInit(
   }
 
   // Verify site access
-  write("\x1b[36mVerifying site access...\x1b[0m\r\n");
+  write("\u001B[36mVerifying site access...\u001B[0m\r\n");
   let siteName = siteId;
   try {
     const site = await client.getSite(siteId);
     siteName = site.displayName;
-    write(`\x1b[32m✓ Found site: ${siteName}\x1b[0m\r\n\r\n`);
-  } catch (e) {
-    write(`\x1b[31mCould not access site: ${siteId}\x1b[0m\r\n`);
+    write(`\u001B[32m✓ Found site: ${siteName}\u001B[0m\r\n\r\n`);
+  } catch {
+    write(`\u001B[31mCould not access site: ${siteId}\u001B[0m\r\n`);
     return;
   }
 
@@ -152,9 +159,9 @@ async function handleInit(
     mountPath,
   };
   writeFileSync(join(cwd, ".colab.json"), JSON.stringify(colabConfig, null, 2));
-  write(`  \x1b[32m✓\x1b[0m .colab.json\r\n`);
+  write(`  \u001B[32m✓\u001B[0m .colab.json\r\n`);
 
-  write("\r\n\x1b[32m✓ Webflow Cloud project created!\x1b[0m\r\n\r\n");
+  write("\r\n\u001B[32m✓ Webflow Cloud project created!\u001B[0m\r\n\r\n");
   write("Next steps:\r\n");
   write("  1. Run: bun install\r\n");
   write("  2. Run: wf cloud dev (for local development)\r\n");
@@ -171,9 +178,9 @@ async function scaffoldAstroProject(
   mountPath: string,
   write: (text: string) => void,
 ): Promise<void> {
-  // package.json
+  // Package.json
   const packageJson = {
-    name: siteName.toLowerCase().replace(/\s+/g, "-") + "-cloud",
+    name: siteName.toLowerCase().replaceAll(/\s+/g, "-") + "-cloud",
     type: "module",
     version: "0.0.1",
     scripts: {
@@ -193,9 +200,9 @@ async function scaffoldAstroProject(
     },
   };
   writeFileSync(join(cwd, "package.json"), JSON.stringify(packageJson, null, 2));
-  write(`  \x1b[32m✓\x1b[0m package.json\r\n`);
+  write(`  \u001B[32m✓\u001B[0m package.json\r\n`);
 
-  // astro.config.mjs
+  // Astro.config.mjs
   const astroConfig = `import { defineConfig } from 'astro/config';
 import cloudflare from '@astrojs/cloudflare';
 
@@ -210,10 +217,10 @@ export default defineConfig({
 });
 `;
   writeFileSync(join(cwd, "astro.config.mjs"), astroConfig);
-  write(`  \x1b[32m✓\x1b[0m astro.config.mjs\r\n`);
+  write(`  \u001B[32m✓\u001B[0m astro.config.mjs\r\n`);
 
-  // wrangler.toml
-  const wranglerConfig = `name = "${siteName.toLowerCase().replace(/\s+/g, "-")}"
+  // Wrangler.toml
+  const wranglerConfig = `name = "${siteName.toLowerCase().replaceAll(/\s+/g, "-")}"
 compatibility_date = "2024-01-01"
 compatibility_flags = ["nodejs_compat"]
 
@@ -221,7 +228,7 @@ compatibility_flags = ["nodejs_compat"]
 bucket = "./dist"
 `;
   writeFileSync(join(cwd, "wrangler.toml"), wranglerConfig);
-  write(`  \x1b[32m✓\x1b[0m wrangler.toml\r\n`);
+  write(`  \u001B[32m✓\u001B[0m wrangler.toml\r\n`);
 
   // Create src directory structure
   mkdirSync(join(cwd, "src", "pages"), { recursive: true });
@@ -250,7 +257,7 @@ bucket = "./dist"
 </html>
 `;
   writeFileSync(join(cwd, "src", "pages", "index.astro"), indexPage);
-  write(`  \x1b[32m✓\x1b[0m src/pages/index.astro\r\n`);
+  write(`  \u001B[32m✓\u001B[0m src/pages/index.astro\r\n`);
 
   // Create .webflowrc.json for DevLink integration
   const webflowrc = {
@@ -259,7 +266,7 @@ bucket = "./dist"
     componentsPath: "./src/components/devlink",
   };
   writeFileSync(join(cwd, ".webflowrc.json"), JSON.stringify(webflowrc, null, 2));
-  write(`  \x1b[32m✓\x1b[0m .webflowrc.json (DevLink ready)\r\n`);
+  write(`  \u001B[32m✓\u001B[0m .webflowrc.json (DevLink ready)\r\n`);
 }
 
 async function scaffoldNextjsProject(
@@ -269,9 +276,9 @@ async function scaffoldNextjsProject(
   mountPath: string,
   write: (text: string) => void,
 ): Promise<void> {
-  // package.json
+  // Package.json
   const packageJson = {
-    name: siteName.toLowerCase().replace(/\s+/g, "-") + "-cloud",
+    name: siteName.toLowerCase().replaceAll(/\s+/g, "-") + "-cloud",
     version: "0.0.1",
     scripts: {
       dev: "next dev",
@@ -295,9 +302,9 @@ async function scaffoldNextjsProject(
     },
   };
   writeFileSync(join(cwd, "package.json"), JSON.stringify(packageJson, null, 2));
-  write(`  \x1b[32m✓\x1b[0m package.json\r\n`);
+  write(`  \u001B[32m✓\u001B[0m package.json\r\n`);
 
-  // next.config.js
+  // Next.config.js
   const nextConfig = `/** @type {import('next').NextConfig} */
 const nextConfig = {
   basePath: '${mountPath}',
@@ -310,10 +317,10 @@ const nextConfig = {
 module.exports = nextConfig;
 `;
   writeFileSync(join(cwd, "next.config.js"), nextConfig);
-  write(`  \x1b[32m✓\x1b[0m next.config.js\r\n`);
+  write(`  \u001B[32m✓\u001B[0m next.config.js\r\n`);
 
-  // wrangler.toml
-  const wranglerConfig = `name = "${siteName.toLowerCase().replace(/\s+/g, "-")}"
+  // Wrangler.toml
+  const wranglerConfig = `name = "${siteName.toLowerCase().replaceAll(/\s+/g, "-")}"
 compatibility_date = "2024-01-01"
 compatibility_flags = ["nodejs_compat"]
 
@@ -325,7 +332,7 @@ binding = "NEXT_CACHE_WORKERS_KV"
 id = "your-kv-namespace-id"
 `;
   writeFileSync(join(cwd, "wrangler.toml"), wranglerConfig);
-  write(`  \x1b[32m✓\x1b[0m wrangler.toml\r\n`);
+  write(`  \u001B[32m✓\u001B[0m wrangler.toml\r\n`);
 
   // Create app directory structure
   mkdirSync(join(cwd, "app"), { recursive: true });
@@ -345,7 +352,7 @@ id = "your-kv-namespace-id"
 }
 `;
   writeFileSync(join(cwd, "app", "layout.tsx"), layout);
-  write(`  \x1b[32m✓\x1b[0m app/layout.tsx\r\n`);
+  write(`  \u001B[32m✓\u001B[0m app/layout.tsx\r\n`);
 
   // Create index page
   const indexPage = `export default function Home() {
@@ -359,7 +366,7 @@ id = "your-kv-namespace-id"
 }
 `;
   writeFileSync(join(cwd, "app", "page.tsx"), indexPage);
-  write(`  \x1b[32m✓\x1b[0m app/page.tsx\r\n`);
+  write(`  \u001B[32m✓\u001B[0m app/page.tsx\r\n`);
 
   // Create tsconfig.json
   const tsconfig = {
@@ -384,7 +391,7 @@ id = "your-kv-namespace-id"
     exclude: ["node_modules"],
   };
   writeFileSync(join(cwd, "tsconfig.json"), JSON.stringify(tsconfig, null, 2));
-  write(`  \x1b[32m✓\x1b[0m tsconfig.json\r\n`);
+  write(`  \u001B[32m✓\u001B[0m tsconfig.json\r\n`);
 
   // Create .webflowrc.json for DevLink integration
   const webflowrc = {
@@ -393,7 +400,7 @@ id = "your-kv-namespace-id"
     componentsPath: "./components/devlink",
   };
   writeFileSync(join(cwd, ".webflowrc.json"), JSON.stringify(webflowrc, null, 2));
-  write(`  \x1b[32m✓\x1b[0m .webflowrc.json (DevLink ready)\r\n`);
+  write(`  \u001B[32m✓\u001B[0m .webflowrc.json (DevLink ready)\r\n`);
 }
 
 async function handleDeploy(
@@ -405,30 +412,30 @@ async function handleDeploy(
   // Check for config
   const colabConfigPath = join(cwd, ".colab.json");
   if (!existsSync(colabConfigPath)) {
-    write("\x1b[31mNo Webflow Cloud configuration found.\x1b[0m\r\n");
+    write("\u001B[31mNo Webflow Cloud configuration found.\u001B[0m\r\n");
     write('Run "wf cloud init" first.\r\n');
     return;
   }
 
-  write("\x1b[36mBuilding and deploying...\x1b[0m\r\n\r\n");
+  write("\u001B[36mBuilding and deploying...\u001B[0m\r\n\r\n");
 
   const bunPath = process.env.BUN_BINARY_PATH || "bun";
 
   try {
     // Build first
-    write("\x1b[90m$ bun run build\x1b[0m\r\n");
+    write("\u001B[90m$ bun run build\u001B[0m\r\n");
     await runCommand(bunPath, ["run", "build"], cwd, write);
 
     // Then deploy
-    write("\r\n\x1b[90m$ bun run wf:deploy\x1b[0m\r\n");
+    write("\r\n\u001B[90m$ bun run wf:deploy\u001B[0m\r\n");
     await runCommand(bunPath, ["run", "wf:deploy"], cwd, write);
 
-    write("\r\n\x1b[32m✓ Deployment complete!\x1b[0m\r\n");
+    write("\r\n\u001B[32m✓ Deployment complete!\u001B[0m\r\n");
     api.log.info("Webflow Cloud deployment completed");
-  } catch (e) {
-    const message = e instanceof Error ? e.message : String(e);
-    write(`\x1b[31mDeployment failed: ${message}\x1b[0m\r\n`);
-    api.log.error("Webflow Cloud deployment failed:", e);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    write(`\u001B[31mDeployment failed: ${message}\u001B[0m\r\n`);
+    api.log.error("Webflow Cloud deployment failed:", error);
   }
 }
 
@@ -437,14 +444,14 @@ async function handleLogs(
   cwd: string,
   api: PluginAPI,
 ): Promise<void> {
-  write("\x1b[36mFetching deployment logs...\x1b[0m\r\n\r\n");
+  write("\u001B[36mFetching deployment logs...\u001B[0m\r\n\r\n");
 
   const bunPath = process.env.BUN_BINARY_PATH || "bun";
 
   try {
     await runCommand(bunPath, ["x", "wrangler", "tail"], cwd, write);
-  } catch (e) {
-    write("\x1b[33mCould not fetch logs. Make sure wrangler is configured.\x1b[0m\r\n");
+  } catch {
+    write("\u001B[33mCould not fetch logs. Make sure wrangler is configured.\u001B[0m\r\n");
   }
 }
 
@@ -456,14 +463,14 @@ async function handleStatus(
   const colabConfigPath = join(cwd, ".colab.json");
 
   if (!existsSync(colabConfigPath)) {
-    write("\x1b[33mNo Webflow Cloud configuration found in this directory.\x1b[0m\r\n");
+    write("\u001B[33mNo Webflow Cloud configuration found in this directory.\u001B[0m\r\n");
     write('Run "wf cloud init" to create a Cloud project.\r\n');
     return;
   }
 
-  const config = JSON.parse(readFileSync(colabConfigPath, "utf-8"));
+  const config = JSON.parse(readFileSync(colabConfigPath, "utf8"));
 
-  write("\x1b[1mWebflow Cloud Status\x1b[0m\r\n");
+  write("\u001B[1mWebflow Cloud Status\u001B[0m\r\n");
   write("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\r\n\r\n");
 
   write(`Site: ${config.siteName || "Unknown"}\r\n`);
@@ -475,11 +482,11 @@ async function handleStatus(
   const openNextPath = join(cwd, ".open-next");
 
   if (existsSync(distPath)) {
-    write("\r\n\x1b[32m✓ Build output found (dist/)\x1b[0m\r\n");
+    write("\r\n\u001B[32m✓ Build output found (dist/)\u001B[0m\r\n");
   } else if (existsSync(openNextPath)) {
-    write("\r\n\x1b[32m✓ Build output found (.open-next/)\x1b[0m\r\n");
+    write("\r\n\u001B[32m✓ Build output found (.open-next/)\u001B[0m\r\n");
   } else {
-    write('\r\n\x1b[33m⚠ No build output. Run "bun run build" first.\x1b[0m\r\n');
+    write('\r\n\u001B[33m⚠ No build output. Run "bun run build" first.\u001B[0m\r\n');
   }
 }
 
@@ -488,17 +495,17 @@ async function handleDev(
   cwd: string,
   api: PluginAPI,
 ): Promise<void> {
-  write("\x1b[36mStarting development server...\x1b[0m\r\n\r\n");
+  write("\u001B[36mStarting development server...\u001B[0m\r\n\r\n");
 
   const bunPath = process.env.BUN_BINARY_PATH || "bun";
 
   try {
     // Use wrangler dev for local development
-    write("\x1b[90m$ bun run dev\x1b[0m\r\n");
+    write("\u001B[90m$ bun run dev\u001B[0m\r\n");
     await runCommand(bunPath, ["run", "dev"], cwd, write);
-  } catch (e) {
-    const message = e instanceof Error ? e.message : String(e);
-    write(`\x1b[31mDev server failed: ${message}\x1b[0m\r\n`);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    write(`\u001B[31mDev server failed: ${message}\u001B[0m\r\n`);
   }
 }
 
@@ -516,11 +523,11 @@ async function runCommand(
     });
 
     proc.stdout.on("data", (data: Buffer) => {
-      write(data.toString().replace(/\n/g, "\r\n"));
+      write(data.toString().replaceAll('\n', "\r\n"));
     });
 
     proc.stderr.on("data", (data: Buffer) => {
-      write(data.toString().replace(/\n/g, "\r\n"));
+      write(data.toString().replaceAll('\n', "\r\n"));
     });
 
     proc.on("close", (code) => {
@@ -536,14 +543,14 @@ async function runCommand(
 }
 
 function printHelp(write: (text: string) => void): void {
-  write("\x1b[1;36mWebflow Cloud Commands\x1b[0m\r\n");
+  write("\u001B[1;36mWebflow Cloud Commands\u001B[0m\r\n");
   write("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\r\n\r\n");
 
   write("Deploy Next.js or Astro apps to Webflow Cloud.\r\n");
   write("Apps run on Cloudflare's edge network and are mounted\r\n");
   write("at a path on your Webflow site.\r\n\r\n");
 
-  write("\x1b[1mCommands:\x1b[0m\r\n");
+  write("\u001B[1mCommands:\u001B[0m\r\n");
   write("  wf cloud init [site_id]   Scaffold a new Cloud project\r\n");
   write("  wf cloud dev              Start local dev server\r\n");
   write("  wf cloud deploy           Build and deploy to Cloud\r\n");
@@ -551,12 +558,12 @@ function printHelp(write: (text: string) => void): void {
   write("  wf cloud status           Show deployment status\r\n");
   write("\r\n");
 
-  write("\x1b[1mOptions:\x1b[0m\r\n");
+  write("\u001B[1mOptions:\u001B[0m\r\n");
   write("  --framework, -f   Framework: astro (default) or nextjs\r\n");
   write("  --mount, -m       Mount path: /app (default)\r\n");
   write("\r\n");
 
-  write("\x1b[1mExamples:\x1b[0m\r\n");
+  write("\u001B[1mExamples:\u001B[0m\r\n");
   write("  wf cloud init 64abc123 --framework astro --mount /dashboard\r\n");
   write("  wf cloud deploy\r\n");
   write("\r\n");

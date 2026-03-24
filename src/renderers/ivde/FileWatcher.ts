@@ -9,20 +9,20 @@ import { electrobun } from "./init";
 // TODO:
 // 1. in the rendering flow, we should check if we have the file in the cache and subscribe to changes
 // 2. when a file is not in the cache, it should fire an async request to get it's metadata including if it's a file or folder, if it exists
-// and store whatever result in the cache
+// And store whatever result in the cache
 // 3. then the front-end should just check the cache for a file and render it without all these syncRPC checks.
 
 // Think of the filesystem as a datastore. We want to keep a cache
-// of files we interact with, but don't really care about anything else
+// Of files we interact with, but don't really care about anything else
 // We use fileWatchers to update the cache if we've already cached something
 
-// rename _getNode to getNodeFromCache that accounts for __internal nodes
-// move the bun stuff to an async bun request that gets called in getNode() after that calls getNodeFromCache()
-// other things can just be subscribed to the cache or the _getNode call
-// maybe that'll just work?
-const pendingNodeRequests: { [path: string]: boolean } = {};
+// Rename _getNode to getNodeFromCache that accounts for __internal nodes
+// Move the bun stuff to an async bun request that gets called in getNode() after that calls getNodeFromCache()
+// Other things can just be subscribed to the cache or the _getNode call
+// Maybe that'll just work?
+const pendingNodeRequests: Record<string, boolean> = {};
 
-// doesn't cache the node, useful inside setState(produce(_state => {const _node = _getNode(path, _state)})) blocks
+// Doesn't cache the node, useful inside setState(produce(_state => {const _node = _getNode(path, _state)})) blocks
 
 export const _getNode = (path?: string, _state: AppState = state): CachedFileType | undefined => {
   if (!path) {
@@ -48,7 +48,7 @@ export const _getNode = (path?: string, _state: AppState = state): CachedFileTyp
 
     // Extract the template type from the path (handles unique IDs like browser-chromium/abc123)
     const pathParts = path.replace("__COLAB_TEMPLATE__/", "").split("/");
-    const templateId = pathParts[0]; // e.g., "browser-chromium" or "browser-webkit"
+    const templateId = pathParts[0]; // E.g., "browser-chromium" or "browser-webkit"
     let templateNode: CachedFileType;
 
     // Browser and agent templates are directory nodes with slates
@@ -93,15 +93,15 @@ export const _getNode = (path?: string, _state: AppState = state): CachedFileTyp
 
   pendingNodeRequests[path] = true;
   // Note: because this is async there's a race condition with the early exit above
-  // where multiple things can call getNode for the same path triggering multiple calls
-  // todo: We need to update the architecture to have a pending state for state objects like this
+  // Where multiple things can call getNode for the same path triggering multiple calls
+  // Todo: We need to update the architecture to have a pending state for state objects like this
   electrobun.rpc?.request.getNode({ path }).then((node) => {
     delete pendingNodeRequests[path];
 
     if (node) {
       // Only update the cache if we don't already have it
-      // since this is getNode(). actual changes to the node
-      // will be handled by fileWatchers/events
+      // Since this is getNode(). actual changes to the node
+      // Will be handled by fileWatchers/events
       if (!state.fileCache[path]) {
         setState("fileCache", path, node);
       }
@@ -109,7 +109,7 @@ export const _getNode = (path?: string, _state: AppState = state): CachedFileTyp
   });
 };
 
-// typically used in code, will cache the node if it's not already cached
+// Typically used in code, will cache the node if it's not already cached
 export const getNode = (path?: string): CachedFileType | undefined => {
   const node = _getNode(path);
 
@@ -120,7 +120,7 @@ export const getNode = (path?: string): CachedFileType | undefined => {
   return node;
 };
 
-// todo (yoav): rename to createOrFetchModel
+// Todo (yoav): rename to createOrFetchModel
 export const createModel = async (absolutePath: string) => {
   // Handle template file paths - they don't exist on disk, so provide empty content
   let contents = "";
@@ -136,14 +136,14 @@ export const createModel = async (absolutePath: string) => {
   const filename = absolutePath.split("/").pop() || "";
   const extension = absolutePath.split(".").pop() || "";
   const language = getLanguageForFile(filename, extension);
-  // it knows about. In fact it does this when you open a typescript file, but also as you type in the editor
-  // if you add a new type import. It's funny that id does this because you _also_ have to externally
-  // addExtraLib or create a model for those files for type hinting to work.
+  // It knows about. In fact it does this when you open a typescript file, but also as you type in the editor
+  // If you add a new type import. It's funny that id does this because you _also_ have to externally
+  // AddExtraLib or create a model for those files for type hinting to work.
   let model = monaco.editor.getModel(monaco.Uri.parse(absolutePath));
   if (!model) {
     model = monaco.editor.createModel(contents, language, monaco.Uri.parse(absolutePath));
 
-    // maybe multiple editors can share the same model that the user has actually opened?
+    // Maybe multiple editors can share the same model that the user has actually opened?
     setState(
       produce((_state: AppState) => {
         const node = _state.fileCache[absolutePath];
@@ -223,7 +223,7 @@ const extensionsToLanguages: Record<string, string> = {
   proto: "protobuf",
 
   // Other
-  lock: "json", // bun.lock, package-lock.json
+  lock: "json", // Bun.lock, package-lock.json
 };
 
 // Special filenames that should use specific languages

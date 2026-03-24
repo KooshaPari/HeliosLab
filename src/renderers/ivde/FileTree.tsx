@@ -61,8 +61,8 @@ interface FileDecoration {
 }
 
 // Cache for file decorations to avoid repeated RPC calls
-const fileDecorationCache: Map<string, { decoration: FileDecoration | null; timestamp: number }> =
-  new Map();
+const fileDecorationCache =
+  new Map<string, { decoration: FileDecoration | null; timestamp: number }>();
 const DECORATION_CACHE_TTL = 5000; // 5 seconds
 
 async function getFileDecoration(filePath: string): Promise<FileDecoration | null> {
@@ -80,8 +80,8 @@ async function getFileDecoration(filePath: string): Promise<FileDecoration | nul
       timestamp: Date.now(),
     });
     return decoration || null;
-  } catch (err) {
-    console.warn("Failed to fetch file decoration:", err);
+  } catch (error) {
+    console.warn("Failed to fetch file decoration:", error);
     return null;
   }
 }
@@ -137,7 +137,7 @@ export const createContextMenuAction = (action: string, data: any) => {
  * The NodeName is responsible for rendering a single node
  */
 
-// files and folders without an slate gui that we don't want to render
+// Files and folders without an slate gui that we don't want to render
 const filesToFilter = {
   simple: /\.DS_Store|node_modules|package-lock\.json|\.colab.json|.+\.d\.ts/,
   showall: null,
@@ -253,10 +253,10 @@ const CategoryRow = ({
 // Template node definitions for quick access items
 const TEMPLATE_NODES = [
   // {
-  //   id: "browser-chromium",
-  //   name: "Chromium",
-  //   path: "__COLAB_TEMPLATE__/browser-chromium",
-  //   icon: "views://assets/file-icons/chrome-logo.svg",
+  //   Id: "browser-chromium",
+  //   Name: "Chromium",
+  //   Path: "__COLAB_TEMPLATE__/browser-chromium",
+  //   Icon: "views://assets/file-icons/chrome-logo.svg",
   // },
   {
     id: "browser-webkit",
@@ -428,7 +428,7 @@ const TemplateNodeItem = ({ template }: { template: (typeof TEMPLATE_NODES)[numb
     } else if (template.id === "browser-webkit") {
       // For browser templates, create a unique internal path for each tab instance
       // This prevents multiple tabs from sharing the same node/webview instance
-      const uniqueId = Math.random().toString(36).substring(2, 11);
+      const uniqueId = Math.random().toString(36).slice(2, 11);
       const uniquePath = `${template.path}/${uniqueId}`;
       openNewTabForNode(uniquePath, false, { focusNewTab: true });
     } else {
@@ -597,18 +597,24 @@ const OpenFileItem = ({
     const ext = file.name.split(".").pop()?.toLowerCase();
     switch (ext) {
       case "ts":
-      case "tsx":
+      case "tsx": {
         return "views://assets/file-icons/tsx.svg";
-      case "js":
+      }
+      case "js": {
         return "views://assets/file-icons/js.svg";
-      case "css":
+      }
+      case "css": {
         return "views://assets/file-icons/css.svg";
-      case "json":
+      }
+      case "json": {
         return "views://assets/file-icons/json.svg";
-      case "md":
+      }
+      case "md": {
         return "views://assets/file-icons/markdown.svg";
-      default:
+      }
+      default: {
         return "views://assets/file-icons/txt.svg";
+      }
     }
   };
 
@@ -626,9 +632,9 @@ const OpenFileItem = ({
         cursor: "pointer",
         background: isSelected()
           ? "rgba(0, 150, 255, 0.3)"
-          : isHovered()
+          : (isHovered()
             ? "rgba(0, 0, 0, 0.1)"
-            : "transparent",
+            : "transparent"),
         "user-select": "none",
         margin: "2px 8px",
         "border-radius": "4px",
@@ -688,10 +694,7 @@ const OpenFileItem = ({
 
 export const OpenFilesTree = () => {
   const openFilesArray = () => {
-    return Object.entries(state.openFiles).map(([path, file]) => ({
-      path,
-      ...file,
-    }));
+    return Object.entries(state.openFiles).map(([path, file]) => (((((((({path, ...file})))))))));
   };
 
   const hasOpenFiles = () => Object.keys(state.openFiles).length > 0;
@@ -732,7 +735,7 @@ export const FileTree = ({
   const getSearchResults = () => {
     if (projectId && node.path) {
       const results = state.findAllInFolder.results[projectId][node.path];
-      // console.log("trimming by", numResultsToShow());
+      // Console.log("trimming by", numResultsToShow());
       if ((results.length > numResultsToShow(), results)) {
         const resultsToShow = results.slice(0, numResultsToShow());
         setNumResultsHidden(results.length - numResultsToShow());
@@ -752,16 +755,16 @@ export const FileTree = ({
   const expansions = createMemo(() => getWindow(state)?.expansions || []);
   const isExpanded = createMemo(
     () =>
-      // previewNode can set isExpanded on the node directly
+      // PreviewNode can set isExpanded on the node directly
       ("isExpanded" in node && node.isExpanded) ||
-      // regular nodes expansions are persisted
+      // Regular nodes expansions are persisted
       Boolean(expansions().includes(node.path)) ||
-      // when adding a child expand the parent to show other children
+      // When adding a child expand the parent to show other children
       showChildPreview() ||
       getSearchResults().length > 0,
   );
   const setIsExpanded = (value: boolean) => {
-    // if it's a preview node with isExpanded defined directly on the node
+    // If it's a preview node with isExpanded defined directly on the node
     if ("isExpanded" in node) {
       node.isExpanded = value;
     } else {
@@ -775,8 +778,8 @@ export const FileTree = ({
 
     if (
       node.type === "dir" &&
-      (("previewChildren" in node && Boolean(Object.keys(node.previewChildren).length)) ||
-        ("children" in node && Boolean(node.children.length)))
+      (("previewChildren" in node && Object.keys(node.previewChildren).length > 0) ||
+        ("children" in node && node.children.length > 0))
     ) {
       setIsExpanded(!isExpanded());
     }
@@ -785,8 +788,8 @@ export const FileTree = ({
   const editNodeSettingsHandler = (e: MouseEvent) => {
     e.stopImmediatePropagation();
     if (!("isExpanded" in node)) {
-      // check it's not a previewNode.
-      // todo (yoav): there's probably a better way to identity previewNodes
+      // Check it's not a previewNode.
+      // Todo (yoav): there's probably a better way to identity previewNodes
       editNodeSettings(node);
     }
   };
@@ -825,7 +828,7 @@ export const FileTree = ({
           </For>
           <For each={getSearchResults()}>
             {(searchResult) => {
-              // console.log("search result", searchResult);
+              // Console.log("search result", searchResult);
 
               const { line, column, match } = searchResult;
 
@@ -912,9 +915,9 @@ const TreeUL = ({
   showLeftBar = false,
 }: {
   children: JSX.Element;
-  // todo (yoav): show left bar is currently not used. it was used
-  // to show a visual helper line to see nested folders. it just
-  // needs some style tweaking to look good
+  // Todo (yoav): show left bar is currently not used. it was used
+  // To show a visual helper line to see nested folders. it just
+  // Needs some style tweaking to look good
   showLeftBar?: boolean;
 }) => {
   const [isSelfHovered, setIsSelfHovered] = createSignal(false);
@@ -1021,7 +1024,7 @@ const TreeLI = ({
 const getFilteredNodeChildren = (node: CachedFileType | PreviewFileTreeType) => {
   if (node.type === "dir") {
     if ("children" in node) {
-      // todo (yoav): this should be more robust and support globs
+      // Todo (yoav): this should be more robust and support globs
       if (node.path.endsWith("/.git")) {
         return node.children
           .filter((childFilename) => childFilename === "hooks")
@@ -1030,20 +1033,20 @@ const getFilteredNodeChildren = (node: CachedFileType | PreviewFileTreeType) => 
 
       return (
         node.children
-          // filter out ignored files
-          .filter((childFilename) => !childFilename.match(filesToFilter.simple))
+          // Filter out ignored files
+          .filter((childFilename) => !filesToFilter.simple.test(childFilename))
           .filter(Boolean)
           .sort()
-          // fetch the actual cachedFiles
+          // Fetch the actual cachedFiles
           .map((childName) => getNode(join(node.path, childName)))
-        // filter out nulls in case the file system was out of sync
+        // Filter out nulls in case the file system was out of sync
       );
     }
     if ("previewChildren" in node) {
       return (
         node.previewChildren
-          // filter out ignored files
-          .filter((child) => !child.name.match(filesToFilter.simple))
+          // Filter out ignored files
+          .filter((child) => !filesToFilter.simple.test(child.name))
       );
     }
   }
@@ -1066,7 +1069,7 @@ const NodeName = ({
   showChildPreview: () => boolean;
   readonly: boolean;
 }) => {
-  // render the edited name of the node if we're editing it
+  // Render the edited name of the node if we're editing it
   const nodeToRender = () => {
     if (state.settingsPane.type === "edit-node" || state.settingsPane.type === "add-node") {
       if (node.path === state.settingsPane.data?.node?.path) {
@@ -1089,7 +1092,7 @@ const NodeName = ({
   const [fileDecoration] = createResource(
     () => nodeToRender()?.path,
     async (path) => {
-      if (!path || path.startsWith("__COLAB_INTERNAL__")) return null;
+      if (!path || path.startsWith("__COLAB_INTERNAL__")) {return null;}
       return getFileDecoration(path);
     },
   );
@@ -1102,22 +1105,22 @@ const NodeName = ({
     return false;
   };
 
-  // todo (yoav): [blocking] how reactive do we need this to be?
-  // ie: if the config changes outside of colab (eg: from a git pull or something)
-  // although we can also just for re-rendering the whole tree in that case
+  // Todo (yoav): [blocking] how reactive do we need this to be?
+  // Ie: if the config changes outside of colab (eg: from a git pull or something)
+  // Although we can also just for re-rendering the whole tree in that case
   const slate = () => getSlateForNode(nodeToRender());
 
   const isSelected = () => {
     const currentTab = getCurrentTab(state);
     return currentTab?.path === nodeToRender().path && !state.settingsPane.type?.includes("node");
   };
-  // todo (yoav): debounce this so that we can dedupe double clicks
+  // Todo (yoav): debounce this so that we can dedupe double clicks
   const onLaunchClick = (e: MouseEvent) => {
     e.stopPropagation();
 
-    // debugger;
+    // Debugger;
     if (e.detail > 1 && getCurrentTab()?.isPreview) {
-      // double click
+      // Double click
       setState(
         produce((_state: AppState) => {
           const tab = getCurrentTab(_state);
@@ -1138,32 +1141,32 @@ const NodeName = ({
       return;
     }
 
-    // todo (yoav): move this function to its own slate/pane management file
+    // Todo (yoav): move this function to its own slate/pane management file
     const nodeType = nodeToRender().type;
     const slateType = slate()?.type;
 
     if (nodeType === "file" || (slateType && slateType !== "project")) {
       // Only select existing tab if it's single click. additional clicks eg: double click should open a new tab
       if (e.detail === 1) {
-        // todo (yoav): in the future consider including other windows in the search as well
+        // Todo (yoav): in the future consider including other windows in the search as well
 
         // Is this tab already open somewhere in the window.
         // First look for a tab in the current pane
 
-        // const currentPane = getCurrentPane(state);
-        // there might not be a currentTab if the current pane is empty
+        // Const currentPane = getCurrentPane(state);
+        // There might not be a currentTab if the current pane is empty
         const currentPaneActiveTabNode = getNode(getCurrentTab()?.path);
         const currentProject =
           currentPaneActiveTabNode && getProjectForNode(currentPaneActiveTabNode);
         const nodeToRenderProject = getProjectForNode(nodeToRender());
 
-        // first look at the currrent tab of the current pane
+        // First look at the currrent tab of the current pane
         if (
           currentPaneActiveTabNode &&
           currentProject?.id === nodeToRenderProject?.id &&
           currentPaneActiveTabNode.path === nodeToRender().path
         ) {
-          // it's the currentPane/tab so it's already focused
+          // It's the currentPane/tab so it's already focused
           setState(
             produce((_state: AppState) => {
               const tab = getCurrentTab(_state);
@@ -1184,7 +1187,7 @@ const NodeName = ({
 
         // Then look at the current tab of other panes
         const currentTabSomewhere = Object.values(win.tabs).find((tab) => {
-          // todo (yoav): add better typings that node may not exist in stale tabs
+          // Todo (yoav): add better typings that node may not exist in stale tabs
           if (!getNode(tab.path)) {
             return false;
           }
@@ -1241,10 +1244,10 @@ const NodeName = ({
     const nodeType = _nodeToRender.type;
     const slateType = slate()?.type;
 
-    // slate can be blank if its an internal or previewNode
+    // Slate can be blank if its an internal or previewNode
     if (nodeType === "file" || (slateType && slateType !== "project")) {
       onLaunchClick(e);
-    } else if ("children" in _nodeToRender && Object.keys(_nodeToRender.children || {}).length) {
+    } else if ("children" in _nodeToRender && Object.keys(_nodeToRender.children || {}).length > 0) {
       onLeftActionClick();
     }
   };
@@ -1274,46 +1277,46 @@ const NodeName = ({
           .gitCheckIsRepoRoot({
             repoRoot: _nodeToRender.path,
           })
-          .catch((err) => {
-            console.log(err);
+          .catch((error) => {
+            console.log(error);
             return false;
           });
 
-        // const isRepoRoot = await git.checkIsRepo(CheckRepoActions.IS_REPO_ROOT);
+        // Const isRepoRoot = await git.checkIsRepo(CheckRepoActions.IS_REPO_ROOT);
         const isInRepoTree = await electrobun.rpc?.request
           .gitCheckIsRepoInTree({
             repoRoot: _nodeToRender.path,
           })
-          .catch((err) => {
-            console.log(err);
+          .catch((error) => {
+            console.log(error);
             return false;
           });
 
-        // const isInRepoTree = await git.checkIsRepo(CheckRepoActions.IN_TREE);
+        // Const isInRepoTree = await git.checkIsRepo(CheckRepoActions.IN_TREE);
 
-        // todo (yoav): bench this to see if it's really faster
+        // Todo (yoav): bench this to see if it's really faster
 
         if (isRepoRoot) {
-          //   console.log("isRepoRoot", join(path, ".git"));
+          //   Console.log("isRepoRoot", join(path, ".git"));
           return basename(path) === ".git" ? path : join(path, ".git");
         }
 
         if (isInRepoTree) {
-          // console.log("isInRepoTree", await git.revparse(["--show-toplevel"]));
+          // Console.log("isInRepoTree", await git.revparse(["--show-toplevel"]));
           return await electrobun.rpc?.request
             .gitRevParse({
               repoRoot: _nodeToRender.path,
               options: ["--show-toplevel"],
             })
-            .catch((err) => {
-              console.log(err);
+            .catch((error) => {
+              console.log(error);
               return false;
             });
-          // return await git.revparse(["--show-toplevel"]);
+          // Return await git.revparse(["--show-toplevel"]);
         }
 
         // Note: we can use rev-parse --is-inside-work-tree or simplegit's wrappers to check if
-        // we're in a git repo, but it doesn't work inside the .git folder itself
+        // We're in a git repo, but it doesn't work inside the .git folder itself
         const ancestorGitSegements = path.split("/.git/");
 
         if (ancestorGitSegements.length === 1) {
@@ -1327,17 +1330,17 @@ const NodeName = ({
           currentPath = join(currentPath, segment);
           const gitPathToCheck = join(currentPath, ".git");
 
-          // git.cwd(gitPathToCheck);
+          // Git.cwd(gitPathToCheck);
 
-          // const isRepoRoot = await git.checkIsRepo(
+          // Const isRepoRoot = await git.checkIsRepo(
           //   CheckRepoActions.IS_REPO_ROOT
           // );
           const isRepoRoot = await electrobun.rpc?.request
             .gitCheckIsRepoRoot({
               repoRoot: gitPathToCheck,
             })
-            .catch((err) => {
-              console.log(err);
+            .catch((error) => {
+              console.log(error);
               return false;
             });
 
@@ -1366,7 +1369,7 @@ const NodeName = ({
         }
       };
 
-      // const unwrappedNodeToRender = unwrap(_nodeToRender);
+      // Const unwrappedNodeToRender = unwrap(_nodeToRender);
 
       const menuItems = [
         ...openTabs.map((tab, index) => ({
@@ -1376,7 +1379,7 @@ const NodeName = ({
           }),
         })),
 
-        { type: "separator", visible: Boolean(openTabs.length) },
+        { type: "separator", visible: openTabs.length > 0 },
 
         {
           label: "Open in New Tab",
@@ -1401,7 +1404,7 @@ const NodeName = ({
           }),
         },
 
-        // should show what settings "type" it is
+        // Should show what settings "type" it is
         {
           label: "Show Node Settings",
           hidden: readonly,
@@ -1410,7 +1413,7 @@ const NodeName = ({
           }),
         },
 
-        { type: "separator", visible: Boolean(openTabs.length) },
+        { type: "separator", visible: openTabs.length > 0 },
         // Add different node types for folders
         {
           label: "Add File",
@@ -1447,7 +1450,7 @@ const NodeName = ({
             nodePath: _nodeToRender.path,
           }),
         },
-        { type: "separator", visible: Boolean(openTabs.length) },
+        { type: "separator", visible: openTabs.length > 0 },
         {
           label: "Rename",
           hidden: readonly,
@@ -1472,7 +1475,7 @@ const NodeName = ({
           }),
         },
 
-        { type: "separator", hidden: !openTabs.length },
+        { type: "separator", hidden: openTabs.length === 0 },
         {
           label: "Init Git",
           hidden: !(
@@ -1513,19 +1516,12 @@ const NodeName = ({
         });
         if (pluginMenuItems && pluginMenuItems.length > 0) {
           menuItems.push(
-            ...pluginMenuItems.map((item) => ({
-              label: item.label,
-              accelerator: item.shortcutHint,
-              ...createContextMenuAction("plugin_context_menu_item", {
-                itemId: item.id,
-                filePath: _nodeToRender.path,
-              }),
-            })),
+            ...pluginMenuItems.map((item) => (((((((({label:item.label,accelerator:item.shortcutHint, ...createContextMenuAction(`plugin_context_menu_item`,{itemId:item.id,filePath:_nodeToRender.path})}))))))))),
             { type: "separator" },
           );
         }
-      } catch (err) {
-        console.warn("Failed to fetch plugin context menu items:", err);
+      } catch (error) {
+        console.warn("Failed to fetch plugin context menu items:", error);
       }
 
       // Check if this node is a project root (its path exactly matches a project's path)
@@ -1562,7 +1558,7 @@ const NodeName = ({
     console.info("double click");
   };
 
-  const hasSlate = () => !!slate;
+  const hasSlate = () => Boolean(slate);
 
   const focusedTabBackground = () => {
     if (isNodeAncestorBeingEdited()) {
@@ -1698,11 +1694,11 @@ const NodeName = ({
           if (state.dragState.type !== "node") {
             return;
           }
-          // todo (yoav): we should use node path instead of the node
-          // if a filesystem change causes the drag node to get out of sync
-          // with the actual file/folder/node/slate on disk it might try
-          // open a tab to a certain file type or slate type that no longer exists
-          // and lead to bugs
+          // Todo (yoav): we should use node path instead of the node
+          // If a filesystem change causes the drag node to get out of sync
+          // With the actual file/folder/node/slate on disk it might try
+          // Open a tab to a certain file type or slate type that no longer exists
+          // And lead to bugs
           const { targetPaneId, targetTabIndex, nodePath } = state.dragState;
           const settingsPaneData = state.settingsPane.data;
           const node =
@@ -1714,7 +1710,7 @@ const NodeName = ({
           }
 
           if (state.dragState.targetPaneId) {
-            // open a new tab for node
+            // Open a new tab for node
             setState(
               produce((_state: AppState) => {
                 const win = getWindow(_state);
@@ -1725,7 +1721,7 @@ const NodeName = ({
                 win.currentPaneId = targetPaneId || "";
               }),
             );
-            debugger;
+            
             // Check if it's a folder without a slate OR a project node - if so, open terminal
             const slate = getSlateForNode(node);
             if (node.type === "dir" && (!slate || slate.type === "project")) {
@@ -1745,11 +1741,11 @@ const NodeName = ({
             const { targetFolderPath } = state.dragState;
             const currentBasePath = dirname(nodePath);
             if (currentBasePath === targetFolderPath) {
-              // moving it to the same folder, so nothing to do
+              // Moving it to the same folder, so nothing to do
               return;
             }
 
-            // this will make sure we get a new path that doesn't already exist
+            // This will make sure we get a new path that doesn't already exist
             const uniqueFileName = await electrobun.rpc?.request.getUniqueNewName({
               parentPath: targetFolderPath,
               baseName: node.name,
@@ -1760,12 +1756,12 @@ const NodeName = ({
             setNodeExpanded(targetFolderPath, true);
 
             // When dragging a regular node we can rename it
-            // renaming the actual file on disk will trigger a file watcher event
-            // and update the file tree accordingly
+            // Renaming the actual file on disk will trigger a file watcher event
+            // And update the file tree accordingly
             electrobun.rpc?.request.rename({ oldPath: node.path, newPath });
 
             // When dragging a previewNode there's no file on disk yet, we just
-            // want to reparent it
+            // Want to reparent it
             if ("previewNode" in settingsPaneData) {
               if (settingsPaneData.previewNode.path === nodePath) {
                 setState(
@@ -1802,7 +1798,7 @@ const NodeName = ({
         "text-overflow": "ellipsis",
         width: "100%",
         overflow: "hidden",
-        // background: focusedTabBackground(),
+        // Background: focusedTabBackground(),
 
         cursor: usePointer() ? "pointer" : "default",
       }}
@@ -1838,9 +1834,9 @@ const NodeName = ({
               ? {
                   rotate:
                     (isExpandActive() && isHovered()) || isExpandHovered()
-                      ? isExpanded()
+                      ? (isExpanded()
                         ? "-5deg"
-                        : "5deg"
+                        : "5deg")
                       : "0deg",
                   translate: (isExpandActive() && isHovered()) || isExpandHovered() ? "2px" : "0px",
                   "transform-origin": "center",
@@ -2006,7 +2002,7 @@ export const FileTreeItemControlButton = ({
 // - both files and folders can also be slates
 // - you should always show the folder/file icon as well as the slate icon if it exists
 // - hover interactions indicate what will happen when you click on the file name. you have to go out of your way to edit the raw file or open the raw folder
-// when there's an slate involved.
+// When there's an slate involved.
 
 export const getIconForNode = (node: CachedFileType | PreviewFileTreeType): string => {
   if (node.type === "dir") {
@@ -2081,7 +2077,7 @@ export const FindAllResultsTree = () => {
     return Object.keys(state.findAllInFolder.results).map((projectId) => state.projects[projectId]);
   };
 
-  // console.log("----> ", projectsWithResultsAsArray(), resultsArray());
+  // Console.log("----> ", projectsWithResultsAsArray(), resultsArray());
 
   return (
     <>

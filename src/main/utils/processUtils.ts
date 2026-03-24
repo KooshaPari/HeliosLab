@@ -25,7 +25,7 @@ export const execSpawnSync = (
   const stderr = result.stderr.toString().trim();
 
   if (stderr) {
-    console.error("stderr: ", stderr);
+    console.error("stderr:", stderr);
   }
 
   return {

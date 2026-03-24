@@ -1,5 +1,5 @@
 // XXX
-// import { spawn } from "child_process";
+// Import { spawn } from "child_process";
 import { createEffect, untrack } from "solid-js";
 import { type AppState, setState, state } from "./store";
 import { join, relative } from "../utils/pathUtils";
@@ -12,56 +12,56 @@ import {
 } from "../../shared/types/types";
 import { electrobun } from "./init";
 
-// const HOME_DIRECTORY = homedir();
-// const COLAB_DIRECTORY = join(HOME_DIRECTORY, "colab");
-// export const DEFAULT_CODE_DIRECTORY = join(HOME_DIRECTORY, "colab");
+// Const HOME_DIRECTORY = homedir();
+// Const COLAB_DIRECTORY = join(HOME_DIRECTORY, "colab");
+// Export const DEFAULT_CODE_DIRECTORY = join(HOME_DIRECTORY, "colab");
 
-// todo (yoav): [blocking] move this to store
-// export interface FileNodeType {
-//   name: string;
-//   path: string;
-//   type: "file";
-//   contents: string;
-//   isDirty: boolean;
-//   model: any;
+// Todo (yoav): [blocking] move this to store
+// Export interface FileNodeType {
+//   Name: string;
+//   Path: string;
+//   Type: "file";
+//   Contents: string;
+//   IsDirty: boolean;
+//   Model: any;
 // }
 
-// export interface PreviewFolderNodeType<Extended> {
-//   name: string;
-//   path: string;
-//   type: "dir";
-//   children: Record<string, FileTreeType<Extended>>;
+// Export interface PreviewFolderNodeType<Extended> {
+//   Name: string;
+//   Path: string;
+//   Type: "dir";
+//   Children: Record<string, FileTreeType<Extended>>;
 // }
 
-// export type FileTreeType<Extended = {}> = CachedFileType | PreviewFolderNodeType<Extended> & Extended;
+// Export type FileTreeType<Extended = {}> = CachedFileType | PreviewFolderNodeType<Extended> & Extended;
 
 // XXX
-// import "./files";
-// this import was imported into index.tsx and just doing this
-// this should happen on the server, maybe i fetch Projects and send
+// Import "./files";
+// This import was imported into index.tsx and just doing this
+// This should happen on the server, maybe i fetch Projects and send
 
 // // createEffect(() => {
-//   const { projects } = state;
-//   if (projects) {
-//     createFoldersForProjects(projects);
+//   Const { projects } = state;
+//   If (projects) {
+//     CreateFoldersForProjects(projects);
 //   }
 // });
-// export const createFoldersForProjects = (projectsById: AppState['projects']) => {
-//   if (!state.paths?.COLAB_HOME_FOLDER) {
-//     throw new Error('Must set COLAB_HOME_FOLDER in state.paths')
+// Export const createFoldersForProjects = (projectsById: AppState['projects']) => {
+//   If (!state.paths?.COLAB_HOME_FOLDER) {
+//     Throw new Error('Must set COLAB_HOME_FOLDER in state.paths')
 //   }
-//   for (const projectId in projectsById) {
-//     const project = projectsById[projectId];
+//   For (const projectId in projectsById) {
+//     Const project = projectsById[projectId];
 //     // TODO: connect this to branch changes later
-//     const projectPath = join(state.paths.COLAB_HOME_FOLDER, makeFileNameSafe(project.name));
-//     if (!existsSync(projectPath)) {
-//       mkdirSync(projectPath, { recursive: true });
+//     Const projectPath = join(state.paths.COLAB_HOME_FOLDER, makeFileNameSafe(project.name));
+//     If (!existsSync(projectPath)) {
+//       MkdirSync(projectPath, { recursive: true });
 //     }
 //   }
 // };
 
-// todo (yoav): [blocking] move this to a store and make it reactive when state changes (wtf did I mean by this comment)
-// todo (yoav): [blocking] rename this to writeColabSlateConfigFile since it's different to writing a package.json config file
+// Todo (yoav): [blocking] move this to a store and make it reactive when state changes (wtf did I mean by this comment)
+// Todo (yoav): [blocking] rename this to writeColabSlateConfigFile since it's different to writing a package.json config file
 export const writeSlateConfigFile = (absoluteFolderPath: string, slate: SlateType) => {
   // Projects are stored in GoldfishDB, not .colab.json
   // Only write .colab.json for web and agent slates
@@ -78,7 +78,7 @@ export const writeSlateConfigFile = (absoluteFolderPath: string, slate: SlateTyp
         config: slate.config || {},
       });
     } else {
-      // web type
+      // Web type
       contents = JSON.stringify({
         v: 1,
         name: slate.name || "",
@@ -89,16 +89,16 @@ export const writeSlateConfigFile = (absoluteFolderPath: string, slate: SlateTyp
       });
     }
 
-    // save your file here
+    // Save your file here
     const result = electrobun.rpc?.request.writeFile({
       path: configPath,
       value: contents,
     });
 
-    // todo: handle failure
-    // if (!result?.success) {
+    // Todo: handle failure
+    // If (!result?.success) {
     //   // todo: handle failed write
-    //   return;
+    //   Return;
     // }
   }
 };
@@ -141,7 +141,7 @@ export const getProjectForNodePath = (nodePath: string, _state: AppState = state
   });
 
   if (matchingProjects.length === 0) {
-    return undefined;
+    return;
   }
 
   // Return the most specific (deepest nested) project
@@ -158,7 +158,7 @@ export const getFileTreesChildPathToNode = (nodePath: string): string[] => {
     const project = getProjectForNodePath(nodePath);
 
     if (!project?.path) {
-      // todo (yoav): [blocking] can remove after cleaning up the old bad data
+      // Todo (yoav): [blocking] can remove after cleaning up the old bad data
       return [];
     }
 
@@ -174,8 +174,8 @@ export const getFileTreesChildPathToNode = (nodePath: string): string[] => {
   });
 };
 
-// given something nodeShaped, return the copy from state
-// todo (yoav): rename this function
+// Given something nodeShaped, return the copy from state
+// Todo (yoav): rename this function
 
 const fileSlates = {
   ".git": {
@@ -192,7 +192,7 @@ const fileSlates = {
     config: {},
   },
   // Note: .webflowrc.json and webflow.json are now handled by the webflow-plugin
-  // via the plugin slate system (see pluginSlateRegistry.tsx)
+  // Via the plugin slate system (see pluginSlateRegistry.tsx)
 };
 
 // Template slates - cached to maintain object reference for reactivity
@@ -226,23 +226,23 @@ const templateSlates = {
   },
 };
 
-// todo: - how much of this should be async via the backend vs. completely stored, and cached
-// on the backend.
+// Todo: - how much of this should be async via the backend vs. completely stored, and cached
+// On the backend.
 export const getSlateForNode = (node?: CachedFileType | PreviewFileTreeType | null) => {
   if (!node) {
-    // throw new Error('Must give a node')
-    return undefined;
+    // Throw new Error('Must give a node')
+    return;
   }
 
   // Note: In certain siutations, like creating a node we're looking
-  // at a previewnode which just has the slate defined on it
+  // At a previewnode which just has the slate defined on it
   if ("slate" in node) {
     return node.slate;
   }
 
   // Guard against nodes with undefined path
   if (!node.path) {
-    return undefined;
+    return;
   }
 
   if (node.path.startsWith("__COLAB_INTERNAL__")) {
@@ -263,7 +263,7 @@ export const getSlateForNode = (node?: CachedFileType | PreviewFileTreeType | nu
   if (node.path.startsWith("__COLAB_TEMPLATE__")) {
     // Extract template type from path (handles unique IDs like browser-chromium/abc123)
     const pathParts = node.path.replace("__COLAB_TEMPLATE__/", "").split("/");
-    const templateType = pathParts[0]; // e.g., "browser-chromium" or "browser-webkit"
+    const templateType = pathParts[0]; // E.g., "browser-chromium" or "browser-webkit"
 
     if (templateType === "browser-chromium") {
       return templateSlates.browserChromium;
@@ -277,7 +277,7 @@ export const getSlateForNode = (node?: CachedFileType | PreviewFileTreeType | nu
     }
     if (templateType === "terminal") {
       // Terminal tabs are handled differently - they don't use slates
-      return undefined;
+      return;
     }
     if (templateType === "agent") {
       return templateSlates.agent;
@@ -293,7 +293,7 @@ export const getSlateForNode = (node?: CachedFileType | PreviewFileTreeType | nu
     if (fileNameSlate) {
       // For .git, create a custom slate with the parent folder name
       if (fileOrFolderName === ".git") {
-        const parentFolderName = node.path.split("/").slice(-2, -1)[0] || "Git";
+        const parentFolderName = node.path.split("/").at(-2) || "Git";
         return {
           ...fileNameSlate,
           name: `Git: ${parentFolderName}`,
@@ -312,9 +312,9 @@ export const getSlateForNode = (node?: CachedFileType | PreviewFileTreeType | nu
 
       if (cachedConfig) {
         // Skip project slates from .colab.json - projects are now stored in GoldfishDB
-        // and detected via isProjectRoot()
+        // And detected via isProjectRoot()
         if (cachedConfig.type === "project") {
-          return undefined;
+          return;
         }
         return cachedConfig;
       }
@@ -325,7 +325,7 @@ export const getSlateForNode = (node?: CachedFileType | PreviewFileTreeType | nu
     }
 
     // Note: currently .colab.json is the only nested slate type, but in the future
-    // you could add more here
+    // You could add more here
   }
 
   // Check for plugin slates (e.g., webflow.json, .webflowrc.json)
@@ -335,7 +335,7 @@ export const getSlateForNode = (node?: CachedFileType | PreviewFileTreeType | nu
     if (pluginSlates && pluginSlates.length > 0) {
       const filename = node.path.split("/").pop() || "";
       for (const slate of pluginSlates) {
-        if (slate.folderHandler) continue;
+        if (slate.folderHandler) {continue;}
         for (const pattern of slate.patterns) {
           if (
             pattern === filename ||
@@ -356,11 +356,11 @@ export const getSlateForNode = (node?: CachedFileType | PreviewFileTreeType | nu
     }
   }
 
-  // return node.type;
+  // Return node.type;
 };
 
 // Note: this can be used to read and cache any slate config file .colab.json, package.json, etc.
-// currently only supports json files
+// Currently only supports json files
 export const readSlateConfigFile = (path: string, cacheResult = true) => {
   electrobun.rpc?.request.readSlateConfigFile({ path }).then((slate) => {
     if (slate && cacheResult) {
@@ -425,8 +425,8 @@ export const loadPluginSlates = async (): Promise<void> => {
       // Even with no slates, mark renderers as ready
       await initializeAllPluginRenderers([]);
     }
-  } catch (e) {
-    console.error("[files] Failed to load plugin slates:", e);
+  } catch (error) {
+    console.error("[files] Failed to load plugin slates:", error);
     setState("pluginSlates", []);
     // Mark renderers ready even on error so slates don't hang
     const { initializeAllPluginRenderers } = await import("./slates/pluginSlateRegistry");
@@ -459,7 +459,7 @@ export const findPluginSlateForFile = (filePath: string): PluginSlateInfo | null
 
   for (const slate of pluginSlates) {
     // Skip folder handlers when looking for files
-    if (slate.folderHandler) continue;
+    if (slate.folderHandler) {continue;}
 
     for (const pattern of slate.patterns) {
       // Exact match
@@ -498,8 +498,8 @@ export const findPluginSlateForFolder = async (
   try {
     const result = await electrobun.rpc?.request.pluginFindSlateForFolder({ folderPath });
     return result ? normalizePluginSlate(result) : null;
-  } catch (e) {
-    console.error("[files] Failed to find plugin slate for folder:", e);
+  } catch (error) {
+    console.error("[files] Failed to find plugin slate for folder:", error);
     return null;
   }
 };

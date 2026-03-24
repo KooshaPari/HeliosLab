@@ -120,8 +120,8 @@ export async function activate(api: PluginAPI): Promise<void> {
       api.notifications.showInfo(`⚡ Branch: ${branch}`);
       api.log.info("Git status:", status);
       return { branch, status };
-    } catch (err) {
-      api.notifications.showError(`Git error: ${err}`);
+    } catch (error) {
+      api.notifications.showError(`Git error: ${error}`);
     }
   });
   disposables.push(gitStatusDisposable);
@@ -133,8 +133,8 @@ export async function activate(api: PluginAPI): Promise<void> {
       api.notifications.showInfo(`⚡ Found ${files.length} TypeScript files`);
       api.log.info("TypeScript files:", files.slice(0, 10));
       return { count: files.length, sample: files.slice(0, 10) };
-    } catch (err) {
-      api.notifications.showError(`Find files error: ${err}`);
+    } catch (error) {
+      api.notifications.showError(`Find files error: ${error}`);
     }
   });
   disposables.push(findFilesDisposable);
@@ -146,8 +146,8 @@ export async function activate(api: PluginAPI): Promise<void> {
       api.notifications.showInfo(`Shell output: ${result.stdout.trim()}`);
       api.log.info("Shell result:", result);
       return result;
-    } catch (err) {
-      api.notifications.showError(`Shell error: ${err}`);
+    } catch (error) {
+      api.notifications.showError(`Shell error: ${error}`);
     }
   });
   disposables.push(shellDisposable);
@@ -170,11 +170,11 @@ export async function activate(api: PluginAPI): Promise<void> {
     const { args, cwd, write } = ctx;
     const count = parseInt(args[0]) || 3;
 
-    write("\x1b[33m"); // Yellow
+    write("\u001B[33m"); // Yellow
     write("⚡🐰 Electrobun Terminal Command\r\n");
-    write("\x1b[0m");
+    write("\u001B[0m");
     write("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\r\n\r\n");
-    write(`\x1b[90mCWD: ${cwd}\x1b[0m\r\n\r\n`);
+    write(`\u001B[90mCWD: ${cwd}\u001B[0m\r\n\r\n`);
 
     const emojis = ["⚡", "🐰", "⚡🐰", "🔌", "💡", "🚀"];
     for (let i = 0; i < count; i++) {
@@ -183,17 +183,17 @@ export async function activate(api: PluginAPI): Promise<void> {
       write(`${emoji} Zap ${i + 1}!\r\n`);
     }
 
-    write("\r\n\x1b[32m✓ Electrobun zapped!\x1b[0m\r\n");
+    write("\r\n\u001B[32m✓ Electrobun zapped!\u001B[0m\r\n");
   });
   disposables.push(terminalZapDisposable);
 
   // "bunny" terminal command - shows bunny art
   const terminalBunnyDisposable = api.terminal.registerCommand("bunny", async (ctx: TerminalCommandContext) => {
     const { write } = ctx;
-    write("\x1b[35m"); // Magenta
+    write("\u001B[35m"); // Magenta
     write("   /)  /)\r\n");
     write("  ( ^.^ )\r\n");
-    write('  c(")(")  \x1b[33m⚡ Electrobun!\x1b[0m\r\n\r\n');
+    write('  c(")(")  \u001B[33m⚡ Electrobun!\u001B[0m\r\n\r\n');
   });
   disposables.push(terminalBunnyDisposable);
 
@@ -202,7 +202,7 @@ export async function activate(api: PluginAPI): Promise<void> {
     "paths",
     async (ctx: TerminalCommandContext) => {
     const { write } = ctx;
-    write("\x1b[36m⚡ Bundled Binary Paths:\x1b[0m\r\n\r\n");
+    write("\u001B[36m⚡ Bundled Binary Paths:\u001B[0m\r\n\r\n");
     write(`  bun:       ${api.paths.bun}\r\n`);
     write(`  git:       ${api.paths.git}\r\n`);
     write(`  fd:        ${api.paths.fd}\r\n`);
@@ -336,7 +336,7 @@ export async function activate(api: PluginAPI): Promise<void> {
           tooltip: "Electrobun file!",
         };
       }
-      return undefined;
+      return;
     },
   });
   disposables.push(decorationDisposable);
@@ -372,8 +372,8 @@ export async function activate(api: PluginAPI): Promise<void> {
           } else {
             flashStatus(`⚡ File not found`, 2000);
           }
-        } catch (err) {
-          api.log.warn(`Could not read file: ${err}`);
+        } catch (error) {
+          api.log.warn(`Could not read file: ${error}`);
           flashStatus(`⚡ Error reading file`, 2000);
         }
       } else if (ctx.selection) {
@@ -405,12 +405,12 @@ export async function activate(api: PluginAPI): Promise<void> {
           const isDir = result.stdout.trim() === "dir";
           if (!isDir) {
             // It's a file, get the parent directory
-            dirPath = dirPath.substring(0, dirPath.lastIndexOf("/"));
+            dirPath = dirPath.slice(0, dirPath.lastIndexOf("/"));
           }
         } catch {
           // If shell fails, fall back to extension check
           if (dirPath.includes(".") && !dirPath.endsWith("/")) {
-            dirPath = dirPath.substring(0, dirPath.lastIndexOf("/"));
+            dirPath = dirPath.slice(0, dirPath.lastIndexOf("/"));
           }
         }
       }
@@ -449,9 +449,9 @@ Created: ${new Date().toLocaleString()}
         await api.workspace.writeFile(filePath, content);
         flashStatus(`🐰 Created ${fileName}`, 3000);
         api.log.info(`Created bunny file: ${filePath}`);
-      } catch (err) {
-        api.notifications.showError(`Failed to create file: ${err}`);
-        api.log.error(`Failed to create bunny file: ${err}`);
+      } catch (error) {
+        api.notifications.showError(`Failed to create file: ${error}`);
+        api.log.error(`Failed to create bunny file: ${error}`);
       }
     },
   );
@@ -577,7 +577,7 @@ Created: ${new Date().toLocaleString()}
     const changedFiles = api.state.get<string[]>("changedFiles") || [];
     if (!changedFiles.includes(event.path)) {
       changedFiles.push(event.path);
-      if (changedFiles.length > 10) changedFiles.shift(); // Keep last 10
+      if (changedFiles.length > 10) {changedFiles.shift();} // Keep last 10
       api.state.set("changedFiles", changedFiles);
     }
   });
@@ -617,21 +617,21 @@ Created: ${new Date().toLocaleString()}
     api.state.set("slateInstances", instances);
 
     // Get the directory of the .bunny file for the terminal cwd
-    const fileDir = context.filePath.substring(0, context.filePath.lastIndexOf("/"));
+    const fileDir = context.filePath.slice(0, context.filePath.lastIndexOf("/"));
 
     // Read the file content if it exists
     let content = "";
     try {
       content = await api.workspace.readFile(context.filePath);
-    } catch (err) {
+    } catch {
       content = "(new bunny file)";
     }
 
     // Escape content for HTML
     const escapedContent = content
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;");
+      .replaceAll('&', "&amp;")
+      .replaceAll('<', "&lt;")
+      .replaceAll('>', "&gt;");
 
     // Render the slate UI with terminal
     const html = `
@@ -767,15 +767,15 @@ Created: ${new Date().toLocaleString()}
 
             // Re-render the slate with updated content
             const escapedContent = newContent
-              .replace(/&/g, "&amp;")
-              .replace(/</g, "&lt;")
-              .replace(/>/g, "&gt;");
+              .replaceAll('&', "&amp;")
+              .replaceAll('<', "&lt;")
+              .replaceAll('>', "&gt;");
 
             // Send a message to update just the file preview (we'd need to re-render for this)
             // For now, just log success
             api.log.info("File updated successfully!");
-          } catch (err) {
-            api.log.error(`Failed to append to file: ${err}`);
+          } catch (error) {
+            api.log.error(`Failed to append to file: ${error}`);
           }
         }
       }

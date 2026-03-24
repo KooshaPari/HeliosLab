@@ -97,11 +97,11 @@ const WebflowTokenManager = (props: CustomSettingsComponentProps): JSXElement =>
     await props.setState("tokens", tokens());
   };
 
-  const generateId = () => Math.random().toString(36).substr(2, 9);
+  const generateId = () => Math.random().toString(36).slice(2, 9);
 
   const addToken = async () => {
     const token = newToken().trim();
-    if (!token) return;
+    if (!token) {return;}
 
     const id = generateId();
     const newTkn: WebflowToken = {
@@ -173,9 +173,9 @@ const WebflowTokenManager = (props: CustomSettingsComponentProps): JSXElement =>
   };
 
   const TokenStatus = (status: "idle" | "validating" | "valid" | "invalid") => {
-    if (status === "validating") return <span style="color: #ff9800;">⏳</span>;
-    if (status === "valid") return <span style="color: #51cf66;">✓</span>;
-    if (status === "invalid") return <span style="color: #ff6b6b;">✗</span>;
+    if (status === "validating") {return <span style="color: #ff9800;">⏳</span>;}
+    if (status === "valid") {return <span style="color: #51cf66;">✓</span>;}
+    if (status === "invalid") {return <span style="color: #ff6b6b;">✗</span>;}
     return null;
   };
 
@@ -285,7 +285,7 @@ const WebflowTokenManager = (props: CustomSettingsComponentProps): JSXElement =>
                     </span>
                   </div>
                   <div style="font-size: 10px; color: #666; font-family: monospace; margin-top: 2px; overflow: hidden; text-overflow: ellipsis;">
-                    {token.token.substring(0, 20)}...
+                    {token.token.slice(0, 20)}...
                   </div>
                   <Show when={token.scopes && token.scopes.length > 0}>
                     <div style="font-size: 9px; color: #555; margin-top: 4px;">

@@ -1,10 +1,9 @@
 import type ts from "typescript";
 
-export type PostMessageShowContextMenu = {
+export interface PostMessageShowContextMenu {
   type: "show_context_menu";
   data: {
-    menuItems: Array<
-      | {
+    menuItems: (| {
           label: string;
           visible?: boolean;
           portalMessage: {
@@ -15,19 +14,18 @@ export type PostMessageShowContextMenu = {
       | {
           type: "separator";
           visible?: boolean;
-        }
-    >;
+        })[];
   };
-};
+}
 
 // Note: React provides a React.ChangeEvent<T> similar to this
 // We need it for things like MouseEvents and InputEvents that for some reason
-// don't define target or currentTarget directly
+// Don't define target or currentTarget directly
 export type DomEventWithTarget<Ev, El = Element> = Ev & {
   // The element that the event listener is attached
   currentTarget: El;
   // The element that dispatched the event which could be any element
-  // depending on how we're bubbling. it could even be the document itself
+  // Depending on how we're bubbling. it could even be the document itself
   target: EventTarget;
 };
 
@@ -38,8 +36,8 @@ export interface FileNodeType {
   persistedContent: string;
   isDirty: boolean;
   model: any;
-  // keep track of all the open editors
-  editors: { [editorId: string]: any };
+  // Keep track of all the open editors
+  editors: Record<string, any>;
   // Track whether file contents have been loaded (vs just discovered via file watcher)
   isCached?: boolean;
   // Track if this is a binary file
@@ -66,7 +64,7 @@ export type SlateType =
   | {
       v: 1;
       name: string;
-      // todo (yoav): [blocking] url should be in config
+      // Todo (yoav): [blocking] url should be in config
       type: "web";
       url: string;
       icon: string;
@@ -78,7 +76,7 @@ export type SlateType =
       v: 1;
       name: string;
       type: "project";
-      // todo (yoav): [blocking] why do we need url on a project?
+      // Todo (yoav): [blocking] why do we need url on a project?
       url: string;
       icon: string;
       config: any;
@@ -100,27 +98,27 @@ export type SlateType =
           topP?: number;
           repeatPenalty?: number;
         };
-        chatHistories?: Array<{
+        chatHistories?: {
           id: string;
           title: string;
-          messages: Array<{
+          messages: {
             role: "user" | "assistant";
             content: string;
             timestamp: number;
-          }>;
+          }[];
           createdAt: number;
           updatedAt: number;
-        }>;
+        }[];
         systemPrompt?: string;
-        conversationHistory?: Array<{
+        conversationHistory?: {
           role: "user" | "assistant";
           content: string;
           timestamp: number;
-        }>;
+        }[];
       };
     }
   | {
-      // not stored in .colab.json, based on subfolder
+      // Not stored in .colab.json, based on subfolder
       type: "devlink";
     }
   | {
@@ -136,7 +134,7 @@ export type SlateType =
 export interface ProjectType {
   id: string;
   name: string;
-  // slates: { [relativePath: string]: Slate };
+  // Slates: { [relativePath: string]: Slate };
   path: string;
 }
 
@@ -148,11 +146,11 @@ export type PreviewFolderNodeType = Omit<FolderNodeType, "children"> & {
 
 export type PreviewFileTreeType = CachedFileType | PreviewFolderNodeType;
 
-export type WebflowSitesResponseType = Array<{
+export type WebflowSitesResponseType = {
   _id: string;
   name: string;
   shortName: string;
-}>;
+}[];
 
 // Note: the easiest way to get types here is to create a union of all the possible event and response types
 export type ParsedResponseType =
@@ -167,4 +165,4 @@ export type ParsedResponseType =
   | (ts.server.protocol.QuickInfoResponse & { command: "quickinfo" })
   | (ts.server.protocol.DefinitionResponse & { command: "findSourceDefinition" });
 
-export type PanePathType = Array<number>;
+export type PanePathType = number[];

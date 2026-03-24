@@ -6,7 +6,7 @@ export const isInstalled = () => {
   return existsSync(BUN_BINARY_PATH);
 };
 
-let _version: string = "";
+const _version: string = "";
 export const getVersion = (forceRefetch = false) => {
   const result = execSpawnSync(BUN_BINARY_PATH, ["--version"]);
   return result.stdout || "";

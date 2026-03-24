@@ -34,31 +34,36 @@ export async function handleAuthCommand(
 
   switch (subcommand) {
     case "login":
-    case "connect":
+    case "connect": {
       await handleLogin(write, storage, api);
       break;
+    }
 
     case "logout":
-    case "disconnect":
+    case "disconnect": {
       await handleLogout(write, storage, api);
       break;
+    }
 
-    case "status":
+    case "status": {
       await handleStatus(write, client, storage);
       break;
+    }
 
-    case "token":
+    case "token": {
       // Allow manually setting a token for development
       if (args[1]) {
         await handleSetToken(args[1], write, storage, api);
       } else {
-        write("\x1b[31mUsage: wf auth token <access_token>\x1b[0m\r\n");
+        write("\u001B[31mUsage: wf auth token <access_token>\u001B[0m\r\n");
       }
       break;
+    }
 
-    default:
-      write(`\x1b[31mUnknown auth command: ${subcommand}\x1b[0m\r\n`);
+    default: {
+      write(`\u001B[31mUnknown auth command: ${subcommand}\u001B[0m\r\n`);
       write("Available: login, logout, status, token\r\n");
+    }
   }
 }
 
@@ -70,17 +75,17 @@ async function handleLogin(
   // Check if already authenticated
   const existingAuth = await storage.getAuth();
   if (existingAuth) {
-    write("\x1b[33mYou are already authenticated.\x1b[0m\r\n");
+    write("\u001B[33mYou are already authenticated.\u001B[0m\r\n");
     write('Run "wf auth logout" first to re-authenticate.\r\n');
     return;
   }
 
   if (!OAUTH_CLIENT_ID) {
-    write("\x1b[33mOAuth not configured.\x1b[0m\r\n\r\n");
+    write("\u001B[33mOAuth not configured.\u001B[0m\r\n\r\n");
     write("To authenticate, you can:\r\n");
     write("1. Set WEBFLOW_CLIENT_ID environment variable for OAuth flow\r\n");
     write('2. Use "wf auth token <access_token>" with a personal access token\r\n\r\n');
-    write("\x1b[36mTo get a personal access token:\x1b[0m\r\n");
+    write("\u001B[36mTo get a personal access token:\u001B[0m\r\n");
     write("1. Go to https://webflow.com/dashboard/account/integrations\r\n");
     write('2. Click "Generate API token"\r\n');
     write("3. Select the sites you want to access\r\n");
@@ -95,14 +100,14 @@ async function handleLogin(
   authUrl.searchParams.set("redirect_uri", OAUTH_REDIRECT_URI);
   authUrl.searchParams.set("scope", OAUTH_SCOPES);
 
-  write("\x1b[36mStarting OAuth flow...\x1b[0m\r\n\r\n");
+  write("\u001B[36mStarting OAuth flow...\u001B[0m\r\n\r\n");
   write("Please open this URL in your browser:\r\n");
-  write(`\x1b[4m${authUrl.toString()}\x1b[0m\r\n\r\n`);
+  write(`\u001B[4m${authUrl.toString()}\u001B[0m\r\n\r\n`);
   write("After authorizing, you'll be redirected. The token will be captured automatically.\r\n");
 
   // TODO: Start local server to capture OAuth callback
   // For now, instruct users to use the token command
-  write("\r\n\x1b[33mNote: Full OAuth flow not yet implemented.\x1b[0m\r\n");
+  write("\r\n\u001B[33mNote: Full OAuth flow not yet implemented.\u001B[0m\r\n");
   write('Please use "wf auth token <token>" with a personal access token.\r\n');
 }
 
@@ -118,7 +123,7 @@ async function handleLogout(
   }
 
   await storage.clearAuth();
-  write("\x1b[32m✓ Logged out successfully.\x1b[0m\r\n");
+  write("\u001B[32m✓ Logged out successfully.\u001B[0m\r\n");
   api.log.info("User logged out of Webflow");
 }
 
@@ -130,12 +135,12 @@ async function handleStatus(
   const auth = await storage.getAuth();
 
   if (!auth) {
-    write("\x1b[33mNot authenticated.\x1b[0m\r\n");
+    write("\u001B[33mNot authenticated.\u001B[0m\r\n");
     write('Run "wf auth" to connect your Webflow account.\r\n');
     return;
   }
 
-  write("\x1b[32m✓ Authenticated\x1b[0m\r\n\r\n");
+  write("\u001B[32m✓ Authenticated\u001B[0m\r\n\r\n");
 
   if (auth.email) {
     write(`  Email: ${auth.email}\r\n`);
@@ -147,7 +152,7 @@ async function handleStatus(
       const hours = Math.floor(expiresIn / (1000 * 60 * 60));
       write(`  Token expires in: ${hours} hours\r\n`);
     } else {
-      write('  \x1b[33mToken expired. Run "wf auth" to re-authenticate.\x1b[0m\r\n');
+      write('  \u001B[33mToken expired. Run "wf auth" to re-authenticate.\u001B[0m\r\n');
     }
   }
 
@@ -155,8 +160,8 @@ async function handleStatus(
   try {
     const sites = await client.listSites();
     write(`  Accessible sites: ${sites.length}\r\n`);
-  } catch (e) {
-    write("  \x1b[31mFailed to verify token. It may be invalid or expired.\x1b[0m\r\n");
+  } catch {
+    write("  \u001B[31mFailed to verify token. It may be invalid or expired.\u001B[0m\r\n");
   }
 }
 
@@ -166,7 +171,7 @@ async function handleSetToken(
   storage: StorageManager,
   api: PluginAPI,
 ): Promise<void> {
-  write("\x1b[36mVerifying token...\x1b[0m\r\n");
+  write("\u001B[36mVerifying token...\u001B[0m\r\n");
 
   // Store the token
   await storage.setAuth({
@@ -184,17 +189,17 @@ async function handleSetToken(
 
     if (!response.ok) {
       await storage.clearAuth();
-      write(`\x1b[31mInvalid token. API returned: ${response.status}\x1b[0m\r\n`);
+      write(`\u001B[31mInvalid token. API returned: ${response.status}\u001B[0m\r\n`);
       return;
     }
 
-    const data = (await response.json()) as { sites: Array<{ displayName: string }> };
-    write(`\x1b[32m✓ Token verified successfully!\x1b[0m\r\n`);
+    const data = (await response.json()) as { sites: { displayName: string }[] };
+    write(`\u001B[32m✓ Token verified successfully!\u001B[0m\r\n`);
     write(`  Access to ${data.sites.length} site(s)\r\n`);
 
     api.log.info("Webflow token set successfully");
-  } catch (e) {
+  } catch (error) {
     await storage.clearAuth();
-    write(`\x1b[31mFailed to verify token: ${e}\x1b[0m\r\n`);
+    write(`\u001B[31mFailed to verify token: ${error}\u001B[0m\r\n`);
   }
 }

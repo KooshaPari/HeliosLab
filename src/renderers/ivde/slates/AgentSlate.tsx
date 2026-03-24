@@ -32,7 +32,7 @@ export const AgentSlate = ({ node, tabId }: { node?: CachedFileType; tabId: stri
   };
   const [message, setMessage] = createSignal("");
   const [isLoading, setIsLoading] = createSignal(false);
-  const [availableModels, setAvailableModels] = createSignal<Array<{ name: string; path: string }>>(
+  const [availableModels, setAvailableModels] = createSignal<{ name: string; path: string }[]>(
     [],
   );
   const [showSidebar, setShowSidebar] = createSignal(true);
@@ -68,7 +68,7 @@ export const AgentSlate = ({ node, tabId }: { node?: CachedFileType; tabId: stri
             title: "Conversation",
             messages: oldHistory,
             createdAt: oldHistory[0]?.timestamp || Date.now(),
-            updatedAt: oldHistory[oldHistory.length - 1]?.timestamp || Date.now(),
+            updatedAt: oldHistory.at(-1)?.timestamp || Date.now(),
           },
         ];
       }
@@ -84,7 +84,7 @@ export const AgentSlate = ({ node, tabId }: { node?: CachedFileType; tabId: stri
   // Get current conversation messages
   const getCurrentMessages = (): Message[] => {
     const chatId = currentChatId();
-    if (!chatId) return [];
+    if (!chatId) {return [];}
     const chat = chatHistories().find((c) => c.id === chatId);
     return chat?.messages || [];
   };
@@ -138,7 +138,7 @@ export const AgentSlate = ({ node, tabId }: { node?: CachedFileType; tabId: stri
 
   // Load context file content on mount
   createEffect(async () => {
-    if (!contextFilePath) return;
+    if (!contextFilePath) {return;}
 
     console.log("AgentSlate: Loading initial context file from:", contextFilePath);
 
@@ -159,7 +159,7 @@ export const AgentSlate = ({ node, tabId }: { node?: CachedFileType; tabId: stri
           setContextContent(result.textContent);
           console.log(
             "AgentSlate: Initial context content loaded:",
-            result.textContent.substring(0, 100) + "...",
+            result.textContent.slice(0, 100) + "...",
           );
         }
       }
@@ -278,7 +278,7 @@ export const AgentSlate = ({ node, tabId }: { node?: CachedFileType; tabId: stri
 
   const updateCurrentChat = (messages: Message[]) => {
     const chatId = currentChatId();
-    if (!chatId) return;
+    if (!chatId) {return;}
 
     const updatedHistories = chatHistories().map((chat) =>
       chat.id === chatId ? { ...chat, messages, updatedAt: Date.now() } : chat,
@@ -340,7 +340,7 @@ export const AgentSlate = ({ node, tabId }: { node?: CachedFileType; tabId: stri
   };
 
   const sendMessage = async () => {
-    if (!message().trim() || isLoading()) return;
+    if (!message().trim() || isLoading()) {return;}
 
     // If no current chat, create a new one
     if (!currentChatId()) {
@@ -427,7 +427,7 @@ export const AgentSlate = ({ node, tabId }: { node?: CachedFileType; tabId: stri
           systemPrompt += ` Here is your custom context and instructions:\n\n${context}\n\nPlease follow these instructions while being helpful and responsive.`;
           console.log(
             "AgentSlate: System prompt with context:",
-            systemPrompt.substring(0, 200) + "...",
+            systemPrompt.slice(0, 200) + "...",
           );
         } else {
           console.log("AgentSlate: No context content, using default prompt");
@@ -446,7 +446,7 @@ export const AgentSlate = ({ node, tabId }: { node?: CachedFileType; tabId: stri
         });
 
         // Add current user message and prompt for response
-        const currentMsg = recentHistory[recentHistory.length - 1];
+        const currentMsg = recentHistory.at(-1);
         conversationPrompt += `User: ${currentMsg.content}\n\nAssistant:`;
 
         // Send to llama.cpp runner

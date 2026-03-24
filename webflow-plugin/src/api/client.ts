@@ -71,7 +71,7 @@ export class WebflowClient {
    */
   async isAuthenticated(): Promise<boolean> {
     const auth = await this.storage.getAuth();
-    if (!auth) return false;
+    if (!auth) {return false;}
 
     // Check if token is expired
     if (auth.expiresAt && auth.expiresAt < Date.now()) {
@@ -214,7 +214,7 @@ export class WebflowClient {
     const buffer = fileContent.buffer as ArrayBuffer;
     const hashBuffer = await crypto.subtle.digest("MD5", buffer);
     const hashArray = new Uint8Array(hashBuffer);
-    const fileHash = btoa(String.fromCharCode(...hashArray));
+    const fileHash = btoa(String.fromCodePoint(...hashArray));
 
     // Get upload URL
     const { uploadUrl, uploadDetails } = await this.createAssetUploadUrl(
@@ -302,24 +302,24 @@ export class WebflowClient {
    * List registered scripts for a site
    */
   async listScripts(siteId: string): Promise<
-    Array<{
+    {
       id: string;
       displayName: string;
       hostedLocation: string;
       integrityHash?: string;
       canCopy: boolean;
       version: string;
-    }>
+    }[]
   > {
     const response = await this.request<{
-      registeredScripts: Array<{
+      registeredScripts: {
         id: string;
         displayName: string;
         hostedLocation: string;
         integrityHash?: string;
         canCopy: boolean;
         version: string;
-      }>;
+      }[];
     }>("GET", `/sites/${siteId}/registered_scripts`);
     return response.registeredScripts;
   }

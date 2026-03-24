@@ -1,16 +1,12 @@
 // Ephemeral workspace/window state
-// todo (yoav): replace this with solidjs ephemeral store? and possibly add subscription / syncing to the front-end
-export let workspaceWindows: {
-  [id: string]: {
-    [id: string]: {
+// Todo (yoav): replace this with solidjs ephemeral store? and possibly add subscription / syncing to the front-end
+export const workspaceWindows: Record<string, Record<string, {
       id: string;
       // YYY - use type
       win: any;
       // portalChannel: any;
       status: "open" | "hiding";
-    };
-  };
-} = {};
+    }>> = {};
 
 // Track the currently focused window
 let focusedWindowInfo: { workspaceId: string; windowId: string } | null = null;

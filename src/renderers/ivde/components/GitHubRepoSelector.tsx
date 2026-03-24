@@ -22,7 +22,7 @@ export const GitHubRepoSelector = (props: GitHubRepoSelectorProps): JSXElement =
   const [filterType, setFilterType] = createSignal<"all" | "owner" | "member">("all");
   const [showBranches, setShowBranches] = createSignal<GitHubRepository | null>(null);
   const [branches, setBranches] = createSignal<
-    Array<{ name: string; commit: { sha: string }; protected: boolean }>
+    { name: string; commit: { sha: string }; protected: boolean }[]
   >([]);
 
   onMount(() => {
@@ -35,12 +35,12 @@ export const GitHubRepoSelector = (props: GitHubRepoSelectorProps): JSXElement =
     const trimmed = query.trim();
     // Match patterns like "owner/repo" or "https://github.com/owner/repo"
     const urlMatch = trimmed.match(
-      /(?:https?:\/\/)?(?:www\.)?github\.com\/([^\/\s]+)\/([^\/\s]+?)(?:\.git)?$/i,
+      /(?:https?:\/\/)?(?:www\.)?github\.com\/([^/\s]+)\/([^/\s]+?)(?:\.git)?$/i,
     );
     if (urlMatch) {
       return { owner: urlMatch[1], repo: urlMatch[2] };
     }
-    const simpleMatch = trimmed.match(/^([^\/\s]+)\/([^\/\s]+)$/);
+    const simpleMatch = trimmed.match(/^([^/\s]+)\/([^/\s]+)$/);
     if (simpleMatch) {
       return { owner: simpleMatch[1], repo: simpleMatch[2] };
     }
@@ -65,9 +65,9 @@ export const GitHubRepoSelector = (props: GitHubRepoSelectorProps): JSXElement =
         try {
           const repo = await githubService.fetchRepository(ownerRepo.owner, ownerRepo.repo);
           repos = [repo];
-        } catch (err) {
+        } catch (error) {
           // If direct fetch fails, fall back to search
-          console.log("Direct repo fetch failed, falling back to search:", err);
+          console.log("Direct repo fetch failed, falling back to search:", error);
           repos = [];
         }
       } else if (selectedOrg() === "public") {
@@ -107,32 +107,35 @@ export const GitHubRepoSelector = (props: GitHubRepoSelectorProps): JSXElement =
       // Sort repositories
       repos.sort((a, b) => {
         switch (sortBy()) {
-          case "name":
+          case "name": {
             return a.name.localeCompare(b.name);
-          case "stars":
+          }
+          case "stars": {
             return b.stargazers_count - a.stargazers_count;
-          default:
+          }
+          default: {
             return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+          }
         }
       });
 
       setRepositories(repos);
-    } catch (err) {
-      console.error("Error loading repositories:", err);
-      setError(err instanceof Error ? err.message : "Failed to load repositories");
+    } catch (error) {
+      console.error("Error loading repositories:", error);
+      setError(error instanceof Error ? error.message : "Failed to load repositories");
     } finally {
       setLoading(false);
     }
   };
 
   const loadOrganizations = async () => {
-    if (!githubService.isConnected()) return;
+    if (!githubService.isConnected()) {return;}
 
     try {
       const orgs = await githubService.fetchOrganizations();
       setOrganizations(orgs);
-    } catch (err) {
-      console.error("Error loading organizations:", err);
+    } catch (error) {
+      console.error("Error loading organizations:", error);
     }
   };
 
@@ -166,8 +169,8 @@ export const GitHubRepoSelector = (props: GitHubRepoSelectorProps): JSXElement =
 
       // Show branches after selection is set
       setShowBranches(repo);
-    } catch (err) {
-      console.error("Error loading branches:", err);
+    } catch (error) {
+      console.error("Error loading branches:", error);
       setError("Failed to load branches");
     }
   };
@@ -185,7 +188,7 @@ export const GitHubRepoSelector = (props: GitHubRepoSelectorProps): JSXElement =
   createEffect(() => {
     const query = searchQuery();
     const timeoutId = setTimeout(() => {
-      if (query !== searchQuery()) return; // Query changed during timeout
+      if (query !== searchQuery()) {return;} // Query changed during timeout
       loadRepositories();
     }, 500);
 
@@ -197,9 +200,9 @@ export const GitHubRepoSelector = (props: GitHubRepoSelectorProps): JSXElement =
   };
 
   const truncateDescription = (description: string | null, maxLength = 120) => {
-    if (!description) return description;
-    if (description.length <= maxLength) return description;
-    return `${description.substring(0, maxLength).trim()}...`;
+    if (!description) {return description;}
+    if (description.length <= maxLength) {return description;}
+    return `${description.slice(0, maxLength).trim()}...`;
   };
 
   const handleRepoSelect = (repo: GitHubRepository) => {
@@ -387,7 +390,7 @@ export const GitHubRepoSelector = (props: GitHubRepoSelectorProps): JSXElement =
                                 "font-weight": isSelected() || isDefault ? "500" : "normal",
                               }}
                               onMouseEnter={(e) => {
-                                if (!isSelected()) e.currentTarget.style.background = "#333";
+                                if (!isSelected()) {e.currentTarget.style.background = "#333";}
                               }}
                               onMouseLeave={(e) => {
                                 if (!isSelected()) {

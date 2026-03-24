@@ -15,12 +15,12 @@ import {
 import { produce, reconcile, unwrap } from "solid-js/store";
 import { render, untrack } from "solid-js/web";
 import "./FileWatcher";
-// import { Electroview } from "electrobun/view";
-// import { type WorkspaceRPC } from "./rpc";
+// Import { Electroview } from "electrobun/view";
+// Import { type WorkspaceRPC } from "./rpc";
 import { electrobun } from "./init";
 
 import {
-  //   createDevlinkFiles,
+  //   CreateDevlinkFiles,
   getProjectForNode,
   getSlateForNode,
   isDescendantPath,
@@ -68,7 +68,7 @@ import {
   setPreviewNodeSlateToken,
   setPreviewNodeSlateUrl,
   setState,
-  // fullyDeleteNode,
+  // FullyDeleteNode,
   splitPane,
   state,
   updateSyncedAppSettings,
@@ -135,7 +135,7 @@ declare module "solid-js" {
   }
 }
 
-// todo (yoav): download this somewhere and move them to files.ts or something
+// Todo (yoav): download this somewhere and move them to files.ts or something
 const defaultWebFaviconUrl = () => "views://assets/file-icons/bookmark.svg";
 const isSlateType = (value: unknown): value is SlateType => {
   if (!value || typeof value !== "object" || !("type" in value)) {
@@ -154,12 +154,12 @@ const isSlateType = (value: unknown): value is SlateType => {
 let globalFindAllInput: HTMLInputElement | undefined;
 
 // We prevent the browser window's webcontents
-// from closing. This prevents cmd+w from shutting it down
-// and cmd+r from refreshing it.
+// From closing. This prevents cmd+w from shutting it down
+// And cmd+r from refreshing it.
 // Even though we catch those in mouseDown and preventDefault
-// when done inside a nested <webview> they still propagate and affect the window
+// When done inside a nested <webview> they still propagate and affect the window
 // Note: this is overridden when we actually do want to
-// close the window from main using webContents.on('will-prevent-unload')
+// Close the window from main using webContents.on('will-prevent-unload')
 window.onbeforeunload = (e) => {
   e.preventDefault();
   return true;
@@ -168,9 +168,9 @@ window.onbeforeunload = (e) => {
 window.open = (url, target) => {
   console.log("new window open!");
   // Note: We handle opening new windows from nested webviews
-  // in the main process.
+  // In the main process.
   // Here we need to handle new windows opened from the browserWindow
-  // itself, ie: clicking on a mdn link in a code editor hover widget
+  // Itself, ie: clicking on a mdn link in a code editor hover widget
   console.log("opening window!", url, target);
   openNewTabForNode("__COLAB_INTERNAL__/web", false, {
     url,
@@ -195,20 +195,20 @@ window.addEventListener("showCloseWindowDialog", () => {
 document.addEventListener(
   "keydown",
   (e) => {
-    // console.info(e.key);
-    // todo (yoav): come up with pattern of hot keys
-    // eg: shift always reverses direction of implied-direction shortcuts
-    // for directional shortcuts (like cmd+right) to focus the next pane
-    // shift adds an actual change effect to it like (split pane).
-    // or maybe ctrl is for tabs and cmd is for windows
-    // or cmd +- shift is a modifier for direction
-    // and cmd +- ctrl is a modifier for action/modification
+    // Console.info(e.key);
+    // Todo (yoav): come up with pattern of hot keys
+    // Eg: shift always reverses direction of implied-direction shortcuts
+    // For directional shortcuts (like cmd+right) to focus the next pane
+    // Shift adds an actual change effect to it like (split pane).
+    // Or maybe ctrl is for tabs and cmd is for windows
+    // Or cmd +- shift is a modifier for direction
+    // And cmd +- ctrl is a modifier for action/modification
 
-    // todo (yoav): normalize the pattern here so each shortcut is its own function
-    // that gets registered
+    // Todo (yoav): normalize the pattern here so each shortcut is its own function
+    // That gets registered
 
     if (e.key === "f" && e.metaKey === true && e.shiftKey === true) {
-      // cmd+shift+f - focus Find All input
+      // Cmd+shift+f - focus Find All input
       e.preventDefault();
       e.stopImmediatePropagation();
       if (globalFindAllInput) {
@@ -232,15 +232,15 @@ document.addEventListener(
         }, 100);
       }
     } else if (e.key === "p" && e.metaKey === true && e.shiftKey === true) {
-      // cmd+shift+p - open command palette
+      // Cmd+shift+p - open command palette
       e.preventDefault();
       e.stopImmediatePropagation();
       setState("ui", "showCommandPalette", true);
-      // cmd+t handled by application menu via newBrowserTab RPC
-      // cmd+w handled by application menu via closeCurrentTab RPC
-      // cmd+shift+w handled by application menu via closeCurrentWindow RPC
+      // Cmd+t handled by application menu via newBrowserTab RPC
+      // Cmd+w handled by application menu via closeCurrentTab RPC
+      // Cmd+shift+w handled by application menu via closeCurrentWindow RPC
     } else if (e.key === "r" && e.metaKey === true) {
-      // refresh the current tab
+      // Refresh the current tab
       const currentTab = getCurrentTab();
       if (!currentTab) {
         return null;
@@ -256,7 +256,7 @@ document.addEventListener(
 
       if (e.shiftKey === true) {
         // XXX - hard reload for webviewtag
-        // webview.reloadIgnoringCache();
+        // Webview.reloadIgnoringCache();
       } else {
         webview.reload();
       }
@@ -264,7 +264,7 @@ document.addEventListener(
       console.log("refresh current tab");
       // Removed Cmd+T shortcut - no longer creating node-less web tabs
     } else if (e.key === "Tab" && e.ctrlKey === true && e.shiftKey === true) {
-      // cycle to previous tab in pane (Ctrl+Shift+Tab)
+      // Cycle to previous tab in pane (Ctrl+Shift+Tab)
       e.preventDefault();
       setState(
         produce((_state: AppState) => {
@@ -285,7 +285,7 @@ document.addEventListener(
         }),
       );
     } else if (e.key === "Tab" && e.ctrlKey === true) {
-      // cycle to next tab in pane (Ctrl+Tab)
+      // Cycle to next tab in pane (Ctrl+Tab)
       e.preventDefault();
       setState(
         produce((_state: AppState) => {
@@ -305,7 +305,7 @@ document.addEventListener(
         }),
       );
     } else if (e.key === "l" && e.metaKey === true) {
-      // split pane to the right
+      // Split pane to the right
       console.log("focos url bar");
     }
 
@@ -316,11 +316,11 @@ document.addEventListener(
 );
 
 // Plugin keybinding cache (refreshed periodically)
-let pluginKeybindingsCache: Array<{
+let pluginKeybindingsCache: {
   key: string;
   command: string;
   when?: "editor" | "terminal" | "global";
-}> = [];
+}[] = [];
 let keybindingsCacheTime = 0;
 const KEYBINDINGS_CACHE_TTL = 5000; // 5 seconds
 
@@ -331,8 +331,8 @@ async function refreshPluginKeybindings() {
       pluginKeybindingsCache = keybindings;
       keybindingsCacheTime = Date.now();
     }
-  } catch (err) {
-    console.warn("Failed to fetch plugin keybindings:", err);
+  } catch (error) {
+    console.warn("Failed to fetch plugin keybindings:", error);
   }
 }
 
@@ -345,7 +345,7 @@ function parseKeyString(keyStr: string): {
   meta: boolean;
 } {
   const parts = keyStr.toLowerCase().split("+");
-  const key = parts[parts.length - 1];
+  const key = parts.at(-1);
   return {
     key,
     ctrl: parts.includes("ctrl"),
@@ -390,8 +390,8 @@ async function checkPluginKeybindings(e: KeyboardEvent, context: "editor" | "ter
           commandId: keybinding.command,
           args: [],
         });
-      } catch (err) {
-        console.error("Failed to execute plugin command:", err);
+      } catch (error) {
+        console.error("Failed to execute plugin command:", error);
       }
       break;
     }
@@ -450,16 +450,16 @@ const moveTabToPane = (tabId: string, targetPaneId: string, targetTabIndex: numb
 };
 
 // Context Menus
-// right click onContextMenu in renderer -> send menu config via post message to node -> interact
-// and send postMessage back with option selected -> use mapping to call the right function
-// ephemeral mapping set whenever a context menu is opened
-// let contextMenuCommands = null;
+// Right click onContextMenu in renderer -> send menu config via post message to node -> interact
+// And send postMessage back with option selected -> use mapping to call the right function
+// Ephemeral mapping set whenever a context menu is opened
+// Let contextMenuCommands = null;
 
-// todo (yoav): There's a better place for this
+// Todo (yoav): There's a better place for this
 console.log("🟢 DEBUG: index.tsx module loaded and executing");
 
 createEffect(() => {
-  // clean up authUrl when settingsPane is closed
+  // Clean up authUrl when settingsPane is closed
   if (!state.settingsPane.type && state.githubAuth.authUrl) {
     setState("githubAuth", { authUrl: null, resolver: null });
   }
@@ -488,11 +488,11 @@ const getInitialState = () => {
         appSettings,
       }) => {
         console.log("renderer getInitialState - received appSettings:", appSettings);
-        // todo: this is duplicated in setProjects. should be a util, maybe in goldfish
+        // Todo: this is duplicated in setProjects. should be a util, maybe in goldfish
         const projectsById = projects?.reduce(
           (acc: Record<string, ProjectType>, project: ProjectType) => {
             acc[project.id] = project;
-            // buildFileTree(project.path, true)
+            // BuildFileTree(project.path, true)
             return acc;
           },
           {},
@@ -510,13 +510,13 @@ const getInitialState = () => {
         });
 
         // Load plugin slates after initial state is set
-        loadPluginSlates().catch((e) => {
-          console.error("[index] Failed to load plugin slates:", e);
+        loadPluginSlates().catch((error) => {
+          console.error("[index] Failed to load plugin slates:", error);
         });
       },
     )
-    .catch((err) => {
-      console.error("renderer getInitialState - error:", err);
+    .catch((error) => {
+      console.error("renderer getInitialState - error:", error);
     });
 };
 
@@ -524,19 +524,19 @@ console.log("🔵 DEBUG: About to call getInitialState");
 getInitialState();
 
 const App = () => {
-  // electrobun;
+  // Electrobun;
   //  -
-  // ipcRenderer.on(
+  // IpcRenderer.on(
   //   "init-port",
   //   (e, { windowId, buildVars, paths, peerDependencies }) => {
-  //     const port = e.ports[0];
-  //     port.start();
+  //     Const port = e.ports[0];
+  //     Port.start();
 
-  //     port.onmessage = ({ data: { type, data } }) => {
-  //       switch (type) {
+  //     Port.onmessage = ({ data: { type, data } }) => {
+  //       Switch (type) {
   //
   // ZZZ - exit fullscreen
-  //         case "exit-full-screen-hack": {
+  //         Case "exit-full-screen-hack": {
   //           // NOTE: There's a bug where a webview iframe exiting full screen
   //           // doesn't exit the parent document's full screen and so you end up with
   //           // the whole webview rendering into the main window's #top-layer and
@@ -547,14 +547,14 @@ const App = () => {
   //           // NOTE: We also have to wait for the exit full screen animation to finish before
   //           // triggering it on the main window. Otherwise it'll get stuck in fullscreen mode
   //           // 600ms is "enough" on my machine and 1200ms feels too long
-  //           setTimeout(() => {
-  //             document.exitFullscreen();
+  //           SetTimeout(() => {
+  //             Document.exitFullscreen();
   //           }, 800);
-  //           break;
+  //           Break;
   //         }
 
-  //         default:
-  //           throw new Error(`unexpected action: type:${type}`);
+  //         Default:
+  //           Throw new Error(`unexpected action: type:${type}`);
   //       }
   //     };
 
@@ -599,7 +599,7 @@ const App = () => {
       );
 
       // For non-project files, we need to fetch the node and cache it first
-      // since the FileWatcher doesn't track these files
+      // Since the FileWatcher doesn't track these files
       if (!state.fileCache[filePath]) {
         const node = await electrobun.rpc?.request.getNode({ path: filePath });
         if (node) {
@@ -641,8 +641,8 @@ const App = () => {
           projectName: folderName,
           path: folderPath,
         });
-      } catch (err) {
-        console.error("Failed to add project:", err);
+      } catch (error) {
+        console.error("Failed to add project:", error);
       }
     };
 
@@ -673,9 +673,9 @@ const App = () => {
     e.preventDefault();
     e.stopPropagation();
     // Disabled: Native file drag-and-drop is not supported in CEF/Chromium webviews
-    // dragCounter++;
-    // if (e.dataTransfer?.types.includes('Files')) {
-    // 	setIsDraggingOver(true);
+    // DragCounter++;
+    // If (e.dataTransfer?.types.includes('Files')) {
+    // 	SetIsDraggingOver(true);
     // }
   };
 
@@ -703,7 +703,7 @@ const App = () => {
     setIsDraggingOver(false);
 
     // NOTE: Native file drag-and-drop is not supported in CEF/Chromium webviews
-    // because the browser doesn't expose full file paths for security reasons.
+    // Because the browser doesn't expose full file paths for security reasons.
     // Users should use File > Open or the `edit` terminal command instead.
     // TODO: Implement native drop handling at the Electrobun/main process level
   };
@@ -724,7 +724,7 @@ const App = () => {
         position: "relative",
 
         // "align-items": "flex-start",
-        // height: "100vh",
+        // Height: "100vh",
         // "border-width": "4px",
         // "border-top-width": "1px",
         // "border-style": "solid",
@@ -746,7 +746,7 @@ const App = () => {
             background: "rgba(0, 120, 215, 0.2)",
             border: "3px dashed rgba(0, 120, 215, 0.8)",
             "border-radius": "8px",
-            "z-index": 10000,
+            "z-index": 10_000,
             display: "flex",
             "align-items": "center",
             "justify-content": "center",
@@ -836,10 +836,10 @@ const App = () => {
           </div>
           {githubAuthUrl() && (
             <electrobun-webview
-              // nodeintegration={false}
+              // Nodeintegration={false}
               ref={(el: Element) => {
                 // YYY - el was Electron.WebviewTag type
-                githubAuthWebview = el; // as Electron.WebviewTag;
+                githubAuthWebview = el; // As Electron.WebviewTag;
                 el.addEventListener("did-navigate", githubAuthWebviewWillNavigate);
               }}
               class="webview-overlay"
@@ -876,8 +876,8 @@ const App = () => {
   );
 };
 
-// const SettingsPaneCollapsableSection = ({label}) => {
-//   return ()
+// Const SettingsPaneCollapsableSection = ({label}) => {
+//   Return ()
 // }
 
 const WorkspaceSettings = () => {
@@ -972,10 +972,10 @@ const WorkspaceSettings = () => {
     </div>
 
     // <div
-    //   style={{
-    //     background: "#fff",
-    //     width: "100%",
-    //     height: "100%",
+    //   Style={{
+    //     Background: "#fff",
+    //     Width: "100%",
+    //     Height: "100%",
     //   }}
     // >
     //   <h2>Tokens</h2>
@@ -989,7 +989,7 @@ const WorkspaceSettings = () => {
     //         <button onClick={() => onDeleteClick(token.id)}>delete</button>
     //         <span>
     //           This will delete it from Colab, but you may still need to revoke
-    //           it in Webflow's settings
+    //           It in Webflow's settings
     //         </span>
     //       </>
     //     )}
@@ -1118,10 +1118,10 @@ const GlobalSettings = () => {
     </div>
 
     // <div
-    //   style={{
-    //     background: "#fff",
-    //     width: "100%",
-    //     height: "100%",
+    //   Style={{
+    //     Background: "#fff",
+    //     Width: "100%",
+    //     Height: "100%",
     //   }}
     // >
     //   <h2>Tokens</h2>
@@ -1135,7 +1135,7 @@ const GlobalSettings = () => {
     //         <button onClick={() => onDeleteClick(token.id)}>delete</button>
     //         <span>
     //           This will delete it from Colab, but you may still need to revoke
-    //           it in Webflow's settings
+    //           It in Webflow's settings
     //         </span>
     //       </>
     //     )}
@@ -1284,11 +1284,11 @@ const PaneContainerComponent = ({
   );
 };
 
-// const WorkbenchPane = ({ $pane, index, pathToPane }) => {
-//   return (
+// Const WorkbenchPane = ({ $pane, index, pathToPane }) => {
+//   Return (
 //     <div
-//       class="workbenchpane"
-//       style={{ display: "flex", width: "100%", height: "100%" }}
+//       Class="workbenchpane"
+//       Style={{ display: "flex", width: "100%", height: "100%" }}
 //     >
 //       <Pane pane={$pane} index={index} pathToPane={pathToPane} />
 //     </div>
@@ -1317,7 +1317,7 @@ const LayoutComponent = ({
   paneStyles: () => JSX.CSSProperties;
   parentSplitDirection?: "row" | "column";
 }) => {
-  // const _paneOrContainer = () => paneOrContainer;
+  // Const _paneOrContainer = () => paneOrContainer;
 
   return (
     <>
@@ -1370,7 +1370,7 @@ const PaneDivider = ({
   const [isDragging, setIsDragging] = createSignal(false);
   const [isHovered, setIsHovered] = createSignal(false);
 
-  // todo (yoav): just use paneContainer.divider instead of a walk
+  // Todo (yoav): just use paneContainer.divider instead of a walk
   const [targetPercent, setTargetPercent] = createSignal(paneContainer.divider);
 
   const toggleIsDragging = (e: DomEventWithTarget<MouseEvent>, value: boolean) => {
@@ -1414,7 +1414,7 @@ const PaneDivider = ({
   };
   const isRow = paneContainer.direction === "row";
   const thickness = 4; //(isHovered() ? 8 : 8);
-  // const percent = () => targetPercent
+  // Const percent = () => targetPercent
   const onContextMenu = (e: DomEventWithTarget<MouseEvent>) => {
     e.preventDefault();
 
@@ -1431,7 +1431,7 @@ const PaneDivider = ({
     });
   };
 
-  // const animationTime = 500;
+  // Const animationTime = 500;
 
   const styles: () => JSX.CSSProperties = () => ({
     cursor: isRow ? "ew-resize" : "ns-resize",
@@ -1477,7 +1477,7 @@ const PaneDivider = ({
 
 // This does two things:
 // 1. It finds the pane whose close button was clicked and promotes its sibling which is either a pane or container
-// to replace their parent which is either a container or the root container
+// To replace their parent which is either a container or the root container
 // 2. it takes the tabs from the pane being closed (if any) and moves them to the nearest sibling or nephew pane
 const closePane = (pathToPane: PanePathType) => {
   setState(
@@ -1490,14 +1490,14 @@ const closePane = (pathToPane: PanePathType) => {
       }
 
       // Grandparent can only be a window or pane container, if it was a pane
-      // it would be a terminal leaf node and not a parent or grandparent
+      // It would be a terminal leaf node and not a parent or grandparent
       let grandParent: WindowType | LayoutContainerType = win;
       let parentIndex = 0;
 
       for (let i = 0; i < pathToPane.length; i++) {
         const childIndex = pathToPane[i];
         if (i !== pathToPane.length - 1) {
-          // drill down setting the pane to its child
+          // Drill down setting the pane to its child
           grandParent = currentPane as LayoutContainerType;
           currentPane = grandParent.panes[childIndex];
         } else {
@@ -1509,9 +1509,9 @@ const closePane = (pathToPane: PanePathType) => {
           const sibling = parentPane.panes[siblingIndex];
           let targetTabPane = sibling;
 
-          // sibling could be a container, so drill down until we hit a pane
+          // Sibling could be a container, so drill down until we hit a pane
           while (targetTabPane.type !== "pane") {
-            // todo (yoav): add the ability to 'lean left' or 'left right' (or up or down) when drilling down
+            // Todo (yoav): add the ability to 'lean left' or 'left right' (or up or down) when drilling down
             targetTabPane = targetTabPane.panes[newphewIndex];
           }
 
@@ -1519,10 +1519,10 @@ const closePane = (pathToPane: PanePathType) => {
             win.rootPane = sibling;
           } else {
             // Note: we know that if the grandparent isn't the window then we're not
-            // closing the top-level container, so the grandparent must be a LayoutContainerType
+            // Closing the top-level container, so the grandparent must be a LayoutContainerType
             // The parent won't ever be the window because when that's true we don't expose
-            // the x button to close the pane. and the pathToPane will have no length
-            // and this will never run
+            // The x button to close the pane. and the pathToPane will have no length
+            // And this will never run
             (grandParent as LayoutContainerType).panes[parentIndex] = sibling;
           }
 
@@ -1549,7 +1549,7 @@ const closePane = (pathToPane: PanePathType) => {
   updateSyncedState();
 };
 
-// todo (yoav): [blocking] rename Pane type to PaneType
+// Todo (yoav): [blocking] rename Pane type to PaneType
 const Pane = ({
   pane,
   pathToPane,
@@ -1561,10 +1561,10 @@ const Pane = ({
   paneStyles: () => JSX.CSSProperties;
   parentSplitDirection?: "row" | "column";
 }) => {
-  // const currentTab = () => getWindow().tabs[pane.currentTab];
+  // Const currentTab = () => getWindow().tabs[pane.currentTab];
   const [isTabsExpanded, setIsTabsExpanded] = createSignal(false);
 
-  // todo (yoav): add a debounce to the tab show/hide so that rolling over it expands in and it only hides if you mouse out and stay out for a bit
+  // Todo (yoav): add a debounce to the tab show/hide so that rolling over it expands in and it only hides if you mouse out and stay out for a bit
 
   const onHorizontalSplitClick = () => {
     splitPane(pathToPane, "row");
@@ -1581,29 +1581,29 @@ const Pane = ({
   const onPaneClick = () => {
     if (!isSelected()) {
       const winIndex = state.workspace?.windows?.findIndex((w) => w.id === state.windowId);
-      // todo (yoav): create an setWindowState function
+      // Todo (yoav): create an setWindowState function
       setState("workspace", "windows", winIndex, "currentPaneId", pane.id);
     }
   };
 
-  // const [showDropTarget, setShowDropTarget] = createSignal(false);
+  // Const [showDropTarget, setShowDropTarget] = createSignal(false);
   let paneRef;
 
   const renderDropTarget = () => Boolean(state.dragState);
   const isDropTarget = () => state.dragState?.targetPaneId === pane.id;
-  const isEmptyPane = () => !pane.tabIds.length;
+  const isEmptyPane = () => pane.tabIds.length === 0;
 
   // Removed isAddTabBtnHovered state - no longer needed without new tab button
 
-  const paneSiblingIndex = pathToPane[pathToPane.length - 1];
+  const paneSiblingIndex = pathToPane.at(-1);
   const paneJoinIcon =
     parentSplitDirection === "row"
-      ? paneSiblingIndex === 0
+      ? (paneSiblingIndex === 0
         ? "horizontal-join-right"
-        : "horizontal-join-left"
-      : paneSiblingIndex === 0
+        : "horizontal-join-left")
+      : (paneSiblingIndex === 0
         ? "vertical-join-down"
-        : "vertical-join-up";
+        : "vertical-join-up");
 
   // Removed isDroppingTabAtEnd - was only used by the new tab button
 
@@ -1618,7 +1618,7 @@ const Pane = ({
 
           const { type } = state.dragState;
 
-          // todo (yoav): add a util for determining if a node can be opened in a new tab
+          // Todo (yoav): add a util for determining if a node can be opened in a new tab
           if (type === "tab" || canOpenNodeInNewTab(state.dragState.nodePath)) {
             const { targetPaneId } = state.dragState;
             if (targetPaneId !== pane.id) {
@@ -1644,18 +1644,18 @@ const Pane = ({
             }
           }
         }
-        // todo (yoav): rewrite this to go based on targetPaneId
-        // setShowDropTarget(true);
+        // Todo (yoav): rewrite this to go based on targetPaneId
+        // SetShowDropTarget(true);
       }}
       onDragOver={(e) => {
         // This removes the animation when dragging is finished where the
-        // drag preview slowly animates back to the original location
+        // Drag preview slowly animates back to the original location
         e.preventDefault();
       }}
-      // onDragLeave={(e) => {
+      // OnDragLeave={(e) => {
       //   // when dragging outside the pane
-      //   if (!e.currentTarget.contains(e.relatedTarget)) {
-      //     if (showDropTarget()) {
+      //   If (!e.currentTarget.contains(e.relatedTarget)) {
+      //     If (showDropTarget()) {
       //       // setState("dragState", "targetPaneId", null);
       //     }
       //   }
@@ -1749,7 +1749,7 @@ const Pane = ({
             width: "100%",
             background: isEmptyPane() ? "#000005" : "",
 
-            // height: "calc(100% - 25px)",
+            // Height: "calc(100% - 25px)",
             "flex-grow": 1,
           }}
         >
@@ -1795,7 +1795,7 @@ const Pane = ({
               display: isDropTarget() ? "flex" : "none",
               "z-index": "100",
               background: "rgba(0, 0, 0, 0.95)",
-              // opacity: state.isResizingPane ? 0.95 : 1,
+              // Opacity: state.isResizingPane ? 0.95 : 1,
               position: "absolute",
               inset: "0px",
               "justify-content": "center",
@@ -1811,18 +1811,18 @@ const Pane = ({
 };
 
 const TabContent = ({ tabId }: { tabId: string }) => {
-  // todo (yoav): we might have two windows loading at the same time.
-  // we should get this by tabId directly
+  // Todo (yoav): we might have two windows loading at the same time.
+  // We should get this by tabId directly
   const tab = () => getWindow()?.tabs[tabId];
 
-  // todo (yoav): rename pane and tab slots to make it more obvious what id is used
+  // Todo (yoav): rename pane and tab slots to make it more obvious what id is used
   const paneSlot = () => `paneslot-${tab()?.id}`;
 
-  // todo (yoav): add a preload script to the webview wired up with typescript
-  // ideally we could inline it so allow dynamic scripts based on the url.
-  // maybe it just calls back with certain events.
-  // alternatively if you can get the dashboard replay code with overlayer for events to work
-  // that would be best
+  // Todo (yoav): add a preload script to the webview wired up with typescript
+  // Ideally we could inline it so allow dynamic scripts based on the url.
+  // Maybe it just calls back with certain events.
+  // Alternatively if you can get the dashboard replay code with overlayer for events to work
+  // That would be best
   const setActivePane = () => {
     const tabPaneId = tab()?.paneId;
     if (!tabPaneId) {
@@ -1831,14 +1831,14 @@ const TabContent = ({ tabId }: { tabId: string }) => {
 
     if (getWindow()?.currentPaneId !== tabPaneId) {
       const winIndex = state.workspace?.windows?.findIndex((w) => w.id === state.windowId);
-      // todo (yoav): create an setWindowState function
+      // Todo (yoav): create an setWindowState function
       setState("workspace", "windows", winIndex, "currentPaneId", tabPaneId);
-      // getWindow().currentPaneId = tab().paneId;
-      // setState("currentPaneId", tab().paneId);
+      // GetWindow().currentPaneId = tab().paneId;
+      // SetState("currentPaneId", tab().paneId);
     }
   };
 
-  // const _tab = tab();
+  // Const _tab = tab();
 
   return (
     <div
@@ -1872,7 +1872,7 @@ const TabContent = ({ tabId }: { tabId: string }) => {
               background: "#fff",
             }}
             src={tab()?.path}
-            // preload=""
+            // Preload=""
           />
         </Match>
 
@@ -1885,7 +1885,7 @@ const TabContent = ({ tabId }: { tabId: string }) => {
         <Match
           when={(() => {
             const node = getNode(tab()?.path);
-            if (!node?.path) return null;
+            if (!node?.path) {return null;}
             return findPluginSlateForFile(node.path);
           })()}
         >
@@ -1976,7 +1976,7 @@ const PaneTab = ({
         const hostname = new URL(url).hostname;
         const hostnameParts = hostname.split(".");
         if (hostnameParts.length > 2) {
-          setTitle(hostnameParts[hostnameParts.length - 2]);
+          setTitle(hostnameParts.at(-2));
         } else {
           setTitle(hostname);
         }
@@ -1987,9 +1987,9 @@ const PaneTab = ({
       // Use current directory if available, otherwise fall back to initial path
       const currentPath = (_tab as any).currentDir || _tab.path;
       const folderName = currentPath
-        ? currentPath === "/"
+        ? (currentPath === "/"
           ? "root"
-          : currentPath.split("/").pop() || "root"
+          : currentPath.split("/").pop() || "root")
         : "term";
       setTitle(`term: ${folderName}`);
     }
@@ -2038,8 +2038,8 @@ const PaneTab = ({
           setIcon(defaultIcon);
         }
       })
-      .catch((err) => {
-        console.log("Error getting favicon:", err);
+      .catch((error) => {
+        console.log("Error getting favicon:", error);
         setIcon(defaultIcon);
       });
   };
@@ -2079,7 +2079,7 @@ const PaneTab = ({
     }
   });
 
-  // this is likely the cause of a bug or something and shouldn't happen
+  // This is likely the cause of a bug or something and shouldn't happen
   if (paneId !== tab()?.paneId) {
     setState(
       produce((_state: AppState) => {
@@ -2153,7 +2153,7 @@ const PaneTab = ({
 
   const onCloseClick = (e: DomEventWithTarget<MouseEvent>) => {
     // NOTE: We don't want to select the tab when closing it
-    // if it wasn't already selected/current
+    // If it wasn't already selected/current
     e.stopImmediatePropagation();
     closeTab(tabId);
   };
@@ -2192,10 +2192,10 @@ const PaneTab = ({
   const isDraggingStyles = () => {
     return hideWileDragging()
       ? {
-          // opacity: "0.3",
-          // display: "none",
-          // width: "10px",
-          // overflow: "hidden",
+          // Opacity: "0.3",
+          // Display: "none",
+          // Width: "10px",
+          // Overflow: "hidden",
         }
       : {};
   };
@@ -2203,7 +2203,7 @@ const PaneTab = ({
   return (
     <>
       <div
-        // ref={tabRef}
+        // Ref={tabRef}
         data-isdragging={hideWileDragging()}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
@@ -2222,12 +2222,12 @@ const PaneTab = ({
         onDragOver={(e) => {
           console.log("onDragOVer Tab");
           // This removes the animation when dragging is finished where the
-          // drag preview slowly animates back to the original location
+          // Drag preview slowly animates back to the original location
           e.preventDefault();
 
           if (state.dragState) {
             const { type } = state.dragState;
-            // todo (yoav): add a util for determining if a node can be opened in a new tab
+            // Todo (yoav): add a util for determining if a node can be opened in a new tab
             if (type === "tab" || canOpenNodeInNewTab(state.dragState.nodePath)) {
               const { targetPaneId, targetTabIndex } = state.dragState;
 
@@ -2399,13 +2399,13 @@ const NodeSettings = () => {
   const [urlInputValue, setUrlInputValue] = createSignal("");
   const finalUrl = createMemo(() => {
     const val = urlInputValue();
-    if (!val) return "";
+    if (!val) {return "";}
     const hasProtocol = /^[a-zA-Z][a-zA-Z\d+\-.]*:/.test(val);
     return hasProtocol ? val : `https://${val}`;
   });
   const shouldShowProtocolHint = createMemo(() => {
     const val = urlInputValue();
-    if (!val) return false;
+    if (!val) {return false;}
     const hasProtocol = /^[a-zA-Z][a-zA-Z\d+\-.]*:/.test(val);
     return !hasProtocol;
   });
@@ -2414,7 +2414,7 @@ const NodeSettings = () => {
 
   const suggestedBrowserProfileName = createMemo(() => {
     const val = urlInputValue();
-    if (!val) return "";
+    if (!val) {return "";}
 
     try {
       const url = new URL(finalUrl());
@@ -2432,7 +2432,7 @@ const NodeSettings = () => {
       }
 
       return cleanHostname;
-    } catch (e) {
+    } catch {
       // If URL parsing fails, try to extract something useful from the raw input
       const cleanVal = val.replace(/^https?:\/\//, "").replace(/^www\./, "");
       const firstPart = cleanVal.split(".")[0].split("/")[0];
@@ -2546,7 +2546,7 @@ const NodeSettings = () => {
   createEffect((prevPath) => {
     const _previewNode = previewNode();
 
-    // todo (yoav): move this to stores
+    // Todo (yoav): move this to stores
     setState(
       produce((_state: AppState) => {
         if (state.settingsPane.type !== "add-node" && state.settingsPane.type !== "edit-node") {
@@ -2566,7 +2566,7 @@ const NodeSettings = () => {
 
           // If the slateConfig from disk is another type like browser profile then don't load it
           // I guess if user continues they'll overwrite it with a new project folder
-          // but we can enforce whatever behaviour we want here later
+          // But we can enforce whatever behaviour we want here later
           if (slateConfigFromDisk?.type === "project") {
             __previewNode.slate = slateConfigFromDisk;
           }
@@ -2642,8 +2642,8 @@ const NodeSettings = () => {
           setPreviewNodeSlateName(nameToUse);
         }
       }
-      // the only time it's ok to choose an existing path is when you're adding a new project
-      // because that folder won't already exist in Colab filetree etc.
+      // The only time it's ok to choose an existing path is when you're adding a new project
+      // Because that folder won't already exist in Colab filetree etc.
 
       if (!isOkToChooseExisitingPath() && isFileNameConflict()) {
         inputNameRef?.focus();
@@ -2662,7 +2662,7 @@ const NodeSettings = () => {
       }
 
       if (settingsType === "add-node" || _node.path !== _previewNode?.path) {
-        // if the node path existed before, rename it
+        // If the node path existed before, rename it
         if (settingsType === "edit-node" && _node) {
           const result = await electrobun.rpc?.request.rename({
             oldPath: _node.path,
@@ -2672,19 +2672,19 @@ const NodeSettings = () => {
             console.error("Failed to rename node");
           }
         } else if (!(await electrobun.rpc?.request.exists({ path: _previewNode.path }))) {
-          // otherwise create the file or folder
+          // Otherwise create the file or folder
           if (_previewNode.type === "dir") {
             await electrobun.rpc?.request.mkdir({ path: _previewNode.path });
           } else if (_previewNode.type === "file") {
-            // save your file here
+            // Save your file here
             const result = electrobun.rpc?.request.writeFile({
               path: _previewNode.path,
               value: "",
             });
 
-            // if (!result?.success) {
+            // If (!result?.success) {
             //   // todo: handle failed write
-            //   return;
+            //   Return;
             // }
           }
         }
@@ -2832,8 +2832,8 @@ const NodeSettings = () => {
     }
 
     if (inputNameRef.value === "." || inputNameRef.value === "..") {
-      // causes wacky behaviour with the path and changes the
-      // location of the previewnode
+      // Causes wacky behaviour with the path and changes the
+      // Location of the previewnode
       return;
     }
 
@@ -2843,9 +2843,9 @@ const NodeSettings = () => {
     if (!_previewNode) {
       return;
     }
-    // we use the original node because we can assume that it had a name and can split
-    // based on / to get the parent. when editing previewNode.path may have a blank name
-    // and so splitting on / would return the grandparent
+    // We use the original node because we can assume that it had a name and can split
+    // Based on / to get the parent. when editing previewNode.path may have a blank name
+    // And so splitting on / would return the grandparent
     const absolutePath = join(parentNodePath(_previewNode), name);
 
     if (inputNameRef.value !== name) {
@@ -2877,7 +2877,7 @@ const NodeSettings = () => {
     );
   };
 
-  // todo (yoav): move this to producers
+  // Todo (yoav): move this to producers
 
   const onProjectNameInputChange = () => {
     if (projectNameRef) {
@@ -2917,7 +2917,7 @@ const NodeSettings = () => {
           error: result?.error || "Invalid repository URL",
         });
       }
-    } catch (error) {
+    } catch {
       setGitUrlValidation({
         status: "invalid",
         error: "Failed to validate URL",
@@ -2986,7 +2986,7 @@ const NodeSettings = () => {
     }
     const nodeType = type === "file" ? "file" : "dir";
 
-    // setup
+    // Setup
     if (type === "project") {
       // For project type, get a unique name but keep the existing slate intact
       const newName = await electrobun.rpc?.request.getUniqueNewName({
@@ -3039,7 +3039,7 @@ const NodeSettings = () => {
           },
         },
       });
-      // setState("settingsPane", "data", "previewNode", );
+      // SetState("settingsPane", "data", "previewNode", );
     } else if (type === "agent") {
       const newName = await electrobun.rpc?.request.getUniqueNewName({
         parentPath: parentNodePath(_previewNode),
@@ -3100,14 +3100,14 @@ const NodeSettings = () => {
         slate: {
           type: "devlink",
         },
-        // children: [],
+        // Children: [],
         previewChildren: [
           {
             type: "dir",
             name: "components",
             isExpanded: true,
-            path: "", //path.join(data.node.path, defaultFolder, "components"),
-            // children: [],
+            path: "", //Path.join(data.node.path, defaultFolder, "components"),
+            // Children: [],
             previewChildren: [],
           },
         ],
@@ -3170,8 +3170,8 @@ const NodeSettings = () => {
     );
   };
 
-  // todo (yoav): consider using a webview and page-favicon-updated
-  // to get the favicon instead of doing it manually with fetch
+  // Todo (yoav): consider using a webview and page-favicon-updated
+  // To get the favicon instead of doing it manually with fetch
   let hostnameForFavicon = "";
   const onUrlInputChange = (e: DomEventWithTarget<InputEvent, HTMLInputElement>) => {
     const inputValue = e.currentTarget.value;
@@ -3209,7 +3209,7 @@ const NodeSettings = () => {
     let hostname = "";
     try {
       hostname = new URL(urlForFavicon).origin;
-    } catch (e) {
+    } catch {
       // If still invalid, user might be typing and it's not complete yet
     }
 
@@ -3245,9 +3245,9 @@ const NodeSettings = () => {
     const settingsPaneData = state.settingsPane.data;
     if ("previewNode" in settingsPaneData) {
       // Check if this is a project root either by slate type (for new projects being added)
-      // or by checking if the node's path matches a project path (for existing projects)
+      // Or by checking if the node's path matches a project path (for existing projects)
       const slateType = getSlateForNode(settingsPaneData.previewNode)?.type;
-      if (slateType === "project") return true;
+      if (slateType === "project") {return true;}
       return isProjectRoot(settingsPaneData.previewNode);
     }
   };
@@ -3266,7 +3266,7 @@ const NodeSettings = () => {
     agent: "AI Agent",
     repo: "Git Repository",
     devlink: "DevLink",
-    // desktop: "Desktop App",
+    // Desktop: "Desktop App",
   };
 
   const getNodeTypeName = () => (previewNode()?.type === "file" ? "File" : "Folder");
@@ -3378,7 +3378,7 @@ const NodeSettings = () => {
     });
 
     if (!result?.success) {
-      // todo: handle error
+      // Todo: handle error
       console.error("error creating preload script", result?.error);
     }
 
@@ -3405,12 +3405,12 @@ const NodeSettings = () => {
     const isFile = nodeType === "file";
     setFolderInputLabel(
       state.settingsPane.type === "add-node"
-        ? isFile
+        ? (isFile
           ? "Create file"
-          : "Create folder"
-        : isFile
+          : "Create folder")
+        : (isFile
           ? "Rename file"
-          : "Rename folder",
+          : "Rename folder"),
     );
   });
 
@@ -3486,9 +3486,9 @@ const NodeSettings = () => {
                         <button
                           type="button"
                           name="path"
-                          // webkitdirectory
-                          // directory
-                          // multiple
+                          // Webkitdirectory
+                          // Directory
+                          // Multiple
                           onClick={onPathChooserClick}
                           style="cursor: pointer; border-color: rgb(54, 54, 54);outline: 0px;-webkit-user-select: none;padding: 0px 12px;font-family: inherit;font-size: 12px;position: relative;display: flex;align-items: center;justify-content: center;height: 32px;border-radius: 2px;color: rgb(235, 235, 235);background: rgb(94, 94, 94);border-width: 1px;border-style: solid;box-sizing: border-box;"
                         >
@@ -3851,7 +3851,7 @@ const Sidebar = () => {
 
   const width = () => {
     const currentWindow = getWindow();
-    if (!currentWindow?.ui.showSidebar) return "0px";
+    if (!currentWindow?.ui.showSidebar) {return "0px";}
     const sidebarWidth = currentWindow.ui.sidebarWidth || 250;
     return `${sidebarWidth}px`;
   };
@@ -3860,14 +3860,14 @@ const Sidebar = () => {
   let searchDebounceTimer: ReturnType<typeof setTimeout> | undefined;
 
   const onResizeMouseDown = (e: DomEventWithTarget<MouseEvent>) => {
-    if (e.button !== 0) return;
+    if (e.button !== 0) {return;}
     e.preventDefault();
     setIsDraggingResize(true);
     setState("isResizingPane", true);
 
     const handleMouseMove = (e: MouseEvent) => {
       const currentWindow = getWindow();
-      if (!currentWindow) return;
+      if (!currentWindow) {return;}
 
       const currentWidth = currentWindow.ui.sidebarWidth || 250;
       const newWidth = Math.max(250, Math.min(600, currentWidth + e.movementX));
@@ -4007,7 +4007,7 @@ const Sidebar = () => {
           >
             <svg
               style={{
-                // filter: state.ui.filterFileTreeByFindAll ? "invert()" : "",
+                // Filter: state.ui.filterFileTreeByFindAll ? "invert()" : "",
                 filter: "invert()",
               }}
               xmlns="http://www.w3.org/2000/svg"
@@ -4059,15 +4059,15 @@ const Sidebar = () => {
   );
 };
 
-// let debounceLiClick: null | NodeJS.Timeout = null;
+// Let debounceLiClick: null | NodeJS.Timeout = null;
 
-// todo (yoav): simplify this component
+// Todo (yoav): simplify this component
 
 const appElement = document.querySelector("#app");
 
-// todo (yoav): we should only render the app when we have the state
-// and have a state type that doesn't have all the nulls and such to avoid
-// a ton of type checking issues
+// Todo (yoav): we should only render the app when we have the state
+// And have a state type that doesn't have all the nulls and such to avoid
+// A ton of type checking issues
 if (appElement) {
   render(App, appElement);
 } else {

@@ -10,7 +10,7 @@ declare global {
 
 // IDiffNavigator type is incomplete defined at esm/vs/editor/editor.api.d.ts
 // DiffNavigator class is defined at esm/vs/editor/browser/widget/diffNavigator.js
-type ActualDiffEditorClassType = {
+interface ActualDiffEditorClassType {
   next: () => void;
   previous: () => void;
   nextIdx: number;
@@ -19,7 +19,7 @@ type ActualDiffEditorClassType = {
   ranges: any[];
   // canNavigate(): boolean;
   // canNavigateLoop(): boolean;
-};
+}
 
 export const DiffEditor = ({
   originalText,
@@ -130,7 +130,7 @@ export const DiffEditor = ({
           box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4) !important;
         }
       `;
-      document.head.appendChild(style);
+      document.head.append(style);
     }
 
     editor = monaco.editor.createDiffEditor(editorRef, {
@@ -195,7 +195,7 @@ export const DiffEditor = ({
     }
 
     editor.onDidUpdateDiff(() => {
-      if (!editor) return;
+      if (!editor) {return;}
       console.log("Diff updated!");
 
       // Get line changes from the diff editor
@@ -315,7 +315,7 @@ export const DiffEditor = ({
               color: #dc2626 !important;
             }
           `;
-          document.head.appendChild(style);
+          document.head.append(style);
         }
 
         // Apply the decorations
@@ -340,7 +340,7 @@ export const DiffEditor = ({
 
     // Handle clicks on the glyph margin for staging
     modifiedEditor.onMouseDown((e: any) => {
-      if (!editor) return;
+      if (!editor) {return;}
 
       if (e.target.type === monaco.editor.MouseTargetType.GUTTER_GLYPH_MARGIN) {
         const lineNumber = e.target.position?.lineNumber;
@@ -392,21 +392,21 @@ export const DiffEditor = ({
       }
     });
 
-    // setTimeout(() => {
-    //   originalModel.setValue("hi\nlkajsdf\nlaksjf");
-    //   modifiedModel.setValue("blob blob");
-    //   editor.setModel({
-    //     original: monaco.editor.createModel("", "plaintext"),
-    //     modified: monaco.editor.createModel("", "plaintext"),
+    // SetTimeout(() => {
+    //   OriginalModel.setValue("hi\nlkajsdf\nlaksjf");
+    //   ModifiedModel.setValue("blob blob");
+    //   Editor.setModel({
+    //     Original: monaco.editor.createModel("", "plaintext"),
+    //     Modified: monaco.editor.createModel("", "plaintext"),
     //   });
     // }, 5000);
   });
 
   const nextDiff = () => {
-    if (!editor) return;
+    if (!editor) {return;}
 
     const lineChanges = editor.getLineChanges();
-    if (!lineChanges || lineChanges.length === 0) return;
+    if (!lineChanges || lineChanges.length === 0) {return;}
 
     // Move to next change
     currentDiffIndex = (currentDiffIndex + 1) % lineChanges.length;
@@ -426,10 +426,10 @@ export const DiffEditor = ({
   };
 
   const prevDiff = () => {
-    if (!editor) return;
+    if (!editor) {return;}
 
     const lineChanges = editor.getLineChanges();
-    if (!lineChanges || lineChanges.length === 0) return;
+    if (!lineChanges || lineChanges.length === 0) {return;}
 
     // Move to previous change
     currentDiffIndex = currentDiffIndex > 0 ? currentDiffIndex - 1 : lineChanges.length - 1;
@@ -453,9 +453,9 @@ export const DiffEditor = ({
     if (editor) {
       editor.setModel(null);
     }
-    if (originalModel) originalModel.dispose();
-    if (modifiedModel) modifiedModel.dispose();
-    if (editor) editor.dispose();
+    if (originalModel) {originalModel.dispose();}
+    if (modifiedModel) {modifiedModel.dispose();}
+    if (editor) {editor.dispose();}
   });
 
   // Staging controls state
@@ -463,7 +463,7 @@ export const DiffEditor = ({
 
   // Function to update staging decorations
   const updateStagingDecorations = () => {
-    if (!editor) return;
+    if (!editor) {return;}
 
     console.log(
       "updateStagingDecorations called - canStageLines:",
@@ -485,7 +485,7 @@ export const DiffEditor = ({
       );
     }
 
-    console.log("Line changes available:", !!lineChanges, "count:", lineChanges?.length);
+    console.log("Line changes available:", Boolean(lineChanges), "count:", lineChanges?.length);
 
     // TEMP: Force staging glyphs to appear for testing
     if (lineChanges && lineChanges.length > 0) {
@@ -580,7 +580,7 @@ export const DiffEditor = ({
             color: #dc2626 !important;
           }
         `;
-        document.head.appendChild(style);
+        document.head.append(style);
       }
 
       // Store the decoration IDs globally
@@ -642,7 +642,7 @@ export const DiffEditor = ({
   // Set up staging controls that are always visible
   createEffect(() => {
     console.log("=== STAGING EFFECT START ===");
-    console.log("Editor exists:", !!editor);
+    console.log("Editor exists:", Boolean(editor));
     console.log("canStageLines:", canStageLines);
     console.log("filePath:", filePath);
     console.log("isStaged:", isStaged);
@@ -770,7 +770,7 @@ export const DiffEditor = ({
               color: #dc2626 !important;
             }
           `;
-          document.head.appendChild(style);
+          document.head.append(style);
         }
 
         // Handle clicks on the glyph margin

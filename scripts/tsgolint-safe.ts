@@ -21,7 +21,7 @@ function writeOutputs(stdoutText: string, stderrText: string): void {
 }
 
 function run(
-  command: ReadonlyArray<string>,
+  command: readonly string[],
 ): { exitCode: number; stdoutText: string; stderrText: string } {
   const result = Bun.spawnSync(command, {
     stdout: "pipe",

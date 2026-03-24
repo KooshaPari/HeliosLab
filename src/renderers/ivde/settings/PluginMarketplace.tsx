@@ -63,13 +63,13 @@ export const PluginMarketplace = (): JSXElement => {
           if (pluginEntitlements && pluginEntitlements.length > 0) {
             entitlements[plugin.name] = pluginEntitlements;
           }
-        } catch (e) {
+        } catch {
           // Ignore individual plugin errors
         }
       }
       setPluginEntitlements(entitlements);
-    } catch (err) {
-      console.error("Failed to load installed plugins:", err);
+    } catch (error) {
+      console.error("Failed to load installed plugins:", error);
     }
   };
 
@@ -82,8 +82,8 @@ export const PluginMarketplace = (): JSXElement => {
         size: 50,
       });
       setSearchResults(result?.results || []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to search plugins");
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Failed to search plugins");
     } finally {
       setLoading(false);
     }
@@ -98,7 +98,7 @@ export const PluginMarketplace = (): JSXElement => {
   createEffect(() => {
     const query = searchQuery();
     const timeoutId = setTimeout(() => {
-      if (query !== searchQuery()) return;
+      if (query !== searchQuery()) {return;}
       searchPlugins();
     }, 500);
     return () => clearTimeout(timeoutId);
@@ -117,8 +117,8 @@ export const PluginMarketplace = (): JSXElement => {
       } else {
         setError(result?.error || "Installation failed");
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Installation failed");
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Installation failed");
     } finally {
       setInstalling(null);
     }
@@ -133,8 +133,8 @@ export const PluginMarketplace = (): JSXElement => {
       } else {
         setError(result?.error || "Uninstallation failed");
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Uninstallation failed");
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Uninstallation failed");
     } finally {
       setInstalling(null);
     }
@@ -144,8 +144,8 @@ export const PluginMarketplace = (): JSXElement => {
     try {
       await electrobun.rpc?.request.pluginSetEnabled({ packageName, enabled });
       await loadInstalledPlugins();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to update plugin");
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Failed to update plugin");
     }
   };
 
@@ -178,8 +178,8 @@ export const PluginMarketplace = (): JSXElement => {
       } else {
         setError(result?.error || "Installation failed");
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to install from folder");
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Failed to install from folder");
     } finally {
       setInstalling(null);
     }
@@ -656,15 +656,15 @@ export const PluginMarketplace = (): JSXElement => {
                             background:
                               ent.level === "high"
                                 ? "#3d2020"
-                                : ent.level === "medium"
+                                : (ent.level === "medium"
                                   ? "#3d3520"
-                                  : "#203520",
+                                  : "#203520"),
                             color:
                               ent.level === "high"
                                 ? "#ff8080"
-                                : ent.level === "medium"
+                                : (ent.level === "medium"
                                   ? "#ffc080"
-                                  : "#80ff80",
+                                  : "#80ff80"),
                             display: "flex",
                             "align-items": "center",
                             gap: "4px",

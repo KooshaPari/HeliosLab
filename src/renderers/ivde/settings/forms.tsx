@@ -5,7 +5,7 @@ import {
   Show,
   Switch,
   createSignal,
-  // createEffect,
+  // CreateEffect,
 } from "solid-js";
 import { setState } from "../store";
 
@@ -64,14 +64,14 @@ export const SettingsPaneFormSection = ({
   children: JSXElement;
 }) => {
   const [open, setOpen] = createSignal(true);
-  // const [_label, setLabel] = createSignal(label);
+  // Const [_label, setLabel] = createSignal(label);
   const getLabel = () => {
     return typeof label === "function" ? label() : label;
   };
 
-  // createEffect(() => {
-  //   console.log("label changing", label);
-  //   setLabel(label);
+  // CreateEffect(() => {
+  //   Console.log("label changing", label);
+  //   SetLabel(label);
   // });
   return (
     <div class="form-section">
@@ -87,7 +87,7 @@ export const SettingsPaneFormSection = ({
                 <svg
                   data-icon="CaretDownMedium"
                   aria-hidden="true"
-                  // focusable="false"
+                  // Focusable="false"
                   width="9"
                   height="6"
                   viewBox="0 0 9 6"
@@ -101,7 +101,7 @@ export const SettingsPaneFormSection = ({
                 <svg
                   data-icon="CaretLeftMedium"
                   aria-hidden="true"
-                  // focusable="false"
+                  // Focusable="false"
                   width="6"
                   height="9"
                   viewBox="0 0 6 9"
@@ -157,7 +157,7 @@ export const SettingsInputField = ({
 }: {
   value: string;
   placeholder: string;
-  // onInput: (e: Event) => void,
+  // OnInput: (e: Event) => void,
   name: string;
   ref: HTMLInputElement | undefined;
 }) => {
@@ -167,7 +167,7 @@ export const SettingsInputField = ({
       ref={ref}
       name={name}
       value={value}
-      // onInput={onInput}
+      // OnInput={onInput}
       placeholder={placeholder}
       style="background: #2b2b2b;border-radius: #2b2b2b;border: 1px solid #212121;color: #d9d9d9;outline: none;cursor: text;display: block;font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', Helvetica, Arial, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;font-size: 12px;padding-top: 8px;padding-right: 9px;padding-bottom: 8px;padding-left: 9px;line-height: 14px;"
     ></input>

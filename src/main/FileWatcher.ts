@@ -6,7 +6,7 @@ import db, { type CurrentDocumentTypes } from "./goldfishdb/db";
 import { readSlateConfigFile } from "./utils/fileUtils";
 import { broadcastToAllWindows, broadcastToAllWindowsInWorkspace } from "./workspaceWindows";
 
-const directoryWatchers: { [projectId: string]: FSWatcher | null } = {};
+const directoryWatchers: Record<string, FSWatcher | null> = {};
 
 export const closeProjectDirectoryWatcher = (projectId: string) => {
   directoryWatchers[projectId]?.close();
@@ -16,7 +16,7 @@ export const removeProjectDirectoryWatcher = (projectId: string) => {
   closeProjectDirectoryWatcher(projectId);
   directoryWatchers[projectId] = null;
   // Note: typically when removing we moved folders around so we want to make sure
-  // that we're watching all the directories we need to as well, possibly for the same project.
+  // That we're watching all the directories we need to as well, possibly for the same project.
   // This is like a refresh
   watchProjectDirectories();
 };
@@ -39,7 +39,7 @@ export const watchProjectDirectories = () => {
 
     if (!existsSync(projectDirectory)) {
       // TODO: create the project directory now, but move to add/edit when choosing a project path in the future just exit here
-      // mkdirSync(projectDirectory, { recursive: true });
+      // MkdirSync(projectDirectory, { recursive: true });
       continue;
     }
 
@@ -70,19 +70,19 @@ export const watchProjectDirectories = () => {
 
             */
           if (!relativePath) {
-            console.log("fileWatcher relative path empty: ", relativePath);
+            console.log("fileWatcher relative path empty:", relativePath);
             return;
           }
 
           const absolutePath = join(projectDirectory, relativePath);
-          // file was removed (or moved or renamed to something else)
+          // File was removed (or moved or renamed to something else)
           const exists = existsSync(absolutePath);
           const isDelete = eventType === "rename" && !exists;
           const isAdding = eventType === "rename" && exists;
           const projectWasDeleted = isDelete && projectDirectory === absolutePath;
 
           if (projectWasDeleted) {
-            // stop watching the folder
+            // Stop watching the folder
             fileWatcher.close();
             directoryWatchers[projectId] = null;
             return;

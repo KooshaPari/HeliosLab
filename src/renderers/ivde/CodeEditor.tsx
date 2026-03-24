@@ -12,12 +12,12 @@ import {
   openFileAt,
 } from "./store";
 
-// import "monaco-editor/esm/vs/basic-languages/typescript/typescript.contribution";
+// Import "monaco-editor/esm/vs/basic-languages/typescript/typescript.contribution";
 import "monaco-editor/esm/vs/language/typescript/monaco.contribution";
 import "monaco-editor/esm/vs/language/css/monaco.contribution";
 import "monaco-editor/esm/vs/language/html/monaco.contribution";
 import "monaco-editor/esm/vs/language/json/monaco.contribution";
-// note: there is no markdown worker, just use plaintext
+// Note: there is no markdown worker, just use plaintext
 
 import "monaco-editor/min/vs/editor/editor.main.css";
 import { _getNode, createModel, getNode } from "./FileWatcher";
@@ -35,10 +35,10 @@ import type { ParsedResponseType } from "../../shared/types/types";
 
 let currentRequestId = 0;
 
-// import "monaco-editor/editor.main.css";
-// import TypeScriptIcon from "../../../assets/file-icons/TypeScript.svg";
+// Import "monaco-editor/editor.main.css";
+// Import TypeScriptIcon from "../../../assets/file-icons/TypeScript.svg";
 
-// todo (yoav):[blocking] we're storing editors
+// Todo (yoav):[blocking] we're storing editors
 
 monaco.editor.defineTheme("darkPlus", {
   base: "vs-dark",
@@ -57,18 +57,22 @@ monaco.editor.defineTheme("darkPlus", {
   colors: {},
 });
 
-const editors: { [id: string]: monaco.editor.IStandaloneCodeEditor } = {};
+const editors: Record<string, monaco.editor.IStandaloneCodeEditor> = {};
 
 const tsSeverityToMonacoSeverity = (severity: "error" | "warning" | "suggestion" | string) => {
   switch (severity) {
-    case "error":
+    case "error": {
       return MarkerSeverity.Error;
-    case "warning":
+    }
+    case "warning": {
       return MarkerSeverity.Warning;
-    case "suggestion":
+    }
+    case "suggestion": {
       return MarkerSeverity.Info;
-    default:
+    }
+    default: {
       return MarkerSeverity.Info;
+    }
   }
 };
 
@@ -137,11 +141,11 @@ monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
 });
 
 monaco.languages.typescript.typescriptDefaults.setModeConfiguration({
-  // disable hovers for typescript since we use tsserver quickinfo for that
+  // Disable hovers for typescript since we use tsserver quickinfo for that
   hovers: false,
-  // disable go to definition for typescript since we use tsserver for that
+  // Disable go to definition for typescript since we use tsserver for that
   definitions: false,
-  // disable TypeScript's built-in completions to reserve inline for AI only
+  // Disable TypeScript's built-in completions to reserve inline for AI only
   completionItems: false,
 });
 
@@ -158,7 +162,7 @@ pluginCompletionLanguages.forEach((lang) => {
     provideCompletionItems: async (model, position, context, token) => {
       try {
         const lineText = model.getLineContent(position.lineNumber);
-        const linePrefix = lineText.substring(0, position.column - 1);
+        const linePrefix = lineText.slice(0, position.column - 1);
 
         const completions = await electrobun.rpc?.request.pluginGetCompletions({
           language: lang,
@@ -210,33 +214,33 @@ pluginCompletionLanguages.forEach((lang) => {
   });
 });
 
-// const libSource = `
-//     declare var React: any;
+// Const libSource = `
+//     Declare var React: any;
 // `;
 
 // Add your type to the global TypeScript definitions
-// monaco.languages.typescript.typescriptDefaults.addExtraLib(libSource);
+// Monaco.languages.typescript.typescriptDefaults.addExtraLib(libSource);
 
-// todo (yoav): support preact, solidjs, etc.
-// monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
-//   jsx: "react"
+// Todo (yoav): support preact, solidjs, etc.
+// Monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
+//   Jsx: "react"
 // });
 
-// monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
-//   noSemanticValidation: false,
-//   noSyntaxValidation: false
+// Monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
+//   NoSemanticValidation: false,
+//   NoSyntaxValidation: false
 // })
 // NOTE: we probably want different settings for deno/node/electron/etc.
-// and maybe an option to customize it via a tsconfig.json file in the project that's
-// visually editable
-// monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
-//   target: monaco.languages.typescript.ScriptTarget.ES2015,
-//   allowNonTsExtensions: true,
-//   moduleResolution: monaco.languages.typescript.ModuleResolutionKind.NodeJs,
-//   module: monaco.languages.typescript.ModuleKind.CommonJS,
-//   noEmit: true,
-//   jsx: monaco.languages.typescript.JsxEmit.React,
-//   typeRoots: ["node_modules/@types"],
+// And maybe an option to customize it via a tsconfig.json file in the project that's
+// Visually editable
+// Monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
+//   Target: monaco.languages.typescript.ScriptTarget.ES2015,
+//   AllowNonTsExtensions: true,
+//   ModuleResolution: monaco.languages.typescript.ModuleResolutionKind.NodeJs,
+//   Module: monaco.languages.typescript.ModuleKind.CommonJS,
+//   NoEmit: true,
+//   Jsx: monaco.languages.typescript.JsxEmit.React,
+//   TypeRoots: ["node_modules/@types"],
 // });
 
 self.MonacoEnvironment = {
@@ -265,10 +269,10 @@ export const Editor = ({ currentTabId }: { currentTabId: string }) => {
     return getWindow()?.tabs[currentTabId];
   };
   // When loading a window it can spin up tons of tabs so we need some
-  // uniqueness to the id system
+  // Uniqueness to the id system
   const uniqueId = getUniqueId();
 
-  // todo (yoav): controlling whether files/folders are readonly
+  // Todo (yoav): controlling whether files/folders are readonly
   const isReadOnly = false;
   let editor: monaco.editor.IStandaloneCodeEditor;
   let editorRef: HTMLDivElement | undefined;
@@ -325,29 +329,29 @@ export const Editor = ({ currentTabId }: { currentTabId: string }) => {
     const prevModel = editor.getModel();
 
     if (prevModel) {
-      // todo (yoav): [blocking] remove event listener
+      // Todo (yoav): [blocking] remove event listener
       prevListeners.forEach((listener) => listener.dispose());
     }
 
-    // let model = state.files[currentTab.path].model;
+    // Let model = state.files[currentTab.path].model;
     const model: monaco.editor.ITextModel = await createModel(_currentTab.path);
 
-    // todo (yoav): move this to where the file path is changed
-    // tsServer.stdin.write(
+    // Todo (yoav): move this to where the file path is changed
+    // TsServer.stdin.write(
     //   JSON.stringify({
-    //     seq: seq++,
-    //     type: "request",
-    //     command: "open",
-    //     arguments: {
-    //       file: model.uri.path,
+    //     Seq: seq++,
+    //     Type: "request",
+    //     Command: "open",
+    //     Arguments: {
+    //       File: model.uri.path,
     //     },
     //   }) + "\n"
     // );
 
-    // todo (yoav): update open files since this is a single tab/editor that
-    // is loading a different file. For this tsserver instance the only open file
-    // has just changed
-    //github.com/microsoft/TypeScript/blob/97147915ab667a52e31ac743843786cbc9049559/src/server/protocol.ts#L1875-L1896
+    // Todo (yoav): update open files since this is a single tab/editor that
+    // Is loading a different file. For this tsserver instance the only open file
+    // Has just changed
+    //Github.com/microsoft/TypeScript/blob/97147915ab667a52e31ac743843786cbc9049559/src/server/protocol.ts#L1875-L1896
 
     const closedFiles = prevModel?.getLanguageId() === "typescript" ? [prevModel.uri.path] : [];
     const openFiles = model.getLanguageId() === "typescript" ? [model.uri.path] : [];
@@ -361,7 +365,7 @@ export const Editor = ({ currentTabId }: { currentTabId: string }) => {
         args: {
           closedFiles: closedFiles, //[prevModel.uri.path],
           openFiles: openFiles, //[model.uri.path],
-          // changedFiles: [],
+          // ChangedFiles: [],
         },
       });
     } else if (!wasTypescript && isTypescript) {
@@ -380,29 +384,29 @@ export const Editor = ({ currentTabId }: { currentTabId: string }) => {
       });
     }
 
-    // setState('files', currentTab.path, 'model', model)
+    // SetState('files', currentTab.path, 'model', model)
     // }
 
     // Note: since models can be shared between editors, we need to make sure
-    // we don't add duplicate event listeners or remove duplicate listeners. But since
-    // we keep track of them here in this array we don't risk
+    // We don't add duplicate event listeners or remove duplicate listeners. But since
+    // We keep track of them here in this array we don't risk
 
     prevListeners = [
-      // model.onDidChangeAttached((e) => {
+      // Model.onDidChangeAttached((e) => {
 
-      //   diagnoseErrors(model, tsServer);
+      //   DiagnoseErrors(model, tsServer);
       //   // setTimeout(() => {
       //   //   diagnoseErrors(model, tsServer);
       //   // }, 1000);
       // }),
 
-      // editor.onDidCreateModel((e) => {
+      // Editor.onDidCreateModel((e) => {
       //   // diagnoseErrors(model, tsServer);
       //   // diagnoseErrors(model, tsServer);
 
       // }),
 
-      // when editing a file
+      // When editing a file
       model.onDidChangeContent((e) => {
         const { changes, isFlush, isEolChange, isRedoing, isUndoing, versionId, eol } = e;
         const model = editor.getModel();
@@ -417,8 +421,8 @@ export const Editor = ({ currentTabId }: { currentTabId: string }) => {
           const activeTab = getCurrentTab();
 
           // Note: We only send changes for the active tab, otherwise if you have multiple tabs
-          // open on the same file tsserver will get the update multiple times and have a corrupted
-          // internal state of the file.
+          // Open on the same file tsserver will get the update multiple times and have a corrupted
+          // Internal state of the file.
           if (_currentTab.id !== activeTab?.id) {
             return;
           }
@@ -481,9 +485,9 @@ export const Editor = ({ currentTabId }: { currentTabId: string }) => {
     if (!_currentTab) {
       return;
     }
-    // sometimes a file is deleted or renamed outside of Colab but we still have a tab for it
-    // we should render a message or something i the editor to let users know
-    // todo (yoav):
+    // Sometimes a file is deleted or renamed outside of Colab but we still have a tab for it
+    // We should render a message or something i the editor to let users know
+    // Todo (yoav):
     if (!state.fileCache[_currentTab.path]) {
       return;
     }
@@ -507,16 +511,16 @@ export const Editor = ({ currentTabId }: { currentTabId: string }) => {
         preview: false,
         showInlineDetails: false,
       },
-      // autoLayout: true,
+      // AutoLayout: true,
     });
 
     setState("editors", uniqueId, "editor", editor);
 
     createEffect(() => {
       // When resizing the pane (draging the pane dividers) the pane divider creates a div
-      // that covers all the content. Monaco editors will resize themselves and if they need
-      // a scrollbar the scrollbar will respond to mouse events which will block the mouse up
-      // make it hard to exit the pane resize.
+      // That covers all the content. Monaco editors will resize themselves and if they need
+      // A scrollbar the scrollbar will respond to mouse events which will block the mouse up
+      // Make it hard to exit the pane resize.
       if (state.isResizingPane) {
         editor.updateOptions({
           scrollbar: {
@@ -542,7 +546,7 @@ export const Editor = ({ currentTabId }: { currentTabId: string }) => {
 
     resizeObserver.observe(editorRef);
 
-    // todo (yoav): create editor and add actions need to be broken out into its own thing
+    // Todo (yoav): create editor and add actions need to be broken out into its own thing
     editor.addAction({
       id: "saveCommand",
       label: "Save File",
@@ -554,14 +558,14 @@ export const Editor = ({ currentTabId }: { currentTabId: string }) => {
         if (!model || value == null) {
           return;
         }
-        // save your file here
+        // Save your file here
         const result = await electrobun.rpc?.request.writeFile({
           path: model.uri.path,
           value,
         });
 
         if (!result?.success) {
-          // todo: handle failed write
+          // Todo: handle failed write
           return;
         }
 
@@ -606,7 +610,7 @@ export const Editor = ({ currentTabId }: { currentTabId: string }) => {
         const { startLineNumber, startColumn } = selectionOrPosition;
 
         openFileAt(path, startLineNumber, startColumn);
-        // todo: it should also focus a specific line/column
+        // Todo: it should also focus a specific line/column
 
         return true;
       },
@@ -626,8 +630,8 @@ export const Editor = ({ currentTabId }: { currentTabId: string }) => {
       },
     });
 
-    // todo (yoav): [blocking] we should probably only keep track of files here that have open tabs associated with them
-    // since we use tsserver now we don't need to know about every fle in the project
+    // Todo (yoav): [blocking] we should probably only keep track of files here that have open tabs associated with them
+    // Since we use tsserver now we don't need to know about every fle in the project
     setState(
       produce((_state: AppState) => {
         const _node = _getNode(_currentTab.path, _state);
@@ -637,7 +641,7 @@ export const Editor = ({ currentTabId }: { currentTabId: string }) => {
         }
       }),
     );
-    // editors[uniqueId] = editor;
+    // Editors[uniqueId] = editor;
     window.addEventListener("resize", onResize);
 
     if (_currentTab.path.endsWith(".ts") || _currentTab.path.endsWith(".tsx")) {
@@ -645,7 +649,7 @@ export const Editor = ({ currentTabId }: { currentTabId: string }) => {
         monaco.languages.registerHoverProvider("typescript", {
           provideHover: function (model, position) {
             // Note: since this is a global provider it will be triggered
-            // along with all the other CodeEditor providers registered
+            // Along with all the other CodeEditor providers registered
             if (model.uri.path !== _currentTab.path) {
               return;
             }
@@ -657,7 +661,7 @@ export const Editor = ({ currentTabId }: { currentTabId: string }) => {
                     {
                       value: "",
                       /*
-              readonly isTrusted?: boolean | MarkdownStringTrustedOptions;
+              Readonly isTrusted?: boolean | MarkdownStringTrustedOptions;
               readonly supportThemeIcons?: boolean;
               readonly supportHtml?: boolean;
               readonly baseUri?: UriComponents; 
@@ -724,7 +728,7 @@ export const Editor = ({ currentTabId }: { currentTabId: string }) => {
           monaco.languages.registerInlineCompletionsProvider(lang, {
             provideInlineCompletions: async function (model, position, context, token) {
               // Note: since this is a global provider it will be triggered
-              // along with all the other CodeEditor providers registered
+              // Along with all the other CodeEditor providers registered
               if (model.uri.path !== _currentTab.path) {
                 console.log("❌ Wrong file path, skipping AI completion");
                 return { items: [] };
@@ -786,101 +790,101 @@ export const Editor = ({ currentTabId }: { currentTabId: string }) => {
                   return { items: [] };
                 }
 
-                // if (aiResponse.items?.length > 0) {
-                //   console.log("First inline completion item:", aiResponse.items[0]);
+                // If (aiResponse.items?.length > 0) {
+                //   Console.log("First inline completion item:", aiResponse.items[0]);
                 //   // Create custom AI completion overlay
-                //   setTimeout(() => {
-                //     try {
+                //   SetTimeout(() => {
+                //     Try {
                 //       // Calculate what the user has already typed on the current line
-                //       const currentLine = model.getLineContent(position.lineNumber);
-                //       const textBeforeCursor = currentLine.substring(0, position.column - 1);
+                //       Const currentLine = model.getLineContent(position.lineNumber);
+                //       Const textBeforeCursor = currentLine.substring(0, position.column - 1);
 
                 //       // Get the AI completion text
-                //       const fullCompletion = aiResponse.items[0].insertText;
+                //       Const fullCompletion = aiResponse.items[0].insertText;
 
                 //       // Find what part of the completion is actually new
-                //       let remainingCompletion = fullCompletion;
+                //       Let remainingCompletion = fullCompletion;
 
                 //       // Get the last partial word the user is typing
-                //       const lastWordMatch = textBeforeCursor.match(/(\w+)$/);
-                //       if (lastWordMatch) {
-                //         const lastPartialWord = lastWordMatch[1];
-                //         const reconstructed = lastPartialWord + fullCompletion;
+                //       Const lastWordMatch = textBeforeCursor.match(/(\w+)$/);
+                //       If (lastWordMatch) {
+                //         Const lastPartialWord = lastWordMatch[1];
+                //         Const reconstructed = lastPartialWord + fullCompletion;
 
-                //         console.log("Last partial word:", lastPartialWord);
-                //         console.log("AI completion:", fullCompletion);
-                //         console.log("Reconstructed:", reconstructed);
+                //         Console.log("Last partial word:", lastPartialWord);
+                //         Console.log("AI completion:", fullCompletion);
+                //         Console.log("Reconstructed:", reconstructed);
 
                 //         // Advanced overlap detection: try different overlap lengths
-                //         let overlapLength = 0;
+                //         Let overlapLength = 0;
 
                 //         // Method 1: Check if AI completion starts with the partial word
-                //         if (fullCompletion.toLowerCase().startsWith(lastPartialWord.toLowerCase())) {
-                //           overlapLength = lastPartialWord.length;
-                //           console.log("Direct prefix match found");
+                //         If (fullCompletion.toLowerCase().startsWith(lastPartialWord.toLowerCase())) {
+                //           OverlapLength = lastPartialWord.length;
+                //           Console.log("Direct prefix match found");
                 //         } else {
                 //           // Method 2: Check for character overlap at the junction
-                //           for (let i = 1; i <= Math.min(lastPartialWord.length, fullCompletion.length); i++) {
-                //             const partialSuffix = lastPartialWord.slice(-i);
-                //             const completionPrefix = fullCompletion.slice(0, i);
-                //             if (partialSuffix.toLowerCase() === completionPrefix.toLowerCase()) {
-                //               overlapLength = i;
+                //           For (let i = 1; i <= Math.min(lastPartialWord.length, fullCompletion.length); i++) {
+                //             Const partialSuffix = lastPartialWord.slice(-i);
+                //             Const completionPrefix = fullCompletion.slice(0, i);
+                //             If (partialSuffix.toLowerCase() === completionPrefix.toLowerCase()) {
+                //               OverlapLength = i;
                 //             }
                 //           }
 
                 //           // Method 3: Check if reconstruction forms known words
-                //           if (overlapLength === 0) {
-                //             const commonWords = ['console', 'function', 'const', 'class', 'import', 'export', 'return', 'document'];
-                //             for (const word of commonWords) {
-                //               if (reconstructed.toLowerCase().startsWith(word.toLowerCase()) &&
-                //                   lastPartialWord.length < word.length &&
-                //                   word.startsWith(lastPartialWord.toLowerCase())) {
+                //           If (overlapLength === 0) {
+                //             Const commonWords = ['console', 'function', 'const', 'class', 'import', 'export', 'return', 'document'];
+                //             For (const word of commonWords) {
+                //               If (reconstructed.toLowerCase().startsWith(word.toLowerCase()) &&
+                //                   LastPartialWord.length < word.length &&
+                //                   Word.startsWith(lastPartialWord.toLowerCase())) {
                 //                 // Calculate exact overlap needed for this word
                 //                 // For "c" + "onsole" -> "console", we want to keep "onsole" (no overlap removal)
-                //                 const expectedRemaining = word.substring(lastPartialWord.length);
-                //                 if (fullCompletion.toLowerCase().startsWith(expectedRemaining.toLowerCase())) {
-                //                   overlapLength = 0; // Don't remove anything, the AI gave us exactly what we need
-                //                   console.log(`Perfect completion for word: ${word}, keeping full AI response`);
+                //                 Const expectedRemaining = word.substring(lastPartialWord.length);
+                //                 If (fullCompletion.toLowerCase().startsWith(expectedRemaining.toLowerCase())) {
+                //                   OverlapLength = 0; // Don't remove anything, the AI gave us exactly what we need
+                //                   Console.log(`Perfect completion for word: ${word}, keeping full AI response`);
                 //                 } else {
-                //                   overlapLength = lastPartialWord.length;
-                //                   console.log(`Partial overlap for word: ${word}`);
+                //                   OverlapLength = lastPartialWord.length;
+                //                   Console.log(`Partial overlap for word: ${word}`);
                 //                 }
-                //                 break;
+                //                 Break;
                 //               }
                 //             }
                 //           }
                 //         }
 
-                //         if (overlapLength > 0) {
-                //           remainingCompletion = fullCompletion.substring(overlapLength);
-                //           console.log(`Removing ${overlapLength} characters of overlap. Remaining: "${remainingCompletion}"`);
+                //         If (overlapLength > 0) {
+                //           RemainingCompletion = fullCompletion.substring(overlapLength);
+                //           Console.log(`Removing ${overlapLength} characters of overlap. Remaining: "${remainingCompletion}"`);
                 //         } else {
-                //           console.log("No overlap detected, using full completion");
-                //           remainingCompletion = fullCompletion;
+                //           Console.log("No overlap detected, using full completion");
+                //           RemainingCompletion = fullCompletion;
                 //         }
                 //       }
 
-                //       console.log("Text before cursor:", textBeforeCursor);
-                //       console.log("Full AI completion:", fullCompletion);
-                //       console.log("Remaining completion:", remainingCompletion);
+                //       Console.log("Text before cursor:", textBeforeCursor);
+                //       Console.log("Full AI completion:", fullCompletion);
+                //       Console.log("Remaining completion:", remainingCompletion);
 
                 //       // Only show if we have a meaningful remaining completion
-                //       if (remainingCompletion.length > 0 && remainingCompletion !== fullCompletion && remainingCompletion.trim().length > 0) {
-                //         console.log("✅ Showing remaining completion overlay");
-                //         showAICompletionOverlay(editor, position, remainingCompletion);
+                //       If (remainingCompletion.length > 0 && remainingCompletion !== fullCompletion && remainingCompletion.trim().length > 0) {
+                //         Console.log("✅ Showing remaining completion overlay");
+                //         ShowAICompletionOverlay(editor, position, remainingCompletion);
                 //       } else if (fullCompletion.length > 0) {
-                //         console.log("✅ Showing full completion overlay (no partial word)");
-                //         showAICompletionOverlay(editor, position, fullCompletion);
+                //         Console.log("✅ Showing full completion overlay (no partial word)");
+                //         ShowAICompletionOverlay(editor, position, fullCompletion);
                 //       } else {
-                //         console.log("❌ No overlay shown - conditions not met");
+                //         Console.log("❌ No overlay shown - conditions not met");
                 //       }
                 //     } catch (e) {
-                //       console.log("Failed to show AI completion overlay:", e);
+                //       Console.log("Failed to show AI completion overlay:", e);
                 //     }
                 //   }, 50);
                 // }
                 return aiResponse;
-              } catch (error) {
+              } catch {
                 return { items: [] };
               }
             },
@@ -896,7 +900,7 @@ export const Editor = ({ currentTabId }: { currentTabId: string }) => {
   });
 
   onCleanup(() => {
-    // todo (yoav): move to a single event listener model
+    // Todo (yoav): move to a single event listener model
     window.removeEventListener("resize", onResize);
     if (editorRef) {
       resizeObserver?.unobserve(editorRef);
@@ -931,9 +935,9 @@ export const Editor = ({ currentTabId }: { currentTabId: string }) => {
         <For each={getBreadcrumbParts()}>
           {(part, i) => {
             if (i() === 0) {
-              // project name
+              // Project name
               return <span style="margin-right: 5px; color: #60a1d0 ">{part}:</span>;
-            } else {
+            }
               return (
                 <span style="margin-right: 5px">
                   <Show when={i() > 1}>
@@ -942,7 +946,7 @@ export const Editor = ({ currentTabId }: { currentTabId: string }) => {
                   {part}
                 </span>
               );
-            }
+            
           }}
         </For>
       </div>
@@ -966,7 +970,7 @@ const convertTsServerDiagnosticsToMonacoMarkers = (
     diagnostics
       .map((d) => {
         if ("end" in d) {
-          // ts.Diagnostic
+          // Ts.Diagnostic
           return {
             severity: tsSeverityToMonacoSeverity(d.category),
             startLineNumber: d.start.line,
@@ -976,7 +980,7 @@ const convertTsServerDiagnosticsToMonacoMarkers = (
             message: d.text,
           };
         } else if ("endLocation" in d) {
-          // ts.DiagnosticWithLocation
+          // Ts.DiagnosticWithLocation
           return {
             severity: tsSeverityToMonacoSeverity(d.category),
             startLineNumber: d.startLocation.line,
@@ -985,22 +989,22 @@ const convertTsServerDiagnosticsToMonacoMarkers = (
             endColumn: d.endLocation.offset,
             message: d.message,
           };
-        } else {
+        }
           // ts.CompletionEntry
           // Note: this shouldn't happen, the tsserver types are likely mistaken
           // we process completeions using a different function when the command is "completions"
           // and we surface them as suggestions and not markers.
           console.error("completion entry while processing diagnostics", d);
           return null;
-        }
+        
       })
       // Note: typescript doesn't understand filter functions, so we just tell it
-      // that we're returning a nonnullable array
+      // That we're returning a nonnullable array
       .filter((b): b is NonNullable<typeof b> => b !== undefined)
   );
 };
 
-// functions that interface with monaco
+// Functions that interface with monaco
 const diagnoseErrors = (
   model: monaco.editor.ITextModel,
   sendTsServerRequest: (params: any) => void,
@@ -1010,21 +1014,21 @@ const diagnoseErrors = (
   }
 };
 
-// let seq = 0;
+// Let seq = 0;
 
 // This is a custom type that's more readable than what
-// tsserver puts out and includes a severity that's relevant
-// to how the error is displayed in monaco
-type DiagnosticMarkers = {
+// Tsserver puts out and includes a severity that's relevant
+// To how the error is displayed in monaco
+interface DiagnosticMarkers {
   severity: MarkerSeverity;
   startLineNumber: number;
   startColumn: number;
   endLineNumber: number;
   endColumn: number;
   message: string;
-};
+}
 
-// todo (yoav): move this to global state, and save it per editor or per model
+// Todo (yoav): move this to global state, and save it per editor or per model
 const _diagnostics: {
   suggestions: DiagnosticMarkers[];
   syntactic: DiagnosticMarkers[];
@@ -1040,9 +1044,9 @@ const updateMarkers = (model: monaco.editor.ITextModel) => {
 
   monaco.editor.setModelMarkers(model, "custom", [...suggestions, ...syntactic, ...semantic]);
 };
-// functions that interface with tsServer
+// Functions that interface with tsServer
 // https://github.com/microsoft/TypeScript/blob/main/src/server/protocol.ts
-// tsServer requests:
+// TsServer requests:
 let diagnosticsDebounceTimer: ReturnType<typeof setTimeout> | null = null;
 
 const checkTypescriptForErrors = async (
@@ -1059,11 +1063,11 @@ const checkTypescriptForErrors = async (
     diagnosticsDebounceTimer = null;
     const filePath = model.uri.path;
 
-    // todo (yoav): since monaco.editor.setModelMarkers(model, "custom", errors);
-    // replaces the markers, we should store suggestions, syntactic, and semantic errors
-    // in separate stores and then combine them into a single array of markers
-    // todo (yoav): we probably also want this so that we can show the errors in the
-    // sidebar and let the user click on them to jump to the error or other places
+    // Todo (yoav): since monaco.editor.setModelMarkers(model, "custom", errors);
+    // Replaces the markers, we should store suggestions, syntactic, and semantic errors
+    // In separate stores and then combine them into a single array of markers
+    // Todo (yoav): we probably also want this so that we can show the errors in the
+    // Sidebar and let the user click on them to jump to the error or other places
     sendTsServerRequest({
       command: "suggestionDiagnosticsSync",
       args: {
@@ -1071,7 +1075,7 @@ const checkTypescriptForErrors = async (
       },
     });
 
-    // syntax, eg: missing closing bracket
+    // Syntax, eg: missing closing bracket
     setTimeout(() => {
       sendTsServerRequest({
         command: "syntacticDiagnosticsSync",
@@ -1082,7 +1086,7 @@ const checkTypescriptForErrors = async (
       });
     }, 100);
 
-    // semantic, eg: type mismatch
+    // Semantic, eg: type mismatch
     setTimeout(() => {
       sendTsServerRequest({
         command: "semanticDiagnosticsSync",
@@ -1102,11 +1106,11 @@ let hoverProviderResolver: HoverResolverType;
 type DefinitionResolverType = undefined | ((value?: monaco.languages.Location[]) => void);
 let definitionProviderResolver: DefinitionResolverType;
 
-// let tsServerResponse = {
-//   contentLength: 0,
-//   lengthReceived: 0,
+// Let tsServerResponse = {
+//   ContentLength: 0,
+//   LengthReceived: 0,
 
-//   text: "",
+//   Text: "",
 // };
 
 function getTagBody(tag: ts.server.protocol.JSDocTagInfo): Array<string> | undefined {
@@ -1126,9 +1130,9 @@ function getTagBody(tag: ts.server.protocol.JSDocTagInfo): Array<string> | undef
   }
   if (typeof tag.text === "string") {
     return tag.text.split(/^(\S+)\s*-?\s*/);
-  } else {
-    return [""];
   }
+    return [""];
+  
 }
 
 function asPlainText(parts: string | ts.server.protocol.SymbolDisplayPart[]): string {
@@ -1158,30 +1162,31 @@ function getTagBodyText(tag: ts.server.protocol.JSDocTagInfo): string | undefine
       // TODO: should we support it if it appears outside of an explicit code block?
       text = asPlainText(tag.text);
 
-      // check for caption tags, fix for #79704
+      // Check for caption tags, fix for #79704
       const captionTagMatches = text.match(/<caption>(.*?)<\/caption>\s*(\r\n|\n)/);
       if (captionTagMatches && captionTagMatches.index === 0) {
         return (
-          captionTagMatches[1] + "\n" + makeCodeblock(text.substr(captionTagMatches[0].length))
+          captionTagMatches[1] + "\n" + makeCodeblock(text.slice(captionTagMatches[0].length))
         );
-      } else {
-        return makeCodeblock(text);
       }
+        return makeCodeblock(text);
+      
     }
     case "author": {
       const stringText = text as string;
-      // fix obsucated email address, #80898
+      // Fix obsucated email address, #80898
       const emailMatch = stringText.match(/(.+)\s<([-.\w]+@[-.\w]+)>/);
 
       if (emailMatch === null) {
         return stringText;
-      } else {
-        return `${emailMatch[1]} ${emailMatch[2]}`;
       }
+        return `${emailMatch[1]} ${emailMatch[2]}`;
+      
     }
-    case "default":
+    case "default": {
       const stringText = text as string;
       return makeCodeblock(stringText);
+    }
   }
 
   const stringText = text as string;
@@ -1203,7 +1208,7 @@ const tagToMarkdown = (tag: ts.server.protocol.JSDocTagInfo) => {
         if (!doc) {
           return label;
         }
-        return label + (doc.match(/\r\n|\n/g) ? "  \n" + doc : ` \u2014 ${doc}`);
+        return label + (/\r\n|\n/g.test(doc) ? "  \n" + doc : ` \u2014 ${doc}`);
       }
       break;
     }
@@ -1212,7 +1217,7 @@ const tagToMarkdown = (tag: ts.server.protocol.JSDocTagInfo) => {
     case "returns": {
       // For return(s), we require a non-empty body
       if (!tag.text?.length) {
-        return undefined;
+        return;
       }
 
       break;
@@ -1225,59 +1230,59 @@ const tagToMarkdown = (tag: ts.server.protocol.JSDocTagInfo) => {
   if (!text) {
     return label;
   }
-  return label + (text.match(/\r\n|\n/g) ? "  \n" + text : ` \u2014 ${text}`);
+  return label + (/\r\n|\n/g.test(text) ? "  \n" + text : ` \u2014 ${text}`);
 };
 
-// tsServer response handlers
+// TsServer response handlers
 const handleDiagnosticResponse = (
   parsedResponse: ParsedResponseType,
   model: monaco.editor.ITextModel,
   sendTsServerRequest: (params: any) => void,
 ) => {
   // NOTE: tsserver trigger send data events where a response spans multiple events. You can also
-  // have another response added to the end of the last part of the previous response
-  // so we actually need a function that just breaks apart the responses as a loop and handles them separately
-  // todo (yoav): create onDataHandler that handles this and calls handleDiagnosticResponse
+  // Have another response added to the end of the last part of the previous response
+  // So we actually need a function that just breaks apart the responses as a loop and handles them separately
+  // Todo (yoav): create onDataHandler that handles this and calls handleDiagnosticResponse
 
-  // jsonString = new TextDecoder("utf-8").decode(tsServerResponse.byteArray);
-  // jsonString = tsServerResponse.text;
+  // JsonString = new TextDecoder("utf-8").decode(tsServerResponse.byteArray);
+  // JsonString = tsServerResponse.text;
 
   //   // reset the response
-  //   tsServerResponse.contentLength = 0;
-  //   tsServerResponse.lengthReceived = 0;
-  //   tsServerResponse.byteArray = [];
-  //   tsServerResponse.text = "";
+  //   TsServerResponse.contentLength = 0;
+  //   TsServerResponse.lengthReceived = 0;
+  //   TsServerResponse.byteArray = [];
+  //   TsServerResponse.text = "";
   // }
-  // todo (yoav): maybe hanle long or partial responses
+  // Todo (yoav): maybe hanle long or partial responses
 
-  // if (contentLength === jsonString.length) {
+  // If (contentLength === jsonString.length) {
 
-  // const parsedResponse = JSON.parse(jsonString);
-  // console.log("response", parsedResponse);
+  // Const parsedResponse = JSON.parse(jsonString);
+  // Console.log("response", parsedResponse);
   if (parsedResponse.type === "event") {
     const { event, body } = parsedResponse;
     if (event === "projectLoadingStart") {
       const {
-        // absolute path to tsconfig
+        // Absolute path to tsconfig
         projectName,
-        // human text reason for loading
+        // Human text reason for loading
         reason,
       } = body;
 
-      // todo (yoav): show loading indicator in the UI to show tsserver status
+      // Todo (yoav): show loading indicator in the UI to show tsserver status
     } else if (event === "projectLoadingFinish") {
       const {
-        // absolute path to tsconfig
+        // Absolute path to tsconfig
         projectName,
       } = body;
 
       // You can only start running diagnostics after the project has finished loading
-      // in tsserver and we want it to diagnose right after loading
+      // In tsserver and we want it to diagnose right after loading
       diagnoseErrors(model, sendTsServerRequest);
     } else if (event === "telemetry") {
       const {
-        // lots of info about the project
-        // compilerOptions, fileStats, typeAcquisition, and more
+        // Lots of info about the project
+        // CompilerOptions, fileStats, typeAcquisition, and more
         payload,
       } = body;
     } else if (event === "syntaxDiag") {
@@ -1285,9 +1290,9 @@ const handleDiagnosticResponse = (
         return;
       }
       const {
-        // filepath
+        // Filepath
         file,
-        // array of diagnostics
+        // Array of diagnostics
         diagnostics,
       } = body;
 
@@ -1308,9 +1313,9 @@ const handleDiagnosticResponse = (
         return;
       }
       const {
-        // filepath
+        // Filepath
         file,
-        // array of diagnostics {category, code, start, end, text}
+        // Array of diagnostics {category, code, start, end, text}
         diagnostics,
       } = body;
 
@@ -1325,20 +1330,20 @@ const handleDiagnosticResponse = (
         };
       });
 
-      // todo (yoav):  if we add custom errors, we need to manage them in a more central
-      // place because setModelMarkers replaces all markers
+      // Todo (yoav):  if we add custom errors, we need to manage them in a more central
+      // Place because setModelMarkers replaces all markers
       _diagnostics.semantic = errors;
       updateMarkers(model);
-      // monaco.editor.setModelMarkers(model, "custom", errors);
+      // Monaco.editor.setModelMarkers(model, "custom", errors);
     } else if (event === "suggestionDiag") {
       if (!body) {
         return;
       }
       const {
-        // filepath
+        // Filepath
 
         file,
-        // array of diagnostics {category, code, start, end, text}
+        // Array of diagnostics {category, code, start, end, text}
         diagnostics,
       } = body;
 
@@ -1353,26 +1358,26 @@ const handleDiagnosticResponse = (
         };
       });
 
-      // console.log("suggestionsDiag", errors, body);
+      // Console.log("suggestionsDiag", errors, body);
 
-      // todo (yoav):  if we add custom errors, we need to manage them in a more central
-      // place because setModelMarkers replaces all markers
-      // monaco.editor.setModelMarkers(model, "custom", errors);
+      // Todo (yoav):  if we add custom errors, we need to manage them in a more central
+      // Place because setModelMarkers replaces all markers
+      // Monaco.editor.setModelMarkers(model, "custom", errors);
       _diagnostics.suggestions = errors;
 
       updateMarkers(model);
     } else if (event === "requestCompleted") {
       const {
-        // the seq of the request that was completed
+        // The seq of the request that was completed
         request_seq,
       } = body;
     }
   } else if (parsedResponse.type === "response") {
     const { command, success, body } = parsedResponse;
     if (command === "suggestionDiagnosticsSync") {
-      // const { body } = parsedResponse;
+      // Const { body } = parsedResponse;
       // Note: for the sync query the body is the array of diagnostics
-      // which is different from the expected return type
+      // Which is different from the expected return type
       const diagnostics = body;
       if (!diagnostics) {
         return;
@@ -1380,14 +1385,14 @@ const handleDiagnosticResponse = (
 
       const errors = convertTsServerDiagnosticsToMonacoMarkers(diagnostics);
 
-      // todo (yoav):  if we add custom errors, we need to manage them in a more central
-      // place because setModelMarkers replaces all markers
-      // monaco.editor.setModelMarkers(model, "custom", errors);
+      // Todo (yoav):  if we add custom errors, we need to manage them in a more central
+      // Place because setModelMarkers replaces all markers
+      // Monaco.editor.setModelMarkers(model, "custom", errors);
       _diagnostics.suggestions = errors;
 
       updateMarkers(model);
     } else if (command === "syntacticDiagnosticsSync") {
-      // array of diagnostics {category, code, start, end, text}
+      // Array of diagnostics {category, code, start, end, text}
       // Note: for the sync query the body is the array of diagnostics
       const diagnostics = body;
       if (!diagnostics) {
@@ -1396,14 +1401,14 @@ const handleDiagnosticResponse = (
 
       const errors = convertTsServerDiagnosticsToMonacoMarkers(diagnostics);
 
-      // todo (yoav):  if we add custom errors, we need to manage them in a more central
-      // place because setModelMarkers replaces all markers
-      // monaco.editor.setModelMarkers(model, "custom", errors);
+      // Todo (yoav):  if we add custom errors, we need to manage them in a more central
+      // Place because setModelMarkers replaces all markers
+      // Monaco.editor.setModelMarkers(model, "custom", errors);
       _diagnostics.syntactic = errors;
 
       updateMarkers(model);
     } else if (command === "semanticDiagnosticsSync") {
-      // array of diagnostics {category, code, start, end, text}
+      // Array of diagnostics {category, code, start, end, text}
       // Note: for the sync query the body is the array of diagnostics
       const diagnostics = body;
       if (!diagnostics) {
@@ -1412,9 +1417,9 @@ const handleDiagnosticResponse = (
 
       const errors = convertTsServerDiagnosticsToMonacoMarkers(diagnostics);
 
-      // todo (yoav):  if we add custom errors, we need to manage them in a more central
-      // place because setModelMarkers replaces all markers
-      // monaco.editor.setModelMarkers(model, "custom", errors);
+      // Todo (yoav):  if we add custom errors, we need to manage them in a more central
+      // Place because setModelMarkers replaces all markers
+      // Monaco.editor.setModelMarkers(model, "custom", errors);
       _diagnostics.semantic = errors;
 
       updateMarkers(model);
@@ -1429,7 +1434,7 @@ const handleDiagnosticResponse = (
         const documentationArray =
           typeof quickInfo.documentation !== "string"
             ? quickInfo.documentation.map((documentation) => {
-                // todo (yoav): find examples of these and customize how it looks
+                // Todo (yoav): find examples of these and customize how it looks
                 if (documentation.kind === "className") {
                   return {
                     value: "className: " + documentation.text,
@@ -1442,14 +1447,14 @@ const handleDiagnosticResponse = (
                     isTrusted: true,
                     supportHtml: true,
                   };
-                } else {
+                }
                   // Note: the default kind is "text"
                   return {
                     value: documentation.text,
                     isTrusted: true,
                     supportHtml: true,
                   };
-                }
+                
               })
             : [
                 {
@@ -1459,7 +1464,7 @@ const handleDiagnosticResponse = (
                 },
               ];
 
-        // jsdoc tags
+        // Jsdoc tags
         const tags =
           quickInfo.tags?.map((tag) => {
             const text = tagToMarkdown(tag);
@@ -1484,8 +1489,8 @@ const handleDiagnosticResponse = (
           contents: [
             {
               value: "```typescript\n" + quickInfo.displayString + "\n\n```",
-              // isTrusted: true,
-              // supportHtml: true,
+              // IsTrusted: true,
+              // SupportHtml: true,
             },
             ...documentationArray,
             ...tags,
@@ -1498,11 +1503,11 @@ const handleDiagnosticResponse = (
       const rawDefinitions = (body || []) as ts.server.protocol.DefinitionInfo[];
       if (parsedResponse.success === false) {
         console.error("response error", parsedResponse.message);
-        // return;
+        // Return;
       }
 
       const definitions = rawDefinitions.map((rawDefinition) => {
-        // make sure the model exists or monaco will throw an error
+        // Make sure the model exists or monaco will throw an error
         createModel(rawDefinition.file);
 
         return {
@@ -1524,7 +1529,7 @@ const handleDiagnosticResponse = (
   }
 
   // } else {
-  //   console.error("jsonString partial response");
-  //   return;
+  //   Console.error("jsonString partial response");
+  //   Return;
   // }
 };

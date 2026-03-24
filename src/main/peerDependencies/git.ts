@@ -1,4 +1,4 @@
-// mkdir homebrew && curl -L https://github.com/Homebrew/brew/tarball/master | tar xz --strip 1 -C homebrew
+// Mkdir homebrew && curl -L https://github.com/Homebrew/brew/tarball/master | tar xz --strip 1 -C homebrew
 
 import { existsSync } from "fs";
 import { execSpawnSync } from "../utils/processUtils";
@@ -20,7 +20,7 @@ export const install = () => {
   }
 
   // Note: we should migrate to libgit2 for bun, but it's a bigger task
-  // for now we just bundle the git binary (originally installed via homebrew)
-  // via electrobun.config
+  // For now we just bundle the git binary (originally installed via homebrew)
+  // Via electrobun.config
   console.log("git not bundled correctly");
 };

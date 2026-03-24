@@ -1,49 +1,49 @@
 // XXX
-// import { useEffect } from "preact/hooks";
+// Import { useEffect } from "preact/hooks";
 
 const CssReset = () => {
   // XXX
-  // useEffect(() => {
-  //   const addResetStyles = () => {
-  //     const style = document.createElement("style");
-  //     style.id = "css-reset-styles";
-  //     style.innerHTML = `
+  // UseEffect(() => {
+  //   Const addResetStyles = () => {
+  //     Const style = document.createElement("style");
+  //     Style.id = "css-reset-styles";
+  //     Style.innerHTML = `
   //       /* Add your custom CSS reset styles here */
-  //       html, body, div, span, applet, object, iframe,
-  //       h1, h2, h3, h4, h5, h6, p, blockquote, pre,
-  //       a, abbr, acronym, address, big, cite, code,
-  //       del, dfn, em, img, ins, kbd, q, s, samp,
-  //       small, strike, strong, sub, sup, tt, var,
-  //       b, u, i, center,
-  //       dl, dt, dd, ol, ul, li,
-  //       fieldset, form, label, legend,
-  //       table, caption, tbody, tfoot, thead, tr, th, td,
-  //       article, aside, canvas, details, embed,
-  //       figure, figcaption, footer, header, hgroup,
-  //       menu, nav, output, ruby, section, summary,
-  //       time, mark, audio, video {
-  //         margin: 0;
-  //         padding: 0;
-  //         border: 0;
-  //         font-size: 100%;
-  //         font: inherit;
-  //         vertical-align: baseline;
+  //       Html, body, div, span, applet, object, iframe,
+  //       H1, h2, h3, h4, h5, h6, p, blockquote, pre,
+  //       A, abbr, acronym, address, big, cite, code,
+  //       Del, dfn, em, img, ins, kbd, q, s, samp,
+  //       Small, strike, strong, sub, sup, tt, var,
+  //       B, u, i, center,
+  //       Dl, dt, dd, ol, ul, li,
+  //       Fieldset, form, label, legend,
+  //       Table, caption, tbody, tfoot, thead, tr, th, td,
+  //       Article, aside, canvas, details, embed,
+  //       Figure, figcaption, footer, header, hgroup,
+  //       Menu, nav, output, ruby, section, summary,
+  //       Time, mark, audio, video {
+  //         Margin: 0;
+  //         Padding: 0;
+  //         Border: 0;
+  //         Font-size: 100%;
+  //         Font: inherit;
+  //         Vertical-align: baseline;
   //       }
   //     `;
-  //     document.head.appendChild(style);
+  //     Document.head.appendChild(style);
   //   };
-  //   const removeResetStyles = () => {
-  //     const style = document.getElementById("css-reset-styles");
-  //     if (style) {
-  //       document.head.removeChild(style);
+  //   Const removeResetStyles = () => {
+  //     Const style = document.getElementById("css-reset-styles");
+  //     If (style) {
+  //       Document.head.removeChild(style);
   //     }
   //   };
-  //   addResetStyles();
-  //   return () => {
-  //     removeResetStyles();
+  //   AddResetStyles();
+  //   Return () => {
+  //     RemoveResetStyles();
   //   };
   // }, []);
-  // return null;
+  // Return null;
 };
 
 export default CssReset;

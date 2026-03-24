@@ -21,7 +21,7 @@ const getBuildAnalyticsConfig = () => {
   };
 };
 
-// buildEnvironment
+// BuildEnvironment
 
 // TODO: pass build_folder and other paths from cli
 const BUILD_FOLDER = path.resolve(
@@ -35,7 +35,7 @@ const externalDeps = [
   "typescript",
   "vs",
 
-  // otherwise __dirname equals the build folder because it's compiled in
+  // Otherwise __dirname equals the build folder because it's compiled in
   // TODO: find a way to automatically externalize all dependencies (maybe package.json scan)
   "window-wrapper",
   ...builtinModules.flatMap((m: string) => [m, `node:${m}`]),
@@ -44,31 +44,31 @@ const externalDeps = [
 // Build ivde renderer
 await esbuild.build({
   entryPoints: [path.resolve(path.join("./src", "renderers", "ivde", "index.tsx"))],
-  // outDir: path.join(appPath, "build"),
+  // OutDir: path.join(appPath, "build"),
   outfile: path.join(BUILD_FOLDER, `index.js`),
   bundle: true,
   plugins: [
     MonacoEsbuildPlugin({
       destDir: path.join(BUILD_FOLDER),
       pathPrefix: "/", // Use root path instead of default "/assets/"
-      minify: false, // need this for production builds
+      minify: false, // Need this for production builds
       languages: ["typescript", "javascript", "html", "css", "json", "markdown"],
 
-      // features: ["coreCommands", "find", "folding", "format"],
+      // Features: ["coreCommands", "find", "folding", "format"],
     }),
     solidPlugin(),
   ],
-  // jsx: "preserve",
-  // jsxImportSource: "solid-js",
-  // jsxFactory: "Solid.h", // use Solid's h function for JSX
-  // jsxFragment: "Solid.Fragment", // use
+  // Jsx: "preserve",
+  // JsxImportSource: "solid-js",
+  // JsxFactory: "Solid.h", // use Solid's h function for JSX
+  // JsxFragment: "Solid.Fragment", // use
   jsxFactory: "Solid.createElement",
   jsxFragment: "Solid.Fragment",
   // TODO: do we need to detect or have different filenames for renderers with and without node integration?
-  // or can we just always compile with node as the target and let user turn it on or off in new BrowserWindow()
+  // Or can we just always compile with node as the target and let user turn it on or off in new BrowserWindow()
   // NOTE: you still need to set this to browser even if nodeIntegration is true
   platform: "browser",
-  //   target: "node14",
+  //   Target: "node14",
   format: "esm",
   external: externalDeps,
   loader: {
@@ -105,9 +105,9 @@ Options:
        --no-autoprefixer    Disable autoprefixer
    -h, --help               Display usage information
          */
-// path.resolve(path.join("./src", "renderers", "ivde", "index.tsx"));
+// Path.resolve(path.join("./src", "renderers", "ivde", "index.tsx"));
 const cssInPath = path.join("./src/renderers", "ivde", "index.css");
-const cssOutPath = path.join(BUILD_FOLDER.replace("(", "\\(").replace(")", "\\)"), `tailwind.css`);
+const cssOutPath = path.join(BUILD_FOLDER.replace("(", String.raw`\(`).replace(")", String.raw`\)`), `tailwind.css`);
 const tailwindConfig = path.join("./src/renderers", `tailwind.config.js`);
 const contentPath = path.join("./src/renderers", "ivde", "*.tsx");
 execSync(
@@ -280,7 +280,7 @@ async function injectAnalyticsConfig() {
     const tokenValue = analyticsConfig.mixpanelToken
       ? `"${analyticsConfig.mixpanelToken}"`
       : "null";
-    mainBundleContent = mainBundleContent.replace(
+    mainBundleContent = mainBundleContent.replaceAll(
       new RegExp(`"BUILD_TIME_MIXPANEL_TOKEN"`, "g"),
       tokenValue,
     );

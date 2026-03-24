@@ -1,7 +1,7 @@
 const defaultWebFavicon = "views://assets/file-icons/bookmark.svg";
 
-// mapping of hostname to cached favicon url
-const faviconCache: { [url: string]: string } = {};
+// Mapping of hostname to cached favicon url
+const faviconCache: Record<string, string> = {};
 
 async function resolveFavicon(hostname: string): Promise<string> {
   const res = await fetch(hostname);
@@ -54,7 +54,7 @@ export async function getFaviconForUrl(url: string): Promise<string> {
     const resolvedFaviconUrl = await resolveFavicon(hostname);
     faviconCache[hostname] = resolvedFaviconUrl;
     return resolvedFaviconUrl;
-  } catch (_error: unknown) {
+  } catch {
     const hostnameParts = hostname.split(".");
     if (hostnameParts.length > 2) {
       const domain = hostnameParts.slice(1).join(".");

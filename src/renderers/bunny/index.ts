@@ -1,11 +1,11 @@
 import Electrobun, { Electroview } from "electrobun/view";
 
-const bunny = document.getElementById("bunny") as HTMLDivElement;
+const bunny = document.querySelector("#bunny") as HTMLDivElement;
 
 // Create depth layers behind the front image for a thick 3D look
 const frontImg = bunny.querySelector("img") as HTMLImageElement;
 const DEPTH_LAYERS = 12;
-const LAYER_SPACING = 0.8; // px between each layer
+const LAYER_SPACING = 0.8; // Px between each layer
 
 for (let i = 1; i <= DEPTH_LAYERS; i++) {
   const layer = frontImg.cloneNode(true) as HTMLImageElement;
@@ -25,7 +25,7 @@ for (let i = 1; i <= DEPTH_LAYERS; i++) {
 // --- Electric spark effect on hover (WebGL shader) ---
 const sparkCanvas = document.createElement("canvas");
 sparkCanvas.className = "spark-canvas";
-bunny.appendChild(sparkCanvas);
+bunny.append(sparkCanvas);
 
 const gl = sparkCanvas.getContext("webgl", {
   alpha: true,
@@ -220,7 +220,7 @@ const electrobun = new Electrobun.Electroview({ rpc });
 // Click detection (distinguish from drag using screen coordinates)
 let downX = 0;
 let downY = 0;
-const scene = document.getElementById("scene")!;
+const scene = document.querySelector("#scene")!;
 scene.addEventListener("mousedown", (e) => {
   downX = e.screenX;
   downY = e.screenY;
@@ -249,7 +249,7 @@ function animate() {
   if (performance.now() >= burstUntil) {
     scheduleBurst();
   }
-  const targetIntensity = bursting ? 1.0 : 0.0;
+  const targetIntensity = bursting ? 1 : 0;
   currentIntensity += (targetIntensity - currentIntensity) * 0.12;
 
   if (currentIntensity > 0.001) {

@@ -81,8 +81,8 @@ import {
   findFilesInFolder,
   findFirstNestedGitRepo,
   getUniqueNewName,
-  // parentNodePath,
-  // readSlateConfigFile,
+  // ParentNodePath,
+  // ReadSlateConfigFile,
   safeDeleteFileOrFolder,
   safeTrashFileOrFolder,
   syncDevlink,
@@ -135,7 +135,7 @@ import {
   removeGitHubCredentials,
 } from "./utils/gitUtils";
 import { terminalManager } from "./utils/terminalManager";
-// import { terminalManagerPty as terminalManager } from "./utils/terminalManagerPty";
+// Import { terminalManagerPty as terminalManager } from "./utils/terminalManagerPty";
 import { getFaviconForUrl } from "./utils/urlUtils";
 import { pluginManager, searchPlugins, getPackageInfo } from "./plugins";
 import { bootstrapHelios, getHeliosRuntime } from "../helios/bridge/helios-main-bootstrap";
@@ -169,8 +169,8 @@ const hash = localInfo.hash;
 track.appLaunch({ channel, appName, version, hash });
 
 // This is a main process cache of the state sent to windows
-// ie: if a window is created after the state is updated they should
-// also know if there's an update.
+// Ie: if a window is created after the state is updated they should
+// Also know if there's an update.
 const updateCache: {
   // YYY - replace any types
   status: any | null;
@@ -207,15 +207,15 @@ const getErrorStack = (error: unknown): string => {
 
 // START SETUP
 
-// install peer dependencies
-// node.install();
+// Install peer dependencies
+// Node.install();
 typescript.install();
 biome.install();
 // Note: llama-cli is bundled with the app, not downloaded
 
 // Activate all enabled plugins
-pluginManager.activateAllEnabled().catch((e) => {
-  console.warn("Failed to activate plugins on startup:", e);
+pluginManager.activateAllEnabled().catch((error) => {
+  console.warn("Failed to activate plugins on startup:", error);
 });
 
 // Wire up plugin terminal commands to terminal manager
@@ -253,10 +253,10 @@ terminalManager.setEditCommandHandler(async (args, terminalId, cwd, write) => {
       if (!exists) {
         // Create the file if it doesn't exist
         try {
-          writeFileSync(filePath, "", { encoding: "utf-8" });
+          writeFileSync(filePath, "", { encoding: "utf8" });
           write(`Created: ${filePath}\r\n`);
-        } catch (err) {
-          write(`\x1b[31mError creating file: ${getErrorMessage(err)}\x1b[0m\r\n`);
+        } catch (error) {
+          write(`\u001B[31mError creating file: ${getErrorMessage(error)}\u001B[0m\r\n`);
           continue;
         }
       }
@@ -295,15 +295,15 @@ const checkForUpdate = async () => {
       broadcastToAllWindows("updateStatus", updateCache);
     } else if (updateInfo.updateAvailable) {
       console.log("update available");
-      // todo (yoav): add a button to the UI to trigger this
-      // await Electrobun.Updater.downloadUpdate();
-      // const newUpdate = updateInfo.hash !== updateCache.info?.hash;
+      // Todo (yoav): add a button to the UI to trigger this
+      // Await Electrobun.Updater.downloadUpdate();
+      // Const newUpdate = updateInfo.hash !== updateCache.info?.hash;
 
       updateCache.status = "update-available";
       updateCache.info = updateInfo;
       broadcastToAllWindows("updateStatus", updateCache);
 
-      // if (newUpdate) {
+      // If (newUpdate) {
       await Electrobun.Updater.downloadUpdate();
 
       if (Electrobun.Updater.updateInfo().updateReady) {
@@ -312,7 +312,7 @@ const checkForUpdate = async () => {
         updateCache.downloadedFile = true;
 
         broadcastToAllWindows("updateStatus", updateCache);
-        // await Electrobun.Updater.applyUpdate();
+        // Await Electrobun.Updater.applyUpdate();
       } else {
         updateCache.status = "update-not-downloaded";
         updateCache.downloadedFile = false;
@@ -325,31 +325,31 @@ const checkForUpdate = async () => {
       updateCache.info = updateInfo;
       broadcastToAllWindows("updateStatus", updateCache);
     }
-  } catch (err) {
+  } catch (error) {
     updateCache.status = "error";
 
     updateCache.error = {
-      message: getErrorMessage(err),
-      stack: getErrorStack(err),
+      message: getErrorMessage(error),
+      stack: getErrorStack(error),
     };
     broadcastToAllWindows("updateStatus", updateCache);
   }
 };
 
-// let state = {};
+// Let state = {};
 
 let toggleWorkspace: (workspaceId: string) => void;
 
-// function createAboutWindow() {
-//   new BrowserWindow({
-//     frame: {
-//       width: 800,
-//       height: 800,
-//       x: 0,
-//       y: 0,
+// Function createAboutWindow() {
+//   New BrowserWindow({
+//     Frame: {
+//       Width: 800,
+//       Height: 800,
+//       X: 0,
+//       Y: 0,
 //     },
-//     title: "Acknowledgements",
-//     url: "views://assets/licenses.html",
+//     Title: "Acknowledgements",
+//     Url: "views://assets/licenses.html",
 //   });
 // }
 
@@ -384,7 +384,7 @@ function deleteProject(workspaceId: string, projectId: string) {
 
 // Built-in global shortcuts that should work even when webview has focus
 // These map accelerator strings to their key components for broadcasting
-const builtInShortcuts: Array<{
+const builtInShortcuts: {
   accelerator: string;
   key: string;
   ctrl: boolean;
@@ -392,7 +392,7 @@ const builtInShortcuts: Array<{
   alt: boolean;
   meta: boolean;
   action?: string; // Optional action for menu items that have custom handling
-}> = [
+}[] = [
   // Cmd+T - new browser tab
   {
     accelerator: "t",
@@ -470,14 +470,14 @@ const builtInShortcuts: Array<{
 ];
 
 // Track registered plugin shortcuts to avoid duplicates
-let registeredPluginShortcuts: Set<string> = new Set();
+let registeredPluginShortcuts = new Set<string>();
 
 // Convert plugin key format to Electrobun accelerator format
 // Plugin format: "ctrl+shift+m" or "cmd+p"
 // Electrobun format: "cmd+p", "cmd+shift+m", etc.
 function convertToAccelerator(keyStr: string): string {
   const parts = keyStr.toLowerCase().split("+");
-  const key = parts[parts.length - 1];
+  const key = parts.at(-1);
   const hasCmd = parts.includes("cmd") || parts.includes("meta");
   const hasCtrl = parts.includes("ctrl");
   const hasShift = parts.includes("shift");
@@ -485,10 +485,10 @@ function convertToAccelerator(keyStr: string): string {
 
   // Build accelerator string
   const modifiers: string[] = [];
-  if (hasCmd) modifiers.push("cmd");
-  if (hasCtrl) modifiers.push("ctrl");
-  if (hasAlt) modifiers.push("alt");
-  if (hasShift) modifiers.push("shift");
+  if (hasCmd) {modifiers.push("cmd");}
+  if (hasCtrl) {modifiers.push("ctrl");}
+  if (hasAlt) {modifiers.push("alt");}
+  if (hasShift) {modifiers.push("shift");}
 
   if (modifiers.length > 0) {
     return `${modifiers.join("+")}+${key}`;
@@ -499,7 +499,7 @@ function convertToAccelerator(keyStr: string): string {
 // Function to update the application menu with current shortcuts
 function updateApplicationMenu() {
   // Build plugin shortcuts menu items (visible so accelerators register)
-  const pluginShortcutItems = Array.from(registeredPluginShortcuts).map((keyStr) => {
+  const pluginShortcutItems = [...registeredPluginShortcuts].map((keyStr) => {
     const accelerator = convertToAccelerator(keyStr);
     console.log(`Plugin shortcut: ${keyStr} -> accelerator: ${accelerator}`);
     return {
@@ -667,7 +667,7 @@ function parseKeyStringForMenu(keyStr: string): {
   meta: boolean;
 } {
   const parts = keyStr.toLowerCase().split("+");
-  const key = parts[parts.length - 1];
+  const key = parts.at(-1);
   return {
     key,
     ctrl: parts.includes("ctrl"),
@@ -696,12 +696,12 @@ async function syncPluginKeybindings() {
       [...newShortcuts].some((s) => !registeredPluginShortcuts.has(s));
 
     if (hasChanges) {
-      console.log("Plugin keybindings changed:", Array.from(newShortcuts));
+      console.log("Plugin keybindings changed:", [...newShortcuts]);
       registeredPluginShortcuts = newShortcuts;
       updateApplicationMenu();
     }
-  } catch (err) {
-    console.warn("Failed to sync plugin keybindings:", err);
+  } catch (error) {
+    console.warn("Failed to sync plugin keybindings:", error);
   }
 }
 
@@ -869,7 +869,7 @@ const broadcastToElectrobunWindow = (
 
   Object.keys(workspaceWindows).find((_workspaceId) => {
     return Object.keys(workspaceWindows[_workspaceId]).find((winId) => {
-      // console.log(workspaceWindows[workspaceId][winId]);
+      // Console.log(workspaceWindows[workspaceId][winId]);
       const nativeWindow = workspaceWindows[_workspaceId][winId].win;
 
       if (nativeWindow.id === nativeWindowId) {
@@ -886,20 +886,20 @@ const broadcastToElectrobunWindow = (
 };
 
 // TODO: new tab via cmd+click are handled in the browser to maintain preload.js status.
-// but we should also handle other types of popups somehow here. maybe just have a log somewhere so people can manually open them
-// if they want.
+// But we should also handle other types of popups somehow here. maybe just have a log somewhere so people can manually open them
+// If they want.
 // Electrobun.events.on("new-window-open", (e) => {
-//   console.log('new-window-open: ', e)
+//   Console.log('new-window-open: ', e)
 
-//   const webviewId = e.data.id;
-//   const targetUrl = e.data.detail.url;
+//   Const webviewId = e.data.id;
+//   Const targetUrl = e.data.detail.url;
 
-//   const webview = BrowserView.getById(webviewId)
-//   const windowId = webview.windowId;
+//   Const webview = BrowserView.getById(webviewId)
+//   Const windowId = webview.windowId;
 
-//   console.log('webview: ', webviewId, 'in window: ', windowId, 'to: ', targetUrl)
+//   Console.log('webview: ', webviewId, 'in window: ', windowId, 'to: ', targetUrl)
 
-//   broadcastToElectrobunWindow(windowId, 'openUrlInNewTab', {url: targetUrl})
+//   BroadcastToElectrobunWindow(windowId, 'openUrlInNewTab', {url: targetUrl})
 
 // })
 
@@ -1024,7 +1024,7 @@ Electrobun.events.on("context-menu-clicked", (e) => {
   } else if (action === "init_git_in_folder") {
     const { nodePath } = data;
     initGit(nodePath).then(() => {
-      //   setNodeExpanded(node.path, true);
+      //   SetNodeExpanded(node.path, true);
     });
   } else if (action === "clone_repo_to_folder") {
     const { workspaceId, windowId, nodePath } = data;
@@ -1071,8 +1071,8 @@ Electrobun.events.on("context-menu-clicked", (e) => {
     console.log("plugin_context_menu_item", itemId, filePath);
 
     // Execute the plugin context menu handler
-    pluginManager.executeContextMenuItem(itemId, { filePath }).catch((err) => {
-      console.error("Failed to execute plugin context menu item:", err);
+    pluginManager.executeContextMenuItem(itemId, { filePath }).catch((error) => {
+      console.error("Failed to execute plugin context menu item:", error);
     });
   } else if (action === "split_pane_container") {
     const { workspaceId, windowId, pathToPane, direction } = data;
@@ -1096,8 +1096,8 @@ Electrobun.events.on("context-menu-clicked", (e) => {
 });
 
 // TODO: There's a bun bug where updateInfo() sometimes returns undefined according to typescript
-// you have to manually call a second checkForUpdates to get it to update properly
-// revisit after upgrading to the latest bun
+// You have to manually call a second checkForUpdates to get it to update properly
+// Revisit after upgrading to the latest bun
 const canQuitAndInstall = () => {
   return Electrobun.Updater.updateInfo()?.updateReady;
 };
@@ -1167,7 +1167,7 @@ const updateTrayMenu = () => {
   tray.setMenu(trayMenu);
 };
 
-// todo: move this to another file, and update the tray whenever the workspaces or updates change
+// Todo: move this to another file, and update the tray whenever the workspaces or updates change
 
 updateTrayMenu();
 
@@ -1186,7 +1186,7 @@ const createWorkspace = () => {
   const newWorkspace = db.collection("workspaces").insert({
     name: `workspace-${workspaces.length + 1}`,
     color: getRandomHexColor(),
-    // todo (yoav): implement default values in goldfishdb
+    // Todo (yoav): implement default values in goldfishdb
     visible: true,
     projectIds: [],
     windows: [],
@@ -1212,8 +1212,8 @@ const hideWorkspaceWindows = (workspace: CurrentDocumentTypes["workspaces"]) => 
     workspaceWindows[workspace.id][id].status = "hiding";
     // Since the window's close handler won't be fired we need to allow unloading here
     // XXX - will-prevent-unload
-    // win.webContents.on("will-prevent-unload", (e) => {
-    //   e.preventDefault();
+    // Win.webContents.on("will-prevent-unload", (e) => {
+    //   E.preventDefault();
     // });
     win.close();
   });
@@ -1226,7 +1226,7 @@ const getWorkspaceForWindow = (windowId: number) => {
 
   return workspaces?.find((workspace: CurrentDocumentTypes["workspaces"]) => {
     return workspace.windows.find((win: WindowConfigType) => {
-      console.log("win: ", win, windowId);
+      console.log("win:", win, windowId);
       return win.id === String(windowId);
     });
   });
@@ -1238,7 +1238,7 @@ const createWindow = (
   window?: WindowConfigType,
   offset?: { x: number; y: number },
 ) => {
-  // console.log("---> createWindow", window);
+  // Console.log("---> createWindow", window);
   if (!window) {
     const workspace = db.collection("workspaces").queryById(workspaceId).data;
 
@@ -1253,7 +1253,7 @@ const createWindow = (
     const baseY = offset?.y || 0;
 
     const updatedWorkspace = db.collection("workspaces").update(workspaceId, {
-      // todo (yoav): [blocking] we absolutely must have typing for this structure here
+      // Todo (yoav): [blocking] we absolutely must have typing for this structure here
       windows: [
         ...existingWindows,
         {
@@ -1269,13 +1269,13 @@ const createWindow = (
             height: 900,
           },
           expansions: [],
-          // todo (yoav): [blocking] since this is not typed in the schema
-          // there's no check for the shape of this object
+          // Todo (yoav): [blocking] since this is not typed in the schema
+          // There's no check for the shape of this object
           rootPane: {
             id: "root",
             type: "pane",
             tabIds: [],
-            currentTab: null, // tab id
+            currentTab: null, // Tab id
           },
           tabs: {},
           currentPaneId: "root",
@@ -1283,10 +1283,10 @@ const createWindow = (
       ],
     });
 
-    window = updatedWorkspace.windows?.[updatedWorkspace.windows.length - 1];
+    window = updatedWorkspace.windows.at(-1);
   }
 
-  // console.log("---> createWindow 2", window);
+  // Console.log("---> createWindow 2", window);
 
   if (!window) {
     return;
@@ -1294,29 +1294,29 @@ const createWindow = (
 
   const windowId = window.id;
 
-  // const mainWindow = new BrowserWindow({
-  //   titleBarStyle: "hiddenInset",
-  //   movable: true,
-  //   resizable: true,
-  //   minimizable: true,
-  //   maximizable: true,
-  //   backgroundColor: "#1e1e1e",
+  // Const mainWindow = new BrowserWindow({
+  //   TitleBarStyle: "hiddenInset",
+  //   Movable: true,
+  //   Resizable: true,
+  //   Minimizable: true,
+  //   Maximizable: true,
+  //   BackgroundColor: "#1e1e1e",
 
-  //   frame: false,
-  //   width: window.position.width,
-  //   height: window.position.height,
-  //   x: window.position.x || undefined,
-  //   y: window.position.y || undefined,
-  //   webPreferences: {
-  //     nodeIntegration: true,
-  //     contextIsolation: false,
-  //     webSecurity: false,
-  //     scrollBounce: false,
-  //     backgroundThrottling: false,
-  //     disableDialogs: true,
-  //     spellcheck: false,
-  //     zoomFactor: 1,
-  //     webviewTag: true,
+  //   Frame: false,
+  //   Width: window.position.width,
+  //   Height: window.position.height,
+  //   X: window.position.x || undefined,
+  //   Y: window.position.y || undefined,
+  //   WebPreferences: {
+  //     NodeIntegration: true,
+  //     ContextIsolation: false,
+  //     WebSecurity: false,
+  //     ScrollBounce: false,
+  //     BackgroundThrottling: false,
+  //     DisableDialogs: true,
+  //     Spellcheck: false,
+  //     ZoomFactor: 1,
+  //     WebviewTag: true,
   //   },
   // });
 
@@ -1354,9 +1354,9 @@ const createWindow = (
                 installed: bun.isInstalled(),
                 version: bun.getVersion(),
               },
-              // node: {
-              //   installed: node.isInstalled(),
-              //   version: node.getVersion(),
+              // Node: {
+              //   Installed: node.isInstalled(),
+              //   Version: node.getVersion(),
               // },
               typescript: {
                 installed: typescript.isInstalled(),
@@ -1405,7 +1405,7 @@ const createWindow = (
 
           const insertedProject = db.collection("projects").insert({ name: projectName, path });
 
-          // todo (yoav): update should take a function
+          // Todo (yoav): update should take a function
           db.collection("workspaces").update(workspaceId, {
             projectIds: [...(workspace.projectIds || []), insertedProject.id],
           });
@@ -1657,7 +1657,7 @@ const createWindow = (
 
           // Batch results to reduce RPC message flooding
           // This gives cancellations a better chance to interrupt
-          const resultBatches: Map<string, any[]> = new Map();
+          const resultBatches = new Map<string, any[]>();
           let batchTimeout: Timer | null = null;
           let totalResultCount = 0;
           const MAX_TOTAL_RESULTS = 1000; // Stop after collecting 1000 results total
@@ -1803,8 +1803,8 @@ const createWindow = (
             const stat = statSync(path);
 
             if (stat.isDirectory()) {
-              // todo (yoav): consider filtering out nodes that aren't
-              // files or folders
+              // Todo (yoav): consider filtering out nodes that aren't
+              // Files or folders
               const children = readdirSync(path);
 
               return {
@@ -1825,8 +1825,8 @@ const createWindow = (
                 editors: {},
               };
             }
-          } catch (err) {
-            console.error("error building file tree: ", err, path);
+          } catch (error) {
+            console.error("error building file tree:", error, path);
             return null;
           }
 
@@ -1839,15 +1839,15 @@ const createWindow = (
                 return null;
               }
 
-              const slateJson = readFileSync(path, "utf-8");
+              const slateJson = readFileSync(path, "utf8");
               const slate = JSON.parse(slateJson);
 
-              // todo (yoav): [blocking] add versioning and migration flow here
+              // Todo (yoav): [blocking] add versioning and migration flow here
               return slate;
             }
-          } catch (err) {
+          } catch (error) {
             // todo (yoav): report this error to the user
-            console.error(err);
+            console.error(error);
           }
         },
         readFile: async ({ path }) => {
@@ -1963,7 +1963,7 @@ const createWindow = (
               await fileHandle.read(partialBuffer, 0, MAX_INITIAL_LOAD_BYTES, 0);
               await fileHandle.close();
 
-              const partialContent = partialBuffer.toString("utf-8");
+              const partialContent = partialBuffer.toString("utf8");
 
               return {
                 textContent: partialContent,
@@ -1974,18 +1974,18 @@ const createWindow = (
             }
 
             // File is small enough, load it all
-            const contents = await fs.readFile(path, "utf-8");
+            const contents = await fs.readFile(path, "utf8");
             return {
               textContent: contents,
               isBinary: false,
               loadedBytes: fileSizeBytes,
               totalBytes: fileSizeBytes,
             };
-          } catch (err: any) {
-            console.error("Error reading file:", err);
+          } catch (error: any) {
+            console.error("Error reading file:", error);
             return {
               textContent: "",
-              error: err?.message || "Failed to read file",
+              error: error?.message || "Failed to read file",
             };
           }
         },
@@ -1995,10 +1995,10 @@ const createWindow = (
             return {
               success: true,
             };
-          } catch (err: any) {
+          } catch (error: any) {
             return {
               success: false,
-              error: err?.message || "",
+              error: error?.message || "",
             };
           }
         },
@@ -2009,10 +2009,10 @@ const createWindow = (
               return {
                 success: true,
               };
-            } catch (err: any) {
+            } catch (error: any) {
               return {
                 success: false,
-                error: err?.message || "",
+                error: error?.message || "",
               };
             }
           }
@@ -2028,10 +2028,10 @@ const createWindow = (
             return {
               success: true,
             };
-          } catch (err: any) {
+          } catch (error: any) {
             return {
               success: false,
-              error: err?.message || "",
+              error: error?.message || "",
             };
           }
         },
@@ -2047,10 +2047,10 @@ const createWindow = (
             return {
               success: true,
             };
-          } catch (err: any) {
+          } catch (error: any) {
             return {
               success: false,
-              error: err?.message || "",
+              error: error?.message || "",
             };
           }
         },
@@ -2077,7 +2077,7 @@ const createWindow = (
           let actualArgs = args;
           if (cmd === "bun" || cmd === "bunx") {
             actualCmd = BUN_BINARY_PATH;
-            // bunx is just "bun x"
+            // Bunx is just "bun x"
             if (cmd === "bunx") {
               actualArgs = ["x", ...args];
             }
@@ -2140,11 +2140,11 @@ const createWindow = (
                   if (!existingProc.killed) {
                     existingProc.kill("SIGKILL");
                   }
-                } catch (e) {
+                } catch {
                   // Process already dead
                 }
               }, 100); // Only wait 100ms before force kill
-            } catch (e) {
+            } catch {
               // Silently ignore kill errors
             }
           }
@@ -2157,7 +2157,7 @@ const createWindow = (
               stderr: "ignore",
             });
             await result.exited;
-          } catch (e) {
+          } catch {
             // Ignore pkill errors (no processes found, etc.)
           }
 
@@ -2214,20 +2214,20 @@ const createWindow = (
             ];
 
             // Add stop tokens
-            // if (options?.stop && options.stop.length > 0) {
-            //   for (const stopToken of options.stop) {
-            //     args.push('--stop', stopToken);
+            // If (options?.stop && options.stop.length > 0) {
+            //   For (const stopToken of options.stop) {
+            //     Args.push('--stop', stopToken);
             //   }
             // } else {
             //   // Default stop tokens for traditional code completion
-            //   args.push('--stop', '\n');
-            //   args.push('--stop', '\n\n');
-            //   args.push('--stop', ';');
-            //   args.push('--stop', '}');
-            //   args.push('--stop', ')');
-            //   args.push('--stop', ']');
-            //   args.push('--stop', '<|endoftext|>');
-            //   args.push('--stop', '<|im_end|>');
+            //   Args.push('--stop', '\n');
+            //   Args.push('--stop', '\n\n');
+            //   Args.push('--stop', ';');
+            //   Args.push('--stop', '}');
+            //   Args.push('--stop', ')');
+            //   Args.push('--stop', ']');
+            //   Args.push('--stop', '<|endoftext|>');
+            //   Args.push('--stop', '<|im_end|>');
             // }
 
             // Use the peer dependency llama-cli binary
@@ -2254,11 +2254,11 @@ const createWindow = (
                     // Kill the process on timeout
                     try {
                       proc?.kill();
-                    } catch (e) {
-                      console.warn("Failed to kill timed-out llama-cli process:", e);
+                    } catch (error) {
+                      console.warn("Failed to kill timed-out llama-cli process:", error);
                     }
                     reject(new Error("llama-cli completion timeout"));
-                  }, 45000), // 45 second timeout (increased for VM)
+                  }, 45_000), // 45 second timeout (increased for VM)
               ),
             ]);
 
@@ -2289,8 +2289,8 @@ const createWindow = (
             if (proc) {
               try {
                 proc.kill();
-              } catch (e) {
-                console.warn("Failed to kill llama-cli process on error:", e);
+              } catch (error) {
+                console.warn("Failed to kill llama-cli process on error:", error);
               }
             }
 
@@ -2305,13 +2305,13 @@ const createWindow = (
           const path = await import("path");
 
           try {
-            const models: Array<{
+            const models: {
               name: string;
               path: string;
               size: number;
               modified: string;
               source: "llama" | "legacy";
-            }> = [];
+            }[] = [];
 
             // Check llama.cpp models in COLAB_MODELS_PATH
             if (fs.existsSync(COLAB_MODELS_PATH)) {
@@ -2436,7 +2436,7 @@ const createWindow = (
 
                 while (true) {
                   const { done, value } = await reader.read();
-                  if (done) break;
+                  if (done) {break;}
 
                   // Write chunk to file
                   await fileStream.write(value);
@@ -2485,7 +2485,7 @@ const createWindow = (
                 if (fs.existsSync(localFilePath)) {
                   try {
                     fs.unlinkSync(localFilePath);
-                  } catch (e) {
+                  } catch {
                     // Ignore cleanup errors
                   }
                 }
@@ -2518,14 +2518,14 @@ const createWindow = (
               // Return status for specific download
               const status = globalThis.modelDownloads.get(downloadId);
               return { ok: true, status };
-            } else {
+            }
               // Return all active downloads
               const downloads: Record<string, any> = {};
               for (const [id, status] of globalThis.modelDownloads.entries()) {
                 downloads[id] = status;
               }
               return { ok: true, downloads };
-            }
+            
           } catch (error) {
             return {
               ok: false,
@@ -2540,9 +2540,9 @@ const createWindow = (
             if (fs.existsSync(modelPath)) {
               fs.unlinkSync(modelPath);
               return { ok: true };
-            } else {
-              return { ok: false, error: "Model file not found" };
             }
+              return { ok: false, error: "Model file not found" };
+            
           } catch (error) {
             return {
               ok: false,
@@ -2743,7 +2743,7 @@ const createWindow = (
         },
         pluginFindSlateForFile: ({ filePath }) => {
           const slate = pluginManager.findSlateForFile(filePath);
-          if (!slate) return null;
+          if (!slate) {return null;}
           return {
             id: slate.config.id,
             pluginName: slate.pluginName,
@@ -2757,7 +2757,7 @@ const createWindow = (
         },
         pluginFindSlateForFolder: ({ folderPath }) => {
           const slate = pluginManager.findSlateForFolder(folderPath);
-          if (!slate) return null;
+          if (!slate) {return null;}
           return {
             id: slate.config.id,
             pluginName: slate.pluginName,
@@ -2773,7 +2773,7 @@ const createWindow = (
         pluginMountSlate: async ({ slateId, filePath, windowId }) => {
           // The render callback will be handled via messages
           // We store pending renders and the renderer polls for them
-          const renders: Array<{ html?: string; script?: string }> = [];
+          const renders: { html?: string; script?: string }[] = [];
           const instanceId = await pluginManager.mountSlate(
             slateId,
             filePath,
@@ -2808,12 +2808,12 @@ const createWindow = (
           payload: Record<string, unknown>;
         }) => {
           const helios = getHeliosRuntime();
-          if (!helios) return { ok: false, error: "helios runtime not initialized" };
+          if (!helios) {return { ok: false, error: "helios runtime not initialized" };}
           return helios.bridge.handleRequest(method, payload);
         },
         heliosGetState: () => {
           const helios = getHeliosRuntime();
-          if (!helios) return { lanes: {}, sessions: {}, terminals: {} };
+          if (!helios) {return { lanes: {}, sessions: {}, terminals: {} };}
           return helios.bus.getState();
         },
         heliosGetLanes: () => {
@@ -2824,12 +2824,12 @@ const createWindow = (
         },
         heliosGetMetrics: () => {
           const helios = getHeliosRuntime();
-          if (!helios) return { samples: [], summaries: [] };
+          if (!helios) {return { samples: [], summaries: [] };}
           return helios.metrics.getReport();
         },
         heliosTerminalInput: ({ terminalId, data }: { terminalId: string; data: string }) => {
           const helios = getHeliosRuntime();
-          if (!helios) return { ok: false };
+          if (!helios) {return { ok: false };}
           return { ok: helios.termBridge.sendInput(terminalId, data) };
         },
         heliosTerminalResize: ({
@@ -2842,17 +2842,17 @@ const createWindow = (
           rows: number;
         }) => {
           const helios = getHeliosRuntime();
-          if (!helios) return { ok: false };
+          if (!helios) {return { ok: false };}
           return { ok: helios.termBridge.resize(terminalId, cols, rows) };
         },
         heliosRendererCapabilities: async () => {
           const helios = getHeliosRuntime();
-          if (!helios) return null;
+          if (!helios) {return null;}
           return helios.bridge.handleRequest("renderer.capabilities", {});
         },
         heliosRendererSwitch: async ({ targetEngine }: { targetEngine: string }) => {
           const helios = getHeliosRuntime();
-          if (!helios) return null;
+          if (!helios) {return null;}
           return helios.bridge.handleRequest("renderer.switch", {
             target_engine: targetEngine,
           });
@@ -2861,10 +2861,10 @@ const createWindow = (
 
       messages: {
         "*": (messageName, payload) => {
-          // console.log(
+          // Console.log(
           //   "bun onmessage from workspace window",
-          //   messageName,
-          //   payload
+          //   MessageName,
+          //   Payload
           // );
         },
         removeProjectDirectoryWatcher: ({ projectId }) => {
@@ -2927,14 +2927,14 @@ const createWindow = (
         updateWorkspace: (data) => {
           setTimeout(() => {
             db.collection("workspaces").update(workspaceId, data);
-            // todo (yoav): it's dumb that we have to manually re-send this data, there should be an auto-subscribed
-            // mechanism that refreshes it here, and or syncs it with the front-end data store
+            // Todo (yoav): it's dumb that we have to manually re-send this data, there should be an auto-subscribed
+            // Mechanism that refreshes it here, and or syncs it with the front-end data store
             fetchAndSendProjects();
           }, 0);
         },
         deleteWorkspace: () => {
-          // todo (yoav): this should really be a unit tested db method in a single place
-          // and re-used below
+          // Todo (yoav): this should really be a unit tested db method in a single place
+          // And re-used below
           const { data: _workspace } = db.collection("workspaces").queryById(workspaceId);
           Object.values(workspaceWindows[workspaceId]).forEach(({ win }) => {
             win.close();
@@ -3010,29 +3010,29 @@ const createWindow = (
       y: window.position.y || 5,
     },
     renderer: "cef",
-    // url: "https://colab.sh",
+    // Url: "https://colab.sh",
     url: HELIOS_MODE ? "views://helios/index.html" : "views://ivde/index.html",
     rpc: WorkspaceRPC,
-    // syncRpc: {},
-    // titleBarStyle: "hiddenInset",
-    // movable: true,
-    // resizable: true,
-    // minimizable: true,
-    // maximizable: true,
-    // backgroundColor: "#1e1e1e",
+    // SyncRpc: {},
+    // TitleBarStyle: "hiddenInset",
+    // Movable: true,
+    // Resizable: true,
+    // Minimizable: true,
+    // Maximizable: true,
+    // BackgroundColor: "#1e1e1e",
 
-    // frame: false,
+    // Frame: false,
 
-    // webPreferences: {
-    //   nodeIntegration: true,
-    //   contextIsolation: false,
-    //   webSecurity: false,
-    //   scrollBounce: false,
-    //   backgroundThrottling: false,
-    //   disableDialogs: true,
-    //   spellcheck: false,
-    //   zoomFactor: 1,
-    //   webviewTag: true,
+    // WebPreferences: {
+    //   NodeIntegration: true,
+    //   ContextIsolation: false,
+    //   WebSecurity: false,
+    //   ScrollBounce: false,
+    //   BackgroundThrottling: false,
+    //   DisableDialogs: true,
+    //   Spellcheck: false,
+    //   ZoomFactor: 1,
+    //   WebviewTag: true,
     // },
   });
 
@@ -3086,17 +3086,17 @@ const createWindow = (
   });
 
   // ZZZ - leave-html-full-screen
-  // mainWindow.addListener("leave-html-full-screen", () => {
+  // MainWindow.addListener("leave-html-full-screen", () => {
   // NOTE: There's a bug where a webview iframe exiting full screen
-  // doesn't exit the parent document's full screen and so you end up with
-  // the whole webview rendering into the main window's #top-layer and
-  // inside the window the exit fullscreen event isn't even fired.
+  // Doesn't exit the parent document's full screen and so you end up with
+  // The whole webview rendering into the main window's #top-layer and
+  // Inside the window the exit fullscreen event isn't even fired.
   // So we have to listen for it here, and then trigger a document.exitFullscreen manually
-  // on the parent document.
+  // On the parent document.
   // ZZZ - fullscreen exit-full-screen-hack
-  // portalChannel.port1.postMessage({
-  //   type: "exit-full-screen-hack",
-  //   data: {},
+  // PortalChannel.port1.postMessage({
+  //   Type: "exit-full-screen-hack",
+  //   Data: {},
   // });
   // });
 
@@ -3144,17 +3144,17 @@ const createWindow = (
     }
   });
 
-  // todo (yoav): we need a way to close/hide the windows without triggering removing it from the db
+  // Todo (yoav): we need a way to close/hide the windows without triggering removing it from the db
   mainWindow.on("close", (e) => {
-    // unloading is blocked in the window's dom to prevent
-    // refreshing
+    // Unloading is blocked in the window's dom to prevent
+    // Refreshing
     // XXX - before unload
-    // mainWindow.webContents.on("will-prevent-unload", (e) => {
-    //   e.preventDefault();
+    // MainWindow.webContents.on("will-prevent-unload", (e) => {
+    //   E.preventDefault();
     // });
 
     const workspaceWindow = workspaceWindows[workspaceId][windowId];
-    // sometimes when quitting the app the window doesn't exist
+    // Sometimes when quitting the app the window doesn't exist
     if (!workspaceWindow) {
       console.error("workspaceWindow not found", workspaceId, windowId, workspaceWindows);
       return true;
@@ -3170,7 +3170,7 @@ const createWindow = (
       return true;
     }
 
-    // todo (yoav): provide function to update workspace
+    // Todo (yoav): provide function to update workspace
     const { data: workspaceToUpdate } = db.collection("workspaces").queryById(workspaceId);
 
     if (workspaceToUpdate?.windows) {
@@ -3185,10 +3185,10 @@ const createWindow = (
     }
   });
   console.log("---->222 creating main window");
-  // todo (yoav): [blocking] this should be a much smarter sync mechanism
-  // there should be a goldfishdb client library that provides instant optimistic updates while
-  // the backend sync is pending, or does typical client -> server request and updates the model when
-  // finished in a more atomic way
+  // Todo (yoav): [blocking] this should be a much smarter sync mechanism
+  // There should be a goldfishdb client library that provides instant optimistic updates while
+  // The backend sync is pending, or does typical client -> server request and updates the model when
+  // Finished in a more atomic way
   const fetchAndSendProjects = () => {
     const data = fetchProjects();
 
@@ -3293,8 +3293,8 @@ function cleanupLlamaProcesses() {
             }
           }, 1000);
         }
-      } catch (e) {
-        console.warn(`Failed to kill llama process ${id}:`, e);
+      } catch (error) {
+        console.warn(`Failed to kill llama process ${id}:`, error);
       }
     }
     processTracker.clear();
@@ -3306,8 +3306,8 @@ async function cleanupPlugins() {
   console.log("🧹 Cleaning up plugins...");
   try {
     await pluginManager.shutdown();
-  } catch (e) {
-    console.warn("Failed to shutdown plugins:", e);
+  } catch (error) {
+    console.warn("Failed to shutdown plugins:", error);
   }
 }
 
@@ -3407,7 +3407,7 @@ function openBunnyWindow(screenX?: number, screenY?: number) {
   }
 
   function startPolling() {
-    if (pollTimeout) return;
+    if (pollTimeout) {return;}
     try {
       const cursor = Screen.getCursorScreenPoint();
       lastCursorX = cursor.x;
@@ -3424,7 +3424,7 @@ function openBunnyWindow(screenX?: number, screenY?: number) {
   });
 
   win.on("closed", () => {
-    if (pollTimeout) clearTimeout(pollTimeout);
+    if (pollTimeout) {clearTimeout(pollTimeout);}
     bunnyWindow = null;
   });
 }

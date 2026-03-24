@@ -11,5 +11,5 @@ export const trackFrontend = <T extends keyof typeof track>(
   });
 };
 
-// todo: add app settings with tracking level toggle
-// todo: add log that queries backend for the last 100 events and displays it in the window
+// Todo: add app settings with tracking level toggle
+// Todo: add log that queries backend for the last 100 events and displays it in the window

@@ -30,7 +30,7 @@ import { untrack } from "solid-js";
 import { loadPluginSlates } from "./files";
 import { initializeSlateRegistry } from "./slates/pluginSlateRegistry";
 import { registerColabTerminal } from "../components/ColabTerminal";
-// import { readSlateConfigFile } from "./files";
+// Import { readSlateConfigFile } from "./files";
 
 // Initialize the slate component registry early
 initializeSlateRegistry();
@@ -44,7 +44,7 @@ const rpc = Electroview.defineRPC<WorkspaceRPC>({
     requests: {},
     messages: {
       // "*": (messageName, payload) => {
-      //   console.log("bun onmessage", messageName, payload);
+      //   Console.log("bun onmessage", messageName, payload);
       // },
       initState: ({ windowId, buildVars, paths, peerDependencies }) => {
         setState({ windowId, buildVars, paths, peerDependencies });
@@ -58,19 +58,19 @@ const rpc = Electroview.defineRPC<WorkspaceRPC>({
         const projectsById = projects?.reduce(
           (acc: Record<string, ProjectType>, project: ProjectType) => {
             acc[project.id] = project;
-            // buildFileTree(project.path, true)
+            // BuildFileTree(project.path, true)
             return acc;
           },
           {},
         );
 
-        // todo (yoav): [blocking] if we used a flatmap tree
-        // then we wouldn't need to rebuild the whole tree
-        // for open tabs, we could just create a node
-        // for the tab directly if the file exists
+        // Todo (yoav): [blocking] if we used a flatmap tree
+        // Then we wouldn't need to rebuild the whole tree
+        // For open tabs, we could just create a node
+        // For the tab directly if the file exists
 
-        // todo (yoav): [blocking] make this a util and core part of colab
-        // todo (yoav): [blocking] what stuff is actually synced with the server and what is just local to the window and ephemeral
+        // Todo (yoav): [blocking] make this a util and core part of colab
+        // Todo (yoav): [blocking] what stuff is actually synced with the server and what is just local to the window and ephemeral
 
         setState(
           reconcile({
@@ -82,9 +82,9 @@ const rpc = Electroview.defineRPC<WorkspaceRPC>({
             // Merge appSettings from database with existing defaults
             appSettings: appSettings ? { ...state.appSettings, ...appSettings } : state.appSettings,
             // Note: we need the fileTrees to exist when this
-            // setState gets triggered, since the presence of projects
-            // and tabs and such will trigger rendering a bunch of stuff
-            // fileTrees: fileTreesByProjectId,
+            // SetState gets triggered, since the presence of projects
+            // And tabs and such will trigger rendering a bunch of stuff
+            // FileTrees: fileTreesByProjectId,
           }),
         );
 
@@ -97,11 +97,11 @@ const rpc = Electroview.defineRPC<WorkspaceRPC>({
         setState("lastFileChange", absolutePath);
 
         if (!stateFile && !isAdding) {
-          // if the file isn't in the cache then there's nothing to update
+          // If the file isn't in the cache then there's nothing to update
           return;
         }
         if (isDelete) {
-          // destroy open tabs
+          // Destroy open tabs
           if (stateFile?.type === "file") {
             setState(
               produce((_state: AppState) => {
@@ -109,9 +109,9 @@ const rpc = Electroview.defineRPC<WorkspaceRPC>({
                 if (!win) {
                   return;
                 }
-                // todo (yoav): add utils for this.
-                // there's no way to delete the key using setState without using produce or
-                // spreading a new object or something
+                // Todo (yoav): add utils for this.
+                // There's no way to delete the key using setState without using produce or
+                // Spreading a new object or something
                 if (_state.fileCache?.[absolutePath]) {
                   delete _state.fileCache[absolutePath];
                 }
@@ -122,13 +122,13 @@ const rpc = Electroview.defineRPC<WorkspaceRPC>({
                   if (tab.path === absolutePath) {
                     // We do this so user can show a message that the file was deleted
                     // If the user was working in a tab and the file was deleted/rename/moved
-                    // from outside of Colab
+                    // From outside of Colab
                     tab.path = "";
                   }
                 }
               }),
             );
-            // file was removed, delete the model
+            // File was removed, delete the model
             const currentFileModel = stateFile.model;
             // TODO: mark any open tabs as dirty
             currentFileModel?.dispose();
@@ -147,7 +147,7 @@ const rpc = Electroview.defineRPC<WorkspaceRPC>({
             );
           }
 
-          // remove the file or folder from the cache
+          // Remove the file or folder from the cache
           setState(
             produce((_state: AppState) => {
               delete _state.fileCache[absolutePath];
@@ -163,14 +163,14 @@ const rpc = Electroview.defineRPC<WorkspaceRPC>({
             }),
           );
         } else {
-          // this will fetch and cache it if it's not already cached
+          // This will fetch and cache it if it's not already cached
           const node = getNode(absolutePath);
           const filename = basename(absolutePath);
           const parentPath = dirname(absolutePath);
           const parent = _getNode(parentPath);
 
           if (parent) {
-            // events may come in out of order
+            // Events may come in out of order
             if (parent.type === "dir") {
               if (!parent.children.includes(filename)) {
                 const newChildren = [...parent.children, filename];
@@ -179,7 +179,7 @@ const rpc = Electroview.defineRPC<WorkspaceRPC>({
             }
           }
 
-          // update the monaco model with the new/updated contents
+          // Update the monaco model with the new/updated contents
           if (isFile) {
             if (stateFile?.type === "file" && stateFile.isCached) {
               // Only fetch file contents if the file has been explicitly loaded by the user
@@ -205,9 +205,9 @@ const rpc = Electroview.defineRPC<WorkspaceRPC>({
                   : undefined;
 
               console.log(
-                "Got file ",
+                "Got file",
                 filename,
-                " with length: ",
+                "with length:",
                 newContents?.length,
                 "isBinary:",
                 isBinary,
@@ -225,9 +225,9 @@ const rpc = Electroview.defineRPC<WorkspaceRPC>({
 
               if (currentContents !== newContents) {
                 // Note: model.setValue() wipes out undo/redo history. to preserve it we need to do an edit operation instead
-                // basically select everything and replace with the new contents
-                // todo (yoav): save and retrive editor from CodeEditor on state.files[path].editors[editorId] we need to just update all the editors
-                // todo (yoav): need to start with a single editor per tab
+                // Basically select everything and replace with the new contents
+                // Todo (yoav): save and retrive editor from CodeEditor on state.files[path].editors[editorId] we need to just update all the editors
+                // Todo (yoav): need to start with a single editor per tab
                 const editors = stateFile.editors;
                 for (const key in editors) {
                   const editor = editors[key];
@@ -240,7 +240,7 @@ const rpc = Electroview.defineRPC<WorkspaceRPC>({
                   ]);
                 }
 
-                // file.model.setValue(newContents);
+                // File.model.setValue(newContents);
 
                 setState("fileCache", absolutePath, {
                   persistedContent: newContents,
@@ -253,12 +253,12 @@ const rpc = Electroview.defineRPC<WorkspaceRPC>({
 
             const slateConfig = state.slateCache[absolutePath];
             if (slateConfig) {
-              // todo: should it update the config here??
-              // const updatedConfig = readSlateConfigFile(absolutePath);
-              // setState("slateCache", absolutePath, updatedConfig);
+              // Todo: should it update the config here??
+              // Const updatedConfig = readSlateConfigFile(absolutePath);
+              // SetState("slateCache", absolutePath, updatedConfig);
             }
           } else if (isDir) {
-            // rebuild the file tree
+            // Rebuild the file tree
           }
         }
       },
@@ -310,12 +310,12 @@ const rpc = Electroview.defineRPC<WorkspaceRPC>({
         const baseName =
           actualNodeType === "dir"
             ? "new-folder"
-            : actualNodeType === "repo"
+            : (actualNodeType === "repo"
               ? "new-repo"
-              : "new-file";
+              : "new-file");
 
-        // clear settings and then set after a delay for animation to play
-        // and to cleanly reset the add node settings
+        // Clear settings and then set after a delay for animation to play
+        // And to cleanly reset the add node settings
         const delay = untrack(() => {
           return state.settingsPane.type ? 400 : 0;
         });
@@ -397,7 +397,7 @@ const rpc = Electroview.defineRPC<WorkspaceRPC>({
       },
       findAllInFolderResult: ({ query, projectId, results }) => {
         // There's a small race condition so we send the query with the results
-        // and discard results for stale queries
+        // And discard results for stale queries
         if (query !== state.findAllInFolder.query) {
           return;
         }
@@ -452,9 +452,9 @@ const rpc = Electroview.defineRPC<WorkspaceRPC>({
         setState("ui", "showCommandPalette", !state.ui.showCommandPalette);
       },
       newBrowserTab: () => {
-        // console.log("[DEBUG] newBrowserTab handler called", new Error().stack);
-        // return;
-        const uniqueId = Math.random().toString(36).substring(2, 11);
+        // Console.log("[DEBUG] newBrowserTab handler called", new Error().stack);
+        // Return;
+        const uniqueId = Math.random().toString(36).slice(2, 11);
         openNewTabForNode(`__COLAB_TEMPLATE__/browser-chromium/${uniqueId}`, false, {
           focusNewTab: true,
         });
@@ -466,17 +466,17 @@ const rpc = Electroview.defineRPC<WorkspaceRPC>({
         }
 
         // If after closing the tab we no longer have a current tab,
-        // focus the next available tab
+        // Focus the next available tab
         const win = getWindow();
-        if (!win) return;
+        if (!win) {return;}
 
         const currentPane = getPaneWithId(state, win.currentPaneId);
-        if (currentPane?.type !== "pane") return;
+        if (currentPane?.type !== "pane") {return;}
 
         if (!currentPane?.currentTabId) {
           const tabArray = Object.values(win.tabs);
-          if (tabArray.length) {
-            const nextTab = tabArray[tabArray.length - 1];
+          if (tabArray.length > 0) {
+            const nextTab = tabArray.at(-1);
             focusTabWithId(nextTab.id);
           }
         }

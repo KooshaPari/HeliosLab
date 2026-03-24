@@ -29,12 +29,12 @@ export const tsServer = () => {
 
   try {
     // Note: We cann't use fork here because tsserver doesn't currently run in bun
-    // we also can't use fork because tsserver has shebangs stuff and just wants to run in node
+    // We also can't use fork because tsserver has shebangs stuff and just wants to run in node
     // Since we're not forking we can't use the node-ipc that simplifies reading/writing
-    // from stdio.
+    // From stdio.
     console.log("spawning tsServer");
     tsServerProc = sandboxSpawn(profile, BUN_BINARY_PATH, [TSSERVER_PATH, "--bun"], {
-      // cwd should be an ancestor of the files we're working with
+      // Cwd should be an ancestor of the files we're working with
       cwd: "/",
     });
 
@@ -47,12 +47,12 @@ export const tsServer = () => {
     });
 
     tsServerProc.on("close", (code) => {
-      // todo (yoav): signal front-end and let user click something to re-run it
+      // Todo (yoav): signal front-end and let user click something to re-run it
       console.warn(`tsServer: child process exited with code ${code}`);
       tsServerProc = undefined;
     });
-  } catch (e) {
-    console.error("tsServer error", e);
+  } catch (error) {
+    console.error("tsServer error", error);
   }
 
   return tsServerProc;
@@ -63,16 +63,16 @@ export const tsServerRequest = (
   args: any,
   metadata: { workspaceId: string; windowId: string; editorId: string },
 ) => {
-  // console.log("tsserver request");
+  // Console.log("tsserver request");
   currentEditor.workspaceId = metadata.workspaceId;
   currentEditor.windowId = metadata.windowId;
   currentEditor.editorId = metadata.editorId;
 
-  // todo (yoav): these notes are from before migrating to electrobun when forking electron's runtime worked
-  // keep an eye out for dropping requests
+  // Todo (yoav): these notes are from before migrating to electrobun when forking electron's runtime worked
+  // Keep an eye out for dropping requests
   // Note1: we use fork here because otherwise we'd have to invoke it with a standalone node.js binary
   // Note2: tsserver would drop requests when sending multiple at a time over stdin/out
-  // and they had to be spaced out by like 100ms to be reliable. Using IPC resolves that.
+  // And they had to be spaced out by like 100ms to be reliable. Using IPC resolves that.
 
   tsServer()?.stdin?.write(
     JSON.stringify({
@@ -84,7 +84,7 @@ export const tsServerRequest = (
   );
 };
 
-let tsServerResponse = {
+const tsServerResponse = {
   contentLength: 0,
   lengthReceived: 0,
 
@@ -98,14 +98,14 @@ const currentEditor = {
 };
 
 const handleTsServerStream = (data: any) => {
-  // console.log("tsserver stream");
-  // todo (yoav): move this to generic response handler
+  // Console.log("tsserver stream");
+  // Todo (yoav): move this to generic response handler
   const decodedText = new TextDecoder("utf-8").decode(data);
 
   const lines = decodedText.split("\n");
 
   lines.forEach((line) => {
-    // skip empty lines
+    // Skip empty lines
     // 'empty' lines can have a \r character so might have a length of 1
     if (line.length <= 2) {
       return;
@@ -116,8 +116,8 @@ const handleTsServerStream = (data: any) => {
       return;
     }
 
-    tsServerResponse.lengthReceived = tsServerResponse.lengthReceived + line.length;
-    tsServerResponse.text = tsServerResponse.text + line;
+    tsServerResponse.lengthReceived += line.length;
+    tsServerResponse.text += line;
 
     if (tsServerResponse.lengthReceived === tsServerResponse.contentLength) {
       const fullResponseText = tsServerResponse.text;
@@ -128,20 +128,20 @@ const handleTsServerStream = (data: any) => {
       try {
         const parsedResponse = JSON.parse(fullResponseText);
         // Note: we're gonna be super basic here and just send the response
-        // to the last active editor in whatever window it was in.
-        // most things should be faster than the human can switch windows or tabs
-        // and make a new request
+        // To the last active editor in whatever window it was in.
+        // Most things should be faster than the human can switch windows or tabs
+        // And make a new request
         const { workspaceId, windowId } = currentEditor;
         broadcastToWindow(workspaceId, windowId, "tsServerMessage", {
           message: parsedResponse,
           metadata: currentEditor,
         });
-      } catch (e) {
+      } catch {
         console.error("fullResponseText parse error", fullResponseText);
         return;
       }
     } else {
-      // partial response
+      // Partial response
     }
   });
 };

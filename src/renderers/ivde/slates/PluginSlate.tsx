@@ -27,15 +27,15 @@ interface PluginSlateProps {
  *
  * Format: "pluginName.slateId" -> Component
  */
-type SlateComponentProps = {
+interface SlateComponentProps {
   node?: CachedFileType | FolderNodeType;
   slateInfo: PluginSlateInfo;
   instanceId: string;
-};
+}
 
 type SlateComponent = Component<SlateComponentProps>;
 
-const slateComponentRegistry: Map<string, SlateComponent> = new Map();
+const slateComponentRegistry = new Map<string, SlateComponent>();
 
 /**
  * Register a SolidJS component for a plugin slate.
@@ -78,7 +78,7 @@ export const PluginSlate = (props: PluginSlateProps) => {
   const [error, setError] = createSignal<string | null>(null);
   const [useHtmlRendering, setUseHtmlRendering] = createSignal(false);
   const [pendingRenders, setPendingRenders] = createSignal<
-    Array<{ html?: string; script?: string }>
+    { html?: string; script?: string }[]
   >([]);
 
   let mountRef: HTMLDivElement | undefined;
@@ -90,16 +90,16 @@ export const PluginSlate = (props: PluginSlateProps) => {
     const renders = pendingRenders();
     const currentInstanceId = instanceId();
     console.log(`[PluginSlate] applyPendingRenders called:`, {
-      hasHtmlMountRef: !!htmlMountRef,
+      hasHtmlMountRef: Boolean(htmlMountRef),
       rendersLength: renders.length,
       currentInstanceId,
     });
-    if (!htmlMountRef || renders.length === 0 || !currentInstanceId) return;
+    if (!htmlMountRef || renders.length === 0 || !currentInstanceId) {return;}
 
     for (const renderData of renders) {
       console.log(`[PluginSlate] Applying render:`, {
-        html: renderData.html?.substring(0, 100),
-        hasScript: !!renderData.script,
+        html: renderData.html?.slice(0, 100),
+        hasScript: Boolean(renderData.script),
       });
       if (renderData.html !== undefined) {
         htmlMountRef.innerHTML = renderData.html;
@@ -133,8 +133,8 @@ export const PluginSlate = (props: PluginSlateProps) => {
             `;
             const scriptFn = new Function(wrappedScript);
             scriptFn();
-          } catch (e) {
-            console.error("[PluginSlate] Error executing slate script:", e);
+          } catch (error) {
+            console.error("[PluginSlate] Error executing slate script:", error);
           }
         }
       }
@@ -173,8 +173,8 @@ export const PluginSlate = (props: PluginSlateProps) => {
         try {
           const scriptFn = new Function(script);
           scriptFn();
-        } catch (e) {
-          console.error("[PluginSlate] Error executing slate script:", e);
+        } catch (error) {
+          console.error("[PluginSlate] Error executing slate script:", error);
         }
       }
     }
@@ -243,9 +243,9 @@ export const PluginSlate = (props: PluginSlateProps) => {
           mountRef,
         );
       }
-    } catch (e) {
-      console.error("[PluginSlate] Error mounting slate:", e);
-      setError(`Failed to mount slate: ${e}`);
+    } catch (error) {
+      console.error("[PluginSlate] Error mounting slate:", error);
+      setError(`Failed to mount slate: ${error}`);
       setIsLoading(false);
     }
   });
@@ -269,8 +269,8 @@ export const PluginSlate = (props: PluginSlateProps) => {
         await electrobun.rpc?.request.pluginUnmountSlate({
           instanceId: currentInstanceId,
         });
-      } catch (e) {
-        console.error("[PluginSlate] Error unmounting slate:", e);
+      } catch (error) {
+        console.error("[PluginSlate] Error unmounting slate:", error);
       }
     }
   });

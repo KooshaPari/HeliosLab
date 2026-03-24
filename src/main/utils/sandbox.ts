@@ -1,31 +1,31 @@
 import { spawnSync } from "bun";
 import { spawn } from "child_process";
 
-export type SandboxRule = {
+export interface SandboxRule {
   action: string;
   resource: string;
   path?: string;
   ip?: string;
   regex?: string;
-};
+}
 
-export type SandboxProfile = {
+export interface SandboxProfile {
   version: number;
   default_rule: string;
   rules: SandboxRule[];
-};
+}
 
 export const jsonToSBPL = (profile: SandboxProfile): string => {
-  //   let sbpl = `(version ${profile.version})\n(${profile.default_rule} default)\n`;
+  //   Let sbpl = `(version ${profile.version})\n(${profile.default_rule} default)\n`;
   let sbpl = `(version ${profile.version})\n\n(${profile.default_rule} (with message "co(lab): default deny, see prev line in log") default)\n`;
 
   profile.rules.forEach((rule) => {
     // Note: if you run this in another terminal window
     // `log stream --style compact --info --debug  --predicate '(((processID == 0) AND (senderImagePath CONTAINS "/Sandbox")) OR (subsystem == "com.apple.sandbox.reporting"))'
-    // and use (with message "some message") then you'll see the messages in the terminal
-    // assuming you allow all and deny specific things with a message
-    // let ruleStr = `(${rule.action} (with message "${rule.resource}") ${rule.resource}`;
-    // let ruleStr = `(${rule.action} (with message "co(lab): ${rule.resource}") (with telemetry) ${rule.resource}`;
+    // And use (with message "some message") then you'll see the messages in the terminal
+    // Assuming you allow all and deny specific things with a message
+    // Let ruleStr = `(${rule.action} (with message "${rule.resource}") ${rule.resource}`;
+    // Let ruleStr = `(${rule.action} (with message "co(lab): ${rule.resource}") (with telemetry) ${rule.resource}`;
     let ruleStr = `(${rule.action} (with message "co(lab): deny ${rule.resource}") ${rule.resource}`;
     if (rule.path) {
       ruleStr += ` (subpath "${rule.path}"))`;

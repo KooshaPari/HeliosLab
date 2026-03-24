@@ -22,8 +22,8 @@ const hasOsxKeychainHelper = fs.existsSync(OSXKEYCHAIN_HELPER);
 const git = (baseDir: string) => {
   return simpleGit({
     binary: GIT_BINARY_PATH,
-    // note: unsafe allows us to use special characters in the file path
-    // with this option enabled it will warn instead of throw https://github.com/steveukx/git-js/blob/859699d0cc1d0c9b94f53de9c61a060a2cecb656/simple-git/src/lib/plugins/custom-binary.plugin.ts#L25C18-L25C22
+    // Note: unsafe allows us to use special characters in the file path
+    // With this option enabled it will warn instead of throw https://github.com/steveukx/git-js/blob/859699d0cc1d0c9b94f53de9c61a060a2cecb656/simple-git/src/lib/plugins/custom-binary.plugin.ts#L25C18-L25C22
     unsafe: {
       allowUnsafeCustomBinary: true,
       allowUnsafePack: true,
@@ -121,8 +121,8 @@ export const initGit = async (repoRoot: string) => {
     await git(repoRoot).commit("Initial commit");
 
     console.log("Successfully initialized git with main branch");
-  } catch (e) {
-    console.log("error: ", e);
+  } catch (error) {
+    console.log("error:", error);
   }
 };
 
@@ -147,7 +147,7 @@ export const gitValidateUrl = async (gitUrl: string) => {
     }
     lsRemoteArgs.push("ls-remote", gitUrl, "HEAD");
 
-    // ls-remote will fail if the repo doesn't exist or isn't accessible
+    // Ls-remote will fail if the repo doesn't exist or isn't accessible
     await gitInstance.raw(lsRemoteArgs);
     return { valid: true, error: null };
   } catch (error) {
@@ -199,7 +199,7 @@ export const gitClone = async (
       await repoGit.commit("Initial commit");
 
       return `Successfully cloned empty repository and initialized main branch at ${repoPath}`;
-    } else {
+    }
       // Normal clone for repositories with existing branches
       const gitInstance = simpleGit({
         baseDir: parentDir,
@@ -222,7 +222,7 @@ export const gitClone = async (
 
       await gitInstance.raw(cloneArgs);
       return `Successfully cloned repository to ${repoPath}`;
-    }
+    
   } catch (error) {
     console.error("Git clone error:", error);
     throw error;
@@ -473,13 +473,13 @@ export const getGitConfig = async (): Promise<{
 
     try {
       name = (await gitInstance.raw(["config", "--global", "user.name"])).trim();
-    } catch (e) {
+    } catch {
       // Not configured
     }
 
     try {
       email = (await gitInstance.raw(["config", "--global", "user.email"])).trim();
-    } catch (e) {
+    } catch {
       // Not configured
     }
 
@@ -529,7 +529,7 @@ export const checkGitHubCredentials = async (): Promise<{
     // Use security command to check for github.com credentials in keychain
     const { execSync } = await import("child_process");
     const result = execSync("security find-internet-password -s github.com 2>/dev/null", {
-      encoding: "utf-8",
+      encoding: "utf8",
     });
 
     // Parse the account name from the output
@@ -537,7 +537,7 @@ export const checkGitHubCredentials = async (): Promise<{
     const username = acctMatch ? acctMatch[1] : undefined;
 
     return { hasCredentials: true, username };
-  } catch (error) {
+  } catch {
     // No credentials found or error accessing keychain
     return { hasCredentials: false };
   }
@@ -559,7 +559,7 @@ host=github.com
 username=${username}
 password=${token}
 `;
-    execSync(`printf '%s' "${input}" | ${OSXKEYCHAIN_HELPER} store`, { encoding: "utf-8" });
+    execSync(`printf '%s' "${input}" | ${OSXKEYCHAIN_HELPER} store`, { encoding: "utf8" });
   } catch (error) {
     console.error("Error storing GitHub credentials:", error);
     throw error;
@@ -577,7 +577,7 @@ export const removeGitHubCredentials = async (): Promise<void> => {
 
     // Use git credential helper to erase credentials
     const input = `protocol=https\nhost=github.com\n`;
-    execSync(`echo "${input}" | ${OSXKEYCHAIN_HELPER} erase`, { encoding: "utf-8" });
+    execSync(`echo "${input}" | ${OSXKEYCHAIN_HELPER} erase`, { encoding: "utf8" });
   } catch (error) {
     console.error("Error removing GitHub credentials:", error);
     throw error;
@@ -667,13 +667,13 @@ export const gitStageHunkFromPatch = async (repoRoot: string, patch: string) => 
       // First try: exact apply
       const result = await gitInstance.raw(["apply", "--cached", tmpFile]);
       console.log("Git apply succeeded (exact):", result);
-    } catch (e1) {
+    } catch {
       console.log("Exact apply failed, trying with --3way");
       try {
         // Second try: 3-way merge
         const result = await gitInstance.raw(["apply", "--cached", "--3way", tmpFile]);
         console.log("Git apply succeeded (3-way):", result);
-      } catch (e2) {
+      } catch {
         console.log("3-way apply failed, trying with --reject");
         // Third try: apply with reject
         const result = await gitInstance.raw(["apply", "--cached", "--reject", tmpFile]);
@@ -713,14 +713,14 @@ export const gitStageSpecificLines = async (
     // Parse the diff to find which hunk contains our target line
     const diffLines = diff.split("\n");
     const headers: string[] = [];
-    const hunks: Array<{
+    const hunks: {
       header: string;
       oldStart: number;
       oldCount: number;
       newStart: number;
       newCount: number;
       lines: string[];
-    }> = [];
+    }[] = [];
 
     let currentHunk: (typeof hunks)[0] | null = null;
 
@@ -791,14 +791,14 @@ export const gitStageSpecificLines = async (
 
           // Analyze if this is just formatting vs actual content changes
           const contentChanges = hunk.lines.filter((line) => {
-            if (!line.startsWith("-") && !line.startsWith("+")) return false;
+            if (!line.startsWith("-") && !line.startsWith("+")) {return false;}
 
             // Remove common formatting differences and compare
-            const content = line.substring(1).trim();
+            const content = line.slice(1).trim();
             const normalizedContent = content
-              .replace(/\s+/g, " ") // normalize whitespace
-              .replace(/[,;]$/, "") // remove trailing punctuation
-              .replace(/^\s*[\{\}]\s*$/, ""); // ignore standalone braces
+              .replaceAll(/\s+/g, " ") // Normalize whitespace
+              .replace(/[,;]$/, "") // Remove trailing punctuation
+              .replace(/^\s*[{}]\s*$/, ""); // Ignore standalone braces
 
             return normalizedContent.length > 0;
           });
@@ -854,14 +854,14 @@ export const gitStageSpecificLines = async (
 
           // Analyze if this is just formatting vs actual content changes
           const contentChanges = closestHunk.lines.filter((line) => {
-            if (!line.startsWith("-") && !line.startsWith("+")) return false;
+            if (!line.startsWith("-") && !line.startsWith("+")) {return false;}
 
             // Remove common formatting differences and compare
-            const content = line.substring(1).trim();
+            const content = line.slice(1).trim();
             const normalizedContent = content
-              .replace(/\s+/g, " ") // normalize whitespace
-              .replace(/[,;]$/, "") // remove trailing punctuation
-              .replace(/^\s*[\{\}]\s*$/, ""); // ignore standalone braces
+              .replaceAll(/\s+/g, " ") // Normalize whitespace
+              .replace(/[,;]$/, "") // Remove trailing punctuation
+              .replace(/^\s*[{}]\s*$/, ""); // Ignore standalone braces
 
             return normalizedContent.length > 0;
           });
@@ -906,12 +906,12 @@ export const gitStageSpecificLines = async (
     try {
       await gitInstance.raw(["apply", "--cached", tmpFile]);
       console.log(`Successfully staged hunk containing lines ${startLine}-${endLine}`);
-    } catch (applyError) {
+    } catch {
       console.log("Direct apply failed, trying 3-way merge...");
       try {
         await gitInstance.raw(["apply", "--cached", "--3way", tmpFile]);
         console.log(`Successfully staged hunk with 3-way merge`);
-      } catch (threewayError) {
+      } catch {
         console.log("3-way apply failed, trying with --ignore-whitespace...");
         await gitInstance.raw(["apply", "--cached", "--ignore-whitespace", tmpFile]);
         console.log(`Successfully staged hunk ignoring whitespace`);
@@ -1008,7 +1008,7 @@ export const gitStageMonacoChange = async (
     originalEndLineNumber: number;
     modifiedStartLineNumber: number;
     modifiedEndLineNumber: number;
-    charChanges?: Array<{
+    charChanges?: {
       originalStartLineNumber: number;
       originalStartColumn: number;
       originalEndLineNumber: number;
@@ -1017,7 +1017,7 @@ export const gitStageMonacoChange = async (
       modifiedStartColumn: number;
       modifiedEndLineNumber: number;
       modifiedEndColumn: number;
-    }>;
+    }[];
   },
   modifiedContent: string,
 ) => {
@@ -1090,7 +1090,7 @@ export const gitCreateBranch = async (
     try {
       await gitInstance.log(["-1"]);
       hasCommits = true;
-    } catch (logError) {
+    } catch {
       // No commits exist
       hasCommits = false;
     }
@@ -1231,7 +1231,7 @@ export const gitCreatePatchFromLines = async (
 
   // Find the corresponding deletion (should be similar content)
   const matchingDeletion = deletions.find((d) => {
-    const deletionContent = d.line.substring(1).trim();
+    const deletionContent = d.line.slice(1).trim();
     // Check if the content is similar (e.g., same function call with minor changes)
     return deletionContent.includes("console.log") && deletionContent.includes("source");
   });
@@ -1242,10 +1242,10 @@ export const gitCreatePatchFromLines = async (
   if (matchingDeletion) {
     // This is a replacement - use the OLD line number for the - side
     console.log(
-      `Found matching deletion at old line ${matchingDeletion.oldLineNum}: ${matchingDeletion.line.substring(0, 50)}`,
+      `Found matching deletion at old line ${matchingDeletion.oldLineNum}: ${matchingDeletion.line.slice(0, 50)}`,
     );
     console.log(
-      `With addition at new line ${targetAddition.newLineNum}: ${targetAddition.line.substring(0, 50)}`,
+      `With addition at new line ${targetAddition.newLineNum}: ${targetAddition.line.slice(0, 50)}`,
     );
 
     // Add context lines before and after for a valid patch
@@ -1270,7 +1270,7 @@ export const gitCreatePatchFromLines = async (
             for (let k = j + 1; k < Math.min(diffLines.length, j + 4); k++) {
               if (diffLines[k].startsWith(" ")) {
                 contextAfter.push(diffLines[k]);
-                if (contextAfter.length >= 3) break;
+                if (contextAfter.length >= 3) {break;}
               }
             }
             break;
@@ -1281,8 +1281,8 @@ export const gitCreatePatchFromLines = async (
     }
 
     // Calculate line counts
-    const oldCount = contextBefore.length + 1 + contextAfter.length; // context + deletion + context
-    const newCount = contextBefore.length + 1 + contextAfter.length; // context + addition + context
+    const oldCount = contextBefore.length + 1 + contextAfter.length; // Context + deletion + context
+    const newCount = contextBefore.length + 1 + contextAfter.length; // Context + addition + context
     const hunkStart = matchingDeletion.oldLineNum - contextBefore.length;
 
     // Build the hunk

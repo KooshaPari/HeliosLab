@@ -1030,7 +1030,7 @@ function render(): void {
 
       for (const m of metricsSummaries) {
         const card = el("div", "metric-card");
-        card.append(el("div", "metric-name", m.metric.replaceAll(/_/g, " ")));
+        card.append(el("div", "metric-name", m.metric.replaceAll('_', " ")));
         card.append(el("div", "metric-value", `${m.p50}${m.unit}`));
 
         const stats = el("div", "metric-stats");

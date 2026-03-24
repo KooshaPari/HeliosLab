@@ -10,7 +10,7 @@ import type { CommitResult, DefaultLogFields, LogResult, Response, StatusResult 
 import type { WorkspaceType } from "./store";
 import type { track } from "../../main/utils/analytics";
 
-export type WorkspaceRPC = {
+export interface WorkspaceRPC {
   // to bun
   bun: RPCSchema<{
     requests: {
@@ -183,7 +183,7 @@ export type WorkspaceRPC = {
             originalEndLineNumber: number;
             modifiedStartLineNumber: number;
             modifiedEndLineNumber: number;
-            charChanges?: Array<{
+            charChanges?: {
               originalStartLineNumber: number;
               originalStartColumn: number;
               originalEndLineNumber: number;
@@ -192,7 +192,7 @@ export type WorkspaceRPC = {
               modifiedStartColumn: number;
               modifiedEndLineNumber: number;
               modifiedEndColumn: number;
-            }>;
+            }[];
           };
           modifiedContent: string;
         };
@@ -641,13 +641,13 @@ export type WorkspaceRPC = {
         params: void;
         response: {
           ok: boolean;
-          models: Array<{
+          models: {
             name: string;
             path: string;
             size: number;
             modified: string;
             source: "llama" | "legacy";
-          }>;
+          }[];
           error?: string;
         };
       };
@@ -696,7 +696,7 @@ export type WorkspaceRPC = {
           from?: number;
         };
         response: {
-          results: Array<{
+          results: {
             name: string;
             version: string;
             description?: string;
@@ -705,7 +705,7 @@ export type WorkspaceRPC = {
             date: string;
             score: number;
             hasColabPlugin: boolean;
-          }>;
+          }[];
           total: number;
         };
       };
@@ -778,7 +778,7 @@ export type WorkspaceRPC = {
       };
       pluginGetInstalled: {
         params: void;
-        response: Array<{
+        response: {
           name: string;
           version: string;
           displayName?: string;
@@ -789,7 +789,7 @@ export type WorkspaceRPC = {
           updatedAt: number;
           isLocal?: boolean;
           localPath?: string;
-        }>;
+        }[];
       };
       pluginExecuteCommand: {
         params: {
@@ -816,17 +816,17 @@ export type WorkspaceRPC = {
           filePath: string;
           triggerCharacter?: string;
         };
-        response: Array<{
+        response: {
           label: string;
           insertText: string;
           detail?: string;
           documentation?: string;
           kind?: string;
-        }>;
+        }[];
       };
       pluginGetStatusBarItems: {
         params: void;
-        response: Array<{
+        response: {
           id: string;
           text: string;
           tooltip?: string;
@@ -835,7 +835,7 @@ export type WorkspaceRPC = {
           alignment?: "left" | "right";
           pluginName: string;
           hasSettings: boolean;
-        }>;
+        }[];
       };
       pluginGetFileDecoration: {
         params: { filePath: string };
@@ -849,11 +849,11 @@ export type WorkspaceRPC = {
       };
       pluginGetContextMenuItems: {
         params: { context: "editor" | "fileTree" };
-        response: Array<{
+        response: {
           id: string;
           label: string;
           shortcutHint?: string;
-        }>;
+        }[];
       };
       pluginExecuteContextMenuItem: {
         params: {
@@ -865,50 +865,50 @@ export type WorkspaceRPC = {
       };
       pluginGetKeybindings: {
         params: void;
-        response: Array<{
+        response: {
           key: string;
           command: string;
           when?: "editor" | "terminal" | "global";
-        }>;
+        }[];
       };
       pluginGetSettingsSchemas: {
         params: void;
-        response: Array<{
+        response: {
           pluginName: string;
           displayName?: string;
           schema: {
             title?: string;
             description?: string;
-            fields: Array<{
+            fields: {
               key: string;
               label: string;
               type: "string" | "number" | "boolean" | "select" | "color" | "secret";
               default?: string | number | boolean;
               description?: string;
-              options?: Array<{ label: string; value: string | number }>;
+              options?: { label: string; value: string | number }[];
               min?: number;
               max?: number;
               step?: number;
-            }>;
+            }[];
           };
-        }>;
+        }[];
       };
       pluginGetSettingsSchema: {
         params: { pluginName: string };
         response: {
           title?: string;
           description?: string;
-          fields: Array<{
+          fields: {
             key: string;
             label: string;
             type: "string" | "number" | "boolean" | "select" | "color" | "secret";
             default?: string | number | boolean;
             description?: string;
-            options?: Array<{ label: string; value: string | number }>;
+            options?: { label: string; value: string | number }[];
             min?: number;
             max?: number;
             step?: number;
-          }>;
+          }[];
         } | null;
       };
       pluginGetSettingsValues: {
@@ -925,13 +925,13 @@ export type WorkspaceRPC = {
       };
       pluginGetEntitlements: {
         params: { pluginName: string };
-        response: Array<{
+        response: {
           category: string;
           level: "low" | "medium" | "high";
           icon: string;
           label: string;
           description: string;
-        }>;
+        }[];
       };
       pluginGetSettingValidationStatuses: {
         params: { pluginName: string };
@@ -965,7 +965,7 @@ export type WorkspaceRPC = {
       };
       pluginGetAllSlates: {
         params: void;
-        response: Array<{
+        response: {
           id: string;
           pluginName: string;
           name: string;
@@ -974,7 +974,7 @@ export type WorkspaceRPC = {
           patterns?: string[];
           component?: string;
           folderHandler?: boolean;
-        }>;
+        }[];
       };
       pluginFindSlateForFile: {
         params: { filePath: string };
@@ -1010,7 +1010,7 @@ export type WorkspaceRPC = {
         params: { slateId: string; filePath: string; windowId: string };
         response: {
           instanceId: string;
-          initialRenders: Array<{ html?: string; script?: string }>;
+          initialRenders: { html?: string; script?: string }[];
         };
       };
       pluginUnmountSlate: {
@@ -1027,7 +1027,7 @@ export type WorkspaceRPC = {
       };
       pluginGetPendingSlateRenders: {
         params: { instanceId: string };
-        response: Array<{ html?: string; script?: string }>;
+        response: { html?: string; script?: string }[];
       };
       // Helios runtime RPC (active when HELIOS_SURFACE_EDITOR != "true")
       heliosRequest: {
@@ -1098,9 +1098,7 @@ export type WorkspaceRPC = {
         screenY: number;
       };
       createWorkspace: void;
-      updateWorkspace: {
-        [key: string]: any;
-      };
+      updateWorkspace: Record<string, any>;
       hideWorkspace: void;
       installUpdateNow: void;
       addToken: {
@@ -1301,4 +1299,4 @@ export type WorkspaceRPC = {
       };
     };
   }>;
-};
+}

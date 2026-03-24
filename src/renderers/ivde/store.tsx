@@ -14,12 +14,12 @@ import { getSlateForNode } from "./files";
 import { electrobun } from "./init";
 import { trackFrontend } from "./analytics";
 
-// export type PreviewFileTreeType = FileTreeType<{
-//   isExpanded: boolean;
-//   slate?: SlateType;
+// Export type PreviewFileTreeType = FileTreeType<{
+//   IsExpanded: boolean;
+//   Slate?: SlateType;
 // }>;
 
-export type WindowType = {
+export interface WindowType {
   id: string;
   ui: {
     showSidebar: boolean;
@@ -37,19 +37,19 @@ export type WindowType = {
   expansions: string[];
   rootPane: PaneLayoutType;
   currentPaneId: string;
-  tabs: { [tabId: string]: TabType };
-};
+  tabs: Record<string, TabType>;
+}
 
-// todo (yoav): [blocking] deriving workspace from the schema requires a lot more goldfishdb functionality
-// so for now we want to try to make them match as much as possible
-export type WorkspaceType = {
+// Todo (yoav): [blocking] deriving workspace from the schema requires a lot more goldfishdb functionality
+// So for now we want to try to make them match as much as possible
+export interface WorkspaceType {
   id: string;
   name: string;
   color: string;
-  windows: Array<WindowType>;
-};
+  windows: WindowType[];
+}
 
-export type BaseTabType = {
+export interface BaseTabType {
   id: string;
   // todo (yoav): path should only be on file and browser profile tabs
   // it's a big typescript change though
@@ -58,10 +58,10 @@ export type BaseTabType = {
   isPreview: boolean;
   // what pane this tab belongs to
   paneId: string;
-};
+}
 
-// todo (yoav): maybe there's a web tab without a node path
-// and a browser profile tab with a node path
+// Todo (yoav): maybe there's a web tab without a node path
+// And a browser profile tab with a node path
 export interface WebTabType extends BaseTabType {
   type: "web";
   url: string;
@@ -93,34 +93,34 @@ type OpenTabConfig =
   | Omit<TerminalTabType, "id" | "paneId" | "isPreview">
   | Omit<AgentTabType, "id" | "paneId" | "isPreview">;
 
-export type LayoutPaneType = {
+export interface LayoutPaneType {
   id: string;
-  tabIds: Array<string>;
+  tabIds: string[];
   currentTabId: null | string;
   type: "pane";
-};
+}
 
-export type LayoutContainerType = {
+export interface LayoutContainerType {
   id: string;
   direction: "row" | "column";
   divider: number; // percentage
-  panes: Array<LayoutPaneType | LayoutContainerType>;
+  panes: (LayoutPaneType | LayoutContainerType)[];
   type: "container";
-};
+}
 
 export type PaneLayoutType = LayoutPaneType | LayoutContainerType;
 
-// todo: dedupe move to shared file
+// Todo: dedupe move to shared file
 export const getUniqueId = () => {
   return String(Date.now() + Math.random());
 };
 
-// todo (yoav): [blocking] for the state properties that sync to the database, we should have a function
-// like updateSyncedState() that updates the state in the browser and sends a message to the main
-// to be saved into the database. That way we can get from the server without triggering a circular flow
+// Todo (yoav): [blocking] for the state properties that sync to the database, we should have a function
+// Like updateSyncedState() that updates the state in the browser and sends a message to the main
+// To be saved into the database. That way we can get from the server without triggering a circular flow
 
 export const updateSyncedState = () => {
-  // stateUpdater();
+  // StateUpdater();
 
   setTimeout(() => {
     electrobun.rpc?.request.syncWorkspace({
@@ -157,11 +157,11 @@ export interface AppState {
   };
   // XXX
   paths: typeof PathsNamespace | null;
-  // paths: {};
+  // Paths: {};
   peerDependencies: {
-    // globalBun: {
-    //   installed: boolean;
-    //   version: string;
+    // GlobalBun: {
+    //   Installed: boolean;
+    //   Version: string;
     // };
     bun: {
       installed: boolean;
@@ -175,23 +175,23 @@ export interface AppState {
       installed: boolean;
       version: string;
     };
-    // homebrew: {
-    //   installed: boolean;
-    //   version: string;
+    // Homebrew: {
+    //   Installed: boolean;
+    //   Version: string;
     // };
     git: {
       installed: boolean;
       version: string;
     };
   };
-  // the workspace that this window is a part of
-  // todo (yoav): [blocking] make sharing types with the database cleaner
-  // todo (yoav): [blocking] more clearly separate local ephemeral state from synced state
-  // todo (yoav): [blocking] make workspaces singular in the db
+  // The workspace that this window is a part of
+  // Todo (yoav): [blocking] make sharing types with the database cleaner
+  // Todo (yoav): [blocking] more clearly separate local ephemeral state from synced state
+  // Todo (yoav): [blocking] make workspaces singular in the db
   workspace: WorkspaceType; //CurrentDocumentTypes['workspaces']
-  projects: { [id: string]: CurrentDocumentTypes["projects"] };
+  projects: Record<string, CurrentDocumentTypes["projects"]>;
   tokens: any[];
-  // the current window id. This doesn't change for the life of the window
+  // The current window id. This doesn't change for the life of the window
   windowId: string;
   ui: {
     showSidebar: boolean;
@@ -202,8 +202,8 @@ export interface AppState {
   };
   // Toggle on delegate mode when the settings pane is open
   // Electrobun's Delegate mode hides the native hovering webview while showing
-  // a background image of its current contents. This lets us layer the settings pane
-  // and other ui over the <electron-webview> without it being obscured by the native webview
+  // A background image of its current contents. This lets us layer the settings pane
+  // And other ui over the <electron-webview> without it being obscured by the native webview
   webSlateDelegateMode: boolean;
   settingsPane:
     | {
@@ -219,7 +219,7 @@ export interface AppState {
         };
       }
     | {
-        // todo (yoav): may separate these out if they need to store metadata later
+        // Todo (yoav): may separate these out if they need to store metadata later
         type:
           | "global-settings"
           | "workspace-settings"
@@ -231,24 +231,24 @@ export interface AppState {
         data: {};
       };
 
-  // authUrl: string | null;
+  // AuthUrl: string | null;
   githubAuth: {
     authUrl: null | string;
     resolver: null | (() => void);
   };
   accessToken: string | null;
-  // fileTrees: { [projectId: string]: FileTreeType };
-  fileCache: { [absolutePath: string]: CachedFileType };
+  // FileTrees: { [projectId: string]: FileTreeType };
+  fileCache: Record<string, CachedFileType>;
   // Slates is a cache of .colab.json config files. There are other types of slates.
-  // unlike some other slates like package.json, These slates are configs for the parent folders
-  // typically turning the parent folder into a clickable web browser profile or portal dashboard
-  // when needed for a particular folder it's read from disk and cached here, we then listen
-  // to filchange events (eg: from a git pull) and update the cache if it exists
-  slateCache: { [absolutePath: string]: SlateType };
+  // Unlike some other slates like package.json, These slates are configs for the parent folders
+  // Typically turning the parent folder into a clickable web browser profile or portal dashboard
+  // When needed for a particular folder it's read from disk and cached here, we then listen
+  // To filchange events (eg: from a git pull) and update the cache if it exists
+  slateCache: Record<string, SlateType>;
 
   // Plugin slates loaded from the plugin system - these provide custom file handlers
-  // registered by plugins (e.g., webflow-plugin for .webflowrc.json files)
-  pluginSlates: Array<{
+  // Registered by plugins (e.g., webflow-plugin for .webflowrc.json files)
+  pluginSlates: {
     id: string;
     pluginName: string;
     name: string;
@@ -256,23 +256,23 @@ export interface AppState {
     icon?: string;
     patterns: string[];
     folderHandler?: boolean;
-  }>;
+  }[];
 
-  // directoryWatchers: { [projectId: string]: any };
+  // DirectoryWatchers: { [projectId: string]: any };
   dragState:
     | null
     | {
         type: "tab";
-        // the tab or node id
+        // The tab or node id
         id: string;
-        // node?: FileTreeType;
+        // Node?: FileTreeType;
         targetPaneId: null | string;
         targetTabIndex: number;
       }
     | {
         type: "node";
         nodePath: string;
-        // node: FileTreeType;
+        // Node: FileTreeType;
         targetPaneId: null | string;
         targetTabIndex: number;
         targetFolderPath: null | string;
@@ -281,45 +281,35 @@ export interface AppState {
         templateId?: string;
       };
   isResizingPane: boolean;
-  // todo: consider moving editors onto the tab object. since goToLine and goToUrl in tab, could just
-  // use the tab.editor etc. and other methods
-  editors: {
-    [editorId: string]: {
+  // Todo: consider moving editors onto the tab object. since goToLine and goToUrl in tab, could just
+  // Use the tab.editor etc. and other methods
+  editors: Record<string, {
       tabId: string;
       editor: monaco.editor.IStandaloneCodeEditor;
       handleTsServerResponse: (response: any) => void;
-    };
-  };
-  // a simple way to subscribe to the last fileWatchEvent and
-  // react to what file changed
+    }>;
+  // A simple way to subscribe to the last fileWatchEvent and
+  // React to what file changed
   lastFileChange: string;
 
   findAllInFolder: {
     query: string;
-    results: {
-      [projectId: string]: {
-        [path: string]: {
+    results: Record<string, Record<string, {
           line: number;
           column: number;
           match: string;
-        }[];
-      };
-    };
+        }[]>>;
   };
   commandPalette: {
     query: string;
-    results: {
-      [projectId: string]: string[];
-    };
+    results: Record<string, string[]>;
   };
   // Files opened outside of any project (via edit command, Open menu, or drag-drop)
-  openFiles: {
-    [absolutePath: string]: {
+  openFiles: Record<string, {
       name: string;
       type: "file" | "dir";
       addedAt: number;
-    };
-  };
+    }>;
   appSettings: {
     analyticsEnabled?: boolean;
     analyticsConsentPrompted?: boolean;
@@ -369,9 +359,9 @@ const initialState: AppState = {
     error: null,
   },
   peerDependencies: {
-    // globalBun: {
-    //   installed: false,
-    //   version: "",
+    // GlobalBun: {
+    //   Installed: false,
+    //   Version: "",
     // },
     bun: {
       installed: false,
@@ -385,9 +375,9 @@ const initialState: AppState = {
       installed: false,
       version: "",
     },
-    // homebrew: {
-    //   installed: false,
-    //   version: "",
+    // Homebrew: {
+    //   Installed: false,
+    //   Version: "",
     // },
     git: {
       installed: false,
@@ -411,16 +401,16 @@ const initialState: AppState = {
     data: {},
   },
 
-  // oauth url to get access token, drives the oauth webview
-  // authUrl: null,
+  // Oauth url to get access token, drives the oauth webview
+  // AuthUrl: null,
   githubAuth: {
     authUrl: null,
     resolver: null,
   },
-  // temporarily store the generated access token. this works kind of like an 'engine' for effects
+  // Temporarily store the generated access token. this works kind of like an 'engine' for effects
   accessToken: null,
-  // directoryWatchers: {},
-  // fileTrees: {},
+  // DirectoryWatchers: {},
+  // FileTrees: {},
   fileCache: {},
   slateCache: {},
   pluginSlates: [],
@@ -476,18 +466,18 @@ const [state, setState] = createStore(initialState);
 
 export { state, setState };
 
-// todo (yoav): make this a debug only thing
-// @ts-ignore - for debugging, the app doesn't need this internally
+// Todo (yoav): make this a debug only thing
+// @ts-expect-error - for debugging, the app doesn't need this internally
 window.state = () => unwrap(state);
 
-// all state methods and utils should be exported from the store and adjacent files to prevent footguns
-// where you try modify global state in a producer function instead of _state. maybe we can use typescript
-// to show that it's a readonly object or something
+// All state methods and utils should be exported from the store and adjacent files to prevent footguns
+// Where you try modify global state in a producer function instead of _state. maybe we can use typescript
+// To show that it's a readonly object or something
 
-// can we also wire up auto-syncing to the backend? should that be what the goldfishdb client is for
+// Can we also wire up auto-syncing to the backend? should that be what the goldfishdb client is for
 
-// producers
-// todo (yoav): move to their own files and organize
+// Producers
+// Todo (yoav): move to their own files and organize
 export const setPreviewNodeSlateName = (newName: string) => {
   setState(
     produce((_state: AppState) => {
@@ -618,8 +608,8 @@ export const getWindow = (_state: AppState = state) => {
 };
 
 export const focusTabWithId = (tabId: string) => {
-  // todo (yoav): use eslint or something to alert about shadowVars
-  // to prevent footguns mixing up state and _state
+  // Todo (yoav): use eslint or something to alert about shadowVars
+  // To prevent footguns mixing up state and _state
 
   setState(
     produce((_state: AppState) => {
@@ -691,7 +681,7 @@ export const openNewTab = (
   makePreviewTab = true,
   opts: {} | { targetPaneId: string; targetTabIndex: number } = {},
 ) => {
-  let newTabId = getUniqueId();
+  const newTabId = getUniqueId();
   trackFrontend("featureUsed", {
     feature: "tab_open",
     metadata: { tabType: config.type },
@@ -726,12 +716,12 @@ export const openNewTab = (
 
       if (makePreviewTab && currentTabId && existingTab?.isPreview) {
         if ("targetPaneId" in opts) {
-          // if we're opening a node to a specific pane then just update the current preview Tab
-          // to a not-preview tab and open the new one next to it
+          // If we're opening a node to a specific pane then just update the current preview Tab
+          // To a not-preview tab and open the new one next to it
           win.tabs[currentTabId].isPreview = false;
         } else {
-          // if we're clicking through stuff and the current tab is a preview tab,
-          // close the old preview tab completely and let a new one be created below.
+          // If we're clicking through stuff and the current tab is a preview tab,
+          // Close the old preview tab completely and let a new one be created below.
           // This ensures proper component lifecycle (cleanup, fresh state, etc.)
           delete win.tabs[currentTabId];
           const tabIndex = pane.tabIds.indexOf(currentTabId);
@@ -766,8 +756,8 @@ export const openNewTab = (
 };
 
 // This lets you open a new tab associated with a specific node connected to a path
-// you can optionally pass in a url to override the slate url for initial load
-// todo (yoav): replace all usages with store.openNewTab()
+// You can optionally pass in a url to override the slate url for initial load
+// Todo (yoav): replace all usages with store.openNewTab()
 export const openNewTabForNode = (
   path: string,
   isPreview = true,
@@ -817,14 +807,14 @@ export const openNewTabForNode = (
 
       if (currentTabId && isPreview && existingTab && existingTab.isPreview) {
         if ("targetPaneId" in opts) {
-          // if we're opening a node to a specific pane then just update the current preview Tab
-          // to a not-preview tab
+          // If we're opening a node to a specific pane then just update the current preview Tab
+          // To a not-preview tab
           win.tabs[currentTabId] = {
             ...existingTab,
             };
         } else {
-          // if we're clicking through stuff and the current tab is a preview tab,
-          // close the old preview tab completely and let a new one be created below.
+          // If we're clicking through stuff and the current tab is a preview tab,
+          // Close the old preview tab completely and let a new one be created below.
           // This ensures proper component lifecycle (cleanup, fresh state, etc.)
           delete win.tabs[currentTabId];
           const tabIndex = pane.tabIds.indexOf(currentTabId);
@@ -834,7 +824,7 @@ export const openNewTabForNode = (
         }
       }
 
-      const targetUrl = "url" in opts ? opts.url : slate && "url" in slate ? slate.url : undefined;
+      const targetUrl = "url" in opts ? opts.url : (slate && "url" in slate ? slate.url : undefined);
 
       const webTabSettings = slateType === "web" ? { type: "web" as const, url: targetUrl } : {};
       const agentTabSettings =
@@ -902,7 +892,7 @@ export const setNodeExpanded = (nodePath: string, isExpanded: boolean) => {
         expansionsSet.delete(nodePath);
       }
 
-      win.expansions = Array.from(expansionsSet);
+      win.expansions = [...expansionsSet];
     }),
   );
 
@@ -922,7 +912,7 @@ export const editNodeSettings = (node: CachedFileType) => {
       data: {},
     });
     setTimeout(async () => {
-      // const nodeType = state.settingsPane.type === 'edit-node' || state.settingsPane.type === 'edit-node' && state.settingsPane.data.node.type
+      // Const nodeType = state.settingsPane.type === 'edit-node' || state.settingsPane.type === 'edit-node' && state.settingsPane.data.node.type
       if (node.type === "file") {
         setState("settingsPane", {
           type: "edit-node",
@@ -956,7 +946,7 @@ export const getCurrentTab = (_state: AppState = state) => {
   if (pane?.type !== "pane") {
     return null;
   }
-  // todo (yoav): [blocking] rename this currentTabId
+  // Todo (yoav): [blocking] rename this currentTabId
   const { currentTabId } = pane;
   const win = getWindow(_state);
 
@@ -967,8 +957,8 @@ export const getCurrentTab = (_state: AppState = state) => {
   return win?.tabs[currentTabId] || null;
 };
 
-// called by server for each window in workspace after deleting project
-// from the db
+// Called by server for each window in workspace after deleting project
+// From the db
 export const removeProjectFromColab = (projectId: string) => {
   setState(
     produce((_state: AppState) => {
@@ -981,7 +971,7 @@ export const removeProjectFromColab = (projectId: string) => {
       });
 
       delete _state.projects[projectId];
-      // todo (yoav): close open tabs that belong to the project
+      // Todo (yoav): close open tabs that belong to the project
 
       _state.settingsPane = { type: "", data: {} };
     }),
@@ -989,13 +979,13 @@ export const removeProjectFromColab = (projectId: string) => {
 };
 
 // Sometimes when modifying a hierarchical tree you need to
-// find the parent of an object to swap it out. In complex trees
-// you also need to get the key name of this descendant and potentially the
-// index and other info. This function
-// keeps the object reference but removes all the keys and then
-// sets new key/values on it so you don't need to know anything about the parent.
+// Find the parent of an object to swap it out. In complex trees
+// You also need to get the key name of this descendant and potentially the
+// Index and other info. This function
+// Keeps the object reference but removes all the keys and then
+// Sets new key/values on it so you don't need to know anything about the parent.
 // Since this mutates the original object reference it should
-// be used inside a solid.js/immer produce block
+// Be used inside a solid.js/immer produce block
 export const reshapeObjectReference = <T extends Record<string, any>>(
   objectReference: Record<string, unknown>,
   newProps: T,
@@ -1071,19 +1061,19 @@ export const splitPane = (
         id: rightChildPaneId,
         type: "pane",
         tabIds: [],
-        // todo (yoav): [blocker] should this be currentTabIndex
-        // otherwise can end up with a currentTabId that isn't in the tab array
-        // this causes the tab content to show up in the pane but not the tab bar
-        // so there's no way to close it
+        // Todo (yoav): [blocker] should this be currentTabIndex
+        // Otherwise can end up with a currentTabId that isn't in the tab array
+        // This causes the tab content to show up in the pane but not the tab bar
+        // So there's no way to close it
         currentTabId: null,
       } as LayoutPaneType;
 
-      // could be a pane or container that will be converted to the new parent container
+      // Could be a pane or container that will be converted to the new parent container
       const paneToSplit = getPane(_state, pathToPane);
       if (!paneToSplit) {
         return;
       }
-      // console.log("a: pathToPane", pathToPane, convertedContainer);
+      // Console.log("a: pathToPane", pathToPane, convertedContainer);
       const originalType = paneToSplit.type;
 
       const leftChildPane =
@@ -1136,7 +1126,7 @@ export const splitPane = (
       }
     }),
   );
-  // updateSyncedState();
+  // UpdateSyncedState();
 };
 
 export const getEditorForTab = (tabId: string) => {
@@ -1149,24 +1139,24 @@ export const getEditorForTab = (tabId: string) => {
   }
 };
 
-// todo: move this to a file util
+// Todo: move this to a file util
 
 // Note: ui sends request to server, which then fires a filewatch event
-// export const fullyDeleteNode = (path: string) => {
-//   if (!path) {
-//     return;
+// Export const fullyDeleteNode = (path: string) => {
+//   If (!path) {
+//     Return;
 //   }
 //   // todo (yoav): [blocking] maybe the settings pane should close itself when the node is deleted
 //   // it also needs to refresh if the file changes outside of Colab
-//   if (
+//   If (
 //     "node" in state.settingsPane.data &&
-//     state.settingsPane.data.node.path === path
+//     State.settingsPane.data.node.path === path
 //   ) {
-//     setState("settingsPane", { type: "", data: {} });
+//     SetState("settingsPane", { type: "", data: {} });
 //   }
-//   console.log("fullyDeleteNode", path);
+//   Console.log("fullyDeleteNode", path);
 //   // todo (yoav): [blocking] add a confirmation dialog
-//   safeTrashFileOrFolder(path);
+//   SafeTrashFileOrFolder(path);
 
 //   // todo (yoav): we need to update Colab file when removing slates
 //   // todo (yoav): add a "remove slate" button to the context menu
@@ -1192,7 +1182,7 @@ export const openFileAt = (path: string, line: number, column: number) => {
 
   if (currentTab?.path === path) {
     const editor = getEditorForTab(currentTab.id)?.editor;
-    // editor?.setPosition(selectionOrPosition);
+    // Editor?.setPosition(selectionOrPosition);
     editor?.focus();
     editor?.setSelection(selection);
     editor?.revealLineInCenter(selection.startLineNumber);
@@ -1213,7 +1203,7 @@ export const openFileAt = (path: string, line: number, column: number) => {
     return;
   }
 
-  if (openTabsAtTargetPath.length) {
+  if (openTabsAtTargetPath.length > 0) {
     const firstTab = openTabsAtTargetPath[0];
     focusTabWithId(firstTab.id);
     const editor = getEditorForTab(firstTab.id)?.editor;
@@ -1231,7 +1221,7 @@ export const openFileAt = (path: string, line: number, column: number) => {
   } as any);
 
   // Try to apply selection if editor is ready, but it will be applied
-  // by the CodeEditor component when it mounts if editor isn't ready yet
+  // By the CodeEditor component when it mounts if editor isn't ready yet
   const editor = getEditorForTab(newTabId)?.editor;
   if (editor) {
     editor.focus();

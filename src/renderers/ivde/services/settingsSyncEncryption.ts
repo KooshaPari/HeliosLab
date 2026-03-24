@@ -15,7 +15,7 @@ export interface EncryptedPayload {
 }
 
 const ENCRYPTION_VERSION = 1;
-const PBKDF2_ITERATIONS = 100000;
+const PBKDF2_ITERATIONS = 100_000;
 const SALT_LENGTH = 16;
 const IV_LENGTH = 12;
 
@@ -53,7 +53,7 @@ function arrayBufferToBase64(buffer: ArrayBufferLike): string {
   const bytes = new Uint8Array(buffer);
   let binary = "";
   for (let i = 0; i < bytes.length; i++) {
-    binary += String.fromCharCode(bytes[i]);
+    binary += String.fromCodePoint(bytes[i]);
   }
   return btoa(binary);
 }
@@ -65,7 +65,7 @@ function base64ToUint8Array(base64: string): Uint8Array {
   const binary = atob(base64);
   const bytes = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
+    bytes[i] = binary.codePointAt(i);
   }
   return bytes;
 }
@@ -122,7 +122,7 @@ export async function decryptSettings<T = unknown>(
 
     const decoder = new TextDecoder();
     return JSON.parse(decoder.decode(plaintext)) as T;
-  } catch (error) {
+  } catch {
     // AES-GCM will throw if the passphrase is wrong (authentication tag mismatch)
     throw new Error("Decryption failed. Wrong passphrase?");
   }
