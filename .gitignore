@@ -30,7 +30,6 @@ package-lock.json
 .github/copilot-instructions.md
 .claudeignore
 .llmignore
-<<<<<<< HEAD
 
 # Local scratch (never commit)
 .tmp/
@@ -39,5 +38,3 @@ package-lock.json
 # IDE noise (minimal)
 .idea/
 *.iml
-=======
->>>>>>> 303c1255ef5b2bb68a8ddb8c1616720e9a14f0cc
