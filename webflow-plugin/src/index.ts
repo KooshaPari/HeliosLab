@@ -340,8 +340,7 @@ export async function activate(api: PluginAPI): Promise<void> {
               api.log.info("Found token match!");
               return match[1].trim();
             }
-              api.log.warn("No token match in content");
-            
+            api.log.warn("No token match in content");
           }
         } catch (error) {
           api.log.warn("checkForToken error:", error);
@@ -704,7 +703,9 @@ export async function activate(api: PluginAPI): Promise<void> {
   const loadEnvToken = async () => {
     try {
       const workspaceFolders = await api.workspace.getWorkspaceFolders();
-      if (workspaceFolders.length === 0) {return;}
+      if (workspaceFolders.length === 0) {
+        return;
+      }
 
       const cwd = workspaceFolders[0].path;
       const envPath = `${cwd}/.env`;
@@ -858,7 +859,9 @@ export async function activate(api: PluginAPI): Promise<void> {
       context: "fileTree",
     },
     async (ctx) => {
-      if (!ctx.filePath) {return;}
+      if (!ctx.filePath) {
+        return;
+      }
 
       // Get the directory path (if file selected, use parent directory)
       const { existsSync, writeFileSync, mkdirSync } = await import("fs");
@@ -989,7 +992,9 @@ export async function activate(api: PluginAPI): Promise<void> {
       context: "fileTree",
     },
     async (ctx) => {
-      if (!ctx.filePath) {return;}
+      if (!ctx.filePath) {
+        return;
+      }
 
       const { existsSync, writeFileSync, mkdirSync, readFileSync } = await import("fs");
       const { statSync } = await import("fs");
@@ -1297,7 +1302,9 @@ export default declareComponent(ColabBadge, {
       context: "fileTree",
     },
     async (ctx) => {
-      if (!ctx.filePath) {return;}
+      if (!ctx.filePath) {
+        return;
+      }
 
       const { existsSync, writeFileSync, mkdirSync, readFileSync } = await import("fs");
       const { statSync } = await import("fs");
@@ -1551,8 +1558,11 @@ pnpm-debug.log*
             stdio: ["ignore", "pipe", "pipe"],
           });
           proc.on("close", (code) => {
-            if (code === 0) {resolve();}
-            else {reject(new Error(`bun install failed with code ${code}`));}
+            if (code === 0) {
+              resolve();
+            } else {
+              reject(new Error(`bun install failed with code ${code}`));
+            }
           });
           proc.on("error", reject);
         });

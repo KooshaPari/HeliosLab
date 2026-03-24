@@ -335,7 +335,9 @@ export const getSlateForNode = (node?: CachedFileType | PreviewFileTreeType | nu
     if (pluginSlates && pluginSlates.length > 0) {
       const filename = node.path.split("/").pop() || "";
       for (const slate of pluginSlates) {
-        if (slate.folderHandler) {continue;}
+        if (slate.folderHandler) {
+          continue;
+        }
         for (const pattern of slate.patterns) {
           if (
             pattern === filename ||
@@ -459,7 +461,9 @@ export const findPluginSlateForFile = (filePath: string): PluginSlateInfo | null
 
   for (const slate of pluginSlates) {
     // Skip folder handlers when looking for files
-    if (slate.folderHandler) {continue;}
+    if (slate.folderHandler) {
+      continue;
+    }
 
     for (const pattern of slate.patterns) {
       // Exact match

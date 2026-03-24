@@ -22,7 +22,9 @@ export const Dialog = ({
 }) => {
   // Handle Escape key to close dialog, Enter key to confirm
   createEffect(() => {
-    if (!isOpen()) {return;}
+    if (!isOpen()) {
+      return;
+    }
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {

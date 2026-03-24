@@ -195,7 +195,9 @@ export const DiffEditor = ({
     }
 
     editor.onDidUpdateDiff(() => {
-      if (!editor) {return;}
+      if (!editor) {
+        return;
+      }
       console.log("Diff updated!");
 
       // Get line changes from the diff editor
@@ -340,7 +342,9 @@ export const DiffEditor = ({
 
     // Handle clicks on the glyph margin for staging
     modifiedEditor.onMouseDown((e: any) => {
-      if (!editor) {return;}
+      if (!editor) {
+        return;
+      }
 
       if (e.target.type === monaco.editor.MouseTargetType.GUTTER_GLYPH_MARGIN) {
         const lineNumber = e.target.position?.lineNumber;
@@ -403,10 +407,14 @@ export const DiffEditor = ({
   });
 
   const nextDiff = () => {
-    if (!editor) {return;}
+    if (!editor) {
+      return;
+    }
 
     const lineChanges = editor.getLineChanges();
-    if (!lineChanges || lineChanges.length === 0) {return;}
+    if (!lineChanges || lineChanges.length === 0) {
+      return;
+    }
 
     // Move to next change
     currentDiffIndex = (currentDiffIndex + 1) % lineChanges.length;
@@ -426,10 +434,14 @@ export const DiffEditor = ({
   };
 
   const prevDiff = () => {
-    if (!editor) {return;}
+    if (!editor) {
+      return;
+    }
 
     const lineChanges = editor.getLineChanges();
-    if (!lineChanges || lineChanges.length === 0) {return;}
+    if (!lineChanges || lineChanges.length === 0) {
+      return;
+    }
 
     // Move to previous change
     currentDiffIndex = currentDiffIndex > 0 ? currentDiffIndex - 1 : lineChanges.length - 1;
@@ -453,9 +465,15 @@ export const DiffEditor = ({
     if (editor) {
       editor.setModel(null);
     }
-    if (originalModel) {originalModel.dispose();}
-    if (modifiedModel) {modifiedModel.dispose();}
-    if (editor) {editor.dispose();}
+    if (originalModel) {
+      originalModel.dispose();
+    }
+    if (modifiedModel) {
+      modifiedModel.dispose();
+    }
+    if (editor) {
+      editor.dispose();
+    }
   });
 
   // Staging controls state
@@ -463,7 +481,9 @@ export const DiffEditor = ({
 
   // Function to update staging decorations
   const updateStagingDecorations = () => {
-    if (!editor) {return;}
+    if (!editor) {
+      return;
+    }
 
     console.log(
       "updateStagingDecorations called - canStageLines:",

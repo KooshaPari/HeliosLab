@@ -62,7 +62,9 @@ export const GitHubSettings = (): JSXElement => {
   });
 
   const verifyToken = async (token: string) => {
-    if (!token) {return false;}
+    if (!token) {
+      return false;
+    }
 
     setIsVerifyingPat(true);
     setStatusMessage("Verifying token...");
@@ -96,10 +98,9 @@ export const GitHubSettings = (): JSXElement => {
         setIsVerifyingPat(false);
         return true;
       }
-        setStatusMessage("Invalid token");
-        setIsVerifyingPat(false);
-        return false;
-      
+      setStatusMessage("Invalid token");
+      setIsVerifyingPat(false);
+      return false;
     } catch (error) {
       console.error("Error verifying token:", error);
       setStatusMessage("Failed to verify token");
@@ -134,7 +135,9 @@ export const GitHubSettings = (): JSXElement => {
 
     // Verify the token first
     const isValid = await verifyToken(token);
-    if (!isValid) {return;}
+    if (!isValid) {
+      return;
+    }
 
     // Store in keychain for push/pull
     if (hasKeychainHelper()) {

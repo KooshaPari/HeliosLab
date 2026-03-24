@@ -98,7 +98,9 @@ export const PluginMarketplace = (): JSXElement => {
   createEffect(() => {
     const query = searchQuery();
     const timeoutId = setTimeout(() => {
-      if (query !== searchQuery()) {return;}
+      if (query !== searchQuery()) {
+        return;
+      }
       searchPlugins();
     }, 500);
     return () => clearTimeout(timeoutId);
@@ -656,15 +658,15 @@ export const PluginMarketplace = (): JSXElement => {
                             background:
                               ent.level === "high"
                                 ? "#3d2020"
-                                : (ent.level === "medium"
+                                : ent.level === "medium"
                                   ? "#3d3520"
-                                  : "#203520"),
+                                  : "#203520",
                             color:
                               ent.level === "high"
                                 ? "#ff8080"
-                                : (ent.level === "medium"
+                                : ent.level === "medium"
                                   ? "#ffc080"
-                                  : "#80ff80"),
+                                  : "#80ff80",
                             display: "flex",
                             "align-items": "center",
                             gap: "4px",

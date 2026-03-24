@@ -978,33 +978,29 @@ export interface WorkspaceRPC {
       };
       pluginFindSlateForFile: {
         params: { filePath: string };
-        response:
-          | {
-              id: string;
-              pluginName: string;
-              name: string;
-              description?: string;
-              icon?: string;
-              patterns?: string[];
-              component?: string;
-              folderHandler?: boolean;
-            }
-          | null;
+        response: {
+          id: string;
+          pluginName: string;
+          name: string;
+          description?: string;
+          icon?: string;
+          patterns?: string[];
+          component?: string;
+          folderHandler?: boolean;
+        } | null;
       };
       pluginFindSlateForFolder: {
         params: { folderPath: string };
-        response:
-          | {
-              id: string;
-              pluginName: string;
-              name: string;
-              description?: string;
-              icon?: string;
-              patterns?: string[];
-              component?: string;
-              folderHandler?: boolean;
-            }
-          | null;
+        response: {
+          id: string;
+          pluginName: string;
+          name: string;
+          description?: string;
+          icon?: string;
+          patterns?: string[];
+          component?: string;
+          folderHandler?: boolean;
+        } | null;
       };
       pluginMountSlate: {
         params: { slateId: string; filePath: string; windowId: string };

@@ -153,8 +153,12 @@ export async function getPackageVersions(packageName: string): Promise<string[]>
     // Simple semver comparison - could use a proper library
     const [aMajor, aMinor, aPatch] = a.split(".").map(Number);
     const [bMajor, bMinor, bPatch] = b.split(".").map(Number);
-    if (bMajor !== aMajor) {return bMajor - aMajor;}
-    if (bMinor !== aMinor) {return bMinor - aMinor;}
+    if (bMajor !== aMajor) {
+      return bMajor - aMajor;
+    }
+    if (bMinor !== aMinor) {
+      return bMinor - aMinor;
+    }
     return bPatch - aPatch;
   });
 }

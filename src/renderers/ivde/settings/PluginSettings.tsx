@@ -243,14 +243,18 @@ export const PluginSettings = (): JSXElement => {
   // Poll for validation status updates after changing a secret field
   const pollValidationStatus = async (key: string) => {
     const pluginName = getPluginName();
-    if (!pluginName) {return;}
+    if (!pluginName) {
+      return;
+    }
 
     // Poll every 200ms for up to 10 seconds
     const maxAttempts = 50;
     let attempts = 0;
 
     const poll = async () => {
-      if (attempts >= maxAttempts) {return;}
+      if (attempts >= maxAttempts) {
+        return;
+      }
       attempts++;
 
       try {
@@ -286,7 +290,9 @@ export const PluginSettings = (): JSXElement => {
     isSecret = false,
   ) => {
     const pluginName = getPluginName();
-    if (!pluginName) {return;}
+    if (!pluginName) {
+      return;
+    }
 
     // Update local state immediately
     setValues((prev) => ({ ...prev, [key]: value }));
@@ -329,7 +335,7 @@ export const PluginSettings = (): JSXElement => {
     if (field.key in v) {
       return v[field.key];
     }
-    return field.default ?? (field.type === "boolean" ? false : (field.type === "number" ? 0 : ""));
+    return field.default ?? (field.type === "boolean" ? false : field.type === "number" ? 0 : "");
   };
 
   const onClose = () => {
@@ -631,15 +637,15 @@ export const PluginSettings = (): JSXElement => {
                                 background:
                                   entitlement.level === "high"
                                     ? "#5c2626"
-                                    : (entitlement.level === "medium"
+                                    : entitlement.level === "medium"
                                       ? "#4a4026"
-                                      : "#2a3a2a"),
+                                      : "#2a3a2a",
                                 color:
                                   entitlement.level === "high"
                                     ? "#f87171"
-                                    : (entitlement.level === "medium"
+                                    : entitlement.level === "medium"
                                       ? "#fbbf24"
-                                      : "#86efac"),
+                                      : "#86efac",
                               }}
                             >
                               {entitlement.level}

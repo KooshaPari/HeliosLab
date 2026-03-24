@@ -91,8 +91,14 @@ export function createTerminalBridge() {
       console.warn("[helios] terminal bridge: Bun.spawn not available, using stub");
       ptyProcess = {
         stdin: { write: () => true },
-        stdout: { getReader: () => ({ read: async () => ({ done: true, value: new Uint8Array() }) } as StreamReader) },
-        stderr: { getReader: () => ({ read: async () => ({ done: true, value: new Uint8Array() }) } as StreamReader) },
+        stdout: {
+          getReader: () =>
+            ({ read: async () => ({ done: true, value: new Uint8Array() }) }) as StreamReader,
+        },
+        stderr: {
+          getReader: () =>
+            ({ read: async () => ({ done: true, value: new Uint8Array() }) }) as StreamReader,
+        },
         exited: Promise.resolve(0),
       };
     }

@@ -78,19 +78,23 @@ export class AcpClient implements AcpClientAdapter {
       if (!response.ok) {
         if (response.status === 401) {
           this.consecutiveFailures++;
-          throw new Error(JSON.stringify({
-            code: "PROVIDER_AUTH_FAILED",
-            message: "Authentication failed",
-            status: 401,
-          }));
+          throw new Error(
+            JSON.stringify({
+              code: "PROVIDER_AUTH_FAILED",
+              message: "Authentication failed",
+              status: 401,
+            }),
+          );
         }
         if (response.status === 429) {
           this.consecutiveFailures++;
-          throw new Error(JSON.stringify({
-            code: "PROVIDER_RATE_LIMITED",
-            message: "Rate limited",
-            status: 429,
-          }));
+          throw new Error(
+            JSON.stringify({
+              code: "PROVIDER_RATE_LIMITED",
+              message: "Rate limited",
+              status: 429,
+            }),
+          );
         }
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
@@ -127,10 +131,12 @@ export class AcpClient implements AcpClientAdapter {
         throw new Error(JSON.stringify(error));
       }
 
-      throw new Error(JSON.stringify({
-        code: "PROVIDER_NETWORK_ERROR",
-        message: error instanceof Error ? error.message : String(error),
-      }));
+      throw new Error(
+        JSON.stringify({
+          code: "PROVIDER_NETWORK_ERROR",
+          message: error instanceof Error ? error.message : String(error),
+        }),
+      );
     }
   }
 

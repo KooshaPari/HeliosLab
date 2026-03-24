@@ -162,8 +162,10 @@ class PluginManager {
     { pluginName: string; handler: (...args: unknown[]) => unknown }
   >(); // Command id -> handler
   private preloadScripts = new Map<string, Set<string>>(); // Plugin name -> set of scripts
-  private terminalCommands =
-    new Map<string, { pluginName: string; handler: TerminalCommandHandler }>(); // Command name -> handler
+  private terminalCommands = new Map<
+    string,
+    { pluginName: string; handler: TerminalCommandHandler }
+  >(); // Command name -> handler
   private completionProviders = new Map<string, RegisteredCompletionProvider>(); // Provider id -> provider
   private statusBarItems = new Map<string, RegisteredStatusBarItem>(); // Item id -> item
   private decorationProviders = new Map<string, RegisteredDecorationProvider>(); // Provider id -> provider
@@ -199,7 +201,7 @@ class PluginManager {
   // ==========================================================================
 
   private getSettingsFilePath(pluginName: string): string {
-    return join(COLAB_PLUGINS_PATH, `${pluginName.replaceAll('/', "__")}.settings.json`);
+    return join(COLAB_PLUGINS_PATH, `${pluginName.replaceAll("/", "__")}.settings.json`);
   }
 
   private loadPluginSettings(pluginName: string): PluginSettingsValues {
@@ -238,7 +240,7 @@ class PluginManager {
   // ==========================================================================
 
   private getStateFilePath(pluginName: string): string {
-    return join(COLAB_PLUGINS_PATH, `${pluginName.replaceAll('/', "__")}.state.json`);
+    return join(COLAB_PLUGINS_PATH, `${pluginName.replaceAll("/", "__")}.state.json`);
   }
 
   private loadPluginState(pluginName: string): Record<string, unknown> {
@@ -1413,7 +1415,9 @@ class PluginManager {
     params: unknown,
   ): Promise<void> {
     const workerState = this.activeWorkers.get(pluginName);
-    if (!workerState) {return;}
+    if (!workerState) {
+      return;
+    }
 
     const plugin = workerState.plugin;
     // Support both old `permissions` and new `entitlements` systems
@@ -1677,7 +1681,9 @@ class PluginManager {
    */
   private refreshPluginManifest(name: string): PluginManifest | undefined {
     const plugin = this.registry.plugins[name];
-    if (!plugin) {return undefined;}
+    if (!plugin) {
+      return undefined;
+    }
 
     try {
       // For local dev plugins, use localPath as the source of truth
@@ -1701,7 +1707,9 @@ class PluginManager {
    */
   getPluginEntitlements(name: string): EntitlementSummary[] {
     const plugin = this.registry.plugins[name];
-    if (!plugin) {return [];}
+    if (!plugin) {
+      return [];
+    }
     // Refresh manifest from disk to get latest entitlements (especially for local dev plugins)
     const manifest = this.refreshPluginManifest(name);
     return summarizeEntitlements(manifest?.entitlements);
@@ -1712,7 +1720,9 @@ class PluginManager {
    */
   getPluginEntitlementsRaw(name: string): PluginEntitlements | undefined {
     const plugin = this.registry.plugins[name];
-    if (!plugin) {return undefined;}
+    if (!plugin) {
+      return undefined;
+    }
     // Refresh manifest from disk to get latest entitlements
     const manifest = this.refreshPluginManifest(name);
     return manifest?.entitlements;
@@ -2076,7 +2086,10 @@ class PluginManager {
           console.log(`[PluginManager] Calling callback for ${pluginName}`);
           callback(message);
         } catch (error) {
-          console.error(`[PluginManager] Error in settings message callback for ${pluginName}:`, error);
+          console.error(
+            `[PluginManager] Error in settings message callback for ${pluginName}:`,
+            error,
+          );
         }
       }
     } else {
@@ -2151,7 +2164,9 @@ class PluginManager {
    */
   findSlateForFolder(folderPath: string): RegisteredSlate | null {
     for (const [, slate] of this.slates) {
-      if (!slate.config.folderHandler) {continue;}
+      if (!slate.config.folderHandler) {
+        continue;
+      }
 
       // For folder handlers, check if any of the patterns exist in the folder
       const fs = require("fs");

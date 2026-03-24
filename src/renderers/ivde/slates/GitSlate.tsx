@@ -227,19 +227,18 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
         });
       return content || "";
     }
-      console.log("Reading from HEAD");
-      // HEAD - get from git
-      const content = await electrobun.rpc?.request
-        .gitShow({
-          options: [`HEAD:${filepath}`],
-          repoRoot: repoRootPath,
-        })
-        .catch((error) => {
-          console.error("Git show HEAD error:", error);
-          return "";
-        });
-      return content || "";
-    
+    console.log("Reading from HEAD");
+    // HEAD - get from git
+    const content = await electrobun.rpc?.request
+      .gitShow({
+        options: [`HEAD:${filepath}`],
+        repoRoot: repoRootPath,
+      })
+      .catch((error) => {
+        console.error("Git show HEAD error:", error);
+        return "";
+      });
+    return content || "";
   };
 
   const getFileDiff = async (
@@ -261,51 +260,46 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
           const originalText = await getFileContents(filepath, "HEAD");
           return { originalText: originalText || "", modifiedText: "" };
         }
-          // Staged modified file - compare HEAD with INDEX (staged version)
-          const [originalText, modifiedText] = await Promise.all([
-            getFileContents(filepath, "HEAD"), // Last committed version
-            getFileContents(filepath, "INDEX"), // Staged version from index
-          ]);
-          return { originalText: originalText || "", modifiedText: modifiedText || "" };
-        
-      }
-        // Unstaged changes: compare HEAD with working directory
-        if (changeType === "A") {
-          // Unstaged added file - compare empty with working directory
-          const modifiedText = await getFileContents(filepath, "WORKING");
-          return { originalText: "", modifiedText: modifiedText || "" };
-        } else if (changeType === "D") {
-          // Unstaged deleted file - compare HEAD with empty
-          const originalText = await getFileContents(filepath, "HEAD");
-          return { originalText: originalText || "", modifiedText: "" };
-        }
-          // Unstaged modified file - compare INDEX (staged version) with working directory
-          const [originalText, modifiedText] = await Promise.all([
-            getFileContents(filepath, "INDEX"), // Use staged version as baseline
-            getFileContents(filepath, "WORKING"),
-          ]);
-          return { originalText: originalText || "", modifiedText: modifiedText || "" };
-        
-      
-    }
-      // For historical commits, handle A/D files specially
-      if (changeType === "A") {
-        // Added file - no previous version exists
-        const modifiedText = await getFileContents(filepath, commitHash);
-        return { originalText: "", modifiedText: modifiedText || "" };
-      } else if (changeType === "D") {
-        // Deleted file - no current version exists
-        const originalText = await getFileContents(filepath, commitHash + "^");
-        return { originalText: originalText || "", modifiedText: "" };
-      }
-        // Modified file - compare with previous commit
+        // Staged modified file - compare HEAD with INDEX (staged version)
         const [originalText, modifiedText] = await Promise.all([
-          getFileContents(filepath, commitHash + "^"),
-          getFileContents(filepath, commitHash),
+          getFileContents(filepath, "HEAD"), // Last committed version
+          getFileContents(filepath, "INDEX"), // Staged version from index
         ]);
         return { originalText: originalText || "", modifiedText: modifiedText || "" };
-      
-    
+      }
+      // Unstaged changes: compare HEAD with working directory
+      if (changeType === "A") {
+        // Unstaged added file - compare empty with working directory
+        const modifiedText = await getFileContents(filepath, "WORKING");
+        return { originalText: "", modifiedText: modifiedText || "" };
+      } else if (changeType === "D") {
+        // Unstaged deleted file - compare HEAD with empty
+        const originalText = await getFileContents(filepath, "HEAD");
+        return { originalText: originalText || "", modifiedText: "" };
+      }
+      // Unstaged modified file - compare INDEX (staged version) with working directory
+      const [originalText, modifiedText] = await Promise.all([
+        getFileContents(filepath, "INDEX"), // Use staged version as baseline
+        getFileContents(filepath, "WORKING"),
+      ]);
+      return { originalText: originalText || "", modifiedText: modifiedText || "" };
+    }
+    // For historical commits, handle A/D files specially
+    if (changeType === "A") {
+      // Added file - no previous version exists
+      const modifiedText = await getFileContents(filepath, commitHash);
+      return { originalText: "", modifiedText: modifiedText || "" };
+    } else if (changeType === "D") {
+      // Deleted file - no current version exists
+      const originalText = await getFileContents(filepath, commitHash + "^");
+      return { originalText: originalText || "", modifiedText: "" };
+    }
+    // Modified file - compare with previous commit
+    const [originalText, modifiedText] = await Promise.all([
+      getFileContents(filepath, commitHash + "^"),
+      getFileContents(filepath, commitHash),
+    ]);
+    return { originalText: originalText || "", modifiedText: modifiedText || "" };
   };
 
   const onClickChange = async (
@@ -645,7 +639,9 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
   const stageAllFiles = async () => {
     try {
       const unstagedFiles = Object.keys(uiState.changes.unstaged || {});
-      if (unstagedFiles.length === 0) {return;}
+      if (unstagedFiles.length === 0) {
+        return;
+      }
 
       console.log("Staging all files:", unstagedFiles);
 
@@ -666,7 +662,9 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
   const unstageAllFiles = async () => {
     try {
       const stagedFiles = Object.keys(uiState.changes.staged || {});
-      if (stagedFiles.length === 0) {return;}
+      if (stagedFiles.length === 0) {
+        return;
+      }
 
       console.log("Unstaging all files:", stagedFiles);
 
@@ -1050,7 +1048,9 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 
   // Function to load more commits for infinite scroll
   const loadMoreCommits = async () => {
-    if (pagination.isLoading || !pagination.hasMore) {return;}
+    if (pagination.isLoading || !pagination.hasMore) {
+      return;
+    }
 
     setPagination("isLoading", true);
 
@@ -2351,10 +2351,10 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
                                         }}
                                         title={
                                           isRemote
-                                            ? (uiState.syncStatus.ahead > 0 ||
+                                            ? uiState.syncStatus.ahead > 0 ||
                                               uiState.syncStatus.behind > 0
                                               ? `${ref} (common ancestor - this is where local and remote branches diverged)`
-                                              : `Remote branch: ${ref}`)
+                                              : `Remote branch: ${ref}`
                                             : `Local branch: ${ref}`
                                         }
                                       >
@@ -2561,8 +2561,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
                           {/* Files changed section */}
                           <For each={Object.entries(commit.files)}>
                             {([filepath, filechange]) => {
-                              const dirname =
-                                filepath.slice(0, filepath.lastIndexOf("/")) || "";
+                              const dirname = filepath.slice(0, filepath.lastIndexOf("/")) || "";
                               const filename = filepath.slice(filepath.lastIndexOf("/") + 1);
 
                               return (
@@ -3565,8 +3564,9 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
                                                   e.currentTarget.style.background = hasLocalBranch
                                                     ? "#555"
                                                     : "#4fc3f7";
-                                                  if (!hasLocalBranch)
-                                                    {e.currentTarget.style.color = "#fff";}
+                                                  if (!hasLocalBranch) {
+                                                    e.currentTarget.style.color = "#fff";
+                                                  }
                                                 }}
                                                 onMouseLeave={(e) => {
                                                   e.currentTarget.style.opacity = "0.7";

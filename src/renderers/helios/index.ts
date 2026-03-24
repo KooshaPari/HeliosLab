@@ -96,7 +96,11 @@ interface RendererCapabilities {
 let rendererCaps: RendererCapabilities | null = null;
 
 // Chat messages
-interface ChatMessage { role: "user" | "system"; text: string; ts: string }
+interface ChatMessage {
+  role: "user" | "system";
+  text: string;
+  ts: string;
+}
 const chatMessages: ChatMessage[] = [];
 
 // Toasts
@@ -124,9 +128,15 @@ const rpc = Electroview.defineRPC<WorkspaceRPC>({
         applyState(data.state);
         render();
       },
-      "helios:event": (data: { event: Record<string, unknown>; state: Record<string, unknown> }) => {
+      "helios:event": (data: {
+        event: Record<string, unknown>;
+        state: Record<string, unknown>;
+      }) => {
         applyState(data.state);
-        const topic = (data.event?.topic as string) ?? (data.event?.payload as Record<string, unknown>)?.runtime_event ?? "event";
+        const topic =
+          (data.event?.topic as string) ??
+          (data.event?.payload as Record<string, unknown>)?.runtime_event ??
+          "event";
         addLog(topic, true);
         render();
       },
@@ -146,7 +156,9 @@ const electrobun = new Electroview({ rpc });
  * @param state - The state object to apply
  */
 function applyState(state: Record<string, unknown>) {
-  if (!state) {return;}
+  if (!state) {
+    return;
+  }
   const laneState = state.lane as Record<string, string> | undefined;
   const lanesState = state.lanes as Record<string, string> | undefined;
   const sessionState = state.session as Record<string, string> | undefined;
@@ -167,7 +179,9 @@ function applyState(state: Record<string, unknown>) {
  */
 function addLog(label: string, ok: boolean) {
   eventLog.push({ ts: new Date().toISOString().slice(11, 19), label, ok });
-  if (eventLog.length > 50) {eventLog.shift();}
+  if (eventLog.length > 50) {
+    eventLog.shift();
+  }
 }
 
 // ── Toast Notifications ────────────────────────────────
@@ -206,7 +220,9 @@ function dismissToast(id: string) {
   const idx = toasts.findIndex((t) => t.id === id);
   if (idx !== -1) {
     const toast = toasts[idx];
-    if (toast.timeout) {clearTimeout(toast.timeout);}
+    if (toast.timeout) {
+      clearTimeout(toast.timeout);
+    }
     toasts.splice(idx, 1);
     render();
   }
@@ -272,7 +288,9 @@ async function confirm(title: string, message: string): Promise<boolean> {
 // ── Lifecycle Actions ──────────────────────────────────
 
 async function doCreateLane(): Promise<void> {
-  if (busy) {return;}
+  if (busy) {
+    return;
+  }
   busy = true;
   render();
   try {
@@ -282,7 +300,7 @@ async function doCreateLane(): Promise<void> {
       payload: { preferred_transport: "cliproxy_harness" },
     })) as RpcResponse;
     ids.workspaceId = workspaceId;
-    ids.laneId = (res?.result as Record<string, unknown>)?.lane_id as string ?? null;
+    ids.laneId = ((res?.result as Record<string, unknown>)?.lane_id as string) ?? null;
     addLog("lane.create", res?.status === "ok");
     if (res?.status === "ok") {
       showToast(`Lane created: ${ids.laneId?.slice(0, 12)}`, "success");
@@ -299,7 +317,9 @@ async function doCreateLane(): Promise<void> {
 }
 
 async function doAttachSession(): Promise<void> {
-  if (busy || !ids.laneId) {return;}
+  if (busy || !ids.laneId) {
+    return;
+  }
   busy = true;
   render();
   try {
@@ -307,7 +327,7 @@ async function doAttachSession(): Promise<void> {
       method: "session.attach",
       payload: { id: `${ids.laneId}:session` },
     })) as RpcResponse;
-    ids.sessionId = (res?.result as Record<string, unknown>)?.session_id as string ?? null;
+    ids.sessionId = ((res?.result as Record<string, unknown>)?.session_id as string) ?? null;
     addLog("session.attach", res?.status === "ok");
     if (res?.status === "ok") {
       showToast("Session attached successfully", "success");
@@ -324,7 +344,9 @@ async function doAttachSession(): Promise<void> {
 }
 
 async function doSpawnTerminal(): Promise<void> {
-  if (busy || !ids.sessionId || !ids.laneId) {return;}
+  if (busy || !ids.sessionId || !ids.laneId) {
+    return;
+  }
   busy = true;
   render();
   try {
@@ -335,8 +357,10 @@ async function doSpawnTerminal(): Promise<void> {
         lane_id: ids.laneId,
       },
     })) as RpcResponse;
-    ids.terminalId = (res?.result as Record<string, unknown>)?.terminal_id as string ?? null;
-    if (xterm) {xterm.clear();}
+    ids.terminalId = ((res?.result as Record<string, unknown>)?.terminal_id as string) ?? null;
+    if (xterm) {
+      xterm.clear();
+    }
     addLog("terminal.spawn", res?.status === "ok");
     if (res?.status === "ok") {
       showToast("Terminal spawned successfully", "success");
@@ -361,7 +385,9 @@ async function doFullLifecycle(): Promise<void> {
     "Start Full Lifecycle",
     "This will create a lane, attach a session, and spawn a terminal. Continue?",
   );
-  if (!confirmed) {return;}
+  if (!confirmed) {
+    return;
+  }
 
   busy = true;
   render();
@@ -404,7 +430,9 @@ async function doRefreshState(): Promise<void> {
  */
 async function doReconnectSession(laneId: string): Promise<void> {
   const confirmed = await confirm("Reconnect to Lane", `Reconnect to lane ${laneId.slice(0, 12)}?`);
-  if (!confirmed) {return;}
+  if (!confirmed) {
+    return;
+  }
 
   busy = true;
   render();
@@ -428,7 +456,9 @@ async function doReconnectSession(laneId: string): Promise<void> {
  * @returns Terminal instance
  */
 function ensureXterm(): Terminal {
-  if (xterm) {return xterm;}
+  if (xterm) {
+    return xterm;
+  }
 
   xterm = new Terminal({
     theme: {
@@ -541,7 +571,9 @@ async function loadPersistedData(): Promise<void> {
   }
   try {
     const audit = (await electrobun.rpc?.request["heliosGetAudit"]()) as AuditEntry[] | unknown;
-    if (Array.isArray(audit)) {auditEntries = (audit as AuditEntry[]).slice(0, 20);}
+    if (Array.isArray(audit)) {
+      auditEntries = (audit as AuditEntry[]).slice(0, 20);
+    }
   } catch {
     /* Ignore */
   }
@@ -554,7 +586,9 @@ async function loadPersistedData(): Promise<void> {
 async function loadMetrics(): Promise<void> {
   try {
     const report = (await electrobun.rpc?.request["heliosGetMetrics"]()) as RpcResponse;
-    if (report?.summaries) {metricsSummaries = report.summaries as MetricSummary[];}
+    if (report?.summaries) {
+      metricsSummaries = report.summaries as MetricSummary[];
+    }
   } catch {
     /* Ignore */
   }
@@ -567,7 +601,9 @@ async function loadMetrics(): Promise<void> {
 async function loadRendererCaps(): Promise<void> {
   try {
     const res = (await electrobun.rpc?.request["heliosRendererCapabilities"]()) as RpcResponse;
-    if (res?.result) {rendererCaps = res.result as RendererCapabilities;}
+    if (res?.result) {
+      rendererCaps = res.result as RendererCapabilities;
+    }
   } catch {
     /* Ignore */
   }
@@ -579,7 +615,9 @@ async function loadRendererCaps(): Promise<void> {
  * @returns Promise that resolves when complete
  */
 async function doRendererSwitch(engine: string): Promise<void> {
-  if (busy) {return;}
+  if (busy) {
+    return;
+  }
   busy = true;
   render();
   try {
@@ -608,7 +646,9 @@ async function doRendererSwitch(engine: string): Promise<void> {
  * @returns Promise that resolves when complete
  */
 async function doAgentRun(prompt: string): Promise<void> {
-  if (busy) {return;}
+  if (busy) {
+    return;
+  }
   busy = true;
   render();
   try {
@@ -648,7 +688,9 @@ async function doAgentRun(prompt: string): Promise<void> {
  */
 function addChatMessage(text: string): void {
   chatMessages.push({ role: "user", text, ts: new Date().toISOString().slice(11, 19) });
-  if (chatMessages.length > 100) {chatMessages.shift();}
+  if (chatMessages.length > 100) {
+    chatMessages.shift();
+  }
   void doAgentRun(text);
 }
 
@@ -681,8 +723,12 @@ function setupKeyboardShortcuts(): void {
  */
 function el(tag: string, cls?: string, text?: string): HTMLElement {
   const e = document.createElement(tag);
-  if (cls) {e.className = cls;}
-  if (text) {e.textContent = text;}
+  if (cls) {
+    e.className = cls;
+  }
+  if (text) {
+    e.textContent = text;
+  }
   return e;
 }
 
@@ -716,8 +762,12 @@ function btn(
  * @returns Object with class and text
  */
 function getLaneStatusDot(state: string): { class: string; text: string } {
-  if (state === "active") {return { class: "active", text: "●" };}
-  if (state === "error") {return { class: "error", text: "●" };}
+  if (state === "active") {
+    return { class: "active", text: "●" };
+  }
+  if (state === "error") {
+    return { class: "error", text: "●" };
+  }
   return { class: "idle", text: "●" };
 }
 
@@ -740,7 +790,9 @@ function getRuntimeStatusDot(): { class: string; text: string } {
  */
 function render(): void {
   const root = document.querySelector("#root") as HTMLElement | null;
-  if (!root) {return;}
+  if (!root) {
+    return;
+  }
   root.textContent = "";
 
   const layout = el("div", "layout");
@@ -825,7 +877,9 @@ function render(): void {
       // Mount xterm after DOM insertion
       requestAnimationFrame(() => {
         const container = document.querySelector("#xterm-container") as HTMLElement | null;
-        if (container) {mountXterm(container);}
+        if (container) {
+          mountXterm(container);
+        }
       });
     } else if (!ids.laneId) {
       // Onboarding panel for new users
@@ -1007,9 +1061,7 @@ function render(): void {
         );
       }
     } else {
-      center.append(
-        el("div", "empty-state mt", "Run lifecycle to load renderer capabilities"),
-      );
+      center.append(el("div", "empty-state mt", "Run lifecycle to load renderer capabilities"));
     }
 
     center.append(el("div", "section-title mt", "Multiplexer Adapters"));
@@ -1030,7 +1082,7 @@ function render(): void {
 
       for (const m of metricsSummaries) {
         const card = el("div", "metric-card");
-        card.append(el("div", "metric-name", m.metric.replaceAll('_', " ")));
+        card.append(el("div", "metric-name", m.metric.replaceAll("_", " ")));
         card.append(el("div", "metric-value", `${m.p50}${m.unit}`));
 
         const stats = el("div", "metric-stats");

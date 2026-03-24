@@ -108,7 +108,9 @@ export class ColabTerminal extends HTMLElement {
   }
 
   attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null) {
-    if (oldValue === newValue) {return;}
+    if (oldValue === newValue) {
+      return;
+    }
 
     // Sync attributes to properties
     if (name === "cwd") {
@@ -119,7 +121,9 @@ export class ColabTerminal extends HTMLElement {
   }
 
   private render() {
-    if (!this.shadowRoot) {return;}
+    if (!this.shadowRoot) {
+      return;
+    }
 
     // Add xterm.js CSS
     const style = document.createElement("style");
@@ -279,7 +283,9 @@ export class ColabTerminal extends HTMLElement {
   }
 
   private async initTerminal() {
-    if (this.isInitialized || !this.container) {return;}
+    if (this.isInitialized || !this.container) {
+      return;
+    }
     this.isInitialized = true;
 
     // Use properties (set via property or attribute)
@@ -455,7 +461,9 @@ export class ColabTerminal extends HTMLElement {
 
   /** Process queued commands */
   private async processQueue() {
-    if (this.isProcessingQueue || !this.terminalId) {return;}
+    if (this.isProcessingQueue || !this.terminalId) {
+      return;
+    }
     this.isProcessingQueue = true;
 
     while (this.commandQueue.length > 0) {

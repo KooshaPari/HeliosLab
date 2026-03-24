@@ -420,7 +420,7 @@ export const LlamaSettings = (): JSXElement => {
                                 <div style="width: 12px; height: 12px; border: 1px solid #666; border-top: 1px solid #fff; border-radius: 50%; animation: spin 1s linear infinite;"></div>
                                 <span style="font-size: 10px; color: #ff6b6b;">Removing...</span>
                               </div>
-                            ) : (model.source === "llama" ? (
+                            ) : model.source === "llama" ? (
                               <button
                                 type="button"
                                 onClick={() => uninstallModel(model.path, model.name)}
@@ -433,7 +433,7 @@ export const LlamaSettings = (): JSXElement => {
                               <span style="font-size: 10px; color: #666; padding: 4px 8px; background: #1a1a1a; border-radius: 3px;">
                                 Legacy managed
                               </span>
-                            ))}
+                            )}
                           </div>
                         </div>
                       );
@@ -484,7 +484,7 @@ export const LlamaSettings = (): JSXElement => {
                               <div style="width: 12px; height: 12px; border: 1px solid #666; border-top: 1px solid #fff; border-radius: 50%; animation: spin 1s linear infinite;"></div>
                               <span style="font-size: 10px; color: #ffa500;">Installing...</span>
                             </div>
-                          ) : (isInstalled() ? (
+                          ) : isInstalled() ? (
                             <span style="font-size: 10px; color: #51cf66; padding: 4px 12px; background: #1a4a1a; border-radius: 3px;">
                               ✓ Installed
                             </span>
@@ -497,7 +497,7 @@ export const LlamaSettings = (): JSXElement => {
                             >
                               Install
                             </button>
-                          ))}
+                          )}
                         </div>
                       </div>
                     );

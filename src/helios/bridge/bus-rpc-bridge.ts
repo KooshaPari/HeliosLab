@@ -115,7 +115,9 @@ export function createBusRpcBridge(opts: BusRpcBridgeOptions): BusRpcBridge {
   // Poll bus events and forward to renderers
   let lastEventIndex = 0;
   const pollInterval = setInterval(() => {
-    if (disposed) {return;}
+    if (disposed) {
+      return;
+    }
 
     const events = bus.getEvents();
     if (events.length > lastEventIndex) {

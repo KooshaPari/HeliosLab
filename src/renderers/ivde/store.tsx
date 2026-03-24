@@ -283,33 +283,45 @@ export interface AppState {
   isResizingPane: boolean;
   // Todo: consider moving editors onto the tab object. since goToLine and goToUrl in tab, could just
   // Use the tab.editor etc. and other methods
-  editors: Record<string, {
+  editors: Record<
+    string,
+    {
       tabId: string;
       editor: monaco.editor.IStandaloneCodeEditor;
       handleTsServerResponse: (response: any) => void;
-    }>;
+    }
+  >;
   // A simple way to subscribe to the last fileWatchEvent and
   // React to what file changed
   lastFileChange: string;
 
   findAllInFolder: {
     query: string;
-    results: Record<string, Record<string, {
+    results: Record<
+      string,
+      Record<
+        string,
+        {
           line: number;
           column: number;
           match: string;
-        }[]>>;
+        }[]
+      >
+    >;
   };
   commandPalette: {
     query: string;
     results: Record<string, string[]>;
   };
   // Files opened outside of any project (via edit command, Open menu, or drag-drop)
-  openFiles: Record<string, {
+  openFiles: Record<
+    string,
+    {
       name: string;
       type: "file" | "dir";
       addedAt: number;
-    }>;
+    }
+  >;
   appSettings: {
     analyticsEnabled?: boolean;
     analyticsConsentPrompted?: boolean;
@@ -811,7 +823,7 @@ export const openNewTabForNode = (
           // To a not-preview tab
           win.tabs[currentTabId] = {
             ...existingTab,
-            };
+          };
         } else {
           // If we're clicking through stuff and the current tab is a preview tab,
           // Close the old preview tab completely and let a new one be created below.
@@ -824,7 +836,7 @@ export const openNewTabForNode = (
         }
       }
 
-      const targetUrl = "url" in opts ? opts.url : (slate && "url" in slate ? slate.url : undefined);
+      const targetUrl = "url" in opts ? opts.url : slate && "url" in slate ? slate.url : undefined;
 
       const webTabSettings = slateType === "web" ? { type: "web" as const, url: targetUrl } : {};
       const agentTabSettings =
@@ -873,7 +885,7 @@ export const openNewTerminalTab = (
     cwd: cwd || "/",
     cmd: "/bin/zsh", // This will be overridden by the terminal manager based on platform
     args: [],
-    };
+  };
 
   return openNewTab(terminalConfig, false, opts);
 };
@@ -928,12 +940,12 @@ export const editNodeSettings = (node: CachedFileType) => {
           type: "edit-node",
           data: {
             node,
-            previewNode: ({
+            previewNode: {
               ...node,
               isExpanded: false,
               children: [],
               slate: getSlateForNode(node),
-            } as PreviewFileTreeType),
+            } as PreviewFileTreeType,
           },
         });
       }

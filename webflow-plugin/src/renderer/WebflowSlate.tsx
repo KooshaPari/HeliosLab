@@ -142,7 +142,9 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
 
   // Get the project root path (parent of the config file)
   const getProjectRoot = () => {
-    if (!props.node?.path) {return "";}
+    if (!props.node?.path) {
+      return "";
+    }
     const parts = props.node.path.split("/");
     parts.pop(); // Remove filename
     return parts.join("/");
@@ -208,7 +210,9 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
     // If siteId specified, try to find a token for that site
     if (siteId) {
       const siteToken = tokens.find((t) => t.type === "site" && t.siteId === siteId);
-      if (siteToken) {return siteToken.token;}
+      if (siteToken) {
+        return siteToken.token;
+      }
     }
     // Otherwise return any valid token (oauth/workspace tokens can access sites too)
     return tokens[0]?.token || null;
@@ -281,7 +285,9 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
   // Create/update webflow.json with the structure the CLI expects
   const ensureWebflowJson = async (cfg: DevLinkConfig) => {
     const projectRoot = getProjectRoot();
-    if (!projectRoot) {return;}
+    if (!projectRoot) {
+      return;
+    }
 
     const webflowJsonPath = projectRoot + "/webflow.json";
 
@@ -360,7 +366,9 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
 
   // Load config file content
   const loadConfig = async () => {
-    if (!props.node?.path) {return;}
+    if (!props.node?.path) {
+      return;
+    }
 
     try {
       const result = (await electrobun.rpc?.request.readFile({
@@ -872,14 +880,18 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
   // Update Code Components config (webflow.json)
   const updateCodeComponentsConfig = async (key: string, value: string) => {
     const configPath = props.node?.path;
-    if (!configPath) {return;}
+    if (!configPath) {
+      return;
+    }
 
     try {
       // Read current config
       const result = (await electrobun.rpc?.request.readFile({
         path: configPath,
       })) as ReadFileResult | undefined;
-      if (!result?.textContent) {return;}
+      if (!result?.textContent) {
+        return;
+      }
 
       const currentConfig = JSON.parse(result.textContent);
 
@@ -910,7 +922,9 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
       setConfig(currentConfig);
     } catch (error) {
       console.error("[WebflowSlate] Failed to update config:", error);
-      setError(`Failed to update config: ${error instanceof Error ? error.message : String(error)}`);
+      setError(
+        `Failed to update config: ${error instanceof Error ? error.message : String(error)}`,
+      );
     }
   };
 
@@ -981,13 +995,17 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
 
   // Update Cloud config field (e.g., mountPath)
   const updateCloudConfigField = async (key: string, value: string) => {
-    if (!props.node?.path) {return;}
+    if (!props.node?.path) {
+      return;
+    }
 
     try {
       const result = (await electrobun.rpc?.request.readFile({
         path: props.node.path,
       })) as ReadFileResult | undefined;
-      if (!result?.textContent) {return;}
+      if (!result?.textContent) {
+        return;
+      }
 
       const currentConfig = JSON.parse(result.textContent);
 
@@ -1024,10 +1042,14 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
   // This allows a single webflow.json pattern to render different UIs based on content
   const effectiveSlateType = () => {
     // If not code-components, use the passed slateType
-    if (props.slateType !== "code-components") {return props.slateType;}
+    if (props.slateType !== "code-components") {
+      return props.slateType;
+    }
 
     const cfg = config() as any;
-    if (!cfg) {return props.slateType;}
+    if (!cfg) {
+      return props.slateType;
+    }
 
     // If webflow.json has "cloud" section but no "library" section, show cloud UI
     if (cfg.cloud && !cfg.library) {
@@ -1102,7 +1124,9 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
               onOpenSettings={openSettings}
               onChangeSite={(site) => {
                 const token = authToken();
-                if (token) {updateConfigSite(site, token);}
+                if (token) {
+                  updateConfigSite(site, token);
+                }
               }}
               syncStatus={syncStatus()}
               lastChecked={lastChecked()}
@@ -1144,7 +1168,9 @@ export const WebflowSlate = (props: WebflowSlateProps): JSXElement => {
               onOpenSettings={openSettings}
               onChangeSite={(site) => {
                 const token = authToken();
-                if (token) {updateCloudConfigSite(site, token);}
+                if (token) {
+                  updateCloudConfigSite(site, token);
+                }
               }}
               onConfigChange={updateCloudConfigField}
               error={error()}
@@ -1187,7 +1213,9 @@ const DevLinkSlateContent = (props: {
 
   // Get the working directory
   const getTerminalCwd = () => {
-    if (props.cwd) {return props.cwd;}
+    if (props.cwd) {
+      return props.cwd;
+    }
     if (props.nodePath) {
       const parts = props.nodePath.split("/");
       parts.pop();
@@ -1198,7 +1226,9 @@ const DevLinkSlateContent = (props: {
 
   // Build command with env vars for site credentials
   const getEnvPrefix = () => {
-    if (!props.siteId || !props.siteToken) {return "";}
+    if (!props.siteId || !props.siteToken) {
+      return "";
+    }
     return `export WEBFLOW_SITE_ID="${props.siteId}" WEBFLOW_SITE_API_TOKEN="${props.siteToken}" && clear && `;
   };
 
@@ -1235,7 +1265,9 @@ const DevLinkSlateContent = (props: {
 
   // Format time as "today at 1:09pm" or just "1:09pm"
   const formatLastChecked = () => {
-    if (!props.lastChecked) {return null;}
+    if (!props.lastChecked) {
+      return null;
+    }
     const hours = props.lastChecked.getHours();
     const minutes = props.lastChecked.getMinutes();
     const ampm = hours >= 12 ? "pm" : "am";
@@ -1701,7 +1733,9 @@ const CodeComponentsSlateContent = (props: {
 
   // Get the working directory
   const getTerminalCwd = () => {
-    if (props.cwd) {return props.cwd;}
+    if (props.cwd) {
+      return props.cwd;
+    }
     if (props.nodePath) {
       const parts = props.nodePath.split("/");
       parts.pop();
@@ -2031,7 +2065,9 @@ const CloudSlateContent = (props: {
 
   // Get the working directory - derive from nodePath if cwd not provided
   const getTerminalCwd = () => {
-    if (props.cwd) {return props.cwd;}
+    if (props.cwd) {
+      return props.cwd;
+    }
     if (props.nodePath) {
       // NodePath is the config file path, get its directory
       const parts = props.nodePath.split("/");
@@ -2773,14 +2809,22 @@ const ActionButton = (props: {
   active?: boolean;
 }): JSXElement => {
   const getBackground = () => {
-    if (props.primary) {return "#4353ff";}
-    if (props.active) {return "#1a3a1a";}
+    if (props.primary) {
+      return "#4353ff";
+    }
+    if (props.active) {
+      return "#1a3a1a";
+    }
     return "#2a2a2a";
   };
 
   const getBorder = () => {
-    if (props.primary) {return "none";}
-    if (props.active) {return "1px solid #2d5a2d";}
+    if (props.primary) {
+      return "none";
+    }
+    if (props.active) {
+      return "1px solid #2d5a2d";
+    }
     return "1px solid #444";
   };
 
@@ -2822,7 +2866,7 @@ const ActionButton = (props: {
       <div
         style={{
           "font-size": "12px",
-          color: props.primary ? "rgba(255,255,255,0.7)" : (props.active ? "#6ee7a0" : "#888"),
+          color: props.primary ? "rgba(255,255,255,0.7)" : props.active ? "#6ee7a0" : "#888",
         }}
       >
         {props.loading ? "Running..." : props.description}
@@ -2843,7 +2887,9 @@ const TerminalOutputPanel = (props: {
   let lastWrittenOutput = "";
 
   const initTerminal = () => {
-    if (!containerRef || initialized) {return;}
+    if (!containerRef || initialized) {
+      return;
+    }
     initialized = true;
 
     terminal = new Terminal({

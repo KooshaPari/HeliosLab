@@ -63,8 +63,12 @@ const SCHEMA_VERSION = 1;
  */
 function getApiBaseUrl(): string {
   const channel = state.buildVars.channel;
-  if (channel === "dev") {return "http://127.0.0.1:8788";}
-  if (channel === "canary") {return "https://canary-cloud.blackboard.sh";}
+  if (channel === "dev") {
+    return "http://127.0.0.1:8788";
+  }
+  if (channel === "canary") {
+    return "https://canary-cloud.blackboard.sh";
+  }
   return "https://cloud.blackboard.sh";
 }
 

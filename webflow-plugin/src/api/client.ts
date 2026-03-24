@@ -71,7 +71,9 @@ export class WebflowClient {
    */
   async isAuthenticated(): Promise<boolean> {
     const auth = await this.storage.getAuth();
-    if (!auth) {return false;}
+    if (!auth) {
+      return false;
+    }
 
     // Check if token is expired
     if (auth.expiresAt && auth.expiresAt < Date.now()) {

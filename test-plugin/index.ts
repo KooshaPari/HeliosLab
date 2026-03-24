@@ -166,49 +166,55 @@ export async function activate(api: PluginAPI): Promise<void> {
   // --------------------------------------------------------------------------
 
   // Main "zap" terminal command
-  const terminalZapDisposable = api.terminal.registerCommand("zap", async (ctx: TerminalCommandContext) => {
-    const { args, cwd, write } = ctx;
-    const count = parseInt(args[0]) || 3;
+  const terminalZapDisposable = api.terminal.registerCommand(
+    "zap",
+    async (ctx: TerminalCommandContext) => {
+      const { args, cwd, write } = ctx;
+      const count = parseInt(args[0]) || 3;
 
-    write("\u001B[33m"); // Yellow
-    write("⚡🐰 Electrobun Terminal Command\r\n");
-    write("\u001B[0m");
-    write("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\r\n\r\n");
-    write(`\u001B[90mCWD: ${cwd}\u001B[0m\r\n\r\n`);
+      write("\u001B[33m"); // Yellow
+      write("⚡🐰 Electrobun Terminal Command\r\n");
+      write("\u001B[0m");
+      write("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\r\n\r\n");
+      write(`\u001B[90mCWD: ${cwd}\u001B[0m\r\n\r\n`);
 
-    const emojis = ["⚡", "🐰", "⚡🐰", "🔌", "💡", "🚀"];
-    for (let i = 0; i < count; i++) {
-      await new Promise((resolve) => setTimeout(resolve, 150));
-      const emoji = emojis[i % emojis.length];
-      write(`${emoji} Zap ${i + 1}!\r\n`);
-    }
+      const emojis = ["⚡", "🐰", "⚡🐰", "🔌", "💡", "🚀"];
+      for (let i = 0; i < count; i++) {
+        await new Promise((resolve) => setTimeout(resolve, 150));
+        const emoji = emojis[i % emojis.length];
+        write(`${emoji} Zap ${i + 1}!\r\n`);
+      }
 
-    write("\r\n\u001B[32m✓ Electrobun zapped!\u001B[0m\r\n");
-  });
+      write("\r\n\u001B[32m✓ Electrobun zapped!\u001B[0m\r\n");
+    },
+  );
   disposables.push(terminalZapDisposable);
 
   // "bunny" terminal command - shows bunny art
-  const terminalBunnyDisposable = api.terminal.registerCommand("bunny", async (ctx: TerminalCommandContext) => {
-    const { write } = ctx;
-    write("\u001B[35m"); // Magenta
-    write("   /)  /)\r\n");
-    write("  ( ^.^ )\r\n");
-    write('  c(")(")  \u001B[33m⚡ Electrobun!\u001B[0m\r\n\r\n');
-  });
+  const terminalBunnyDisposable = api.terminal.registerCommand(
+    "bunny",
+    async (ctx: TerminalCommandContext) => {
+      const { write } = ctx;
+      write("\u001B[35m"); // Magenta
+      write("   /)  /)\r\n");
+      write("  ( ^.^ )\r\n");
+      write('  c(")(")  \u001B[33m⚡ Electrobun!\u001B[0m\r\n\r\n');
+    },
+  );
   disposables.push(terminalBunnyDisposable);
 
   // "paths" terminal command - shows bundled binary paths
   const terminalPathsDisposable = api.terminal.registerCommand(
     "paths",
     async (ctx: TerminalCommandContext) => {
-    const { write } = ctx;
-    write("\u001B[36m⚡ Bundled Binary Paths:\u001B[0m\r\n\r\n");
-    write(`  bun:       ${api.paths.bun}\r\n`);
-    write(`  git:       ${api.paths.git}\r\n`);
-    write(`  fd:        ${api.paths.fd}\r\n`);
-    write(`  rg:        ${api.paths.rg}\r\n`);
-    write(`  colabHome: ${api.paths.colabHome}\r\n`);
-    write(`  plugins:   ${api.paths.plugins}\r\n\r\n`);
+      const { write } = ctx;
+      write("\u001B[36m⚡ Bundled Binary Paths:\u001B[0m\r\n\r\n");
+      write(`  bun:       ${api.paths.bun}\r\n`);
+      write(`  git:       ${api.paths.git}\r\n`);
+      write(`  fd:        ${api.paths.fd}\r\n`);
+      write(`  rg:        ${api.paths.rg}\r\n`);
+      write(`  colabHome: ${api.paths.colabHome}\r\n`);
+      write(`  plugins:   ${api.paths.plugins}\r\n\r\n`);
     },
   );
   disposables.push(terminalPathsDisposable);
@@ -527,18 +533,20 @@ Created: ${new Date().toLocaleString()}
   disposables.push(settingsDisposable);
 
   // Listen for settings changes
-  const settingsChangeDisposable = api.settings.onChange((key: string, value: string | number | boolean) => {
-    api.log.info(`Setting changed: ${key} = ${value}`);
+  const settingsChangeDisposable = api.settings.onChange(
+    (key: string, value: string | number | boolean) => {
+      api.log.info(`Setting changed: ${key} = ${value}`);
 
-    if (key === "statusBarColor") {
-      statusBarItem.update({ color: value as string });
-    }
+      if (key === "statusBarColor") {
+        statusBarItem.update({ color: value as string });
+      }
 
-    if (key === "autoZap" && value === true && !electrobunModeEnabled) {
-      electrobunModeEnabled = true;
-      flashStatus("⚡ Auto-zapped!", 2000);
-    }
-  });
+      if (key === "autoZap" && value === true && !electrobunModeEnabled) {
+        electrobunModeEnabled = true;
+        flashStatus("⚡ Auto-zapped!", 2000);
+      }
+    },
+  );
   disposables.push(settingsChangeDisposable);
 
   // Check auto-zap setting
@@ -577,7 +585,9 @@ Created: ${new Date().toLocaleString()}
     const changedFiles = api.state.get<string[]>("changedFiles") || [];
     if (!changedFiles.includes(event.path)) {
       changedFiles.push(event.path);
-      if (changedFiles.length > 10) {changedFiles.shift();} // Keep last 10
+      if (changedFiles.length > 10) {
+        changedFiles.shift();
+      } // Keep last 10
       api.state.set("changedFiles", changedFiles);
     }
   });
@@ -629,9 +639,9 @@ Created: ${new Date().toLocaleString()}
 
     // Escape content for HTML
     const escapedContent = content
-      .replaceAll('&', "&amp;")
-      .replaceAll('<', "&lt;")
-      .replaceAll('>', "&gt;");
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;");
 
     // Render the slate UI with terminal
     const html = `
@@ -767,9 +777,9 @@ Created: ${new Date().toLocaleString()}
 
             // Re-render the slate with updated content
             const escapedContent = newContent
-              .replaceAll('&', "&amp;")
-              .replaceAll('<', "&lt;")
-              .replaceAll('>', "&gt;");
+              .replaceAll("&", "&amp;")
+              .replaceAll("<", "&lt;")
+              .replaceAll(">", "&gt;");
 
             // Send a message to update just the file preview (we'd need to re-render for this)
             // For now, just log success

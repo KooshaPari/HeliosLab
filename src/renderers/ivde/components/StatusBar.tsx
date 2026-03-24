@@ -436,8 +436,12 @@ const ColabCloud = () => {
   };
 
   const getStatusColor = () => {
-    if (!isConnected()) {return "#666";} // Gray if not connected
-    if (!state.appSettings.colabCloud.emailVerified) {return "#ffa500";} // Orange if email not verified
+    if (!isConnected()) {
+      return "#666";
+    } // Gray if not connected
+    if (!state.appSettings.colabCloud.emailVerified) {
+      return "#ffa500";
+    } // Orange if email not verified
     return "#51cf66"; // Green if fully connected
   };
 

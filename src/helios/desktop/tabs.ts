@@ -54,10 +54,7 @@ function deriveMessage(tab: ActiveTab, state: Readonly<ActiveContextState>): str
   return `${TAB_TITLES[tab]} bound to active context`;
 }
 
-export function buildTabSurface(
-  state: Readonly<ActiveContextState>,
-  tab: ActiveTab,
-): TabSurface {
+export function buildTabSurface(state: Readonly<ActiveContextState>, tab: ActiveTab): TabSurface {
   return {
     tab,
     title: TAB_TITLES[tab],

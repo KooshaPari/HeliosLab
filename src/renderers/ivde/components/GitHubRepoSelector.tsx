@@ -129,7 +129,9 @@ export const GitHubRepoSelector = (props: GitHubRepoSelectorProps): JSXElement =
   };
 
   const loadOrganizations = async () => {
-    if (!githubService.isConnected()) {return;}
+    if (!githubService.isConnected()) {
+      return;
+    }
 
     try {
       const orgs = await githubService.fetchOrganizations();
@@ -188,7 +190,9 @@ export const GitHubRepoSelector = (props: GitHubRepoSelectorProps): JSXElement =
   createEffect(() => {
     const query = searchQuery();
     const timeoutId = setTimeout(() => {
-      if (query !== searchQuery()) {return;} // Query changed during timeout
+      if (query !== searchQuery()) {
+        return;
+      } // Query changed during timeout
       loadRepositories();
     }, 500);
 
@@ -200,8 +204,12 @@ export const GitHubRepoSelector = (props: GitHubRepoSelectorProps): JSXElement =
   };
 
   const truncateDescription = (description: string | null, maxLength = 120) => {
-    if (!description) {return description;}
-    if (description.length <= maxLength) {return description;}
+    if (!description) {
+      return description;
+    }
+    if (description.length <= maxLength) {
+      return description;
+    }
     return `${description.slice(0, maxLength).trim()}...`;
   };
 
@@ -390,7 +398,9 @@ export const GitHubRepoSelector = (props: GitHubRepoSelectorProps): JSXElement =
                                 "font-weight": isSelected() || isDefault ? "500" : "normal",
                               }}
                               onMouseEnter={(e) => {
-                                if (!isSelected()) {e.currentTarget.style.background = "#333";}
+                                if (!isSelected()) {
+                                  e.currentTarget.style.background = "#333";
+                                }
                               }}
                               onMouseLeave={(e) => {
                                 if (!isSelected()) {

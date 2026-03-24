@@ -21,9 +21,15 @@ const MIXPANEL_TOKEN = "BUILD_TIME_MIXPANEL_TOKEN";
 
 // Get user plan for analytics
 const getUserPlan = (): "community" | "pro" | "team" => {
-  if (!isAuthenticated()) {return "community";}
-  if (isTeam()) {return "team";}
-  if (isPro()) {return "pro";}
+  if (!isAuthenticated()) {
+    return "community";
+  }
+  if (isTeam()) {
+    return "team";
+  }
+  if (isPro()) {
+    return "pro";
+  }
   return "community";
 };
 
@@ -122,8 +128,7 @@ const shouldTrackEvent = (eventName: string): boolean => {
   if (isAuthenticated()) {
     return config.registered.enabled && config.registered.events.includes(eventName);
   }
-    return config.community.enabled && config.community.events.includes(eventName);
-  
+  return config.community.enabled && config.community.events.includes(eventName);
 };
 
 // Initialize Mixpanel if analytics is enabled and token is available
@@ -140,7 +145,7 @@ if (
   // Set up user profile for authenticated users
   if (config.registered.enabled && config.registered.userId) {
     mixpanel.people.set(config.registered.userId, {
-      plan: isPro() ? "pro" : (isTeam() ? "team" : "community"),
+      plan: isPro() ? "pro" : isTeam() ? "team" : "community",
       // Additional user properties will be added when auth is implemented
     });
   }

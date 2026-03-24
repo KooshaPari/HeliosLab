@@ -11,11 +11,13 @@ These rules apply to **all commands** (specify, plan, research, tasks, implement
 **When you mention directories or files, provide either the absolute path or a path relative to the project root.**
 
 ✅ **CORRECT**:
+
 - `kitty-specs/001-feature/tasks/WP01.md`
 - `/Users/robert/Code/myproject/kitty-specs/001-feature/spec.md`
 - `tasks/WP01.md` (relative to feature directory)
 
 ❌ **WRONG**:
+
 - "the tasks folder" (which one? where?)
 - "WP01.md" (in which lane? which feature?)
 - "the spec" (which feature's spec?)
@@ -39,6 +41,7 @@ These rules apply to **all commands** (specify, plan, research, tasks, implement
 ❌ **Copy/paste from Microsoft Office** without cleaning
 
 **Real examples that crashed the dashboard:**
+
 - "User's favorite feature" → "User's favorite feature" (smart quote)
 - "Price: $100 ± $10" → "Price: $100 +/- $10"
 - "Temperature: 72°F" → "Temperature: 72 degrees F"
@@ -58,7 +61,7 @@ These rules apply to **all commands** (specify, plan, research, tasks, implement
 
 ✅ Emoji (proper UTF-8)  
 ✅ Accented characters typed directly: café, naïve, Zürich  
-✅ Unicode math typed directly (√ ≈ ≠ ≤ ≥)  
+✅ Unicode math typed directly (√ ≈ ≠ ≤ ≥)
 
 ### Copy/Paste Guidance
 
@@ -73,6 +76,7 @@ These rules apply to **all commands** (specify, plan, research, tasks, implement
 ### Auto-Fix Available
 
 If you accidentally introduce problematic characters:
+
 ```bash
 # Check for encoding issues
 spec-kitty validate-encoding --feature 001-my-feature
@@ -90,9 +94,9 @@ spec-kitty validate-encoding --all --fix
 
 **Build the context you need, then maintain it intelligently.**
 
-- Session start (0 tokens): You have zero context. Read plan.md, tasks.md, relevant artifacts.  
-- Mid-session (you already read them): Use your judgment—don’t re-read everything unless necessary.  
-- Never skip relevant information; do skip redundant re-reads to save tokens.  
+- Session start (0 tokens): You have zero context. Read plan.md, tasks.md, relevant artifacts.
+- Mid-session (you already read them): Use your judgment—don’t re-read everything unless necessary.
+- Never skip relevant information; do skip redundant re-reads to save tokens.
 - Rely on the steps in the command you are executing.
 
 ---
@@ -101,10 +105,10 @@ spec-kitty validate-encoding --all --fix
 
 **Produce secure, tested, documented work.**
 
-- Follow the plan and constitution requirements.  
-- Prefer existing patterns over invention.  
-- Treat security warnings as fatal—fix or escalate.  
-- Run all required tests before claiming work is complete.  
+- Follow the plan and constitution requirements.
+- Prefer existing patterns over invention.
+- Treat security warnings as fatal—fix or escalate.
+- Run all required tests before claiming work is complete.
 - Be transparent: state what you did, what you didn’t, and why.
 
 ---
@@ -128,6 +132,7 @@ spec-kitty validate-encoding --all --fix
 ### Why Agent Directories Must Not Be Committed
 
 Agent directories like `.claude/`, `.codex/`, `.gemini/` contain:
+
 - Authentication tokens and API keys
 - User-specific credentials (auth.json)
 - Session data and conversation history
@@ -136,12 +141,14 @@ Agent directories like `.claude/`, `.codex/`, `.gemini/` contain:
 ### What Should Be Committed
 
 ✅ **DO commit:**
+
 - `.kittify/templates/` - Command templates (source)
 - `.kittify/missions/` - Mission definitions
 - `.kittify/memory/constitution.md` - Project constitution
 - `.gitignore` - With all agent directories excluded
 
 ❌ **DO NOT commit:**
+
 - `.claude/`, `.codex/`, `.gemini/`, etc. - Agent runtime directories
 - `.kittify/templates/command-templates/` - These are templates, not final commands
 - Any `auth.json`, `credentials.json`, or similar files
@@ -149,6 +156,7 @@ Agent directories like `.claude/`, `.codex/`, `.gemini/` contain:
 ### Automatic Protection
 
 Spec Kitty automatically:
+
 1. Adds all agent directories to `.gitignore` during `spec-kitty init`
 2. Installs pre-commit hook to block accidental commits
 3. Creates `.claudeignore` to optimize AI scanning
@@ -183,11 +191,12 @@ This is intentional and correct - it ensures a single source of truth for projec
 
 ### Quick Reference
 
-- 📁 **Paths**: Always specify exact locations.  
-- 🔤 **Encoding**: UTF-8 only. Run the validator when unsure.  
-- 🧠 **Context**: Read what you need; don’t forget what you already learned.  
-- ✅ **Quality**: Follow secure, tested, documented practices.  
+- 📁 **Paths**: Always specify exact locations.
+- 🔤 **Encoding**: UTF-8 only. Run the validator when unsure.
+- 🧠 **Context**: Read what you need; don’t forget what you already learned.
+- ✅ **Quality**: Follow secure, tested, documented practices.
 - 📝 **Git**: Commit cleanly with clear messages.
+
 ## Phenotype Org Cross-Project Reuse Protocol <!-- PHENOTYPE_SHARED_REUSE_PROTOCOL -->
 
 - Treat this repository as part of the broader Phenotype organization project collection, not an isolated codebase.
@@ -196,6 +205,7 @@ This is intentional and correct - it ensures a single source of truth for projec
 - Include a `Cross-Project Reuse Opportunities` section in plans with candidate code, target shared location, impacted repos, and migration order.
 - For cross-repo moves or ownership-impacting extractions, ask the user for confirmation on destination and rollout, then bake that into the execution plan.
 - Execute forward-only migrations: extract shared code, update all callers, and remove duplicated local implementations.
+
 ## Phenotype Git and Delivery Workflow Protocol <!-- PHENOTYPE_GIT_DELIVERY_PROTOCOL -->
 
 - Use branch-based delivery with pull requests; do not rely on direct default-branch writes where rulesets apply.
@@ -206,6 +216,7 @@ This is intentional and correct - it ensures a single source of truth for projec
 - Follow repository coding standards and best practices (typing, tests, lint, docs, security) before requesting merge.
 - Rebase or restack to keep branches current with target branch and to avoid stale/conflicting stacks.
 - When a ruleset or merge policy blocks progress, surface the blocker explicitly and adapt the plan (for example: open PR path, restack, or split changes).
+
 ## Phenotype Long-Term Stability and Non-Destructive Change Protocol <!-- PHENOTYPE_LONGTERM_STABILITY_PROTOCOL -->
 
 - Optimize for long-term platform value over short-term convenience; choose durable solutions even when implementation complexity is higher.

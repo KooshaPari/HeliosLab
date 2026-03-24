@@ -200,29 +200,28 @@ export const gitClone = async (
 
       return `Successfully cloned empty repository and initialized main branch at ${repoPath}`;
     }
-      // Normal clone for repositories with existing branches
-      const gitInstance = simpleGit({
-        baseDir: parentDir,
-        binary: GIT_BINARY_PATH,
-        unsafe: {
-          allowUnsafeCustomBinary: true,
-          allowUnsafePack: true,
-          allowUnsafeProtocolOverride: true,
-        },
-        maxConcurrentProcesses: 2,
-        trimmed: false,
-      }).env(gitEnv);
+    // Normal clone for repositories with existing branches
+    const gitInstance = simpleGit({
+      baseDir: parentDir,
+      binary: GIT_BINARY_PATH,
+      unsafe: {
+        allowUnsafeCustomBinary: true,
+        allowUnsafePack: true,
+        allowUnsafeProtocolOverride: true,
+      },
+      maxConcurrentProcesses: 2,
+      trimmed: false,
+    }).env(gitEnv);
 
-      // Build clone command with credential helper for private repos
-      const cloneArgs: string[] = [];
-      if (hasOsxKeychainHelper) {
-        cloneArgs.push("-c", `credential.helper=${OSXKEYCHAIN_HELPER}`);
-      }
-      cloneArgs.push("clone", gitUrl, folderName);
+    // Build clone command with credential helper for private repos
+    const cloneArgs: string[] = [];
+    if (hasOsxKeychainHelper) {
+      cloneArgs.push("-c", `credential.helper=${OSXKEYCHAIN_HELPER}`);
+    }
+    cloneArgs.push("clone", gitUrl, folderName);
 
-      await gitInstance.raw(cloneArgs);
-      return `Successfully cloned repository to ${repoPath}`;
-    
+    await gitInstance.raw(cloneArgs);
+    return `Successfully cloned repository to ${repoPath}`;
   } catch (error) {
     console.error("Git clone error:", error);
     throw error;
@@ -791,7 +790,9 @@ export const gitStageSpecificLines = async (
 
           // Analyze if this is just formatting vs actual content changes
           const contentChanges = hunk.lines.filter((line) => {
-            if (!line.startsWith("-") && !line.startsWith("+")) {return false;}
+            if (!line.startsWith("-") && !line.startsWith("+")) {
+              return false;
+            }
 
             // Remove common formatting differences and compare
             const content = line.slice(1).trim();
@@ -854,7 +855,9 @@ export const gitStageSpecificLines = async (
 
           // Analyze if this is just formatting vs actual content changes
           const contentChanges = closestHunk.lines.filter((line) => {
-            if (!line.startsWith("-") && !line.startsWith("+")) {return false;}
+            if (!line.startsWith("-") && !line.startsWith("+")) {
+              return false;
+            }
 
             // Remove common formatting differences and compare
             const content = line.slice(1).trim();
@@ -1270,7 +1273,9 @@ export const gitCreatePatchFromLines = async (
             for (let k = j + 1; k < Math.min(diffLines.length, j + 4); k++) {
               if (diffLines[k].startsWith(" ")) {
                 contextAfter.push(diffLines[k]);
-                if (contextAfter.length >= 3) {break;}
+                if (contextAfter.length >= 3) {
+                  break;
+                }
               }
             }
             break;

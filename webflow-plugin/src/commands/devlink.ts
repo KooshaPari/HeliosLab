@@ -215,7 +215,9 @@ async function handlePull(
 
   const config = JSON.parse(readFileSync(configPath, "utf8")) as DevLinkConfig;
 
-  write(`\u001B[36mSyncing components from ${config.siteName || config.siteId}...\u001B[0m\r\n\r\n`);
+  write(
+    `\u001B[36mSyncing components from ${config.siteName || config.siteId}...\u001B[0m\r\n\r\n`,
+  );
 
   // Run webflow devlink sync via bun
   const bunPath = process.env.BUN_BINARY_PATH || "bun";
@@ -235,11 +237,11 @@ async function handlePull(
       });
 
       proc.stdout.on("data", (data: Buffer) => {
-        write(data.toString().replaceAll('\n', "\r\n"));
+        write(data.toString().replaceAll("\n", "\r\n"));
       });
 
       proc.stderr.on("data", (data: Buffer) => {
-        write(`\u001B[33m${data.toString().replaceAll('\n', "\r\n")}\u001B[0m`);
+        write(`\u001B[33m${data.toString().replaceAll("\n", "\r\n")}\u001B[0m`);
       });
 
       proc.on("close", (code) => {

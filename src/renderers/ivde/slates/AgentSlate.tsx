@@ -32,9 +32,7 @@ export const AgentSlate = ({ node, tabId }: { node?: CachedFileType; tabId: stri
   };
   const [message, setMessage] = createSignal("");
   const [isLoading, setIsLoading] = createSignal(false);
-  const [availableModels, setAvailableModels] = createSignal<{ name: string; path: string }[]>(
-    [],
-  );
+  const [availableModels, setAvailableModels] = createSignal<{ name: string; path: string }[]>([]);
   const [showSidebar, setShowSidebar] = createSignal(true);
   const [showSettings, setShowSettings] = createSignal(false);
 
@@ -84,7 +82,9 @@ export const AgentSlate = ({ node, tabId }: { node?: CachedFileType; tabId: stri
   // Get current conversation messages
   const getCurrentMessages = (): Message[] => {
     const chatId = currentChatId();
-    if (!chatId) {return [];}
+    if (!chatId) {
+      return [];
+    }
     const chat = chatHistories().find((c) => c.id === chatId);
     return chat?.messages || [];
   };
@@ -138,7 +138,9 @@ export const AgentSlate = ({ node, tabId }: { node?: CachedFileType; tabId: stri
 
   // Load context file content on mount
   createEffect(async () => {
-    if (!contextFilePath) {return;}
+    if (!contextFilePath) {
+      return;
+    }
 
     console.log("AgentSlate: Loading initial context file from:", contextFilePath);
 
@@ -278,7 +280,9 @@ export const AgentSlate = ({ node, tabId }: { node?: CachedFileType; tabId: stri
 
   const updateCurrentChat = (messages: Message[]) => {
     const chatId = currentChatId();
-    if (!chatId) {return;}
+    if (!chatId) {
+      return;
+    }
 
     const updatedHistories = chatHistories().map((chat) =>
       chat.id === chatId ? { ...chat, messages, updatedAt: Date.now() } : chat,
@@ -340,7 +344,9 @@ export const AgentSlate = ({ node, tabId }: { node?: CachedFileType; tabId: stri
   };
 
   const sendMessage = async () => {
-    if (!message().trim() || isLoading()) {return;}
+    if (!message().trim() || isLoading()) {
+      return;
+    }
 
     // If no current chat, create a new one
     if (!currentChatId()) {

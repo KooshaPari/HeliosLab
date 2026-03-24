@@ -101,7 +101,9 @@ const WebflowTokenManager = (props: CustomSettingsComponentProps): JSXElement =>
 
   const addToken = async () => {
     const token = newToken().trim();
-    if (!token) {return;}
+    if (!token) {
+      return;
+    }
 
     const id = generateId();
     const newTkn: WebflowToken = {
@@ -173,9 +175,15 @@ const WebflowTokenManager = (props: CustomSettingsComponentProps): JSXElement =>
   };
 
   const TokenStatus = (status: "idle" | "validating" | "valid" | "invalid") => {
-    if (status === "validating") {return <span style="color: #ff9800;">⏳</span>;}
-    if (status === "valid") {return <span style="color: #51cf66;">✓</span>;}
-    if (status === "invalid") {return <span style="color: #ff6b6b;">✗</span>;}
+    if (status === "validating") {
+      return <span style="color: #ff9800;">⏳</span>;
+    }
+    if (status === "valid") {
+      return <span style="color: #51cf66;">✓</span>;
+    }
+    if (status === "invalid") {
+      return <span style="color: #ff6b6b;">✗</span>;
+    }
     return null;
   };
 

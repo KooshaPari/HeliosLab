@@ -270,12 +270,16 @@ export const WebSlate = ({ node, tabId }: { node?: CachedFileType; tabId: string
 
   const findNext = () => {
     const q = findQuery();
-    if (q) {webviewRef?.findInPage(q, { forward: true });}
+    if (q) {
+      webviewRef?.findInPage(q, { forward: true });
+    }
   };
 
   const findPrev = () => {
     const q = findQuery();
-    if (q) {webviewRef?.findInPage(q, { forward: false });}
+    if (q) {
+      webviewRef?.findInPage(q, { forward: false });
+    }
   };
 
   const handleFindKeyDown = (e: KeyboardEvent) => {
@@ -469,10 +473,14 @@ console.log('Preload script loaded for:', window.location.href);
   });
 
   createEffect(() => {
-    if (!isWebviewReady()) {return;}
+    if (!isWebviewReady()) {
+      return;
+    }
 
     if (isTabActive()) {
-      if (!windowStartupSettled() || !revealReady()) {return;}
+      if (!windowStartupSettled() || !revealReady()) {
+        return;
+      }
       // Tabs are always slotted now (display:none hides inactive tabs),
       // SyncDimensions runs after the tab becomes visible so dimensions are correct.
       webviewRef?.syncDimensions(true);
@@ -861,7 +869,9 @@ console.log('Preload script loaded for:', window.location.href);
 
   // Also watch for changes in the file cache for this specific preload file
   createEffect(() => {
-    if (!preloadFilePath()) {return;}
+    if (!preloadFilePath()) {
+      return;
+    }
 
     const cachedNode = getNode(preloadFilePath());
 
@@ -967,9 +977,9 @@ console.log('Preload script loaded for:', window.location.href);
                 title={
                   state.downloadNotification?.status === "downloading"
                     ? `Downloading: ${state.downloadNotification?.filename} (${state.downloadNotification?.progress || 0}%)`
-                    : (state.downloadNotification?.status === "completed"
+                    : state.downloadNotification?.status === "completed"
                       ? `Show ${state.downloadNotification?.filename} in Finder`
-                      : `Download failed: ${state.downloadNotification?.filename}`)
+                      : `Download failed: ${state.downloadNotification?.filename}`
                 }
               >
                 <Show when={state.downloadNotification?.status === "downloading"}>
@@ -1456,7 +1466,8 @@ console.log('Preload script loaded for:', window.location.href);
                       electrobun.rpc?.request
                         .readFile({ path: slateConfigPath })
                         .then((content) => {
-                          const rawContent = typeof content === "string" ? content : content?.textContent;
+                          const rawContent =
+                            typeof content === "string" ? content : content?.textContent;
 
                           if (rawContent) {
                             try {

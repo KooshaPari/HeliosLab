@@ -1598,12 +1598,12 @@ const Pane = ({
   const paneSiblingIndex = pathToPane.at(-1);
   const paneJoinIcon =
     parentSplitDirection === "row"
-      ? (paneSiblingIndex === 0
+      ? paneSiblingIndex === 0
         ? "horizontal-join-right"
-        : "horizontal-join-left")
-      : (paneSiblingIndex === 0
+        : "horizontal-join-left"
+      : paneSiblingIndex === 0
         ? "vertical-join-down"
-        : "vertical-join-up");
+        : "vertical-join-up";
 
   // Removed isDroppingTabAtEnd - was only used by the new tab button
 
@@ -1885,7 +1885,9 @@ const TabContent = ({ tabId }: { tabId: string }) => {
         <Match
           when={(() => {
             const node = getNode(tab()?.path);
-            if (!node?.path) {return null;}
+            if (!node?.path) {
+              return null;
+            }
             return findPluginSlateForFile(node.path);
           })()}
         >
@@ -1987,9 +1989,9 @@ const PaneTab = ({
       // Use current directory if available, otherwise fall back to initial path
       const currentPath = (_tab as any).currentDir || _tab.path;
       const folderName = currentPath
-        ? (currentPath === "/"
+        ? currentPath === "/"
           ? "root"
-          : currentPath.split("/").pop() || "root")
+          : currentPath.split("/").pop() || "root"
         : "term";
       setTitle(`term: ${folderName}`);
     }
@@ -2399,13 +2401,17 @@ const NodeSettings = () => {
   const [urlInputValue, setUrlInputValue] = createSignal("");
   const finalUrl = createMemo(() => {
     const val = urlInputValue();
-    if (!val) {return "";}
+    if (!val) {
+      return "";
+    }
     const hasProtocol = /^[a-zA-Z][a-zA-Z\d+\-.]*:/.test(val);
     return hasProtocol ? val : `https://${val}`;
   });
   const shouldShowProtocolHint = createMemo(() => {
     const val = urlInputValue();
-    if (!val) {return false;}
+    if (!val) {
+      return false;
+    }
     const hasProtocol = /^[a-zA-Z][a-zA-Z\d+\-.]*:/.test(val);
     return !hasProtocol;
   });
@@ -2414,7 +2420,9 @@ const NodeSettings = () => {
 
   const suggestedBrowserProfileName = createMemo(() => {
     const val = urlInputValue();
-    if (!val) {return "";}
+    if (!val) {
+      return "";
+    }
 
     try {
       const url = new URL(finalUrl());
@@ -3247,7 +3255,9 @@ const NodeSettings = () => {
       // Check if this is a project root either by slate type (for new projects being added)
       // Or by checking if the node's path matches a project path (for existing projects)
       const slateType = getSlateForNode(settingsPaneData.previewNode)?.type;
-      if (slateType === "project") {return true;}
+      if (slateType === "project") {
+        return true;
+      }
       return isProjectRoot(settingsPaneData.previewNode);
     }
   };
@@ -3405,12 +3415,12 @@ const NodeSettings = () => {
     const isFile = nodeType === "file";
     setFolderInputLabel(
       state.settingsPane.type === "add-node"
-        ? (isFile
+        ? isFile
           ? "Create file"
-          : "Create folder")
-        : (isFile
+          : "Create folder"
+        : isFile
           ? "Rename file"
-          : "Rename folder"),
+          : "Rename folder",
     );
   });
 
@@ -3851,7 +3861,9 @@ const Sidebar = () => {
 
   const width = () => {
     const currentWindow = getWindow();
-    if (!currentWindow?.ui.showSidebar) {return "0px";}
+    if (!currentWindow?.ui.showSidebar) {
+      return "0px";
+    }
     const sidebarWidth = currentWindow.ui.sidebarWidth || 250;
     return `${sidebarWidth}px`;
   };
@@ -3860,14 +3872,18 @@ const Sidebar = () => {
   let searchDebounceTimer: ReturnType<typeof setTimeout> | undefined;
 
   const onResizeMouseDown = (e: DomEventWithTarget<MouseEvent>) => {
-    if (e.button !== 0) {return;}
+    if (e.button !== 0) {
+      return;
+    }
     e.preventDefault();
     setIsDraggingResize(true);
     setState("isResizingPane", true);
 
     const handleMouseMove = (e: MouseEvent) => {
       const currentWindow = getWindow();
-      if (!currentWindow) {return;}
+      if (!currentWindow) {
+        return;
+      }
 
       const currentWidth = currentWindow.ui.sidebarWidth || 250;
       const newWidth = Math.max(250, Math.min(600, currentWidth + e.movementX));

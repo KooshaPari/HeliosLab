@@ -53,10 +53,14 @@ export const TerminalSlate = ({ tabId }: { tabId: string }) => {
   };
 
   const initializeTerminal = async () => {
-    if (!terminalElement) {return;}
+    if (!terminalElement) {
+      return;
+    }
 
     const _tab = tab();
-    if (!_tab) {return;}
+    if (!_tab) {
+      return;
+    }
 
     try {
       // Create terminal in bun process

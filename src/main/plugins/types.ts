@@ -228,7 +228,9 @@ export interface PluginEntitlements {
 export function summarizeEntitlements(
   entitlements: PluginEntitlements | undefined,
 ): EntitlementSummary[] {
-  if (!entitlements) {return [];}
+  if (!entitlements) {
+    return [];
+  }
 
   const summary: EntitlementSummary[] = [];
 
@@ -387,10 +389,18 @@ export function summarizeEntitlements(
   if (entitlements.ui) {
     const ui = entitlements.ui;
     const features: string[] = [];
-    if (ui.statusBar) {features.push("status bar");}
-    if (ui.contextMenu) {features.push("context menus");}
-    if (ui.fileDecorations) {features.push("file badges");}
-    if (ui.notifications) {features.push("notifications");}
+    if (ui.statusBar) {
+      features.push("status bar");
+    }
+    if (ui.contextMenu) {
+      features.push("context menus");
+    }
+    if (ui.fileDecorations) {
+      features.push("file badges");
+    }
+    if (ui.notifications) {
+      features.push("notifications");
+    }
     if (features.length > 0) {
       summary.push({
         category: "ui",
@@ -405,10 +415,18 @@ export function summarizeEntitlements(
   if (entitlements.editor) {
     const ed = entitlements.editor;
     const features: string[] = [];
-    if (ed.completions) {features.push("completions");}
-    if (ed.hover) {features.push("hover info");}
-    if (ed.codeActions) {features.push("code actions");}
-    if (ed.diagnostics) {features.push("diagnostics");}
+    if (ed.completions) {
+      features.push("completions");
+    }
+    if (ed.hover) {
+      features.push("hover info");
+    }
+    if (ed.codeActions) {
+      features.push("code actions");
+    }
+    if (ed.diagnostics) {
+      features.push("diagnostics");
+    }
     if (features.length > 0) {
       summary.push({
         category: "editor",

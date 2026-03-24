@@ -61,8 +61,10 @@ interface FileDecoration {
 }
 
 // Cache for file decorations to avoid repeated RPC calls
-const fileDecorationCache =
-  new Map<string, { decoration: FileDecoration | null; timestamp: number }>();
+const fileDecorationCache = new Map<
+  string,
+  { decoration: FileDecoration | null; timestamp: number }
+>();
 const DECORATION_CACHE_TTL = 5000; // 5 seconds
 
 async function getFileDecoration(filePath: string): Promise<FileDecoration | null> {
@@ -632,9 +634,9 @@ const OpenFileItem = ({
         cursor: "pointer",
         background: isSelected()
           ? "rgba(0, 150, 255, 0.3)"
-          : (isHovered()
+          : isHovered()
             ? "rgba(0, 0, 0, 0.1)"
-            : "transparent"),
+            : "transparent",
         "user-select": "none",
         margin: "2px 8px",
         "border-radius": "4px",
@@ -694,7 +696,7 @@ const OpenFileItem = ({
 
 export const OpenFilesTree = () => {
   const openFilesArray = () => {
-    return Object.entries(state.openFiles).map(([path, file]) => (((((((({path, ...file})))))))));
+    return Object.entries(state.openFiles).map(([path, file]) => ({ path, ...file }));
   };
 
   const hasOpenFiles = () => Object.keys(state.openFiles).length > 0;
@@ -1092,7 +1094,9 @@ const NodeName = ({
   const [fileDecoration] = createResource(
     () => nodeToRender()?.path,
     async (path) => {
-      if (!path || path.startsWith("__COLAB_INTERNAL__")) {return null;}
+      if (!path || path.startsWith("__COLAB_INTERNAL__")) {
+        return null;
+      }
       return getFileDecoration(path);
     },
   );
@@ -1247,7 +1251,10 @@ const NodeName = ({
     // Slate can be blank if its an internal or previewNode
     if (nodeType === "file" || (slateType && slateType !== "project")) {
       onLaunchClick(e);
-    } else if ("children" in _nodeToRender && Object.keys(_nodeToRender.children || {}).length > 0) {
+    } else if (
+      "children" in _nodeToRender &&
+      Object.keys(_nodeToRender.children || {}).length > 0
+    ) {
       onLeftActionClick();
     }
   };
@@ -1516,7 +1523,14 @@ const NodeName = ({
         });
         if (pluginMenuItems && pluginMenuItems.length > 0) {
           menuItems.push(
-            ...pluginMenuItems.map((item) => (((((((({label:item.label,accelerator:item.shortcutHint, ...createContextMenuAction(`plugin_context_menu_item`,{itemId:item.id,filePath:_nodeToRender.path})}))))))))),
+            ...pluginMenuItems.map((item) => ({
+              label: item.label,
+              accelerator: item.shortcutHint,
+              ...createContextMenuAction(`plugin_context_menu_item`, {
+                itemId: item.id,
+                filePath: _nodeToRender.path,
+              }),
+            })),
             { type: "separator" },
           );
         }
@@ -1721,7 +1735,7 @@ const NodeName = ({
                 win.currentPaneId = targetPaneId || "";
               }),
             );
-            
+
             // Check if it's a folder without a slate OR a project node - if so, open terminal
             const slate = getSlateForNode(node);
             if (node.type === "dir" && (!slate || slate.type === "project")) {
@@ -1834,9 +1848,9 @@ const NodeName = ({
               ? {
                   rotate:
                     (isExpandActive() && isHovered()) || isExpandHovered()
-                      ? (isExpanded()
+                      ? isExpanded()
                         ? "-5deg"
-                        : "5deg")
+                        : "5deg"
                       : "0deg",
                   translate: (isExpandActive() && isHovered()) || isExpandHovered() ? "2px" : "0px",
                   "transform-origin": "center",

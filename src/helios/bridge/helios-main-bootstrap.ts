@@ -33,7 +33,9 @@ let instance: HeliosRuntime | null = null;
  * @returns {HeliosRuntime} A HeliosRuntime instance
  */
 export function bootstrapHelios(workspaceId: string, windowId?: string): HeliosRuntime {
-  if (instance) {return instance;}
+  if (instance) {
+    return instance;
+  }
 
   const bus = new InMemoryLocalBus();
   const metrics = new RuntimeMetrics();

@@ -523,11 +523,11 @@ async function runCommand(
     });
 
     proc.stdout.on("data", (data: Buffer) => {
-      write(data.toString().replaceAll('\n', "\r\n"));
+      write(data.toString().replaceAll("\n", "\r\n"));
     });
 
     proc.stderr.on("data", (data: Buffer) => {
-      write(data.toString().replaceAll('\n', "\r\n"));
+      write(data.toString().replaceAll("\n", "\r\n"));
     });
 
     proc.on("close", (code) => {

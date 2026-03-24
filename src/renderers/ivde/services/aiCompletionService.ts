@@ -49,18 +49,22 @@ function cleanInlineCompletion(
   // Minimal cleaning - just remove FIM tokens and trim
   let s = raw.trim();
 
-  if (!s) {return "";}
+  if (!s) {
+    return "";
+  }
 
   // Remove FIM special tokens that might appear in responses
   s = s
     .replaceAll(/<\|fim_(?:prefix|middle|suffix|end)\|>/g, "")
-    .replaceAll('<|endoftext|>', "")
-    .replaceAll('<|im_end|>', "")
+    .replaceAll("<|endoftext|>", "")
+    .replaceAll("<|im_end|>", "")
     .trim();
 
   // Stop at double newlines for inline completions
   const blankIdx = s.indexOf("\n\n");
-  if (blankIdx !== -1) {s = s.slice(0, blankIdx).trim();}
+  if (blankIdx !== -1) {
+    s = s.slice(0, blankIdx).trim();
+  }
 
   // Filter out obviously bad completions (repeated characters)
   if (/^(.)\1{10,}$/.test(s)) {
@@ -122,7 +126,9 @@ class AICompletionService {
 
     try {
       const result = await electrobun.rpc?.request.llamaListModels();
-      if (!result?.ok) {return false;}
+      if (!result?.ok) {
+        return false;
+      }
 
       const modelName = this.modelName;
       return (

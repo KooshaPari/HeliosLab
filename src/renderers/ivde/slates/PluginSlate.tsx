@@ -77,9 +77,9 @@ export const PluginSlate = (props: PluginSlateProps) => {
   const [isLoading, setIsLoading] = createSignal(true);
   const [error, setError] = createSignal<string | null>(null);
   const [useHtmlRendering, setUseHtmlRendering] = createSignal(false);
-  const [pendingRenders, setPendingRenders] = createSignal<
-    { html?: string; script?: string }[]
-  >([]);
+  const [pendingRenders, setPendingRenders] = createSignal<{ html?: string; script?: string }[]>(
+    [],
+  );
 
   let mountRef: HTMLDivElement | undefined;
   let htmlMountRef: HTMLDivElement | undefined;
@@ -94,7 +94,9 @@ export const PluginSlate = (props: PluginSlateProps) => {
       rendersLength: renders.length,
       currentInstanceId,
     });
-    if (!htmlMountRef || renders.length === 0 || !currentInstanceId) {return;}
+    if (!htmlMountRef || renders.length === 0 || !currentInstanceId) {
+      return;
+    }
 
     for (const renderData of renders) {
       console.log(`[PluginSlate] Applying render:`, {

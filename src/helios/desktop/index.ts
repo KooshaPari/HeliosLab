@@ -182,9 +182,7 @@ export function renderTabSnapshot(surface: Readonly<TabSurface>): string {
   ].join("");
 }
 
-export function renderControlPlaneSnapshot(
-  controlPlane: Readonly<EditorlessControlPlane>,
-): string {
+export function renderControlPlaneSnapshot(controlPlane: Readonly<EditorlessControlPlane>): string {
   const tabs = controlPlane.getTabs();
   const settings = controlPlane.getSettings();
   return [

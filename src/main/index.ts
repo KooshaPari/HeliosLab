@@ -485,10 +485,18 @@ function convertToAccelerator(keyStr: string): string {
 
   // Build accelerator string
   const modifiers: string[] = [];
-  if (hasCmd) {modifiers.push("cmd");}
-  if (hasCtrl) {modifiers.push("ctrl");}
-  if (hasAlt) {modifiers.push("alt");}
-  if (hasShift) {modifiers.push("shift");}
+  if (hasCmd) {
+    modifiers.push("cmd");
+  }
+  if (hasCtrl) {
+    modifiers.push("ctrl");
+  }
+  if (hasAlt) {
+    modifiers.push("alt");
+  }
+  if (hasShift) {
+    modifiers.push("shift");
+  }
 
   if (modifiers.length > 0) {
     return `${modifiers.join("+")}+${key}`;
@@ -859,11 +867,7 @@ tray.on("tray-clicked", (e) => {
 });
 
 // Get the db ids for workspace and window from the electrobun window id
-const broadcastToElectrobunWindow = (
-  nativeWindowId: number,
-  method: string,
-  opts: unknown,
-) => {
+const broadcastToElectrobunWindow = (nativeWindowId: number, method: string, opts: unknown) => {
   let workspaceId: string | undefined;
   let windowId: string | undefined;
 
@@ -2436,7 +2440,9 @@ const createWindow = (
 
                 while (true) {
                   const { done, value } = await reader.read();
-                  if (done) {break;}
+                  if (done) {
+                    break;
+                  }
 
                   // Write chunk to file
                   await fileStream.write(value);
@@ -2519,13 +2525,12 @@ const createWindow = (
               const status = globalThis.modelDownloads.get(downloadId);
               return { ok: true, status };
             }
-              // Return all active downloads
-              const downloads: Record<string, any> = {};
-              for (const [id, status] of globalThis.modelDownloads.entries()) {
-                downloads[id] = status;
-              }
-              return { ok: true, downloads };
-            
+            // Return all active downloads
+            const downloads: Record<string, any> = {};
+            for (const [id, status] of globalThis.modelDownloads.entries()) {
+              downloads[id] = status;
+            }
+            return { ok: true, downloads };
           } catch (error) {
             return {
               ok: false,
@@ -2541,8 +2546,7 @@ const createWindow = (
               fs.unlinkSync(modelPath);
               return { ok: true };
             }
-              return { ok: false, error: "Model file not found" };
-            
+            return { ok: false, error: "Model file not found" };
           } catch (error) {
             return {
               ok: false,
@@ -2743,7 +2747,9 @@ const createWindow = (
         },
         pluginFindSlateForFile: ({ filePath }) => {
           const slate = pluginManager.findSlateForFile(filePath);
-          if (!slate) {return null;}
+          if (!slate) {
+            return null;
+          }
           return {
             id: slate.config.id,
             pluginName: slate.pluginName,
@@ -2757,7 +2763,9 @@ const createWindow = (
         },
         pluginFindSlateForFolder: ({ folderPath }) => {
           const slate = pluginManager.findSlateForFolder(folderPath);
-          if (!slate) {return null;}
+          if (!slate) {
+            return null;
+          }
           return {
             id: slate.config.id,
             pluginName: slate.pluginName,
@@ -2808,12 +2816,16 @@ const createWindow = (
           payload: Record<string, unknown>;
         }) => {
           const helios = getHeliosRuntime();
-          if (!helios) {return { ok: false, error: "helios runtime not initialized" };}
+          if (!helios) {
+            return { ok: false, error: "helios runtime not initialized" };
+          }
           return helios.bridge.handleRequest(method, payload);
         },
         heliosGetState: () => {
           const helios = getHeliosRuntime();
-          if (!helios) {return { lanes: {}, sessions: {}, terminals: {} };}
+          if (!helios) {
+            return { lanes: {}, sessions: {}, terminals: {} };
+          }
           return helios.bus.getState();
         },
         heliosGetLanes: () => {
@@ -2824,12 +2836,16 @@ const createWindow = (
         },
         heliosGetMetrics: () => {
           const helios = getHeliosRuntime();
-          if (!helios) {return { samples: [], summaries: [] };}
+          if (!helios) {
+            return { samples: [], summaries: [] };
+          }
           return helios.metrics.getReport();
         },
         heliosTerminalInput: ({ terminalId, data }: { terminalId: string; data: string }) => {
           const helios = getHeliosRuntime();
-          if (!helios) {return { ok: false };}
+          if (!helios) {
+            return { ok: false };
+          }
           return { ok: helios.termBridge.sendInput(terminalId, data) };
         },
         heliosTerminalResize: ({
@@ -2842,17 +2858,23 @@ const createWindow = (
           rows: number;
         }) => {
           const helios = getHeliosRuntime();
-          if (!helios) {return { ok: false };}
+          if (!helios) {
+            return { ok: false };
+          }
           return { ok: helios.termBridge.resize(terminalId, cols, rows) };
         },
         heliosRendererCapabilities: async () => {
           const helios = getHeliosRuntime();
-          if (!helios) {return null;}
+          if (!helios) {
+            return null;
+          }
           return helios.bridge.handleRequest("renderer.capabilities", {});
         },
         heliosRendererSwitch: async ({ targetEngine }: { targetEngine: string }) => {
           const helios = getHeliosRuntime();
-          if (!helios) {return null;}
+          if (!helios) {
+            return null;
+          }
           return helios.bridge.handleRequest("renderer.switch", {
             target_engine: targetEngine,
           });
@@ -3121,9 +3143,11 @@ const createWindow = (
   });
 
   mainWindow.on("resize", (e) => {
-    const { x, y, width, height } = (e as {
-      data: { x: number; y: number; width: number; height: number };
-    }).data;
+    const { x, y, width, height } = (
+      e as {
+        data: { x: number; y: number; width: number; height: number };
+      }
+    ).data;
 
     const { data: workspaceToUpdate } = db.collection("workspaces").queryById(workspaceId);
     if (workspaceToUpdate) {
@@ -3407,7 +3431,9 @@ function openBunnyWindow(screenX?: number, screenY?: number) {
   }
 
   function startPolling() {
-    if (pollTimeout) {return;}
+    if (pollTimeout) {
+      return;
+    }
     try {
       const cursor = Screen.getCursorScreenPoint();
       lastCursorX = cursor.x;
@@ -3424,7 +3450,9 @@ function openBunnyWindow(screenX?: number, screenY?: number) {
   });
 
   win.on("closed", () => {
-    if (pollTimeout) {clearTimeout(pollTimeout);}
+    if (pollTimeout) {
+      clearTimeout(pollTimeout);
+    }
     bunnyWindow = null;
   });
 }

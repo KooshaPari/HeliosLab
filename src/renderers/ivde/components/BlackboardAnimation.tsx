@@ -62,12 +62,11 @@ export const BlackboardAnimation = () => {
                   progress: Math.min(formula.progress + 0.015, 1), // Reveal over ~67 frames (1+ seconds)
                 };
               }
-                // Fade out phase after writing is complete
-                return {
-                  ...formula,
-                  opacity: Math.max(formula.opacity - 0.001, 0), // Slowly fade out
-                };
-              
+              // Fade out phase after writing is complete
+              return {
+                ...formula,
+                opacity: Math.max(formula.opacity - 0.001, 0), // Slowly fade out
+              };
             })
             .filter((formula) => formula.opacity > 0.001), // Remove fully faded formulas
       );

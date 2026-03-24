@@ -1,9 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import type { LocalBusEnvelope, ResponseEnvelope } from "./types";
-import {
-  getBoundaryDispatchDecision,
-  createBoundaryDispatcher,
-} from "./boundary_adapter";
+import { getBoundaryDispatchDecision, createBoundaryDispatcher } from "./boundary_adapter";
 
 // Helper to create mock command envelopes
 function createCommandEnvelope(

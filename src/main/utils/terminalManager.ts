@@ -172,9 +172,9 @@ class TerminalManager {
     const defaultShell =
       process.platform === "win32"
         ? "cmd.exe"
-        : (process.platform === "darwin"
+        : process.platform === "darwin"
           ? "/bin/zsh"
-          : "/bin/bash");
+          : "/bin/bash";
     const terminalShell = shell || process.env.SHELL || defaultShell;
 
     // Console.log(`Creating PTY terminal ${terminalId} with shell: ${terminalShell}, cwd: ${cwd}, windowId: ${windowId}`);
@@ -245,7 +245,9 @@ class TerminalManager {
 
   private sendPtyMessage(terminalId: string, message: PtyMessage) {
     const terminal = this.terminals.get(terminalId);
-    if (!terminal) {return;}
+    if (!terminal) {
+      return;
+    }
 
     try {
       const jsonMessage = JSON.stringify(message) + "\n";
@@ -273,7 +275,9 @@ class TerminalManager {
           let buffer = "";
           while (true) {
             const { done, value } = await stdoutReader.read();
-            if (done) {break;}
+            if (done) {
+              break;
+            }
 
             const text = new TextDecoder().decode(value);
             buffer += text;
@@ -306,7 +310,9 @@ class TerminalManager {
         try {
           while (true) {
             const { done, value } = await stderrReader.read();
-            if (done) {break;}
+            if (done) {
+              break;
+            }
 
             const text = new TextDecoder().decode(value);
             console.error(`PTY ${terminalId} stderr:`, text);
@@ -338,7 +344,9 @@ class TerminalManager {
 
   private handlePtyResponse(terminalId: string, response: PtyResponse) {
     const terminal = this.terminals.get(terminalId);
-    if (!terminal) {return;}
+    if (!terminal) {
+      return;
+    }
 
     const messageHandler = this.getMessageHandler(terminalId);
     // Console.log(`PTY ${terminalId} response:`, response);
@@ -400,7 +408,7 @@ class TerminalManager {
       // But pasted content should never contain EOF (\x04) as it can accidentally close the shell
       if (data.length > 1) {
         // Remove \x04 (Ctrl+D/EOF) from pasted content to prevent accidental shell exit
-        data = data.replaceAll('', "");
+        data = data.replaceAll("", "");
         // If filtering removed all content, nothing to send
         if (data.length === 0) {
           return true;
@@ -538,7 +546,9 @@ class TerminalManager {
   resizeTerminal(terminalId: string, cols: number, rows: number): boolean {
     // Console.log(`Resizing PTY terminal ${terminalId}: ${cols}x${rows}`);
     const terminal = this.terminals.get(terminalId);
-    if (!terminal) {return false;}
+    if (!terminal) {
+      return false;
+    }
 
     try {
       this.sendPtyMessage(terminalId, {

@@ -50,9 +50,7 @@ export function createToolDispatch(): CommandDispatch {
   return async (command: LocalBusEnvelope): Promise<LocalBusEnvelope> => {
     const method = command.method;
     const payload =
-      typeof command.payload === "object" && command.payload !== null
-        ? command.payload
-        : {};
+      typeof command.payload === "object" && command.payload !== null ? command.payload : {};
 
     const readString = (key: string): string | null => {
       const value = payload[key];

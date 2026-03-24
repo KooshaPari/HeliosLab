@@ -118,7 +118,11 @@ export async function decryptSettings<T = unknown>(
 
   // Decrypt the data
   try {
-    const plaintext = await crypto.subtle.decrypt({ name: "AES-GCM", iv: iv.buffer as BufferSource }, key, ciphertext.buffer as BufferSource);
+    const plaintext = await crypto.subtle.decrypt(
+      { name: "AES-GCM", iv: iv.buffer as BufferSource },
+      key,
+      ciphertext.buffer as BufferSource,
+    );
 
     const decoder = new TextDecoder();
     return JSON.parse(decoder.decode(plaintext)) as T;

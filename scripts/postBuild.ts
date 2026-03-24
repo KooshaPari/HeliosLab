@@ -107,7 +107,10 @@ Options:
          */
 // Path.resolve(path.join("./src", "renderers", "ivde", "index.tsx"));
 const cssInPath = path.join("./src/renderers", "ivde", "index.css");
-const cssOutPath = path.join(BUILD_FOLDER.replace("(", String.raw`\(`).replace(")", String.raw`\)`), `tailwind.css`);
+const cssOutPath = path.join(
+  BUILD_FOLDER.replace("(", String.raw`\(`).replace(")", String.raw`\)`),
+  `tailwind.css`,
+);
 const tailwindConfig = path.join("./src/renderers", `tailwind.config.js`);
 const contentPath = path.join("./src/renderers", "ivde", "*.tsx");
 execSync(

@@ -310,9 +310,9 @@ const rpc = Electroview.defineRPC<WorkspaceRPC>({
         const baseName =
           actualNodeType === "dir"
             ? "new-folder"
-            : (actualNodeType === "repo"
+            : actualNodeType === "repo"
               ? "new-repo"
-              : "new-file");
+              : "new-file";
 
         // Clear settings and then set after a delay for animation to play
         // And to cleanly reset the add node settings
@@ -468,10 +468,14 @@ const rpc = Electroview.defineRPC<WorkspaceRPC>({
         // If after closing the tab we no longer have a current tab,
         // Focus the next available tab
         const win = getWindow();
-        if (!win) {return;}
+        if (!win) {
+          return;
+        }
 
         const currentPane = getPaneWithId(state, win.currentPaneId);
-        if (currentPane?.type !== "pane") {return;}
+        if (currentPane?.type !== "pane") {
+          return;
+        }
 
         if (!currentPane?.currentTabId) {
           const tabArray = Object.values(win.tabs);

@@ -3,7 +3,8 @@ import type ts from "typescript";
 export interface PostMessageShowContextMenu {
   type: "show_context_menu";
   data: {
-    menuItems: (| {
+    menuItems: (
+      | {
           label: string;
           visible?: boolean;
           portalMessage: {
@@ -14,7 +15,8 @@ export interface PostMessageShowContextMenu {
       | {
           type: "separator";
           visible?: boolean;
-        })[];
+        }
+    )[];
   };
 }
 

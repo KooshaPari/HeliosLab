@@ -938,15 +938,14 @@ export const Editor = ({ currentTabId }: { currentTabId: string }) => {
               // Project name
               return <span style="margin-right: 5px; color: #60a1d0 ">{part}:</span>;
             }
-              return (
-                <span style="margin-right: 5px">
-                  <Show when={i() > 1}>
-                    <span style="color: #888;margin-right: 5px">{"/"}</span>
-                  </Show>
-                  {part}
-                </span>
-              );
-            
+            return (
+              <span style="margin-right: 5px">
+                <Show when={i() > 1}>
+                  <span style="color: #888;margin-right: 5px">{"/"}</span>
+                </Show>
+                {part}
+              </span>
+            );
           }}
         </For>
       </div>
@@ -990,13 +989,12 @@ const convertTsServerDiagnosticsToMonacoMarkers = (
             message: d.message,
           };
         }
-          // ts.CompletionEntry
-          // Note: this shouldn't happen, the tsserver types are likely mistaken
-          // we process completeions using a different function when the command is "completions"
-          // and we surface them as suggestions and not markers.
-          console.error("completion entry while processing diagnostics", d);
-          return null;
-        
+        // ts.CompletionEntry
+        // Note: this shouldn't happen, the tsserver types are likely mistaken
+        // we process completeions using a different function when the command is "completions"
+        // and we surface them as suggestions and not markers.
+        console.error("completion entry while processing diagnostics", d);
+        return null;
       })
       // Note: typescript doesn't understand filter functions, so we just tell it
       // That we're returning a nonnullable array
@@ -1131,8 +1129,7 @@ function getTagBody(tag: ts.server.protocol.JSDocTagInfo): Array<string> | undef
   if (typeof tag.text === "string") {
     return tag.text.split(/^(\S+)\s*-?\s*/);
   }
-    return [""];
-  
+  return [""];
 }
 
 function asPlainText(parts: string | ts.server.protocol.SymbolDisplayPart[]): string {
@@ -1165,12 +1162,9 @@ function getTagBodyText(tag: ts.server.protocol.JSDocTagInfo): string | undefine
       // Check for caption tags, fix for #79704
       const captionTagMatches = text.match(/<caption>(.*?)<\/caption>\s*(\r\n|\n)/);
       if (captionTagMatches && captionTagMatches.index === 0) {
-        return (
-          captionTagMatches[1] + "\n" + makeCodeblock(text.slice(captionTagMatches[0].length))
-        );
+        return captionTagMatches[1] + "\n" + makeCodeblock(text.slice(captionTagMatches[0].length));
       }
-        return makeCodeblock(text);
-      
+      return makeCodeblock(text);
     }
     case "author": {
       const stringText = text as string;
@@ -1180,8 +1174,7 @@ function getTagBodyText(tag: ts.server.protocol.JSDocTagInfo): string | undefine
       if (emailMatch === null) {
         return stringText;
       }
-        return `${emailMatch[1]} ${emailMatch[2]}`;
-      
+      return `${emailMatch[1]} ${emailMatch[2]}`;
     }
     case "default": {
       const stringText = text as string;
@@ -1448,13 +1441,12 @@ const handleDiagnosticResponse = (
                     supportHtml: true,
                   };
                 }
-                  // Note: the default kind is "text"
-                  return {
-                    value: documentation.text,
-                    isTrusted: true,
-                    supportHtml: true,
-                  };
-                
+                // Note: the default kind is "text"
+                return {
+                  value: documentation.text,
+                  isTrusted: true,
+                  supportHtml: true,
+                };
               })
             : [
                 {
