@@ -1,3 +1,25 @@
+<<<<<<< HEAD
+build
+node_modules
+.DS_Store
+/artifacts
+/bun.lockb
+/vendors/
+.zig-cache
+zig-out
+llama-cli/llama-cli
+package-lock.json
+
+# Added by Spec Kitty CLI (auto-managed)
+.opencode/
+.windsurf/
+.qwen/
+.augment/
+.roo/
+.amazonq/
+.github/copilot/
+.kittify/.dashboard
+=======
 target/
 *.db
 *.key
@@ -8,6 +30,7 @@ target/
 .phenotype/
 config.db
 *.key
+>>>>>>> origin/main
 
 # AI tool artifacts
 .claude/
@@ -20,6 +43,8 @@ config.db
 .github/copilot-instructions.md
 .claudeignore
 .llmignore
+<<<<<<< HEAD
+=======
 
 # Local scratch (never commit)
 .tmp/
@@ -27,3 +52,4 @@ config.db
 .idea/
 *.iml
 worktrees/
+>>>>>>> origin/main
