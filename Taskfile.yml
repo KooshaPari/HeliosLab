@@ -1,81 +1,39 @@
 version: "3"
 
 tasks:
-  dev:
-    desc: "Run development server"
+  lint:
+    desc: "Run clippy linter and check formatting"
     cmds:
-      - bun run dev
-
-  build:
-    desc: "Build stable release"
-    cmds:
-      - bun run build:stable
+      - cargo clippy --all-targets -- -D warnings
+      - cargo fmt -- --check
 
   test:
-    desc: "Run test suite"
+    desc: "Run all tests"
     cmds:
-      - bunx vitest run
-
-  setup:
-    desc: "Setup project dependencies and initialization"
-    cmds:
-      - bun install && bun run setup
-
-  quality:fmt:
-    desc: "Format code with oxfmt (mutating)"
-    cmds:
-      - bunx oxfmt --write .
-
-  quality:lint:
-    desc: "Lint code with oxlint + tsgolint"
-    cmds:
-      - bunx oxlint -c .oxlintrc.json .
-      - bunx tsgolint --tsconfig tsconfig.json
-
-  quality:typecheck:
-    desc: "Type check with tsgo (10x faster than tsc)"
-    cmds:
-      - bunx tsgo --noEmit
-
-  quality:test:
-    desc: "Run tests"
-    cmds:
-      - bunx vitest run
+      - cargo test --all
 
   quality:
-    desc: "Run full quality gate (format, lint, typecheck, test - mutating)"
+    desc: "Run quality checks (lint + test)"
     cmds:
-      - task: quality:fmt
-      - task: quality:lint
-      - task: quality:typecheck
-      - task: quality:test
+      - task: lint
+      - task: test
 
-  quality:quick:
-    desc: "Quick quality check (readonly - no mutations)"
+  build:
+    desc: "Build release binary"
     cmds:
-      - bunx oxfmt --check .
-      - bunx oxlint -c .oxlintrc.json .
-      - bunx tsgolint --tsconfig tsconfig.json
-      - bunx tsgo --noEmit
-      - bunx vitest run
+      - cargo build --release
 
-  quality:ci:
-    desc: "CI quality gate (non-mutating PR gate)"
+  fmt:
+    desc: "Format code with rustfmt"
     cmds:
-      - task: quality:quick
+      - cargo fmt
 
-  quality:pre-push:
-    desc: "Pre-push quality check"
+  clean:
+    desc: "Clean build artifacts"
     cmds:
-      - task: quality:quick
-
-  quality:release-lint:
-    desc: "Release lint check"
-    cmds:
-      - task: quality:quick
-      - echo "Release lint passed"
+      - cargo clean
 
   check:
-    desc: "Alias for quality gate"
+    desc: "Check code compiles without warnings"
     cmds:
-      - task: quality
+      - cargo check --all-targets

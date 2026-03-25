@@ -13,18 +13,18 @@ name: Build and Release
 on:
   push:
     tags:
-      - "v*"
+      - 'v*'
     branches:
       - main
     paths:
       # Only rebuild deps cache when versions change
-      - ".github/workflows/versions.env"
+      - '.github/workflows/versions.env'
   workflow_dispatch:
     # Allows manual runs to warm the cache from main branch
 
 jobs:
   build-deps:
-    runs-on: macos-15 # GitHub-hosted Apple Silicon runner
+    runs-on: macos-15  # GitHub-hosted Apple Silicon runner
     outputs:
       cache-hit: ${{ steps.cache-check.outputs.cache-hit }}
 
@@ -41,11 +41,6 @@ jobs:
 
       - name: Install dependencies
         run: bun install
-
-      - name: Install go-task
-        run: |
-          sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
-          task --version
 
       - name: Cache llama.cpp build
         id: cache-check
@@ -74,7 +69,7 @@ jobs:
 
   build:
     needs: build-deps
-    runs-on: macos-15 # GitHub-hosted Apple Silicon runner
+    runs-on: macos-15  # GitHub-hosted Apple Silicon runner
     # Only run full build on tag pushes, not on main branch cache-warming runs
     if: startsWith(github.ref, 'refs/tags/')
 
@@ -88,11 +83,6 @@ jobs:
         run: |
           curl -fsSL https://bun.sh/install | bash
           echo "$HOME/.bun/bin" >> $GITHUB_PATH
-
-      - name: Install go-task
-        run: |
-          sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
-          task --version
 
       - name: Install dependencies
         run: bun install
@@ -148,6 +138,7 @@ jobs:
           else
             echo "✅ llama.h found"
           fi
+
 
       - name: Install Apple Certificate
         env:
@@ -229,7 +220,7 @@ jobs:
           R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
           R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
-          R2_BUCKET: ${{ secrets.R2_RELEASES_BUCKET }} # e.g., "colab-releases"
+          R2_BUCKET: ${{ secrets.R2_RELEASES_BUCKET }}  # e.g., "colab-releases"
         run: |
           bun run scripts/upload-artifacts.ts -- "${{ steps.prepare_artifacts.outputs.ARTIFACTS_DIR }}"
 
@@ -248,16 +239,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Bun
-        run: |
-          curl -fsSL https://bun.sh/install | bash
-          echo "$HOME/.bun/bin" >> $GITHUB_PATH
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
-          registry-url: "https://registry.npmjs.org"
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
 
       - name: Extract version from tag
         id: version
@@ -269,11 +255,11 @@ jobs:
       - name: Update plugin version
         run: |
           cd test-plugin
-          bunx npm version ${{ steps.version.outputs.VERSION }} --no-git-tag-version --allow-same-version
+          npm version ${{ steps.version.outputs.VERSION }} --no-git-tag-version --allow-same-version
 
       - name: Publish to npm
         run: |
           cd test-plugin
-          bunx npm publish --access public
+          npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
