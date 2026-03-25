@@ -1,40 +1,10 @@
-build
-node_modules
-.DS_Store
-/artifacts
-/bun.lockb
-/vendors/
-.zig-cache
-zig-out
-llama-cli/llama-cli
-package-lock.json
+target/
+*.db
+*.key
 
-# Added by Spec Kitty CLI (auto-managed)
-.opencode/
-.windsurf/
-.qwen/
-.augment/
-.roo/
-.amazonq/
-.github/copilot/
-.kittify/.dashboard
+.env
 
-# AI tool artifacts
-.claude/
-.codex/
-.cursor/
-.gemini/
-.kittify/
-.kilocode/
-.github/prompts/
-.github/copilot-instructions.md
-.claudeignore
-.llmignore
-
-# Local scratch (never commit)
-.tmp/
-.tmp/**
-
-# IDE noise (minimal)
-.idea/
-*.iml
+# Phenotype Config
+.phenotype/
+config.db
+*.key
