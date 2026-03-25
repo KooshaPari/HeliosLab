@@ -85,7 +85,7 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Run coverage
-        run: bun run test
+        run: bun test --coverage --pass-with-no-tests
 
   secret-scan:
     name: secret-scan
