@@ -38,3 +38,4 @@ package-lock.json
 # IDE noise (minimal)
 .idea/
 *.iml
+worktrees/
