@@ -34,8 +34,7 @@ package-lock.json
 # Local scratch (never commit)
 .tmp/
 .tmp/**
-
-# IDE noise (minimal)
 .idea/
 *.iml
 worktrees/
+>>>>>>> origin/main
