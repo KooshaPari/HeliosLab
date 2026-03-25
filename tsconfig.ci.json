@@ -1,5 +1,0 @@
-{
-  "extends": "./tsconfig.json",
-  "include": ["src/helios/runtime/protocol/**/*.ts"],
-  "exclude": ["src/helios/runtime/protocol/**/*.test.ts"]
-}

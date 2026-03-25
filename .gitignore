@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 build
 node_modules
 .DS_Store
@@ -18,6 +19,18 @@ package-lock.json
 .amazonq/
 .github/copilot/
 .kittify/.dashboard
+=======
+target/
+*.db
+*.key
+
+.env
+
+# Phenotype Config
+.phenotype/
+config.db
+*.key
+>>>>>>> origin/main
 
 # AI tool artifacts
 .claude/
@@ -30,11 +43,13 @@ package-lock.json
 .github/copilot-instructions.md
 .claudeignore
 .llmignore
+<<<<<<< HEAD
+=======
 
 # Local scratch (never commit)
 .tmp/
 .tmp/**
-
-# IDE noise (minimal)
 .idea/
 *.iml
+worktrees/
+>>>>>>> origin/main
