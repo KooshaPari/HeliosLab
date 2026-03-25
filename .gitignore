@@ -1,23 +1,13 @@
-build
-node_modules
-.DS_Store
-/artifacts
-/bun.lockb
-/vendors/
-.zig-cache
-zig-out
-llama-cli/llama-cli
-package-lock.json
+target/
+*.db
+*.key
 
-# Added by Spec Kitty CLI (auto-managed)
-.opencode/
-.windsurf/
-.qwen/
-.augment/
-.roo/
-.amazonq/
-.github/copilot/
-.kittify/.dashboard
+.env
+
+# Phenotype Config
+.phenotype/
+config.db
+*.key
 
 # AI tool artifacts
 .claude/
@@ -37,4 +27,3 @@ package-lock.json
 .idea/
 *.iml
 worktrees/
->>>>>>> origin/main
