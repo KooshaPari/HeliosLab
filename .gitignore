@@ -30,3 +30,11 @@ package-lock.json
 .github/copilot-instructions.md
 .claudeignore
 .llmignore
+
+# Local scratch (never commit)
+.tmp/
+.tmp/**
+.idea/
+*.iml
+worktrees/
+>>>>>>> origin/main
