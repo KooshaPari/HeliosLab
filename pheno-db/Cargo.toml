@@ -1,0 +1,10 @@
+[package]
+name = "pheno-db"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+pheno-core = { path = "../pheno-core" }
+rusqlite = { version = "0.31", features = ["bundled"] }
+chrono = { version = "0.4", features = ["serde"] }
+serde_json = "1"
