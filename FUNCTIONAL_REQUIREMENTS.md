@@ -1,10 +1,10 @@
 # Functional Requirements — phenotype-config (colab)
 
-**Last Updated:** 2026-03-26
-**Total FRs:** 28
+**Last Updated:** 2026-03-27
+**Total FRs:** 34
 **Implementation Status:** IN PROGRESS
 
-Requirements are derived directly from crate source: `pheno-core/src/lib.rs`, `pheno-db/src/lib.rs`, `pheno-crypto/src/lib.rs`, `pheno-cli/src/main.rs`.
+Requirements are derived from: `pheno-core/src/lib.rs`, `pheno-db/src/lib.rs`, `pheno-crypto/src/lib.rs`, `pheno-cli/src/main.rs`, and `apps/runtime/src/protocol/`.
 
 ---
 
@@ -177,3 +177,37 @@ Requirements are derived directly from crate source: `pheno-core/src/lib.rs`, `p
 **SHALL** run schema migrations idempotently (`CREATE TABLE IF NOT EXISTS`) on every `Database::open()` call so that new installations initialize automatically without a separate migration command.
 **Traces to:** E1.1
 **Code:** `pheno-db/src/lib.rs` — `Database::migrate()`
+
+---
+
+## FR-PROTO: Local Bus Protocol (apps/runtime)
+
+### FR-PROTO-001: Topic Registry
+**SHALL** define a canonical topic registry (`TOPICS` constant in `apps/runtime/src/protocol/topics.ts`) listing all pub/sub event topic strings: `workspace.opened`, `project.ready`, `session.created`, `session.attached`, `session.attach.started`, `session.attach.failed`, `session.restore.started`, `session.restore.completed`, `session.terminated`, `terminal.spawn.started`, `terminal.spawned`, `terminal.spawn.failed`, `terminal.output`, `terminal.state.changed`, `renderer.switch.started`, `renderer.switch.succeeded`.
+**Traces to:** E4.1
+**Code:** `apps/runtime/src/protocol/topics.ts`
+
+### FR-PROTO-002: Method Registry
+**SHALL** define a canonical method registry listing all command methods in `apps/runtime/src/protocol/methods.ts`; method names SHALL follow the `<entity>.<verb>` naming convention.
+**Traces to:** E4.1
+**Code:** `apps/runtime/src/protocol/methods.ts`
+
+### FR-PROTO-003: EventEnvelope Type
+**SHALL** define `EventEnvelope` TypeScript interface with fields: `id` (string), `correlation_id` (string | undefined), `type` (literal `"event"`), `ts` (number), `topic` (string), `payload` (unknown); the type SHALL be importable from the protocol module.
+**Traces to:** E4.1
+**Code:** `apps/runtime/src/protocol/topics.ts`
+
+### FR-PROTO-004: Ordered Subscriber Delivery
+**SHALL** implement the `TopicRegistry` such that subscribers for a given topic receive events in the order they were registered; deterministic delivery order SHALL be maintained across concurrent event dispatches.
+**Traces to:** E4.1
+**Code:** `apps/runtime/src/protocol/topics.ts`
+
+### FR-PROTO-005: Go FFI Protocol Bridge
+**SHALL** expose the `pheno-ffi-go` crate (`crates/pheno-ffi-go`) as a C ABI that the Go runtime layer can link against; the generated header SHALL include at minimum `pheno_config_get`, `pheno_config_set`, `pheno_flag_get`, `pheno_flag_enable`.
+**Traces to:** E6.2
+**Code:** `crates/pheno-ffi-go/`
+
+### FR-PROTO-006: Python FFI Protocol Bridge
+**SHALL** expose the `pheno-ffi-python` crate (`crates/pheno-ffi-python`) as a PyO3 extension module importable as `import pheno`; all functions SHALL release the GIL during SQLite I/O.
+**Traces to:** E6.1
+**Code:** `crates/pheno-ffi-python/`
