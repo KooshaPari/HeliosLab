@@ -277,3 +277,262 @@ pub mod build_info {
     pub const HELIOS_CHANNEL: &str = env_or!("HELIOS_CHANNEL", "dev");
     pub const HELIOS_BUILD_FLAGS: &str = env_or!("HELIOS_BUILD_FLAGS", "");
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::str::FromStr;
+
+    // --- Stage tests ---
+
+    #[test]
+    fn test_stage_ordinal_ordering() {
+        // Traces to: FR-CORE-001
+        assert!(Stage::SP.ordinal() < Stage::GA.ordinal());
+        assert!(Stage::GA.ordinal() < Stage::EOL.ordinal());
+        assert_eq!(Stage::SP.ordinal(), 0);
+        assert_eq!(Stage::EOL.ordinal(), 15);
+    }
+
+    #[test]
+    fn test_stage_all_has_16_entries() {
+        // Traces to: FR-CORE-001
+        assert_eq!(Stage::ALL.len(), 16);
+    }
+
+    #[test]
+    fn test_stage_is_pre_release() {
+        // Traces to: FR-CORE-002
+        assert!(Stage::SP.is_pre_release());
+        assert!(Stage::POC.is_pre_release());
+        assert!(Stage::B.is_pre_release());
+        assert!(Stage::RC.is_pre_release());
+        // GA and beyond are NOT pre-release
+        assert!(!Stage::GA.is_pre_release());
+        assert!(!Stage::LTS.is_pre_release());
+        assert!(!Stage::EOL.is_pre_release());
+    }
+
+    #[test]
+    fn test_stage_is_production() {
+        // Traces to: FR-CORE-002
+        assert!(Stage::GA.is_production());
+        assert!(Stage::LTS.is_production());
+        assert!(Stage::HF.is_production());
+        assert!(!Stage::RC.is_production());
+        assert!(!Stage::B.is_production());
+        assert!(!Stage::DEP.is_production());
+    }
+
+    #[test]
+    fn test_stage_allows_flag_gated() {
+        // Traces to: FR-CORE-003
+        assert!(Stage::SP.allows_flag_gated());
+        assert!(Stage::RC.allows_flag_gated());
+        // GA does NOT allow flag-gated (RC is the cutoff)
+        assert!(!Stage::GA.allows_flag_gated());
+        assert!(!Stage::LTS.allows_flag_gated());
+    }
+
+    #[test]
+    fn test_stage_allows_compile_gated() {
+        // Traces to: FR-CORE-003
+        assert!(Stage::SP.allows_compile_gated());
+        assert!(Stage::B.allows_compile_gated());
+        // EP and beyond do NOT allow compile-gated
+        assert!(!Stage::EP.allows_compile_gated());
+        assert!(!Stage::GA.allows_compile_gated());
+    }
+
+    #[test]
+    fn test_stage_display() {
+        // Traces to: FR-CORE-001
+        assert_eq!(Stage::GA.to_string(), "GA");
+        assert_eq!(Stage::POC.to_string(), "POC");
+        assert_eq!(Stage::EOL.to_string(), "EOL");
+        assert_eq!(Stage::LTS.to_string(), "LTS");
+    }
+
+    #[test]
+    fn test_stage_from_str_valid() {
+        // Traces to: FR-CORE-001
+        assert_eq!(Stage::from_str("SP").unwrap(), Stage::SP);
+        assert_eq!(Stage::from_str("GA").unwrap(), Stage::GA);
+        assert_eq!(Stage::from_str("EOL").unwrap(), Stage::EOL);
+        assert_eq!(Stage::from_str("LTS").unwrap(), Stage::LTS);
+    }
+
+    #[test]
+    fn test_stage_from_str_invalid() {
+        // Traces to: FR-CORE-001
+        assert!(Stage::from_str("INVALID").is_err());
+        assert!(Stage::from_str("ga").is_err()); // case-sensitive
+        assert!(Stage::from_str("").is_err());
+    }
+
+    #[test]
+    fn test_stage_ordering_comparison() {
+        // Traces to: FR-CORE-001
+        assert!(Stage::SP < Stage::GA);
+        assert!(Stage::GA > Stage::RC);
+        assert!(Stage::GA == Stage::GA);
+    }
+
+    // --- ValueType tests ---
+
+    #[test]
+    fn test_value_type_display() {
+        // Traces to: FR-CORE-004
+        assert_eq!(ValueType::String.to_string(), "string");
+        assert_eq!(ValueType::Int.to_string(), "int");
+        assert_eq!(ValueType::Float.to_string(), "float");
+        assert_eq!(ValueType::Bool.to_string(), "bool");
+        assert_eq!(ValueType::Json.to_string(), "json");
+    }
+
+    #[test]
+    fn test_value_type_from_str_valid() {
+        // Traces to: FR-CORE-004
+        assert_eq!(ValueType::from_str("string").unwrap(), ValueType::String);
+        assert_eq!(ValueType::from_str("int").unwrap(), ValueType::Int);
+        assert_eq!(ValueType::from_str("float").unwrap(), ValueType::Float);
+        assert_eq!(ValueType::from_str("bool").unwrap(), ValueType::Bool);
+        assert_eq!(ValueType::from_str("json").unwrap(), ValueType::Json);
+    }
+
+    #[test]
+    fn test_value_type_from_str_invalid() {
+        // Traces to: FR-CORE-004
+        assert!(ValueType::from_str("unknown").is_err());
+        assert!(ValueType::from_str("String").is_err()); // case-sensitive
+        assert!(ValueType::from_str("").is_err());
+    }
+
+    // --- TransienceClass tests ---
+
+    #[test]
+    fn test_transience_class_display() {
+        // Traces to: FR-CORE-005
+        assert_eq!(TransienceClass::F.to_string(), "F");
+        assert_eq!(TransienceClass::C.to_string(), "C");
+        assert_eq!(TransienceClass::X.to_string(), "X");
+    }
+
+    #[test]
+    fn test_transience_class_from_str_valid() {
+        // Traces to: FR-CORE-005
+        assert_eq!(TransienceClass::from_str("F").unwrap(), TransienceClass::F);
+        assert_eq!(TransienceClass::from_str("C").unwrap(), TransienceClass::C);
+        assert_eq!(TransienceClass::from_str("X").unwrap(), TransienceClass::X);
+    }
+
+    #[test]
+    fn test_transience_class_from_str_invalid() {
+        // Traces to: FR-CORE-005
+        assert!(TransienceClass::from_str("f").is_err());
+        assert!(TransienceClass::from_str("flag").is_err());
+        assert!(TransienceClass::from_str("").is_err());
+    }
+
+    #[test]
+    fn test_flag_gated_valid_at_pre_release_stages() {
+        // Traces to: FR-CORE-005
+        for &stage in &[Stage::SP, Stage::POC, Stage::IP, Stage::A, Stage::FP, Stage::B, Stage::EP, Stage::CN, Stage::RC] {
+            assert!(
+                TransienceClass::F.valid_at_stage(stage),
+                "F should be valid at stage {:?}", stage
+            );
+        }
+    }
+
+    #[test]
+    fn test_flag_gated_invalid_at_production_stages() {
+        // Traces to: FR-CORE-005
+        for &stage in &[Stage::GA, Stage::LTS, Stage::HF, Stage::SS, Stage::DEP, Stage::AR, Stage::EOL] {
+            assert!(
+                !TransienceClass::F.valid_at_stage(stage),
+                "F should NOT be valid at stage {:?}", stage
+            );
+        }
+    }
+
+    #[test]
+    fn test_compile_gated_valid_up_to_beta() {
+        // Traces to: FR-CORE-005
+        for &stage in &[Stage::SP, Stage::POC, Stage::IP, Stage::A, Stage::FP, Stage::B] {
+            assert!(
+                TransienceClass::C.valid_at_stage(stage),
+                "C should be valid at stage {:?}", stage
+            );
+        }
+    }
+
+    #[test]
+    fn test_compile_gated_invalid_after_beta() {
+        // Traces to: FR-CORE-005
+        for &stage in &[Stage::EP, Stage::CN, Stage::RC, Stage::GA, Stage::LTS] {
+            assert!(
+                !TransienceClass::C.valid_at_stage(stage),
+                "C should NOT be valid at stage {:?}", stage
+            );
+        }
+    }
+
+    #[test]
+    fn test_channel_exclusive_always_valid() {
+        // Traces to: FR-CORE-005
+        for &stage in Stage::ALL {
+            assert!(
+                TransienceClass::X.valid_at_stage(stage),
+                "X should always be valid, failed at {:?}", stage
+            );
+        }
+    }
+
+    // --- Error tests ---
+
+    #[test]
+    fn test_error_display_not_found() {
+        // Traces to: FR-CORE-006
+        let err = Error::NotFound("config/key".to_string());
+        assert_eq!(err.to_string(), "not found: config/key");
+    }
+
+    #[test]
+    fn test_error_display_database() {
+        // Traces to: FR-CORE-006
+        let err = Error::Database("connection refused".to_string());
+        assert_eq!(err.to_string(), "database error: connection refused");
+    }
+
+    #[test]
+    fn test_error_display_crypto() {
+        // Traces to: FR-CORE-006
+        let err = Error::Crypto("key too short".to_string());
+        assert_eq!(err.to_string(), "crypto error: key too short");
+    }
+
+    #[test]
+    fn test_error_display_invalid_transition() {
+        // Traces to: FR-CORE-006
+        let err = Error::InvalidTransition("SP -> EOL not allowed".to_string());
+        assert_eq!(err.to_string(), "invalid stage transition: SP -> EOL not allowed");
+    }
+
+    #[test]
+    fn test_error_display_other() {
+        // Traces to: FR-CORE-006
+        let err = Error::Other("generic error".to_string());
+        assert_eq!(err.to_string(), "generic error");
+    }
+
+    // --- build_info tests ---
+
+    #[test]
+    fn test_build_info_defaults() {
+        // Traces to: FR-CORE-007
+        // Without env vars set, defaults should be used
+        assert!(!build_info::HELIOS_STAGE.is_empty() || build_info::HELIOS_STAGE == "unknown");
+        assert!(!build_info::HELIOS_CHANNEL.is_empty() || build_info::HELIOS_CHANNEL == "dev");
+    }
+}
