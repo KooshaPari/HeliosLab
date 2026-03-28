@@ -478,3 +478,243 @@ impl VersionStore for Database {
             .collect()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use pheno_core::{
+        ConfigEntry, ConfigStore, FeatureFlag, FlagStore, SecretEntry, SecretStore,
+        ValueType, VersionInfo, VersionStore,
+    };
+    use std::path::Path;
+    use chrono::Utc;
+
+    fn open_in_memory() -> Database {
+        Database::open(Path::new(":memory:")).expect("in-memory db should open")
+    }
+
+    fn make_config_entry(ns: &str, key: &str, value: &str) -> ConfigEntry {
+        ConfigEntry {
+            key: key.to_string(),
+            value: value.to_string(),
+            value_type: ValueType::String,
+            namespace: ns.to_string(),
+            updated_at: Utc::now(),
+            updated_by: "test-agent".to_string(),
+        }
+    }
+
+    // --- ConfigStore integration tests ---
+
+    #[test]
+    fn test_config_set_and_get() {
+        // Traces to: FR-DB-001
+        let db = open_in_memory();
+        let entry = make_config_entry("app", "theme", "dark");
+        db.set_config(&entry).expect("set_config should succeed");
+        let fetched = db.get_config("app", "theme").expect("get_config should succeed");
+        assert_eq!(fetched.value, "dark");
+        assert_eq!(fetched.namespace, "app");
+    }
+
+    #[test]
+    fn test_config_get_not_found() {
+        // Traces to: FR-DB-001
+        let db = open_in_memory();
+        let result = db.get_config("app", "nonexistent");
+        assert!(matches!(result, Err(pheno_core::Error::NotFound(_))));
+    }
+
+    #[test]
+    fn test_config_update_existing() {
+        // Traces to: FR-DB-001
+        let db = open_in_memory();
+        let entry = make_config_entry("app", "theme", "dark");
+        db.set_config(&entry).unwrap();
+        let updated = make_config_entry("app", "theme", "light");
+        db.set_config(&updated).unwrap();
+        let fetched = db.get_config("app", "theme").unwrap();
+        assert_eq!(fetched.value, "light");
+    }
+
+    #[test]
+    fn test_config_list_by_namespace() {
+        // Traces to: FR-DB-002
+        let db = open_in_memory();
+        db.set_config(&make_config_entry("ns1", "key1", "val1")).unwrap();
+        db.set_config(&make_config_entry("ns1", "key2", "val2")).unwrap();
+        db.set_config(&make_config_entry("ns2", "key3", "val3")).unwrap();
+        let ns1_entries = db.list_config("ns1").unwrap();
+        assert_eq!(ns1_entries.len(), 2);
+        let ns2_entries = db.list_config("ns2").unwrap();
+        assert_eq!(ns2_entries.len(), 1);
+    }
+
+    #[test]
+    fn test_config_delete() {
+        // Traces to: FR-DB-003
+        let db = open_in_memory();
+        db.set_config(&make_config_entry("app", "key", "value")).unwrap();
+        db.delete_config("app", "key").unwrap();
+        let result = db.get_config("app", "key");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_config_audit_log_records_changes() {
+        // Traces to: FR-DB-004
+        let db = open_in_memory();
+        db.set_config(&make_config_entry("app", "debug", "false")).unwrap();
+        db.set_config(&make_config_entry("app", "debug", "true")).unwrap();
+        let audit = db.audit_log("app", "debug").unwrap();
+        assert!(!audit.is_empty(), "Audit log should have entries after set_config calls");
+    }
+
+    // --- FlagStore integration tests ---
+
+    fn make_feature_flag(ns: &str, name: &str, enabled: bool) -> FeatureFlag {
+        FeatureFlag {
+            name: name.to_string(),
+            enabled,
+            namespace: ns.to_string(),
+            description: "test flag".to_string(),
+            updated_at: Utc::now(),
+            stage: "SP".to_string(),
+            transience_class: "F".to_string(),
+            channel: vec!["dev".to_string()],
+            retire_at_stage: None,
+        }
+    }
+
+    #[test]
+    fn test_flag_set_and_get() {
+        // Traces to: FR-DB-005
+        let db = open_in_memory();
+        let flag = make_feature_flag("myapp", "new-editor", true);
+        db.set_flag(&flag).expect("set_flag should succeed");
+        let fetched = db.get_flag("myapp", "new-editor").expect("get_flag should succeed");
+        assert_eq!(fetched.name, "new-editor");
+        assert!(fetched.enabled);
+    }
+
+    #[test]
+    fn test_flag_get_not_found() {
+        // Traces to: FR-DB-005
+        let db = open_in_memory();
+        let result = db.get_flag("myapp", "nonexistent-flag");
+        assert!(matches!(result, Err(pheno_core::Error::NotFound(_))));
+    }
+
+    #[test]
+    fn test_flag_list() {
+        // Traces to: FR-DB-005
+        let db = open_in_memory();
+        db.set_flag(&make_feature_flag("app", "flag-a", true)).unwrap();
+        db.set_flag(&make_feature_flag("app", "flag-b", false)).unwrap();
+        let flags = db.list_flags("app").unwrap();
+        assert_eq!(flags.len(), 2);
+    }
+
+    #[test]
+    fn test_flag_delete() {
+        // Traces to: FR-DB-005
+        let db = open_in_memory();
+        db.set_flag(&make_feature_flag("app", "temp-flag", true)).unwrap();
+        db.delete_flag("app", "temp-flag").unwrap();
+        let result = db.get_flag("app", "temp-flag");
+        assert!(result.is_err());
+    }
+
+    // --- SecretStore integration tests ---
+
+    #[test]
+    fn test_secret_set_and_get() {
+        // Traces to: FR-DB-006
+        let db = open_in_memory();
+        let secret = SecretEntry {
+            key: "api-key".to_string(),
+            encrypted_value: vec![1, 2, 3, 4],
+            nonce: vec![5, 6, 7, 8, 9, 10, 11, 12],
+            updated_at: Utc::now(),
+        };
+        db.set_secret(&secret).expect("set_secret should succeed");
+        let fetched = db.get_secret("api-key").expect("get_secret should succeed");
+        assert_eq!(fetched.encrypted_value, vec![1, 2, 3, 4]);
+        assert_eq!(fetched.nonce, vec![5, 6, 7, 8, 9, 10, 11, 12]);
+    }
+
+    #[test]
+    fn test_secret_list_keys() {
+        // Traces to: FR-DB-006
+        let db = open_in_memory();
+        let make_secret = |k: &str| SecretEntry {
+            key: k.to_string(),
+            encrypted_value: vec![0u8; 16],
+            nonce: vec![0u8; 12],
+            updated_at: Utc::now(),
+        };
+        db.set_secret(&make_secret("key1")).unwrap();
+        db.set_secret(&make_secret("key2")).unwrap();
+        let keys = db.list_secrets().unwrap();
+        assert_eq!(keys.len(), 2);
+        assert!(keys.contains(&"key1".to_string()));
+        assert!(keys.contains(&"key2".to_string()));
+    }
+
+    #[test]
+    fn test_secret_delete() {
+        // Traces to: FR-DB-006
+        let db = open_in_memory();
+        let secret = SecretEntry {
+            key: "temp-secret".to_string(),
+            encrypted_value: vec![0u8; 8],
+            nonce: vec![0u8; 12],
+            updated_at: Utc::now(),
+        };
+        db.set_secret(&secret).unwrap();
+        db.delete_secret("temp-secret").unwrap();
+        assert!(db.get_secret("temp-secret").is_err());
+    }
+
+    // --- VersionStore integration tests ---
+
+    #[test]
+    fn test_version_set_and_get() {
+        // Traces to: FR-DB-007
+        let db = open_in_memory();
+        let info = VersionInfo {
+            repo: "colab".to_string(),
+            our_version: "0.14.11".to_string(),
+            upstream_version: "0.15.0".to_string(),
+            synced_at: Utc::now(),
+        };
+        db.set_version(&info).unwrap();
+        let fetched = db.get_version("colab").unwrap();
+        assert_eq!(fetched.our_version, "0.14.11");
+        assert_eq!(fetched.upstream_version, "0.15.0");
+    }
+
+    #[test]
+    fn test_version_list() {
+        // Traces to: FR-DB-007
+        let db = open_in_memory();
+        for repo in &["repo-a", "repo-b", "repo-c"] {
+            db.set_version(&VersionInfo {
+                repo: repo.to_string(),
+                our_version: "1.0.0".to_string(),
+                upstream_version: "1.0.0".to_string(),
+                synced_at: Utc::now(),
+            }).unwrap();
+        }
+        let versions = db.list_versions().unwrap();
+        assert_eq!(versions.len(), 3);
+    }
+
+    #[test]
+    fn test_version_not_found() {
+        // Traces to: FR-DB-007
+        let db = open_in_memory();
+        let result = db.get_version("no-such-repo");
+        assert!(matches!(result, Err(pheno_core::Error::NotFound(_))));
+    }
+}
