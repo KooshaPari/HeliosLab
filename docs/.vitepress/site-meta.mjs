@@ -5,7 +5,7 @@ export function createSiteMeta({ base = '/' } = {}) {
     description: 'services/colab documentation',
     themeConfig: {
       nav: [
-        { text: 'Home', link: base || '/' },
+        { text: 'Home', link: '/' },
         { text: 'Guide', link: '/guide/' }
       ]
     }
