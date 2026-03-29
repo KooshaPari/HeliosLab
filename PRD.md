@@ -64,3 +64,8 @@ As a developer, I want to inspect version and rollout state so that I can verify
 
 ## E5: Terminal UI
 
+The in-app terminal surfaces agent and shell output with parity to the host TTY where applicable.
+
+**Acceptance criteria (draft):**
+- Terminal sessions attach to the active workspace context without leaking credentials to logs
+- Resize and scroll behavior remain usable under load (large stdout)

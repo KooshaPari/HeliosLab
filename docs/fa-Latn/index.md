@@ -1,3 +1,3 @@
 # Namay-e Koli
 
-\ darvaze-ye mostanadat ast.
+darvaze-ye mostanadat ast.

@@ -146,7 +146,9 @@ jobs:
           MACOS_CERTIFICATE_PWD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
         run: |
           # Clean up any existing keychain from previous builds
-          security delete-keychain build.keychain || true
+          if ! security delete-keychain build.keychain; then
+            echo "Warning: no temporary keychain to delete."
+          fi
 
           # Create temporary keychain
           echo $MACOS_CERTIFICATE | base64 --decode > certificate.p12
@@ -228,7 +230,9 @@ jobs:
         if: always()
         run: |
           # Clean up the temporary keychain
-          security delete-keychain build.keychain || true
+          if ! security delete-keychain build.keychain; then
+            echo "Warning: no temporary keychain to delete."
+          fi
 
   publish-demo-plugin:
     needs: build
