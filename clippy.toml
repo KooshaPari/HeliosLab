@@ -1,0 +1,3 @@
+# Clippy configuration for colab
+
+avoid-breaking-exported-api = false
