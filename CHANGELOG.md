@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.0] - 2026-04-25
+
+### Added
+- Helios Family Sync: Coordinated 0.2.0 release across 6 repos (waves 29-33)
+- Unified governance and release automation across family
+
 ## 📚 Documentation
 - Docs(readme): expand README.md with purpose, stack, quick-start, related projects (`c548127`)
 - Docs: add README/SPEC/PLAN (`e190b1a`)

@@ -218,3 +218,261 @@ pub extern "C" fn pheno_version_show(db: *const Database) -> *mut c_char {
         Err(_) => ptr::null_mut(),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tempfile::TempDir;
+
+    fn create_test_db() -> (TempDir, String) {
+        let dir = TempDir::new().unwrap();
+        let path = dir.path().join("test.db");
+        (dir, path.to_string_lossy().to_string())
+    }
+
+    fn cleanup_cstring(s: *mut c_char) {
+        unsafe { pheno_string_free(s) };
+    }
+
+    // Traces to: FR-HELIOS-FFI-GO-001 (db open/close lifecycle)
+    #[test]
+    fn test_pheno_db_open_close() {
+        let (_dir, db_path) = create_test_db();
+        let db = pheno_db_open(CString::new(db_path).unwrap().as_ptr());
+        assert!(!db.is_null());
+        pheno_db_close(db);
+    }
+
+    // Traces to: FR-HELIOS-FFI-GO-002 (db open with invalid path)
+    #[test]
+    fn test_pheno_db_open_invalid_path() {
+        let db = pheno_db_open(CString::new("/nonexistent/path/db").unwrap().as_ptr());
+        assert!(db.is_null());
+    }
+
+    // Traces to: FR-HELIOS-FFI-GO-003 (db open with null path)
+    #[test]
+    fn test_pheno_db_open_null_path() {
+        let db = pheno_db_open(std::ptr::null());
+        assert!(!db.is_null()); // defaults to empty string path
+        pheno_db_close(db);
+    }
+
+    // Traces to: FR-HELIOS-FFI-GO-004 (string free null safety)
+    #[test]
+    fn test_pheno_string_free_null_safety() {
+        pheno_string_free(std::ptr::null_mut()); // should not panic
+    }
+
+    // Traces to: FR-HELIOS-FFI-GO-005 (flag list empty)
+    #[test]
+    fn test_pheno_flag_list_empty() {
+        let (_dir, db_path) = create_test_db();
+        let db = pheno_db_open(CString::new(db_path).unwrap().as_ptr());
+        assert!(!db.is_null());
+
+        let result = pheno_flag_list(db);
+        assert!(!result.is_null());
+
+        let json_str = unsafe { CStr::from_ptr(result).to_str().unwrap() };
+        assert_eq!(json_str, "[]");
+
+        cleanup_cstring(result);
+        pheno_db_close(db);
+    }
+
+    // Traces to: FR-HELIOS-FFI-GO-006 (flag enable)
+    #[test]
+    fn test_pheno_flag_enable() {
+        let (_dir, db_path) = create_test_db();
+        let db = pheno_db_open(CString::new(db_path).unwrap().as_ptr());
+
+        let name = CString::new("test_flag").unwrap();
+        let ret = pheno_flag_enable(db, name.as_ptr());
+        assert_eq!(ret, 0); // success
+
+        pheno_db_close(db);
+    }
+
+    // Traces to: FR-HELIOS-FFI-GO-007 (flag disable existing)
+    #[test]
+    fn test_pheno_flag_disable_existing() {
+        let (_dir, db_path) = create_test_db();
+        let db = pheno_db_open(CString::new(db_path).unwrap().as_ptr());
+
+        let name = CString::new("disable_flag").unwrap();
+        pheno_flag_enable(db, name.as_ptr());
+        let ret = pheno_flag_disable(db, name.as_ptr());
+        assert_eq!(ret, 0);
+
+        pheno_db_close(db);
+    }
+
+    // Traces to: FR-HELIOS-FFI-GO-008 (flag disable missing returns error)
+    #[test]
+    fn test_pheno_flag_disable_missing() {
+        let (_dir, db_path) = create_test_db();
+        let db = pheno_db_open(CString::new(db_path).unwrap().as_ptr());
+
+        let name = CString::new("nonexistent_flag").unwrap();
+        let ret = pheno_flag_disable(db, name.as_ptr());
+        assert_eq!(ret, -1); // error
+
+        pheno_db_close(db);
+    }
+
+    // Traces to: FR-HELIOS-FFI-GO-009 (config get/set)
+    #[test]
+    fn test_pheno_config_get_set() {
+        let (_dir, db_path) = create_test_db();
+        let db = pheno_db_open(CString::new(db_path).unwrap().as_ptr());
+
+        let key = CString::new("config_key").unwrap();
+        let value = CString::new("config_value").unwrap();
+
+        let ret = pheno_config_set(db, key.as_ptr(), value.as_ptr());
+        assert_eq!(ret, 0);
+
+        let result = pheno_config_get(db, key.as_ptr());
+        assert!(!result.is_null());
+
+        let retrieved = unsafe { CStr::from_ptr(result).to_str().unwrap() };
+        assert_eq!(retrieved, "config_value");
+
+        cleanup_cstring(result);
+        pheno_db_close(db);
+    }
+
+    // Traces to: FR-HELIOS-FFI-GO-010 (config get missing returns null)
+    #[test]
+    fn test_pheno_config_get_missing() {
+        let (_dir, db_path) = create_test_db();
+        let db = pheno_db_open(CString::new(db_path).unwrap().as_ptr());
+
+        let key = CString::new("missing_key").unwrap();
+        let result = pheno_config_get(db, key.as_ptr());
+        assert!(result.is_null());
+
+        pheno_db_close(db);
+    }
+
+    // Traces to: FR-HELIOS-FFI-GO-011 (config set empty value)
+    #[test]
+    fn test_pheno_config_set_empty_value() {
+        let (_dir, db_path) = create_test_db();
+        let db = pheno_db_open(CString::new(db_path).unwrap().as_ptr());
+
+        let key = CString::new("empty_key").unwrap();
+        let value = CString::new("").unwrap();
+
+        let ret = pheno_config_set(db, key.as_ptr(), value.as_ptr());
+        assert_eq!(ret, 0);
+
+        let result = pheno_config_get(db, key.as_ptr());
+        let retrieved = unsafe { CStr::from_ptr(result).to_str().unwrap() };
+        assert_eq!(retrieved, "");
+
+        cleanup_cstring(result);
+        pheno_db_close(db);
+    }
+
+    // Traces to: FR-HELIOS-FFI-GO-012 (secret set/get with valid key)
+    #[test]
+    fn test_pheno_secret_set_get_valid_key() {
+        let (_dir, db_path) = create_test_db();
+        let db = pheno_db_open(CString::new(db_path).unwrap().as_ptr());
+
+        let key = CString::new("secret_key").unwrap();
+        let plaintext = CString::new("secret_value").unwrap();
+        let hex_key = CString::new("0".repeat(64)).unwrap(); // 32 bytes in hex
+
+        let ret = pheno_secret_set(db, key.as_ptr(), plaintext.as_ptr(), hex_key.as_ptr());
+        assert_eq!(ret, 0);
+
+        let result = pheno_secret_get(db, key.as_ptr(), hex_key.as_ptr());
+        assert!(!result.is_null());
+
+        let decrypted = unsafe { CStr::from_ptr(result).to_str().unwrap() };
+        assert_eq!(decrypted, "secret_value");
+
+        cleanup_cstring(result);
+        pheno_db_close(db);
+    }
+
+    // Traces to: FR-HELIOS-FFI-GO-013 (secret with invalid hex key)
+    #[test]
+    fn test_pheno_secret_invalid_hex_key() {
+        let (_dir, db_path) = create_test_db();
+        let db = pheno_db_open(CString::new(db_path).unwrap().as_ptr());
+
+        let key = CString::new("secret_key").unwrap();
+        let plaintext = CString::new("secret_value").unwrap();
+        let hex_key = CString::new("ZZZZ").unwrap(); // invalid hex
+
+        let ret = pheno_secret_set(db, key.as_ptr(), plaintext.as_ptr(), hex_key.as_ptr());
+        assert_eq!(ret, -1);
+
+        pheno_db_close(db);
+    }
+
+    // Traces to: FR-HELIOS-FFI-GO-014 (secret with short key)
+    #[test]
+    fn test_pheno_secret_short_key() {
+        let (_dir, db_path) = create_test_db();
+        let db = pheno_db_open(CString::new(db_path).unwrap().as_ptr());
+
+        let key = CString::new("secret_key").unwrap();
+        let plaintext = CString::new("secret_value").unwrap();
+        let hex_key = CString::new("0".repeat(32)).unwrap(); // 16 bytes (too short)
+
+        let ret = pheno_secret_set(db, key.as_ptr(), plaintext.as_ptr(), hex_key.as_ptr());
+        assert_eq!(ret, -1);
+
+        pheno_db_close(db);
+    }
+
+    // Traces to: FR-HELIOS-FFI-GO-015 (secret get missing returns null)
+    #[test]
+    fn test_pheno_secret_get_missing() {
+        let (_dir, db_path) = create_test_db();
+        let db = pheno_db_open(CString::new(db_path).unwrap().as_ptr());
+
+        let key = CString::new("missing_secret").unwrap();
+        let hex_key = CString::new("0".repeat(64)).unwrap();
+
+        let result = pheno_secret_get(db, key.as_ptr(), hex_key.as_ptr());
+        assert!(result.is_null());
+
+        pheno_db_close(db);
+    }
+
+    // Traces to: FR-HELIOS-FFI-GO-016 (version show empty)
+    #[test]
+    fn test_pheno_version_show_empty() {
+        let (_dir, db_path) = create_test_db();
+        let db = pheno_db_open(CString::new(db_path).unwrap().as_ptr());
+
+        let result = pheno_version_show(db);
+        assert!(!result.is_null());
+
+        let json_str = unsafe { CStr::from_ptr(result).to_str().unwrap() };
+        assert_eq!(json_str, "[]");
+
+        cleanup_cstring(result);
+        pheno_db_close(db);
+    }
+
+
+    // Traces to: FR-HELIOS-FFI-GO-018 (flag enable with empty name)
+    #[test]
+    fn test_pheno_flag_enable_empty_name() {
+        let (_dir, db_path) = create_test_db();
+        let db = pheno_db_open(CString::new(db_path).unwrap().as_ptr());
+
+        let name = CString::new("").unwrap();
+        let ret = pheno_flag_enable(db, name.as_ptr());
+        assert_eq!(ret, 0); // should succeed (empty flag name allowed)
+
+        pheno_db_close(db);
+    }
+}

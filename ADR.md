@@ -1,6 +1,6 @@
-# Architecture Decision Records — phenotype-config (colab)
+# Architecture Decision Records — HeliosLab (phenotype-config + IVDE)
 
-**Last Updated:** 2026-03-26
+**Last Updated:** 2026-04-04
 
 ---
 
@@ -142,3 +142,205 @@ Phenotype services are written in multiple languages. The configuration SDK must
 - API surface is intentionally minimal (get/set for config and flags); full trait implementations are not exposed via FFI.
 
 **Code locations:** `crates/pheno-ffi-python/`, `crates/pheno-ffi-go/`
+
+---
+
+## ADR-007 | Electrobun + SolidJS for IVDE | Adopted
+
+**Status:** Adopted
+
+**Context:**
+The IVDE (Integrated Visual Development Environment) requires native performance for file operations, git, and search, while maintaining the flexibility of web technologies for UI development. Traditional Electron-based IDEs suffer from high memory usage and slow startup times.
+
+**Decision:**
+Use Electrobun as the application runtime:
+- Bun JavaScript runtime for fast startup and native TypeScript support
+- Native WebView (WebKit on macOS, WebView2 on Windows, WebKitGTK on Linux)
+- SolidJS for reactive UI (superior performance vs. React)
+- RPC bridge between main process (TypeScript/Bun) and renderer (SolidJS/WebView)
+
+**Architecture:**
+```
+┌─────────────────────────────────────────────────────────┐
+│                    IVDE Application                     │
+├─────────────────────────────────────────────────────────┤
+│  ┌──────────────────┐        ┌──────────────────────┐ │
+│  │   Bun Runtime    │◄──────►│    Native WebView      │ │
+│  │   (main/index.ts)│  RPC   │    (SolidJS UI)        │ │
+│  │                  │        │                        │ │
+│  │  - File I/O      │        │  - Editor components   │ │
+│  │  - Git ops       │        │  - Terminal slates     │ │
+│  │  - Native menus  │        │  - Drag/drop          │ │
+│  │  - pheno-db      │        │  - Settings panes      │ │ │
+│  └──────────────────┘        └──────────────────────┘ │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Consequences:**
+- Startup time: ~300ms (vs. 2.5s for Electron)
+- Memory usage: ~80 MB idle (vs. 350 MB for Electron)
+- Bundle size: ~12 MB (vs. 185 MB for Electron)
+- Trade-off: Electrobun is newer with smaller ecosystem; maintain Electron fallback option
+
+**Code locations:** `src/main/`, `src/renderers/ivde/`
+
+---
+
+## ADR-008 | Recursive Multi-Pane Layout System | Adopted
+
+**Status:** Adopted
+
+**Context:**
+Modern IDEs require flexible window layouts: side-by-side file comparison, terminal + editor combinations, and multi-monitor support. Traditional grid systems (VS Code's 3x3) are too limiting; binary-split tiling window managers are too rigid.
+
+**Decision:**
+Implement a recursive tree-based layout system:
+- `Pane` leaf nodes contain tabs and current tab state
+- `Container` nodes have direction (`row` | `column`), divider percentage, and child panes/containers
+- N-ary splits supported (not just binary)
+- Drag-and-drop tab movement between panes
+- Serializable state for workspace persistence
+
+**Data Structure:**
+```typescript
+type PaneLayout = 
+  | { type: 'pane'; id: string; tabIds: string[]; currentTabId: string | null; paneId: string }
+  | { type: 'container'; id: string; direction: 'row' | 'column'; divider: number; panes: PaneLayout[] };
+```
+
+**Consequences:**
+- Unlimited layout flexibility (any tree structure)
+- Efficient serialization for workspace persistence
+- Complex implementation for drag-and-drop and resize
+- Must maintain consistency between visual state and data model
+
+**Code locations:** `src/renderers/ivde/index.tsx` — `Pane`, `PaneContainerComponent`, `LayoutComponent`
+
+---
+
+## ADR-009 | Git CLI with Streaming for Repository Operations | Adopted
+
+**Status:** Adopted
+
+**Context:**
+Git integration requires handling large repositories (100K+ files), streaming diffs, and real-time status updates. libgit2 provides speed but lacks complete feature coverage; git CLI provides completeness but higher latency.
+
+**Decision:**
+Use Git CLI via async subprocess with the following optimizations:
+- Bun's `spawn` for async process management
+- Result caching for repeated operations (status, branch)
+- Streaming for large outputs (log, diff, blame)
+- Background refresh for status (debounced 500ms)
+
+**Architecture:**
+```typescript
+// Streaming git log
+const proc = Bun.spawn(['git', 'log', '--oneline', '-1000'], {
+  cwd: repoRoot,
+  stdout: 'pipe',
+});
+
+const reader = proc.stdout.getReader();
+while (true) {
+  const { done, value } = await reader.read();
+  if (done) break;
+  // Parse and stream to UI
+  rpc.send('gitLogChunk', parseChunk(value));
+}
+```
+
+**Consequences:**
+- Complete git feature coverage (100% CLI compatibility)
+- Slightly higher latency than libgit2 (acceptable for human interaction)
+- Streaming keeps UI responsive for large operations
+- Process spawn overhead mitigated by Bun's fast subprocess creation
+
+**Code locations:** `src/main/utils/gitUtils.ts`, `src/renderers/ivde/slates/GitSlate.tsx`
+
+---
+
+## ADR-010 | Plugin Architecture with Manifest-Based Loading | Proposed
+
+**Status:** Proposed
+
+**Context:**
+Extensibility is critical for IDE adoption. Users need language support, custom themes, integration with external tools, and workflow automation. A plugin system must balance capability with security.
+
+**Decision:**
+Implement manifest-based plugin loading:
+- `plugin.json` manifest declares entry points, permissions, and contributions
+- Plugins loaded as ES modules in sandboxed WebView contexts
+- Contribution points: commands, keybindings, context menus, slates, themes
+- Permission system: filesystem (scoped), network (domains), shell (commands)
+
+**Manifest Schema:**
+```json
+{
+  "id": "my-plugin",
+  "version": "1.0.0",
+  "contributions": {
+    "commands": [{ "id": "myCommand", "title": "Run My Command" }],
+    "keybindings": [{ "command": "myCommand", "key": "cmd+shift+m" }],
+    "slates": [{ "id": "mySlate", "name": "My Slate", "icon": "icon.svg" }]
+  },
+  "permissions": {
+    "fs": ["${workspace}/**"],
+    "net": ["api.example.com"],
+    "shell": ["git", "docker"]
+  }
+}
+```
+
+**Consequences:**
+- Declarative permissions enable security review at install time
+- WebView sandboxing prevents plugins from accessing main process
+- ES modules enable modern JavaScript without bundling complexity
+- Plugin API must be stable; breaking changes require major version bumps
+
+**Code locations:** `src/plugins/` (planned)
+
+---
+
+## ADR-011 | GoldfishDB for Structured State Management | Adopted
+
+**Status:** Adopted
+
+**Context:**
+IVDE requires structured state persistence: workspaces, projects, window layouts, and application settings. Raw JSON files lack query capabilities; full SQL is overkill for document-like data.
+
+**Decision:**
+Use GoldfishDB (custom embedded document store):
+- Collection-based (similar to MongoDB but embedded)
+- JSON documents with optional schema validation
+- Indexed queries for common access patterns
+- Automatic synchronization to SQLite backend
+
+**Schema Example:**
+```typescript
+// Workspaces collection
+type Workspace = {
+  id: string;
+  name: string;
+  color: string;
+  visible: boolean;
+  projectIds: string[];
+  windows: WindowConfig[];
+};
+
+// GoldfishDB API
+db.collection('workspaces').insert({...});
+db.collection('workspaces').query({ visible: true });
+db.collection('workspaces').update(id, { name: 'New Name' });
+```
+
+**Consequences:**
+- Document model fits JavaScript/TypeScript data structures naturally
+- Built-in indexing for query performance
+- Automatic persistence reduces boilerplate
+- Migration path to full SQLite if schema complexity increases
+
+**Code locations:** `src/main/goldfishdb/`, `src/main/index.ts` (db usage)
+
+---
+
+**End of ADR Document**

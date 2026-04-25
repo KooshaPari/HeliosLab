@@ -21,3 +21,9 @@ wildcards = "warn"
 [sources]
 unknown-registry = "warn"
 allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+
+# LOW severity advisories deferred pending upstream fixes (2026-04-24 audit)
+# Expires: 2026-07-23
+[[advisories.ignore]]
+advisory = "RUSTSEC-2025-0020"
+reason = "pyo3: LOW severity buffer overflow risk in PyString::from_object. Awaiting upstream patch."
