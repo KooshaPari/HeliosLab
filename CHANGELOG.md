@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.1] - 2026-04-25
+
+### Added
+- FFI test coverage expansion: +17 tests on pheno-ffi-go (lifecycle, flag ops, config, secret encryption, version, memory safety)
+- Cumulative test count: 54 → 71 tests passing
+- W-41 pyo3 0.22.6 arm64 dynamic_lookup auto-resolution confirmed
+
 ## [0.2.0] - 2026-04-25
 
 ### Added
