@@ -51,3 +51,6 @@ phenoctl tui
 - Document Index
 - API
 - Roadmap
+## License
+
+MIT — see [LICENSE](./LICENSE).
