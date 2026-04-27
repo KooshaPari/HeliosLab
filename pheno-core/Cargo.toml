@@ -1,9 +1,0 @@
-[package]
-name = "pheno-core"
-version.workspace = true
-edition.workspace = true
-
-[dependencies]
-chrono = { version = "0.4", features = ["serde"] }
-serde = { version = "1", features = ["derive"] }
-thiserror = "2"

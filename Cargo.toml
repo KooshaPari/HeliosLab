@@ -1,7 +1,0 @@
-[workspace]
-resolver = "2"
-members = ["pheno-core", "pheno-db", "pheno-crypto", "pheno-cli", "crates/pheno-ffi-python", "crates/pheno-ffi-go"]
-
-[workspace.package]
-version = "0.1.1"
-edition = "2021"
