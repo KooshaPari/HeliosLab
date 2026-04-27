@@ -16,6 +16,8 @@ export default defineConfig({
         items: [
           { text: 'Overview', link: '/journeys/' },
           { text: 'Quick Start', link: '/journeys/quick-start' },
+          { text: 'Core Integration', link: '/journeys/core-integration' },
+          { text: 'Production Setup', link: '/journeys/production-setup' },
         ]
       }],
       '/stories/': [{
@@ -23,6 +25,7 @@ export default defineConfig({
         items: [
           { text: 'Overview', link: '/stories/' },
           { text: 'Hello World', link: '/stories/hello-world' },
+          { text: 'Integration', link: '/stories/integration' },
         ]
       }],
       '/traceability/': [{
