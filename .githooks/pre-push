@@ -16,13 +16,30 @@ NC='\033[0m' # No Color
 COVERAGE_THRESHOLD=85
 ERRORS=0
 
-# Get current branch
+# Get current branch and the target refs provided by git pre-push.
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
+TARGET_BRANCHES=()
 
-# Skip checks for specific branches if needed
-if [ "$BRANCH" = "main" ] || [ "$BRANCH" = "master" ]; then
-    echo -e "${YELLOW}⚠️  Pushing to $BRANCH branch - ensure all CI checks pass${NC}"
+while read -r local_ref _local_sha remote_ref _remote_sha; do
+    if [[ "$remote_ref" == refs/heads/* ]]; then
+        TARGET_BRANCHES+=("${remote_ref#refs/heads/}")
+    elif [[ "$local_ref" == refs/heads/* ]]; then
+        TARGET_BRANCHES+=("${local_ref#refs/heads/}")
+    fi
+done
+
+if [ "${#TARGET_BRANCHES[@]}" -eq 0 ] && [ -n "$BRANCH" ]; then
+    TARGET_BRANCHES+=("$BRANCH")
 fi
+
+for target_branch in "${TARGET_BRANCHES[@]}"; do
+    case "$target_branch" in
+        main|master)
+            echo -e "${YELLOW}⚠️  Pushing to $target_branch branch - protected branch checks are enforced in CI${NC}"
+            exit 0
+            ;;
+    esac
+done
 
 # Test 1: Run full test suite
 echo -e "${BLUE}🧪 Running full test suite...${NC}"
