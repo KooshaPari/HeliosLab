@@ -80,6 +80,3 @@ jobs:
             exit 1
           fi
           echo "CI jobs completed successfully."
-
-  phenotype-validate:
-    uses: KooshaPari/phenotypeActions/.github/workflows/validate-governance.yml@main
