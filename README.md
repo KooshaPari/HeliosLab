@@ -1,3 +1,10 @@
+> **Pinned references (Phenotype-org)**
+> - MSRV: see rust-toolchain.toml
+> - cargo-deny config: see deny.toml
+> - cargo-audit: rustsec/audit-check@v2 weekly
+> - Branch protection: 1 reviewer required, no force-push
+> - Authority: phenotype-org-governance/SUPERSEDED.md
+
 # HeliosLab
 
 HeliosLab is a Rust workspace providing comprehensive configuration, feature flags, secrets, and version management for Phenotype projects. The workspace contains six core crates—`pheno-core`, `pheno-db`, `pheno-crypto`, `pheno-cli`, `pheno-ffi-python`, and `pheno-ffi-go`—unified around the `phenoctl` CLI binary (entrypoint: `pheno-cli/src/main.rs`).
