@@ -44,7 +44,7 @@ jobs:
 
       - name: Cache llama.cpp build
         id: cache-check
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
         with:
           path: |
             llama-cli/deps/llama.cpp
@@ -53,7 +53,7 @@ jobs:
             llama-cpp-${{ runner.os }}-
 
       - name: Cache Zig compiler
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
         with:
           path: vendors/zig
           key: zig-${{ runner.os }}-${{ hashFiles('**/versions.env') }}
@@ -89,7 +89,7 @@ jobs:
 
       - name: Restore llama.cpp cache
         id: llama-cache-restore
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
         with:
           path: |
             llama-cli/deps/llama.cpp
@@ -105,7 +105,7 @@ jobs:
           echo "llama.cpp exists: $(test -d llama-cli/deps/llama.cpp && echo 'yes' || echo 'no')"
 
       - name: Restore Zig compiler cache
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
         with:
           path: vendors/zig
           key: zig-${{ runner.os }}-${{ hashFiles('**/versions.env') }}
