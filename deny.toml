@@ -26,4 +26,6 @@ allow = [
 unknown-git = "deny"
 
 [advisories]
-ignore = []
+ignore = [
+    { id = "RUSTSEC-2024-0436", reason = "paste transitive through ratatui. No safe upgrade path." }
+]
