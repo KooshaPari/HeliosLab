@@ -5,13 +5,14 @@
 </template>
 
 <script setup lang="ts">
+// biome-ignore lint/correctness/noUnusedVariables: used in template
 const categories = [
-  { label: 'Wiki', href: '/wiki' },
-  { label: 'Development Guide', href: '/development-guide' },
-  { label: 'Document Index', href: '/document-index' },
-  { label: 'API', href: '/api' },
-  { label: 'Roadmap', href: '/roadmap' },
-]
+	{ label: "Wiki", href: "/wiki" },
+	{ label: "Development Guide", href: "/development-guide" },
+	{ label: "Document Index", href: "/document-index" },
+	{ label: "API", href: "/api" },
+	{ label: "Roadmap", href: "/roadmap" },
+];
 </script>
 
 <style scoped>
