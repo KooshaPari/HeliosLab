@@ -1,3 +1,5 @@
+#![expect(clippy::missing_safety_doc)]
+
 use chrono::Utc;
 use pheno_core::*;
 use pheno_db::Database;
@@ -21,7 +23,9 @@ fn to_cstring(s: &str) -> *mut c_char {
 
 /// Open a database. Returns an opaque handle. Caller must call `pheno_db_close` when done.
 #[no_mangle]
-pub extern "C" fn pheno_db_open(path: *const c_char) -> *mut Database {
+pub unsafe extern "C" fn pheno_db_open(path: *const c_char) -> *mut Database {
+    // SAFETY: `path` must be a valid, null-terminated C string borrowed from Go.
+    // The returned pointer must be freed by the caller via `pheno_db_close`.
     let p = cstr_to_str(path);
     match Database::open(&PathBuf::from(p)) {
         Ok(db) => Box::into_raw(Box::new(db)),
@@ -31,23 +35,26 @@ pub extern "C" fn pheno_db_open(path: *const c_char) -> *mut Database {
 
 /// Close and free a database handle.
 #[no_mangle]
-pub extern "C" fn pheno_db_close(db: *mut Database) {
+pub unsafe extern "C" fn pheno_db_close(db: *mut Database) {
+    // SAFETY: `db` must be a valid pointer returned by `pheno_db_open` and must not be used after this call.
     if !db.is_null() {
-        unsafe { drop(Box::from_raw(db)) };
+        drop(Box::from_raw(db));
     }
 }
 
 /// Free a string returned by any pheno_* function.
 #[no_mangle]
-pub extern "C" fn pheno_string_free(s: *mut c_char) {
+pub unsafe extern "C" fn pheno_string_free(s: *mut c_char) {
+    // SAFETY: `s` must be a valid pointer returned by any pheno_* function and must not be used after this call.
     if !s.is_null() {
-        unsafe { drop(CString::from_raw(s)) };
+        drop(CString::from_raw(s));
     }
 }
 
 /// List flags as JSON array. Caller must free returned string.
 #[no_mangle]
-pub extern "C" fn pheno_flag_list(db: *const Database) -> *mut c_char {
+pub unsafe extern "C" fn pheno_flag_list(db: *const Database) -> *mut c_char {
+    // SAFETY: `db` must be a valid, non-null pointer returned by `pheno_db_open` and must not be used after `pheno_db_close`.
     let db = unsafe { &*db };
     match db.list_flags(NS) {
         Ok(flags) => {
@@ -68,7 +75,9 @@ pub extern "C" fn pheno_flag_list(db: *const Database) -> *mut c_char {
 
 /// Enable a flag by name. Returns 0 on success, -1 on error.
 #[no_mangle]
-pub extern "C" fn pheno_flag_enable(db: *const Database, name: *const c_char) -> i32 {
+pub unsafe extern "C" fn pheno_flag_enable(db: *const Database, name: *const c_char) -> i32 {
+    // SAFETY: `db` must be a valid, non-null pointer returned by `pheno_db_open` and must not be used after `pheno_db_close`.
+    // `name` must be a valid, null-terminated C string.
     let db = unsafe { &*db };
     let name = cstr_to_str(name);
     let mut flag = db.get_flag(NS, name).unwrap_or(FeatureFlag {
@@ -92,7 +101,9 @@ pub extern "C" fn pheno_flag_enable(db: *const Database, name: *const c_char) ->
 
 /// Disable a flag by name. Returns 0 on success, -1 on error.
 #[no_mangle]
-pub extern "C" fn pheno_flag_disable(db: *const Database, name: *const c_char) -> i32 {
+pub unsafe extern "C" fn pheno_flag_disable(db: *const Database, name: *const c_char) -> i32 {
+    // SAFETY: `db` must be a valid, non-null pointer returned by `pheno_db_open` and must not be used after `pheno_db_close`.
+    // `name` must be a valid, null-terminated C string.
     let db = unsafe { &*db };
     let name = cstr_to_str(name);
     let mut flag = match db.get_flag(NS, name) {
@@ -109,7 +120,9 @@ pub extern "C" fn pheno_flag_disable(db: *const Database, name: *const c_char) -
 
 /// Get a config value. Caller must free returned string. Returns NULL if not found.
 #[no_mangle]
-pub extern "C" fn pheno_config_get(db: *const Database, key: *const c_char) -> *mut c_char {
+pub unsafe extern "C" fn pheno_config_get(db: *const Database, key: *const c_char) -> *mut c_char {
+    // SAFETY: `db` must be a valid, non-null pointer returned by `pheno_db_open` and must not be used after `pheno_db_close`.
+    // `key` must be a valid, null-terminated C string.
     let db = unsafe { &*db };
     let key = cstr_to_str(key);
     match db.get_config(NS, key) {
@@ -120,11 +133,13 @@ pub extern "C" fn pheno_config_get(db: *const Database, key: *const c_char) -> *
 
 /// Set a config value. Returns 0 on success, -1 on error.
 #[no_mangle]
-pub extern "C" fn pheno_config_set(
+pub unsafe extern "C" fn pheno_config_set(
     db: *const Database,
     key: *const c_char,
     value: *const c_char,
 ) -> i32 {
+    // SAFETY: `db` must be a valid, non-null pointer returned by `pheno_db_open` and must not be used after `pheno_db_close`.
+    // `key` and `value` must be valid, null-terminated C strings.
     let db = unsafe { &*db };
     let key = cstr_to_str(key);
     let value = cstr_to_str(value);
@@ -144,12 +159,14 @@ pub extern "C" fn pheno_config_set(
 
 /// Set an encrypted secret. Returns 0 on success, -1 on error.
 #[no_mangle]
-pub extern "C" fn pheno_secret_set(
+pub unsafe extern "C" fn pheno_secret_set(
     db: *const Database,
     key: *const c_char,
     plaintext: *const c_char,
     hex_key: *const c_char,
 ) -> i32 {
+    // SAFETY: `db` must be a valid, non-null pointer returned by `pheno_db_open` and must not be used after `pheno_db_close`.
+    // `key`, `plaintext`, and `hex_key` must be valid, null-terminated C strings.
     let db = unsafe { &*db };
     let key = cstr_to_str(key);
     let plaintext = cstr_to_str(plaintext);
@@ -176,11 +193,13 @@ pub extern "C" fn pheno_secret_set(
 
 /// Get a decrypted secret. Caller must free returned string. Returns NULL on error.
 #[no_mangle]
-pub extern "C" fn pheno_secret_get(
+pub unsafe extern "C" fn pheno_secret_get(
     db: *const Database,
     key: *const c_char,
     hex_key: *const c_char,
 ) -> *mut c_char {
+    // SAFETY: `db` must be a valid, non-null pointer returned by `pheno_db_open` and must not be used after `pheno_db_close`.
+    // `key` and `hex_key` must be valid, null-terminated C strings.
     let db = unsafe { &*db };
     let key = cstr_to_str(key);
     let hex_key = cstr_to_str(hex_key);
@@ -200,7 +219,8 @@ pub extern "C" fn pheno_secret_get(
 
 /// List versions as JSON array. Caller must free returned string.
 #[no_mangle]
-pub extern "C" fn pheno_version_show(db: *const Database) -> *mut c_char {
+pub unsafe extern "C" fn pheno_version_show(db: *const Database) -> *mut c_char {
+    // SAFETY: `db` must be a valid, non-null pointer returned by `pheno_db_open` and must not be used after `pheno_db_close`.
     let db = unsafe { &*db };
     match db.list_versions() {
         Ok(versions) => {
