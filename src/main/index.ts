@@ -1,3 +1,4 @@
+import type { Subprocess } from "bun";
 import Electrobun, {
 	ApplicationMenu,
 	BrowserView,
@@ -7,21 +8,25 @@ import Electrobun, {
 	Updater,
 	Utils,
 } from "electrobun";
-
-import { type WorkspaceRPC } from "../renderers/ivde/rpc";
-
-import { basename, dirname, join, relative } from "path";
-import path from "path";
-
-import * as biome from "./peerDependencies/biome";
-import * as bun from "./peerDependencies/bun";
-import * as git from "./peerDependencies/git";
-import * as node from "./peerDependencies/node";
-import * as typescript from "./peerDependencies/typescript";
-
-import { cpSync } from "fs";
-import { copy } from "fs-extra";
+import {
+	cpSync,
+	existsSync,
+	mkdirSync,
+	readdirSync,
+	readFileSync,
+	renameSync,
+	statSync,
+	writeFileSync,
+} from "fs";
 import { writeFile } from "fs/promises";
+import { copy } from "fs-extra";
+import path, { basename, dirname, join, relative } from "path";
+import type { WorkspaceRPC } from "../renderers/ivde/rpc";
+import type {
+	PostMessageShowContextMenu,
+	PreviewFileTreeType,
+} from "../shared/types/types";
+import { makeFileNameSafe } from "../shared/utils/files";
 import {
 	APP_PATH,
 	BIOME_BINARY_PATH,
@@ -31,50 +36,27 @@ import {
 	BUN_PATH,
 	COLAB_DEPS_PATH,
 	COLAB_ENV_PATH,
+	COLAB_GOLDFISHDB_PATH,
 	COLAB_HOME_FOLDER,
-	COLAB_PROJECTS_FOLDER,
 	COLAB_MODELS_PATH,
+	COLAB_PROJECTS_FOLDER,
 	GIT_BINARY_PATH,
 	LLAMA_CPP_BINARY_PATH,
 	TSSERVER_PATH,
 	TYPESCRIPT_PACKAGE_PATH,
 } from "./consts/paths";
-import { formatFile } from "./utils/formatUtils";
-import { tsServerRequest } from "./utils/tsServerUtils";
-import { execSpawnSync } from "./utils/processUtils";
-
-import db, { type CurrentDocumentTypes } from "./goldfishdb/db";
-
-import { COLAB_GOLDFISHDB_PATH } from "./consts/paths";
-import {
-	broadcastToAllWindows,
-	broadcastToAllWindowsInWorkspace,
-	broadcastToWindow,
-	sendToFocusedWindow,
-	setFocusedWindow,
-	clearFocusedWindow,
-	workspaceWindows,
-} from "./workspaceWindows";
-
-import {
-	existsSync,
-	mkdirSync,
-	readFileSync,
-	readdirSync,
-	renameSync,
-	statSync,
-	writeFileSync,
-} from "fs";
-
-import type { Subprocess } from "bun";
-import { type PostMessageShowContextMenu } from "../shared/types/types";
-import type { PreviewFileTreeType } from "../shared/types/types";
-import { makeFileNameSafe } from "../shared/utils/files";
 import {
 	closeProjectDirectoryWatcher,
 	removeProjectDirectoryWatcher,
 	watchProjectDirectories,
 } from "./FileWatcher";
+import db, { type CurrentDocumentTypes } from "./goldfishdb/db";
+import * as biome from "./peerDependencies/biome";
+import * as bun from "./peerDependencies/bun";
+import * as git from "./peerDependencies/git";
+import * as node from "./peerDependencies/node";
+import * as typescript from "./peerDependencies/typescript";
+import { getPackageInfo, pluginManager, searchPlugins } from "./plugins";
 import { track } from "./utils/analytics";
 import {
 	findAllInFolder,
@@ -87,57 +69,68 @@ import {
 	safeTrashFileOrFolder,
 	syncDevlink,
 } from "./utils/fileUtils";
+import { formatFile } from "./utils/formatUtils";
 import {
+	checkGitHubCredentials,
+	getGitConfig,
 	gitAdd,
+	gitAddRemote,
 	gitApply,
+	gitBranch,
 	gitCheckIsRepoInTree,
 	gitCheckIsRepoRoot,
 	gitCheckout,
+	gitCheckoutBranch,
+	gitClone,
 	gitCommit,
 	gitCommitAmend,
-	gitDiff,
-	gitStageHunkFromPatch,
-	gitStageSpecificLines,
-	gitStageMonacoChange,
-	gitUnstageMonacoChange,
+	gitCreateBranch,
 	gitCreatePatchFromLines,
+	gitDeleteBranch,
+	gitDiff,
+	gitFetch,
 	gitLog,
+	gitLogRemoteOnly,
+	gitMergeBase,
+	gitPull,
+	gitPush,
+	gitRemote,
 	gitReset,
 	gitRevert,
+	gitRevList,
 	gitRevParse,
 	gitShow,
+	gitStageHunkFromPatch,
+	gitStageMonacoChange,
+	gitStageSpecificLines,
 	gitStashApply,
 	gitStashCreate,
 	gitStashList,
 	gitStashPop,
 	gitStashShow,
 	gitStatus,
-	initGit,
-	gitClone,
-	gitValidateUrl,
-	gitRemote,
-	gitAddRemote,
-	gitFetch,
-	gitPull,
-	gitPush,
-	gitBranch,
-	gitCheckoutBranch,
-	gitRevList,
-	gitMergeBase,
-	gitLogRemoteOnly,
-	gitCreateBranch,
-	gitDeleteBranch,
 	gitTrackRemoteBranch,
-	getGitConfig,
-	setGitConfig,
-	checkGitHubCredentials,
-	storeGitHubCredentials,
+	gitUnstageMonacoChange,
+	gitValidateUrl,
+	initGit,
 	removeGitHubCredentials,
+	setGitConfig,
+	storeGitHubCredentials,
 } from "./utils/gitUtils";
+import { execSpawnSync } from "./utils/processUtils";
 import { terminalManager } from "./utils/terminalManager";
+import { tsServerRequest } from "./utils/tsServerUtils";
 // import { terminalManagerPty as terminalManager } from "./utils/terminalManagerPty";
 import { getFaviconForUrl } from "./utils/urlUtils";
-import { pluginManager, searchPlugins, getPackageInfo } from "./plugins";
+import {
+	broadcastToAllWindows,
+	broadcastToAllWindowsInWorkspace,
+	broadcastToWindow,
+	clearFocusedWindow,
+	sendToFocusedWindow,
+	setFocusedWindow,
+	workspaceWindows,
+} from "./workspaceWindows";
 
 const localInfo = await Updater.getLocallocalInfo();
 

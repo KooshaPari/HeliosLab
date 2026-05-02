@@ -6,7 +6,7 @@
 	"scripts": {
 		"setup": "bun run scripts/setup-deps.ts",
 		"typecheck": "tsc --noEmit",
-		"lint": "bunx @biomejs/biome check .",
+		"lint": "bunx @biomejs/biome check . --diagnostic-level=error",
 		"test": "bun test --pass-with-no-tests",
 		"build:dev": "bun setup && electrobun build",
 		"dev": "bun setup && electrobun dev",

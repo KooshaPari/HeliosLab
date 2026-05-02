@@ -1,9 +1,9 @@
 {
-  "id": "helioslab-main",
-  "intent": "Demonstrate primary user interaction: HeliosLab: Rust benchmarking framework",
-  "recording": null,
-  "recording_gif": null,
-  "keyframe_count": 0,
-  "passed": false,
-  "steps": []
+	"id": "helioslab-main",
+	"intent": "Demonstrate primary user interaction: HeliosLab: Rust benchmarking framework",
+	"recording": null,
+	"recording_gif": null,
+	"keyframe_count": 0,
+	"passed": false,
+	"steps": []
 }
