@@ -7,6 +7,8 @@
 
 # HeliosLab
 
+[![CI](https://github.com/KooshaPari/HeliosLab/actions/workflows/ci.yml/badge.svg)](https://github.com/KooshaPari/HeliosLab/actions/workflows/ci.yml)
+
 HeliosLab is a Rust workspace providing comprehensive configuration, feature flags, secrets, and version management for Phenotype projects. The workspace contains six core crates—`pheno-core`, `pheno-db`, `pheno-crypto`, `pheno-cli`, `pheno-ffi-python`, and `pheno-ffi-go`—unified around the `phenoctl` CLI binary (entrypoint: `pheno-cli/src/main.rs`).
 
 **Specification & Architecture:**
