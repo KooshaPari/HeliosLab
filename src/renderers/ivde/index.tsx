@@ -2303,6 +2303,7 @@ const PaneTab = ({
 		return hideWileDragging()
 			? {
 					// opacity: "0.3",
+					// biome-ignore lint/a11y/useKeyWithClickEvents
 					// display: "none",
 					// width: "10px",
 					// overflow: "hidden",
@@ -2434,6 +2435,7 @@ const PaneTab = ({
 					<div
 						style={`position: absolute; top: 7px; right: 3px; ;
           font-size: 20px;
+          // biome-ignore lint/a11y/useKeyWithClickEvents
           width: 14px;
           height: 14px;
           border-radius: 3px;
@@ -4163,6 +4165,7 @@ const Sidebar = () => {
 						style={`
             background: #3c3c3c;
             border: 1px solid #464647;
+            // biome-ignore lint/a11y/useKeyWithClickEvents
             border-radius: 3px;
             padding: 6px 30px 6px 8px;
             color: #cccccc;

@@ -442,7 +442,7 @@ class TerminalManager {
 			// But pasted content should never contain EOF (\x04) as it can accidentally close the shell
 			if (data.length > 1) {
 				// Remove \x04 (Ctrl+D/EOF) from pasted content to prevent accidental shell exit
-				data = data.replace(/\x04/g, "");
+								data = data.replace(/\x04/g, "");
 				// If filtering removed all content, nothing to send
 				if (data.length === 0) {
 					return true;

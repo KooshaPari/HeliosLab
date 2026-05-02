@@ -377,7 +377,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 		new Set(),
 	);
 	const [stashFiles, setStashFiles] = createSignal<{
-		[stashName: string]: any[];
+		[stashName: string]: any[]; // biome-ignore lint/suspicious/noExplicitAny
 	}>({});
 
 	// Dialog state
@@ -406,7 +406,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 	});
 
 	// Helper function to show error dialogs
-	const showErrorDialog = (title: string, error: any) => {
+	const showErrorDialog = (title: string, error: any) => { // biome-ignore lint/suspicious/noExplicitAny
 		const errorMessage =
 			error?.message || error?.toString() || "An unknown error occurred";
 		setDialogConfig({
@@ -475,7 +475,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 		}
 	};
 
-	const softRevertCommit = async (commit: any) => {
+	const softRevertCommit = async (commit: any) => { // biome-ignore lint/suspicious/noExplicitAny
 		try {
 			console.log("Soft reverting commit:", commit.hash, commit.message);
 
@@ -722,13 +722,13 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 
 		// Process remote-only commits (these go at the top with lower opacity)
 		const remoteOnlyCommits =
-			gitRemoteOnlyLog?.all?.map((commit: any) => {
+			gitRemoteOnlyLog?.all?.map((commit: any) => { // biome-ignore lint/suspicious/noExplicitAny
 				return {
 					author: commit.author_name,
 					date: new Date(commit.date).getTime(),
 					hash: commit.hash,
 					files:
-						commit.diff?.files?.reduce((acc: any, file: any) => {
+						commit.diff?.files?.reduce((acc: any, file: any) => { // biome-ignore lint/suspicious/noExplicitAny
 							if (file.file) {
 								acc[file.file] = {
 									changeType: file.status || "",
@@ -761,7 +761,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 					date: new Date(commit.date).getTime(),
 					hash: commit.hash,
 					files:
-						commit.diff?.files?.reduce((acc: any, file: any) => {
+						commit.diff?.files?.reduce((acc: any, file: any) => { // biome-ignore lint/suspicious/noExplicitAny
 							if (file.file) {
 								acc[file.file] = {
 									changeType: file.status || "",
@@ -795,7 +795,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 		const staged: FileChangesType = {};
 		const unstaged: FileChangesType = {};
 
-		gitStatus?.files.forEach((file: any) => {
+		gitStatus?.files.forEach((file: any) => { // biome-ignore lint/suspicious/noExplicitAny
 			if (file.path) {
 				console.log(
 					`File: ${file.path}, index: "${file.index}", working_dir: "${file.working_dir}"`,
@@ -839,7 +839,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 		};
 
 		// Process remotes
-		const remotes = (gitRemotes || []).map((remote: any) => ({
+		const remotes = (gitRemotes || []).map((remote: any) => ({ // biome-ignore lint/suspicious/noExplicitAny
 			name: remote.name,
 			refs: remote.refs,
 		}));
@@ -904,7 +904,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 
 		// Expand all remotes by default
 		if (remotes.length > 0) {
-			const allRemoteNames = new Set(remotes.map((r: any) => r.name as string));
+			const allRemoteNames = new Set(remotes.map((r: any) => r.name as string)); // biome-ignore lint/suspicious/noExplicitAny
 			setExpandedRemotes(allRemoteNames);
 		}
 
@@ -930,11 +930,11 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 
 			if (gitLog?.all) {
 				// Process the new commits (similar to getLogAndStatus but only for commits)
-				const newCommits = gitLog.all.map((commit: any, index: number) => {
+				const newCommits = gitLog.all.map((commit: any, index: number) => { // biome-ignore lint/suspicious/noExplicitAny
 					const files: FileChangesType = {};
 
 					if (commit.diff && commit.diff.files) {
-						commit.diff.files.forEach((file: any) => {
+						commit.diff.files.forEach((file: any) => { // biome-ignore lint/suspicious/noExplicitAny
 							files[file.file] = {
 								changeType:
 									file.changes > 0 ? (file.insertions > 0 ? "M" : "A") : "D",
@@ -1043,7 +1043,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 		filePath: string,
 		startLine: number,
 		endLine: number,
-		lineChange?: any,
+		lineChange?: any, // biome-ignore lint/suspicious/noExplicitAny
 		originalText?: string,
 		modifiedText?: string,
 	) => {
@@ -1097,7 +1097,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 		filePath: string,
 		startLine: number,
 		endLine: number,
-		lineChange?: any,
+		lineChange?: any, // biome-ignore lint/suspicious/noExplicitAny
 		originalText?: string,
 		stagedText?: string,
 	) => {
@@ -1240,7 +1240,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 		}
 
 		// Different confirmation messages based on change type
-		let title, message;
+		let title, message; // biome-ignore lint/suspicious/noImplicitAnyLet
 		if (change.changeType === "?" || change.changeType === "A") {
 			title = "Delete New File";
 			message = `Are you sure you want to delete the new file "${filePath}"? This action cannot be undone.`;

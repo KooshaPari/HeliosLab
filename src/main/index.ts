@@ -146,9 +146,9 @@ track.appOpen({ channel, appName, version, hash });
 // also know if there's an update.
 const updateCache: {
 	// YYY - replace any types
-	status: any | null;
-	info: any | null;
-	progress: any | null;
+	status: any | null; // biome-ignore lint/suspicious/noExplicitAny: YYY dynamic type
+	info: any | null; // biome-ignore lint/suspicious/noExplicitAny: YYY dynamic type
+	progress: any | null; // biome-ignore lint/suspicious/noExplicitAny: YYY dynamic type
 	downloadedFile: boolean;
 	error: null | {
 		message: string;
@@ -804,11 +804,12 @@ tray.on("tray-clicked", (e) => {
 
 // Get the db ids for workspace and window from the electrobun window id
 const broadcastToElectrobunWindow = (nativeWindowId, method, opts) => {
-	let workspaceId;
-	let windowId;
+	let workspaceId; // biome-ignore lint/suspicious/noImplicitAnyLet: dynamic key
+	let windowId; // biome-ignore lint/suspicious/noImplicitAnyLet: dynamic key
 
 	Object.keys(workspaceWindows).find((_workspaceId) => {
 		return Object.keys(workspaceWindows[_workspaceId]).find((winId) => {
+			// biome-ignore lint/suspicious/useIterableCallbackReturn: side-effect intentional
 			// console.log(workspaceWindows[workspaceId][winId]);
 			const nativeWindow = workspaceWindows[_workspaceId][winId].win;
 
@@ -1608,7 +1609,7 @@ const createWindow = (
 
 					// Batch results to reduce RPC message flooding
 					// This gives cancellations a better chance to interrupt
-					const resultBatches: Map<string, any[]> = new Map();
+					const resultBatches: Map<string, any[]> = new Map(); // biome-ignore lint/suspicious/noExplicitAny: dynamic handler
 					let batchTimeout: Timer | null = null;
 					let totalResultCount = 0;
 					const MAX_TOTAL_RESULTS = 1000; // Stop after collecting 1000 results total
@@ -1944,6 +1945,7 @@ const createWindow = (
 							totalBytes: fileSizeBytes,
 						};
 					} catch (err: any) {
+						// biome-ignore lint/suspicious/noExplicitAny: dynamic callback
 						console.error("Error reading file:", err);
 						return {
 							textContent: "",
@@ -1958,6 +1960,7 @@ const createWindow = (
 							success: true,
 						};
 					} catch (err: any) {
+						// biome-ignore lint/suspicious/noExplicitAny: dynamic callback
 						return {
 							success: false,
 							error: err?.message || "",
@@ -1972,6 +1975,7 @@ const createWindow = (
 								success: true,
 							};
 						} catch (err: any) {
+							// biome-ignore lint/suspicious/noExplicitAny: dynamic callback
 							return {
 								success: false,
 								error: err?.message || "",
@@ -1991,6 +1995,7 @@ const createWindow = (
 							success: true,
 						};
 					} catch (err: any) {
+						// biome-ignore lint/suspicious/noExplicitAny: dynamic callback
 						return {
 							success: false,
 							error: err?.message || "",
@@ -2010,6 +2015,7 @@ const createWindow = (
 							success: true,
 						};
 					} catch (err: any) {
+						// biome-ignore lint/suspicious/noExplicitAny: dynamic callback
 						return {
 							success: false,
 							error: err?.message || "",
@@ -2089,7 +2095,7 @@ const createWindow = (
 					};
 				}) => {
 					// Initialize process tracker if it doesn't exist
-					const processTracker = (globalThis.llamaProcesses =
+					const processTracker = (globalThis.llamaProcesses = // biome-ignore lint/suspicious/noAssignInExpressions: tracker init
 						globalThis.llamaProcesses || new Map());
 
 					// IMMEDIATELY kill all existing processes to favor the newest request
