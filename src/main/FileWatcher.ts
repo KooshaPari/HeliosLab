@@ -10,14 +10,19 @@ import {
 } from "./workspaceWindows";
 
 const directoryWatchers: { [projectId: string]: FSWatcher | null } = {};
+const directoryWatchFailures: {
+  [projectId: string]: { path: string; code?: string } | null;
+} = {};
 
 export const closeProjectDirectoryWatcher = (projectId: string) => {
   directoryWatchers[projectId]?.close();
+  directoryWatchers[projectId] = null;
 };
 
 export const removeProjectDirectoryWatcher = (projectId: string) => {
   closeProjectDirectoryWatcher(projectId);
   directoryWatchers[projectId] = null;
+  directoryWatchFailures[projectId] = null;
   // Note: typically when removing we moved folders around so we want to make sure
   // that we're watching all the directories we need to as well, possibly for the same project.
   // This is like a refresh
@@ -36,10 +41,15 @@ export const watchProjectDirectories = () => {
     const projectId = project.id;
 
     const fileWatcher = directoryWatchers[String(projectId)];
+    const watchFailure = directoryWatchFailures[String(projectId)];
     // TODO: consider moving to project create/edit
     const projectDirectory =
       project.path ||
       join(COLAB_HOME_FOLDER, makeFileNameSafe(project.name || project.id));
+
+    if (watchFailure && watchFailure.path !== projectDirectory) {
+      directoryWatchFailures[String(projectId)] = null;
+    }
 
     if (!existsSync(projectDirectory)) {
       // TODO: create the project directory now, but move to add/edit when choosing a project path in the future just exit here
@@ -62,64 +72,101 @@ export const watchProjectDirectories = () => {
     // Add a fileWatcher for each project whenever projects are added
 
     if (!fileWatcher) {
-      const fileWatcher = watch(
-        projectDirectory,
-        { recursive: true },
-        (eventType, relativePath) => {
-          /* Notes:
-              Rename:
-                * A file rename triggers this twice, once for the old filepath and once for the new filepath
-              Move:
-                * Same for file moves
+      if (watchFailure?.path === projectDirectory) {
+        continue;
+      }
 
-            */
-          if (!relativePath) {
-            console.log("fileWatcher relative path empty: ", relativePath);
-            return;
-          }
+      try {
+        const fileWatcher = watch(
+          projectDirectory,
+          { recursive: true },
+          (eventType, relativePath) => {
+            /* Notes:
+                Rename:
+                  * A file rename triggers this twice, once for the old filepath and once for the new filepath
+                Move:
+                  * Same for file moves
 
-          const absolutePath = join(projectDirectory, relativePath);
-          // file was removed (or moved or renamed to something else)
-          const exists = existsSync(absolutePath);
-          const isDelete = eventType === "rename" && !exists;
-          const isAdding = eventType === "rename" && exists;
-          const projectWasDeleted =
-            isDelete && projectDirectory === absolutePath;
-
-          if (projectWasDeleted) {
-            // stop watching the folder
-            fileWatcher.close();
-            directoryWatchers[projectId] = null;
-            return;
-          }
-
-          // Ignore node_modules to prevent performance issues during npm/bun install
-          if (absolutePath.includes("/node_modules/")) {
-            return;
-          }
-
-          let stat = null;
-          if (exists) {
-            try {
-              stat = statSync(absolutePath);
-            } catch {
-              // File may have been deleted between the watch event and statSync
+              */
+            if (!relativePath) {
+              console.log("fileWatcher relative path empty: ", relativePath);
               return;
             }
+
+            const absolutePath = join(projectDirectory, relativePath);
+            // file was removed (or moved or renamed to something else)
+            const exists = existsSync(absolutePath);
+            const isDelete = eventType === "rename" && !exists;
+            const isAdding = eventType === "rename" && exists;
+            const projectWasDeleted =
+              isDelete && projectDirectory === absolutePath;
+
+            if (projectWasDeleted) {
+              // stop watching the folder
+              fileWatcher.close();
+              directoryWatchers[projectId] = null;
+              return;
+            }
+
+            // Ignore node_modules to prevent performance issues during npm/bun install
+            if (absolutePath.includes("/node_modules/")) {
+              return;
+            }
+
+            let stat = null;
+            if (exists) {
+              try {
+                stat = statSync(absolutePath);
+              } catch {
+                // File may have been deleted between the watch event and statSync
+                return;
+              }
+            }
+
+            broadcastToAllWindowsInWorkspace(workspaceId, "fileWatchEvent", {
+              absolutePath,
+              exists,
+              isDelete,
+              isAdding,
+              isFile: Boolean(stat?.isFile()),
+              isDir: Boolean(stat?.isDirectory()),
+            });
           }
+        );
 
-          broadcastToAllWindowsInWorkspace(workspaceId, "fileWatchEvent", {
-            absolutePath,
-            exists,
-            isDelete,
-            isAdding,
-            isFile: Boolean(stat?.isFile()),
-            isDir: Boolean(stat?.isDirectory()),
-          });
-        }
-      );
+        fileWatcher.on("error", (error) => {
+          const code =
+            typeof (error as NodeJS.ErrnoException | undefined)?.code === "string"
+              ? (error as NodeJS.ErrnoException).code
+              : undefined;
+          console.warn(
+            `[FileWatcher] Watcher error for ${projectDirectory}${code ? ` (${code})` : ""}:`,
+            error,
+          );
+          directoryWatchers[projectId] = null;
+          directoryWatchFailures[projectId] = {
+            path: projectDirectory,
+            code,
+          };
+        });
 
-      directoryWatchers[project.id] = fileWatcher;
+        directoryWatchers[project.id] = fileWatcher;
+        directoryWatchFailures[project.id] = null;
+      } catch (error) {
+        const code =
+          typeof (error as NodeJS.ErrnoException | undefined)?.code === "string"
+            ? (error as NodeJS.ErrnoException).code
+            : undefined;
+        console.warn(
+          `[FileWatcher] Skipping watch for ${projectDirectory}${code ? ` (${code})` : ""}:`,
+          error,
+        );
+        directoryWatchers[projectId] = null;
+        directoryWatchFailures[projectId] = {
+          path: projectDirectory,
+          code,
+        };
+      }
     }
   }
 };

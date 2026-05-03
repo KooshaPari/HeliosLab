@@ -1623,7 +1623,7 @@ const createWindow = (
 					const flushBatches = () => {
 						resultBatches.forEach((results, projectId) => {
 							if (results.length > 0) {
-								mainWindow.webview.rpc?.send("findAllInFolderResult", {
+								sendToMainWindow("findAllInFolderResult", {
 									query,
 									projectId,
 									results,
@@ -1661,7 +1661,7 @@ const createWindow = (
 
 								// Send first result immediately for instant feedback
 								if (batch.length === 1 && !batchTimeout) {
-									mainWindow.webview.rpc?.send("findAllInFolderResult", {
+									sendToMainWindow("findAllInFolderResult", {
 										query,
 										projectId,
 										results: [...batch],
@@ -1672,7 +1672,7 @@ const createWindow = (
 
 								// Send batches every 100ms or when batch reaches 50 results
 								if (batch.length >= 50) {
-									mainWindow.webview.rpc?.send("findAllInFolderResult", {
+									sendToMainWindow("findAllInFolderResult", {
 										query,
 										projectId,
 										results: [...batch],
@@ -1725,7 +1725,7 @@ const createWindow = (
 							}
 
 							return findFilesInFolder(project.path, query, (result) => {
-								mainWindow.webview.rpc?.send("findFilesInWorkspaceResult", {
+								sendToMainWindow("findFilesInWorkspaceResult", {
 									query,
 									projectId: projectId,
 									results: [result],
@@ -3035,9 +3035,25 @@ const createWindow = (
 		setFocusedWindow(workspaceId, windowId);
 	});
 
+	const sendToMainWindow = (type: string, data: any) => {
+		const webview = mainWindow.webview;
+		if (!webview?.ptr || !webview?.rpc) {
+			return;
+		}
+
+		try {
+			(webview.rpc as any).send(type, data);
+		} catch (error) {
+			console.error(
+				`[main] Failed to send ${type} to window ${windowId}`,
+				error,
+			);
+		}
+	};
+
 	// Set up terminal manager message handler for this window
 	terminalManager.setWindowMessageHandler(windowId, (message) => {
-		mainWindow.webview.rpc?.send(message.type, {
+		sendToMainWindow(message.type, {
 			terminalId: message.terminalId,
 			data: message.data,
 			exitCode: message.exitCode,
@@ -3047,14 +3063,14 @@ const createWindow = (
 
 	// Set up slate render message handler for plugin slates
 	pluginManager.setSlateWindowMessageHandler((targetWindowId, message) => {
-		if (targetWindowId === windowId && mainWindow.webview.rpc) {
+		if (targetWindowId === windowId) {
 			const slateMessage = message as {
 				type: string;
 				instanceId: string;
 				html?: string;
 				script?: string;
 			};
-			mainWindow.webview.rpc.send("slateRender", {
+			sendToMainWindow("slateRender", {
 				instanceId: slateMessage.instanceId,
 				html: slateMessage.html,
 				script: slateMessage.script,
@@ -3196,7 +3212,14 @@ const createWindow = (
 			return;
 		}
 
-		watchProjectDirectories();
+		try {
+			watchProjectDirectories();
+		} catch (error) {
+			console.warn(
+				"[main] Failed to refresh project directory watchers:",
+				error,
+			);
+		}
 
 		const { data: projects } = db.collection("projects").query({
 			where: (project) => Boolean(workspace.projectIds?.includes(project.id)),

@@ -29,6 +29,19 @@ export const clearFocusedWindow = (workspaceId: string, windowId: string) => {
 
 export const getFocusedWindow = () => focusedWindowInfo;
 
+const safeSendToWindow = (win: any, type: string, data: any) => {
+  const webview = win?.webview;
+  if (!webview?.ptr || !webview?.rpc) {
+    return;
+  }
+
+  try {
+    webview.rpc.send(type, data);
+  } catch (error) {
+    console.error(`Failed to send ${type} to window webview`, error);
+  }
+};
+
 export const broadcastToAllWindowsInWorkspace = (
   workspaceId: string,
   type: string,
@@ -39,7 +52,7 @@ export const broadcastToAllWindowsInWorkspace = (
   for (const windowId in activeWorkspaceWindows) {
     const { win } = activeWorkspaceWindows[windowId];
 
-    win.webview?.rpc.send(type, data);
+    safeSendToWindow(win, type, data);
   }
 };
 
@@ -57,7 +70,7 @@ export const broadcastToWindow = (
 ) => {
   const activeWorkspaceWindows = workspaceWindows[workspaceId];
   const { win } = activeWorkspaceWindows[windowId];
-  win.webview?.rpc.send(type, data);
+  safeSendToWindow(win, type, data);
 };
 
 // Send message to only the focused window, or fall back to all windows if none focused
@@ -68,7 +81,7 @@ export const sendToFocusedWindow = (type: string, data: any) => {
     const activeWorkspaceWindows = workspaceWindows[workspaceId];
     if (activeWorkspaceWindows?.[windowId]) {
       console.log(`sendToFocusedWindow: sending to workspace=${workspaceId}, window=${windowId}`);
-      activeWorkspaceWindows[windowId].win.webview?.rpc.send(type, data);
+      safeSendToWindow(activeWorkspaceWindows[windowId].win, type, data);
       return;
     }
   }

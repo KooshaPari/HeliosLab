@@ -19,6 +19,7 @@ export default {
         },
         "copy": {
             "src/renderers/ivde/index.html": "views/ivde/index.html",
+            "src/renderers/ivde/styles/": "views/ivde/styles/",
             "assets/custom.editor.worker.js": "views/ivde/custom.editor.worker.js",
             "assets/": "views/assets/",
             "node_modules/@xterm/xterm/css/xterm.css": "views/ivde/xterm.css",
@@ -49,5 +50,4 @@ export default {
         "baseUrl": "https://colab-releases.blackboard.sh/"
     }
 } satisfies ElectrobunConfig;
-
 
