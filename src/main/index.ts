@@ -139,7 +139,7 @@ import { terminalManager } from "./utils/terminalManager";
 import { getFaviconForUrl } from "./utils/urlUtils";
 import { pluginManager, searchPlugins, getPackageInfo } from "./plugins";
 
-const localInfo = await Updater.getLocallocalInfo();
+const localInfo = await Updater.getLocalInfo();
 
 const channel = localInfo.channel;
 const appName = localInfo.name;
