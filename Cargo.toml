@@ -3,5 +3,6 @@ resolver = "2"
 members = ["pheno-core", "pheno-db", "pheno-crypto", "pheno-cli", "crates/pheno-ffi-python", "crates/pheno-ffi-go"]
 
 [workspace.package]
+license = "MIT OR Apache-2.0"
 version = "0.1.1"
 edition = "2021"
