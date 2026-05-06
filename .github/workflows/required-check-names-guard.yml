@@ -1,4 +1,8 @@
 name: required-check-names-guard
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 
 on:
   pull_request:

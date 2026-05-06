@@ -1,4 +1,8 @@
 name: Build and Release
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 
 # CACHE WARMING NOTE:
 # GitHub caches are scoped by branch/ref. Tags cannot share caches with each other.
