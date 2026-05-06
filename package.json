@@ -40,6 +40,10 @@
 	],
 	"author": "Blackboard Technologies Inc.",
 	"license": "MIT",
+	"engines": {
+		"node": ">=18",
+		"bun": ">=1.0"
+	},
 	"bugs": {
 		"url": "https://github.com/blackboardsh/colab/issues"
 	},
