@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"
+     role="img" aria-label="chart-bar-outline" focusable="false">
+  <title>chart-bar-outline</title>
+  <desc>Bar chart icon representing analytics and data visualization</desc>
+  <path d="M4 20h16" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" fill="none" />
+  <path d="M4 20V10" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" fill="none" />
+  <path d="M9 20V4" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" fill="none" />
+  <path d="M14 20V8" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" fill="none" />
+  <path d="M19 20V12" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" fill="none" />
+</svg>

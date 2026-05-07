@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"
+     role="img" aria-label="database" focusable="false">
+  <title>database</title>
+  <desc>Database icon representing data storage and management</desc>
+  <path d="M12 2C6.477 2 2 6.145 2 12c0 5.855 4.477 10 10 10" stroke="currentColor" stroke-width="1.5"
+        stroke-linecap="round" stroke-linejoin="round" fill="none" />
+  <path d="M12 2c5.523 0 10 4.145 10 10s-4.477 10-10 10" stroke="currentColor" stroke-width="1.5"
+        stroke-linecap="round" stroke-linejoin="round" fill="none" />
+  <path d="M2 7c0-2.762 4.477-5 10-5s10 2.238 10 5" stroke="currentColor" stroke-width="1.5"
+        stroke-linecap="round" stroke-linejoin="round" fill="none" />
+  <path d="M2 12c0 2.762 4.477 5 10 5s10-2.238 10-5" stroke="currentColor" stroke-width="1.5"
+        stroke-linecap="round" stroke-linejoin="round" fill="none" />
+</svg>
