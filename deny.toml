@@ -21,7 +21,11 @@ allow = [
     "Unlicense",
     "WTFPL",
 ]
-
+[bans]
+multiple-versions = "warn"
+wildcards = "deny"
+highlight = "all"
+workspace-default-features = "warn"
 [sources]
 unknown-git = "deny"
 
