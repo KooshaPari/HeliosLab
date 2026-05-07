@@ -54,3 +54,4 @@ worktrees/
 .worktrees/
 .claude/worktrees/
 Cargo.lock
+Cargo.lock
