@@ -28,7 +28,7 @@ on:
 
 jobs:
   build-deps:
-    runs-on: macos-15  # GitHub-hosted Apple Silicon runner
+    runs-on: ubuntu-latest
     outputs:
       cache-hit: ${{ steps.cache-check.outputs.cache-hit }}
 
@@ -73,7 +73,7 @@ jobs:
 
   build:
     needs: build-deps
-    runs-on: macos-15  # GitHub-hosted Apple Silicon runner
+    runs-on: ubuntu-latest
     # Only run full build on tag pushes, not on main branch cache-warming runs
     if: startsWith(github.ref, 'refs/tags/')
 
