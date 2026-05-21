@@ -1,6 +1,6 @@
 import type { FileNodeType } from "../../shared/types/types";
-import { getNode } from "./FileWatcher";
 import { join } from "../utils/pathUtils";
+import { getNode } from "./FileWatcher";
 
 type RepoCloneWatcherArgs = {
 	previewNode: FileNodeType;

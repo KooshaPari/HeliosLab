@@ -6,6 +6,8 @@ use pyo3::prelude::*;
 use std::path::PathBuf;
 use std::sync::Mutex;
 
+type AuditRecord = (i64, Option<String>, String, String, String);
+
 fn to_pyerr(e: pheno_core::Error) -> PyErr {
     PyRuntimeError::new_err(e.to_string())
 }
@@ -69,7 +71,7 @@ impl PhenoConfig {
         self.db.lock().delete_config(&self.namespace, &key).map_err(to_pyerr)
     }
 
-    fn audit(&self, key: String) -> PyResult<Vec<(i64, Option<String>, String, String, String)>> {
+    fn audit(&self, key: String) -> PyResult<Vec<AuditRecord>> {
         let records = self.db.lock().audit_log(&self.namespace, &key).map_err(to_pyerr)?;
         Ok(records
             .iter()

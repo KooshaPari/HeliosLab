@@ -64,10 +64,11 @@ impl std::str::FromStr for ValueType {
 }
 
 /// The 16 lifecycle stages, ordered from earliest to latest.
+#[allow(clippy::upper_case_acronyms)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub enum Stage {
     SP,  // Specification / Planning
-    POC, // Proof of Concept
+    Poc, // Proof of Concept
     IP,  // Initial Prototype
     A,   // Alpha
     FP,  // Feature Preview
@@ -76,19 +77,19 @@ pub enum Stage {
     CN,  // Canary
     RC,  // Release Candidate
     GA,  // General Availability
-    LTS, // Long-Term Support
+    Lts, // Long-Term Support
     HF,  // Hotfix
     SS,  // Sunset / Stability-only
-    DEP, // Deprecated
+    Dep, // Deprecated
     AR,  // Archived
-    EOL, // End of Life
+    Eol, // End of Life
 }
 
 impl Stage {
     pub const ALL: &'static [Stage] = &[
-        Stage::SP, Stage::POC, Stage::IP, Stage::A, Stage::FP, Stage::B,
-        Stage::EP, Stage::CN, Stage::RC, Stage::GA, Stage::LTS, Stage::HF,
-        Stage::SS, Stage::DEP, Stage::AR, Stage::EOL,
+        Stage::SP, Stage::Poc, Stage::IP, Stage::A, Stage::FP, Stage::B,
+        Stage::EP, Stage::CN, Stage::RC, Stage::GA, Stage::Lts, Stage::HF,
+        Stage::SS, Stage::Dep, Stage::AR, Stage::Eol,
     ];
 
     pub fn ordinal(self) -> usize {
@@ -100,7 +101,7 @@ impl Stage {
     }
 
     pub fn is_production(self) -> bool {
-        matches!(self, Stage::GA | Stage::LTS | Stage::HF)
+        matches!(self, Stage::GA | Stage::Lts | Stage::HF)
     }
 
     pub fn allows_flag_gated(self) -> bool {
@@ -117,12 +118,12 @@ impl Stage {
 impl fmt::Display for Stage {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", match self {
-            Stage::SP => "SP", Stage::POC => "POC", Stage::IP => "IP",
+            Stage::SP => "SP", Stage::Poc => "POC", Stage::IP => "IP",
             Stage::A => "A", Stage::FP => "FP", Stage::B => "B",
             Stage::EP => "EP", Stage::CN => "CN", Stage::RC => "RC",
-            Stage::GA => "GA", Stage::LTS => "LTS", Stage::HF => "HF",
-            Stage::SS => "SS", Stage::DEP => "DEP", Stage::AR => "AR",
-            Stage::EOL => "EOL",
+            Stage::GA => "GA", Stage::Lts => "LTS", Stage::HF => "HF",
+            Stage::SS => "SS", Stage::Dep => "DEP", Stage::AR => "AR",
+            Stage::Eol => "EOL",
         })
     }
 }
@@ -131,12 +132,12 @@ impl std::str::FromStr for Stage {
     type Err = Error;
     fn from_str(s: &str) -> Result<Self> {
         match s {
-            "SP" => Ok(Stage::SP), "POC" => Ok(Stage::POC), "IP" => Ok(Stage::IP),
+            "SP" => Ok(Stage::SP), "POC" => Ok(Stage::Poc), "IP" => Ok(Stage::IP),
             "A" => Ok(Stage::A), "FP" => Ok(Stage::FP), "B" => Ok(Stage::B),
             "EP" => Ok(Stage::EP), "CN" => Ok(Stage::CN), "RC" => Ok(Stage::RC),
-            "GA" => Ok(Stage::GA), "LTS" => Ok(Stage::LTS), "HF" => Ok(Stage::HF),
-            "SS" => Ok(Stage::SS), "DEP" => Ok(Stage::DEP), "AR" => Ok(Stage::AR),
-            "EOL" => Ok(Stage::EOL),
+            "GA" => Ok(Stage::GA), "LTS" => Ok(Stage::Lts), "HF" => Ok(Stage::HF),
+            "SS" => Ok(Stage::SS), "DEP" => Ok(Stage::Dep), "AR" => Ok(Stage::AR),
+            "EOL" => Ok(Stage::Eol),
             _ => Err(Error::Other(format!("unknown stage: {s}"))),
         }
     }
@@ -289,9 +290,9 @@ mod tests {
     fn test_stage_ordinal_ordering() {
         // Traces to: FR-CORE-001
         assert!(Stage::SP.ordinal() < Stage::GA.ordinal());
-        assert!(Stage::GA.ordinal() < Stage::EOL.ordinal());
+        assert!(Stage::GA.ordinal() < Stage::Eol.ordinal());
         assert_eq!(Stage::SP.ordinal(), 0);
-        assert_eq!(Stage::EOL.ordinal(), 15);
+        assert_eq!(Stage::Eol.ordinal(), 15);
     }
 
     #[test]
@@ -304,24 +305,24 @@ mod tests {
     fn test_stage_is_pre_release() {
         // Traces to: FR-CORE-002
         assert!(Stage::SP.is_pre_release());
-        assert!(Stage::POC.is_pre_release());
+        assert!(Stage::Poc.is_pre_release());
         assert!(Stage::B.is_pre_release());
         assert!(Stage::RC.is_pre_release());
         // GA and beyond are NOT pre-release
         assert!(!Stage::GA.is_pre_release());
-        assert!(!Stage::LTS.is_pre_release());
-        assert!(!Stage::EOL.is_pre_release());
+        assert!(!Stage::Lts.is_pre_release());
+        assert!(!Stage::Eol.is_pre_release());
     }
 
     #[test]
     fn test_stage_is_production() {
         // Traces to: FR-CORE-002
         assert!(Stage::GA.is_production());
-        assert!(Stage::LTS.is_production());
+        assert!(Stage::Lts.is_production());
         assert!(Stage::HF.is_production());
         assert!(!Stage::RC.is_production());
         assert!(!Stage::B.is_production());
-        assert!(!Stage::DEP.is_production());
+        assert!(!Stage::Dep.is_production());
     }
 
     #[test]
@@ -331,7 +332,7 @@ mod tests {
         assert!(Stage::RC.allows_flag_gated());
         // GA does NOT allow flag-gated (RC is the cutoff)
         assert!(!Stage::GA.allows_flag_gated());
-        assert!(!Stage::LTS.allows_flag_gated());
+        assert!(!Stage::Lts.allows_flag_gated());
     }
 
     #[test]
@@ -348,9 +349,9 @@ mod tests {
     fn test_stage_display() {
         // Traces to: FR-CORE-001
         assert_eq!(Stage::GA.to_string(), "GA");
-        assert_eq!(Stage::POC.to_string(), "POC");
-        assert_eq!(Stage::EOL.to_string(), "EOL");
-        assert_eq!(Stage::LTS.to_string(), "LTS");
+        assert_eq!(Stage::Poc.to_string(), "POC");
+        assert_eq!(Stage::Eol.to_string(), "EOL");
+        assert_eq!(Stage::Lts.to_string(), "LTS");
     }
 
     #[test]
@@ -358,8 +359,8 @@ mod tests {
         // Traces to: FR-CORE-001
         assert_eq!(Stage::from_str("SP").unwrap(), Stage::SP);
         assert_eq!(Stage::from_str("GA").unwrap(), Stage::GA);
-        assert_eq!(Stage::from_str("EOL").unwrap(), Stage::EOL);
-        assert_eq!(Stage::from_str("LTS").unwrap(), Stage::LTS);
+        assert_eq!(Stage::from_str("EOL").unwrap(), Stage::Eol);
+        assert_eq!(Stage::from_str("LTS").unwrap(), Stage::Lts);
     }
 
     #[test]
@@ -437,7 +438,7 @@ mod tests {
     #[test]
     fn test_flag_gated_valid_at_pre_release_stages() {
         // Traces to: FR-CORE-005
-        for &stage in &[Stage::SP, Stage::POC, Stage::IP, Stage::A, Stage::FP, Stage::B, Stage::EP, Stage::CN, Stage::RC] {
+        for &stage in &[Stage::SP, Stage::Poc, Stage::IP, Stage::A, Stage::FP, Stage::B, Stage::EP, Stage::CN, Stage::RC] {
             assert!(
                 TransienceClass::F.valid_at_stage(stage),
                 "F should be valid at stage {:?}", stage
@@ -448,7 +449,7 @@ mod tests {
     #[test]
     fn test_flag_gated_invalid_at_production_stages() {
         // Traces to: FR-CORE-005
-        for &stage in &[Stage::GA, Stage::LTS, Stage::HF, Stage::SS, Stage::DEP, Stage::AR, Stage::EOL] {
+        for &stage in &[Stage::GA, Stage::Lts, Stage::HF, Stage::SS, Stage::Dep, Stage::AR, Stage::Eol] {
             assert!(
                 !TransienceClass::F.valid_at_stage(stage),
                 "F should NOT be valid at stage {:?}", stage
@@ -459,7 +460,7 @@ mod tests {
     #[test]
     fn test_compile_gated_valid_up_to_beta() {
         // Traces to: FR-CORE-005
-        for &stage in &[Stage::SP, Stage::POC, Stage::IP, Stage::A, Stage::FP, Stage::B] {
+        for &stage in &[Stage::SP, Stage::Poc, Stage::IP, Stage::A, Stage::FP, Stage::B] {
             assert!(
                 TransienceClass::C.valid_at_stage(stage),
                 "C should be valid at stage {:?}", stage
@@ -470,7 +471,7 @@ mod tests {
     #[test]
     fn test_compile_gated_invalid_after_beta() {
         // Traces to: FR-CORE-005
-        for &stage in &[Stage::EP, Stage::CN, Stage::RC, Stage::GA, Stage::LTS] {
+        for &stage in &[Stage::EP, Stage::CN, Stage::RC, Stage::GA, Stage::Lts] {
             assert!(
                 !TransienceClass::C.valid_at_stage(stage),
                 "C should NOT be valid at stage {:?}", stage

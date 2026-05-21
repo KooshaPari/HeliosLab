@@ -1,30 +1,29 @@
 /// <reference lib="dom" />
 
 import {
-	For,
-	Show,
+	type Accessor,
 	createEffect,
 	createSignal,
+	For,
 	onCleanup,
+	Show,
 	untrack,
 } from "solid-js";
 import { createStore, unwrap } from "solid-js/store";
-import { type Accessor } from "solid-js";
-import { DiffEditor } from "../DiffEditor";
-import { state, setState, openNewTabForNode } from "../store";
-
-import { getProjectForNodePath } from "../files";
 import type { CachedFileType } from "../../../shared/types/types";
-import { electrobun } from "../init";
 import { Dialog } from "../components/Dialog";
+import { DiffEditor } from "../DiffEditor";
+import { getProjectForNodePath } from "../files";
+import { electrobun } from "../init";
+import { openNewTabForNode, setState, state } from "../store";
 import { createGitContentReader } from "./git/diff";
 import { parseStatusLine } from "./git/helpers";
 import { ensureSpinnerAnimation } from "./git/spinner";
 import type {
 	BranchInfo,
 	CommitType,
-	FileChangeType,
 	FileChangesType,
+	FileChangeType,
 	FileChangeWithCommitType,
 	GitUiStateType,
 } from "./git/types";
@@ -238,7 +237,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 		// - Cannot start with . or /
 		// - Cannot end with .lock
 		// - Cannot contain ..
-		const invalidChars = /[\s~^:\\?*\[]/;
+		const invalidChars = /[\s~^:\\?*[]/;
 		if (invalidChars.test(name)) {
 			return {
 				isValid: false,
@@ -303,7 +302,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 		// Git remote name rules:
 		// - No spaces
 		// - No special characters
-		const invalidChars = /[\s~^:\\?*\[]/;
+		const invalidChars = /[\s~^:\\?*[]/;
 		if (invalidChars.test(name)) {
 			return {
 				isValid: false,
@@ -867,7 +866,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 		});
 
 		// Calculate sync status (ahead/behind)
-		let syncStatus = { ahead: 0, behind: 0 };
+		const syncStatus = { ahead: 0, behind: 0 };
 		if (branches.current && remotes.length > 0) {
 			// Check tracking branch
 			const trackingBranch = gitStatus?.tracking;

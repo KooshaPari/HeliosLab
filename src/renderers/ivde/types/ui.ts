@@ -1,16 +1,16 @@
 export type ReloadableWebviewElement = {
-  reload: () => void;
+	reload: () => void;
 };
 
 export type WebviewDidNavigateEvent = {
-  detail: string;
+	detail: string;
 };
 
 export type AnalyticsStatus = {
-  enabled: boolean;
-  level: string;
-  isAnonymous: boolean;
-  hasToken: boolean;
-  userOptedIn: boolean;
-  userHasBeenPrompted: boolean;
+	enabled: boolean;
+	level: string;
+	isAnonymous: boolean;
+	hasToken: boolean;
+	userOptedIn: boolean;
+	userHasBeenPrompted: boolean;
 };
