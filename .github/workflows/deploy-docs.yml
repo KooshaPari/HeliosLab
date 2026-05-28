@@ -3,7 +3,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-on: { push: { branches: [ main, master ] } }
+on:
+  push:
+    branches: [main, master]
 permissions:
   contents: read
   pages: write
@@ -17,11 +19,11 @@ jobs:
         working-directory: docs
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.1.1
-      - uses: actions/setup-node@8f152de45cc393bb48ce5d89d36b731f54556e65
-        with: { node-version: '18' }
+      - uses: actions/setup-node@0355742c943ddb13ca8a6b700f824231caa91e75 # v4.0.2
+        with: { node-version: '20' }
       - run: npm ci
       - run: npm run docs:build
-      - uses: peaceiris/actions-gh-pages@e9c66a37f080288a11235e32cbe2dc5fb3a679cc
+      - uses: peaceiris/actions-gh-pages@b19ee8b6bfb09497395f228385c74cdf735876de
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./docs/.vitepress/dist
