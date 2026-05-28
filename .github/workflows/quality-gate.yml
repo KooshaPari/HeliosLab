@@ -12,9 +12,12 @@ env:
   CARGO_TERM_COLOR: always
   COVERAGE_THRESHOLD: 85
 
+permissions:
+  contents: read
+
 jobs:
   check-changes:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       has_tests: ${{ steps.check.outputs.has_tests }}
       has_e2e: ${{ steps.check.outputs.has_e2e }}
@@ -34,7 +37,7 @@ jobs:
 
   unit-tests:
     name: Unit Tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.1.1
 
@@ -65,13 +68,12 @@ jobs:
             echo "Coverage $COVERAGE% is below threshold $COVERAGE_THRESHOLD%"
             exit 1
           fi
-        continue-on-error: true
 
   e2e-tests:
     name: E2E Tests
     needs: check-changes
     if: needs.check-changes.outputs.has_e2e == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.1.1
 
@@ -88,7 +90,7 @@ jobs:
     name: Integration Tests
     needs: check-changes
     if: needs.check-changes.outputs.has_integration == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.1.1
 
@@ -103,7 +105,7 @@ jobs:
 
   fr-annotation-check:
     name: FR Annotation Check
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.1.1
         with:
@@ -141,7 +143,7 @@ jobs:
     name: Quality Report
     needs: [unit-tests, e2e-tests, integration-tests, fr-annotation-check]
     if: always()
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.1.1
 

@@ -51,7 +51,6 @@ config.db
 worktrees/
 
 # Worktree directories (org policy)
-.worktrees/
 .claude/worktrees/
 Cargo.lock
 Cargo.lock

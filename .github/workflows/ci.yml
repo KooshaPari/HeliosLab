@@ -13,10 +13,13 @@ on:
 env:
   CARGO_TERM_COLOR: always
 
+permissions:
+  contents: read
+
 jobs:
   typecheck:
     name: typecheck
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.1.1
       - name: Setup Rust
@@ -26,7 +29,7 @@ jobs:
 
   lint:
     name: lint
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.1.1
       - name: Setup Rust
@@ -43,7 +46,7 @@ jobs:
 
   unit-tests:
     name: unit-tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.1.1
       - name: Setup Rust
@@ -53,7 +56,7 @@ jobs:
 
   coverage:
     name: coverage
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.1.1
       - name: Coverage placeholder
@@ -61,7 +64,7 @@ jobs:
 
   secret-scan:
     name: secret-scan
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.1.1
       - name: Secret scan placeholder
@@ -69,7 +72,7 @@ jobs:
 
   ci-summary:
     name: ci-summary
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [typecheck, lint, unit-tests, coverage, secret-scan]
     if: always()
     steps:
