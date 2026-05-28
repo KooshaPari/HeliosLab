@@ -1,4 +1,3 @@
-import type { Subprocess } from "bun";
 import Electrobun, {
 	ApplicationMenu,
 	BrowserView,
@@ -8,25 +7,21 @@ import Electrobun, {
 	Updater,
 	Utils,
 } from "electrobun";
-import {
-	cpSync,
-	existsSync,
-	mkdirSync,
-	readdirSync,
-	readFileSync,
-	renameSync,
-	statSync,
-	writeFileSync,
-} from "fs";
-import { writeFile } from "fs/promises";
+
+import { type WorkspaceRPC } from "../renderers/ivde/rpc";
+
+import { basename, dirname, join, relative } from "path";
+import path from "path";
+
+import * as biome from "./peerDependencies/biome";
+import * as bun from "./peerDependencies/bun";
+import * as git from "./peerDependencies/git";
+import * as node from "./peerDependencies/node";
+import * as typescript from "./peerDependencies/typescript";
+
+import { cpSync } from "fs";
 import { copy } from "fs-extra";
-import path, { basename, dirname, join, relative } from "path";
-import type { WorkspaceRPC } from "../renderers/ivde/rpc";
-import type {
-	PostMessageShowContextMenu,
-	PreviewFileTreeType,
-} from "../shared/types/types";
-import { makeFileNameSafe } from "../shared/utils/files";
+import { writeFile } from "fs/promises";
 import {
 	APP_PATH,
 	BIOME_BINARY_PATH,
@@ -36,27 +31,50 @@ import {
 	BUN_PATH,
 	COLAB_DEPS_PATH,
 	COLAB_ENV_PATH,
-	COLAB_GOLDFISHDB_PATH,
 	COLAB_HOME_FOLDER,
-	COLAB_MODELS_PATH,
 	COLAB_PROJECTS_FOLDER,
+	COLAB_MODELS_PATH,
 	GIT_BINARY_PATH,
 	LLAMA_CPP_BINARY_PATH,
 	TSSERVER_PATH,
 	TYPESCRIPT_PACKAGE_PATH,
 } from "./consts/paths";
+import { formatFile } from "./utils/formatUtils";
+import { tsServerRequest } from "./utils/tsServerUtils";
+import { execSpawnSync } from "./utils/processUtils";
+
+import db, { type CurrentDocumentTypes } from "./goldfishdb/db";
+
+import { COLAB_GOLDFISHDB_PATH } from "./consts/paths";
+import {
+	broadcastToAllWindows,
+	broadcastToAllWindowsInWorkspace,
+	broadcastToWindow,
+	sendToFocusedWindow,
+	setFocusedWindow,
+	clearFocusedWindow,
+	workspaceWindows,
+} from "./workspaceWindows";
+
+import {
+	existsSync,
+	mkdirSync,
+	readFileSync,
+	readdirSync,
+	renameSync,
+	statSync,
+	writeFileSync,
+} from "fs";
+
+import type { Subprocess } from "bun";
+import { type PostMessageShowContextMenu } from "../shared/types/types";
+import type { PreviewFileTreeType } from "../shared/types/types";
+import { makeFileNameSafe } from "../shared/utils/files";
 import {
 	closeProjectDirectoryWatcher,
 	removeProjectDirectoryWatcher,
 	watchProjectDirectories,
 } from "./FileWatcher";
-import db, { type CurrentDocumentTypes } from "./goldfishdb/db";
-import * as biome from "./peerDependencies/biome";
-import * as bun from "./peerDependencies/bun";
-import * as git from "./peerDependencies/git";
-import * as node from "./peerDependencies/node";
-import * as typescript from "./peerDependencies/typescript";
-import { getPackageInfo, pluginManager, searchPlugins } from "./plugins";
 import { track } from "./utils/analytics";
 import {
 	findAllInFolder,
@@ -69,70 +87,59 @@ import {
 	safeTrashFileOrFolder,
 	syncDevlink,
 } from "./utils/fileUtils";
-import { formatFile } from "./utils/formatUtils";
 import {
-	checkGitHubCredentials,
-	getGitConfig,
 	gitAdd,
-	gitAddRemote,
 	gitApply,
-	gitBranch,
 	gitCheckIsRepoInTree,
 	gitCheckIsRepoRoot,
 	gitCheckout,
-	gitCheckoutBranch,
-	gitClone,
 	gitCommit,
 	gitCommitAmend,
-	gitCreateBranch,
-	gitCreatePatchFromLines,
-	gitDeleteBranch,
 	gitDiff,
-	gitFetch,
+	gitStageHunkFromPatch,
+	gitStageSpecificLines,
+	gitStageMonacoChange,
+	gitUnstageMonacoChange,
+	gitCreatePatchFromLines,
 	gitLog,
-	gitLogRemoteOnly,
-	gitMergeBase,
-	gitPull,
-	gitPush,
-	gitRemote,
 	gitReset,
 	gitRevert,
-	gitRevList,
 	gitRevParse,
 	gitShow,
-	gitStageHunkFromPatch,
-	gitStageMonacoChange,
-	gitStageSpecificLines,
 	gitStashApply,
 	gitStashCreate,
 	gitStashList,
 	gitStashPop,
 	gitStashShow,
 	gitStatus,
-	gitTrackRemoteBranch,
-	gitUnstageMonacoChange,
-	gitValidateUrl,
 	initGit,
-	removeGitHubCredentials,
+	gitClone,
+	gitValidateUrl,
+	gitRemote,
+	gitAddRemote,
+	gitFetch,
+	gitPull,
+	gitPush,
+	gitBranch,
+	gitCheckoutBranch,
+	gitRevList,
+	gitMergeBase,
+	gitLogRemoteOnly,
+	gitCreateBranch,
+	gitDeleteBranch,
+	gitTrackRemoteBranch,
+	getGitConfig,
 	setGitConfig,
+	checkGitHubCredentials,
 	storeGitHubCredentials,
+	removeGitHubCredentials,
 } from "./utils/gitUtils";
-import { execSpawnSync } from "./utils/processUtils";
 import { terminalManager } from "./utils/terminalManager";
-import { tsServerRequest } from "./utils/tsServerUtils";
 // import { terminalManagerPty as terminalManager } from "./utils/terminalManagerPty";
 import { getFaviconForUrl } from "./utils/urlUtils";
-import {
-	broadcastToAllWindows,
-	broadcastToAllWindowsInWorkspace,
-	broadcastToWindow,
-	clearFocusedWindow,
-	sendToFocusedWindow,
-	setFocusedWindow,
-	workspaceWindows,
-} from "./workspaceWindows";
+import { pluginManager, searchPlugins, getPackageInfo } from "./plugins";
 
-const localInfo = await Updater.getLocallocalInfo();
+const localInfo = await Updater.getLocalInfo();
 
 const channel = localInfo.channel;
 const appName = localInfo.name;
@@ -1616,7 +1623,7 @@ const createWindow = (
 					const flushBatches = () => {
 						resultBatches.forEach((results, projectId) => {
 							if (results.length > 0) {
-								mainWindow.webview.rpc?.send("findAllInFolderResult", {
+								sendToMainWindow("findAllInFolderResult", {
 									query,
 									projectId,
 									results,
@@ -1654,7 +1661,7 @@ const createWindow = (
 
 								// Send first result immediately for instant feedback
 								if (batch.length === 1 && !batchTimeout) {
-									mainWindow.webview.rpc?.send("findAllInFolderResult", {
+									sendToMainWindow("findAllInFolderResult", {
 										query,
 										projectId,
 										results: [...batch],
@@ -1665,7 +1672,7 @@ const createWindow = (
 
 								// Send batches every 100ms or when batch reaches 50 results
 								if (batch.length >= 50) {
-									mainWindow.webview.rpc?.send("findAllInFolderResult", {
+									sendToMainWindow("findAllInFolderResult", {
 										query,
 										projectId,
 										results: [...batch],
@@ -1718,7 +1725,7 @@ const createWindow = (
 							}
 
 							return findFilesInFolder(project.path, query, (result) => {
-								mainWindow.webview.rpc?.send("findFilesInWorkspaceResult", {
+								sendToMainWindow("findFilesInWorkspaceResult", {
 									query,
 									projectId: projectId,
 									results: [result],
@@ -3028,9 +3035,25 @@ const createWindow = (
 		setFocusedWindow(workspaceId, windowId);
 	});
 
+	const sendToMainWindow = (type: string, data: any) => {
+		const webview = mainWindow.webview;
+		if (!webview?.ptr || !webview?.rpc) {
+			return;
+		}
+
+		try {
+			(webview.rpc as any).send(type, data);
+		} catch (error) {
+			console.error(
+				`[main] Failed to send ${type} to window ${windowId}`,
+				error,
+			);
+		}
+	};
+
 	// Set up terminal manager message handler for this window
 	terminalManager.setWindowMessageHandler(windowId, (message) => {
-		mainWindow.webview.rpc?.send(message.type, {
+		sendToMainWindow(message.type, {
 			terminalId: message.terminalId,
 			data: message.data,
 			exitCode: message.exitCode,
@@ -3040,14 +3063,14 @@ const createWindow = (
 
 	// Set up slate render message handler for plugin slates
 	pluginManager.setSlateWindowMessageHandler((targetWindowId, message) => {
-		if (targetWindowId === windowId && mainWindow.webview.rpc) {
+		if (targetWindowId === windowId) {
 			const slateMessage = message as {
 				type: string;
 				instanceId: string;
 				html?: string;
 				script?: string;
 			};
-			mainWindow.webview.rpc.send("slateRender", {
+			sendToMainWindow("slateRender", {
 				instanceId: slateMessage.instanceId,
 				html: slateMessage.html,
 				script: slateMessage.script,
@@ -3189,7 +3212,14 @@ const createWindow = (
 			return;
 		}
 
-		watchProjectDirectories();
+		try {
+			watchProjectDirectories();
+		} catch (error) {
+			console.warn(
+				"[main] Failed to refresh project directory watchers:",
+				error,
+			);
+		}
 
 		const { data: projects } = db.collection("projects").query({
 			where: (project) => Boolean(workspace.projectIds?.includes(project.id)),
