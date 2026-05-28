@@ -1,4 +1,8 @@
 name: Build and Release
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 
 # CACHE WARMING NOTE:
 # GitHub caches are scoped by branch/ref. Tags cannot share caches with each other.
@@ -22,15 +26,18 @@ on:
   workflow_dispatch:
     # Allows manual runs to warm the cache from main branch
 
+permissions:
+  contents: read
+
 jobs:
   build-deps:
-    runs-on: macos-15  # GitHub-hosted Apple Silicon runner
+    runs-on: ubuntu-24.04
     outputs:
       cache-hit: ${{ steps.cache-check.outputs.cache-hit }}
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.1.1
         with:
           submodules: recursive
 
@@ -44,7 +51,7 @@ jobs:
 
       - name: Cache llama.cpp build
         id: cache-check
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
         with:
           path: |
             llama-cli/deps/llama.cpp
@@ -53,7 +60,7 @@ jobs:
             llama-cpp-${{ runner.os }}-
 
       - name: Cache Zig compiler
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
         with:
           path: vendors/zig
           key: zig-${{ runner.os }}-${{ hashFiles('**/versions.env') }}
@@ -69,13 +76,13 @@ jobs:
 
   build:
     needs: build-deps
-    runs-on: macos-15  # GitHub-hosted Apple Silicon runner
+    runs-on: ubuntu-24.04
     # Only run full build on tag pushes, not on main branch cache-warming runs
     if: startsWith(github.ref, 'refs/tags/')
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.1.1
         with:
           submodules: recursive
 
@@ -89,7 +96,7 @@ jobs:
 
       - name: Restore llama.cpp cache
         id: llama-cache-restore
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
         with:
           path: |
             llama-cli/deps/llama.cpp
@@ -105,7 +112,7 @@ jobs:
           echo "llama.cpp exists: $(test -d llama-cli/deps/llama.cpp && echo 'yes' || echo 'no')"
 
       - name: Restore Zig compiler cache
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
         with:
           path: vendors/zig
           key: zig-${{ runner.os }}-${{ hashFiles('**/versions.env') }}
@@ -115,11 +122,21 @@ jobs:
       - name: Verify dependencies are available
         run: |
           echo "Checking for required dependencies..."
-          if [ ! -f "vendors/zig/zig" ]; then
+          ZIG_DIR=""
+          if [ -f "vendors/zig/zig" ]; then
+            ZIG_DIR="vendors/zig"
+          elif [ -f "vendor/zig/zig" ]; then
+            # Accept legacy singular path and normalize to canonical vendors/zig.
+            mkdir -p vendors
+            ln -sfn ../vendor/zig vendors/zig
+            ZIG_DIR="vendor/zig"
+          fi
+
+          if [ -z "${ZIG_DIR}" ]; then
             echo "❌ Zig not found, running setup"
             bun setup
           else
-            echo "✅ Zig found at vendors/zig/zig"
+            echo "✅ Zig found at ${ZIG_DIR}/zig"
           fi
 
           if [ ! -f "llama-cli/deps/llama.cpp/include/llama.h" ]; then
@@ -136,7 +153,9 @@ jobs:
           MACOS_CERTIFICATE_PWD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
         run: |
           # Clean up any existing keychain from previous builds
-          security delete-keychain build.keychain || true
+          if ! security delete-keychain build.keychain; then
+            echo "Warning: no temporary keychain to delete."
+          fi
 
           # Create temporary keychain
           echo $MACOS_CERTIFICATE | base64 --decode > certificate.p12
@@ -218,19 +237,21 @@ jobs:
         if: always()
         run: |
           # Clean up the temporary keychain
-          security delete-keychain build.keychain || true
+          if ! security delete-keychain build.keychain; then
+            echo "Warning: no temporary keychain to delete."
+          fi
 
   publish-demo-plugin:
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     # Only publish for stable releases (not canary), and only on tag pushes
     if: ${{ startsWith(github.ref, 'refs/tags/') && !contains(github.ref, '-canary') }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.1.1
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@8f152de45cc393bb48ce5d89d36b731f54556e65
         with:
           node-version: '20'
           registry-url: 'https://registry.npmjs.org'

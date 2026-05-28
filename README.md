@@ -1,118 +1,66 @@
-> [!NOTE]
-> We believe in shipping early and often.
-> Now that **we're using co(lab) to build all of Blackboard's projects internally including Electrobun and co(lab) itself** we decided to open source it and make the Developer Preview available for download for early feedback.
+> **Pinned references (Phenotype-org)**
 
->[!IMPORTANT]
-> **Some of the listed features are in early development**, and our FTU and onboarding could use some love.
-> We invite the **brave** to download the developer preview as we prep for v1 and **give us feedback** on how co(lab) could best help you do your best deep work
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+> - MSRV: see rust-toolchain.toml
+> - cargo-deny config: see deny.toml
+> - cargo-audit: rustsec/audit-check@v2 weekly
+> - Branch protection: 1 reviewer required, no force-push
+> - Authority: phenotype-org-governance/SUPERSEDED.md
 
+# HeliosLab
 
-# Co(lab)
+**Status:** stable
 
-A hybrid web browser + local code editor for deep work.
+[![CI](https://github.com/KooshaPari/HeliosLab/actions/workflows/ci.yml/badge.svg)](https://github.com/KooshaPari/HeliosLab/actions/workflows/ci.yml)
 
-## Demo
+HeliosLab is a Rust workspace providing comprehensive configuration, feature flags, secrets, and version management for Phenotype projects. The workspace contains six core crates—`pheno-core`, `pheno-db`, `pheno-crypto`, `pheno-cli`, `pheno-ffi-python`, and `pheno-ffi-go`—unified around the `phenoctl` CLI binary (entrypoint: `pheno-cli/src/main.rs`).
 
-[![Co(lab) Demo](https://img.youtube.com/vi/WWTCqGmE86w/maxresdefault.jpg)](https://www.youtube.com/watch?v=WWTCqGmE86w)
+**Specification & Architecture:**
+- [Product Requirements (PRD.md)](./PRD.md)
+- [Architecture Decisions (ADR.md)](./ADR.md)
+- [Specification (SPEC.md)](./SPEC.md)
+- [Functional Requirements (FUNCTIONAL_REQUIREMENTS.md)](./FUNCTIONAL_REQUIREMENTS.md)
+- [Implementation Plan (PLAN.md)](./PLAN.md)
 
-**Co(lab)** combines a powerful code editor with an integrated browser. At Blackboard Technologies we think about startups night and day. Co(lab) is our flagship product, built with [Electrobun](https://github.com/blackboardsh/electrobun), and we hope to make it the ultimate startup building environment.
+## Overview
 
-## Features
+HeliosLab provides a consistent way to manage local and team configuration with auditable change history and CLI-first workflows.
 
-- **Unified Development Environment**: Local code editor powered by Monaco and Bun combined with a tinkerer's web browser in the same window, multi-tab, multi-pane.
-- **Web Browser**: Open Chromium or Webkit tabs. Isolate your online accounts in their own workspaces. Smart bookmarks and easy to edit preload scripts for customizing your browsing experience.
-- **A new way to folder**: Files and Folders are a primary concept. Arrange projects, notes, git repos, and bookmarks the way you actually use them.
-- **Git Integration**: Visual git interface with staging, commits, and branch management
-- **Plugin Architecture**: Extensible system for custom functionality for the ultimate browsing, coding, and tightly integrated workflows.
-- **Privacy-First Analytics**: Optional, opt-in analytics.
+## Core Capabilities
 
-## Installation
+- Configuration management for app/runtime settings
+- Feature flag lifecycle management
+- Secret value storage abstractions
+- Version inspection and rollout state tracking
+- Terminal UI for operational workflows
 
-### Download
-
-Visit [blackboard.sh/colab/](https://blackboard.sh/colab/) to download the latest release for your platform. (Currently shipping Mac ARM only).
-
-### Build from Source
-
-```bash
-# Clone the repository
-git clone https://github.com/blackboardsh/colab.git
-cd colab
-
-# Install dependencies
-bun install
-
-# Build and run
-bun run dev
-```
-
-## Development
-
-Co(lab) is built with [Electrobun](https://github.com/blackboardsh/electrobun), a modern alternative to Electron.
-
-### Prerequisites
-
-- Node.js 18+
-- Bun runtime
-
-### Development Setup
+## Install
 
 ```bash
-# Install dependencies
-npm install
-
-# Start development server
-npm run dev
-
-# Build for production
-npm run build:stable
+cargo install --path pheno-cli
 ```
 
-### Project Structure
+## Quick Start
 
-- `src/main/` - Main process code
-- `src/renderers/` - Renderer process UI
-- `src/shared/` - Shared utilities and types
-- `scripts/` - Build and deployment scripts
+```bash
+phenoctl config set app.name "My App"
+phenoctl flags create dark-mode --description "Enable dark mode"
+phenoctl flags enable dark-mode
+phenoctl secrets set API_KEY
+phenoctl version show
+phenoctl tui
+```
 
-## Contributing
+## Repository Structure
 
-We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
+- `pheno-cli/` CLI implementation
+- `docs/` unified VitePress documentation categories
+- `config/` default configuration and templates
 
-### Areas for Contribution
+## Documentation Categories
 
-- Plugin development and architecture
-- UI/UX improvements
-- Performance optimizations
-- Documentation and examples
-- Testing and quality assurance
-
-## Roadmap
-
-- **Plugin Ecosystem**: Extensible architecture for community plugins
-- **Cloud Sync**: Optional settings and project synchronization
-- **Team Collaboration**: Real-time collaborative editing features
-- **AI Integration**: Code completion and assistance features
-
-## Technology
-
-Co(lab) is powered by:
-
-- **[Electrobun](https://github.com/blackboardsh/electrobun)**: Modern desktop app framework
-- **[SolidJS](https://solidjs.com)**: Reactive UI library
-- **[Monaco Editor](https://microsoft.github.io/monaco-editor/)**: VS Code's editor engine
-- **[TypeScript](https://typescriptlang.org)**: Type-safe development
-
-## License
-
-MIT License - see [LICENSE](LICENSE) for details.
-
-## Support
-
-- **Website**: [blackboard.sh/colab/](https://blackboard.sh/colab/)
-- **Issues**: [GitHub Issues](https://github.com/blackboardsh/colab/issues)
-- **Discussion**: [Discord](https://discord.gg/ueKE4tjaCE)
-
----
-
-**Co(lab)** is developed by [Blackboard Technologies Inc.](https://blackboard.sh)
+- Wiki
+- Development Guide
+- Document Index
+- API
+- Roadmap
