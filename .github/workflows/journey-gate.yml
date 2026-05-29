@@ -25,15 +25,10 @@ concurrency:
 
 
 on:
-
-permissions:
-  contents: read
   push:
     branches: [main]
   pull_request:
     branches: [main]
-
-  # Allow manual triggering from the Actions tab.
   workflow_dispatch:
     inputs:
       manifest_path:
