@@ -138,6 +138,7 @@ fn open_db(repo: &Option<PathBuf>) -> Database {
 const NS: &str = "default";
 
 fn main() {
+    tracing_subscriber::fmt::init();
     let cli = Cli::parse();
 
     match cli.command {

@@ -2,6 +2,7 @@
 name = "pheno-crypto"
 version.workspace = true
 edition.workspace = true
+license.workspace = true
 
 [dependencies]
 pheno-core = { path = "../pheno-core" }

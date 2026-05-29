@@ -1,4 +1,8 @@
 name: Build and Release
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 
 # CACHE WARMING NOTE:
 # GitHub caches are scoped by branch/ref. Tags cannot share caches with each other.
@@ -22,9 +26,12 @@ on:
   workflow_dispatch:
     # Allows manual runs to warm the cache from main branch
 
+permissions:
+  contents: read
+
 jobs:
   build-deps:
-    runs-on: macos-15  # GitHub-hosted Apple Silicon runner
+    runs-on: ubuntu-24.04
     outputs:
       cache-hit: ${{ steps.cache-check.outputs.cache-hit }}
 
@@ -69,7 +76,7 @@ jobs:
 
   build:
     needs: build-deps
-    runs-on: macos-15  # GitHub-hosted Apple Silicon runner
+    runs-on: ubuntu-24.04
     # Only run full build on tag pushes, not on main branch cache-warming runs
     if: startsWith(github.ref, 'refs/tags/')
 
@@ -236,7 +243,7 @@ jobs:
 
   publish-demo-plugin:
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     # Only publish for stable releases (not canary), and only on tag pushes
     if: ${{ startsWith(github.ref, 'refs/tags/') && !contains(github.ref, '-canary') }}
     steps:

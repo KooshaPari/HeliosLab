@@ -51,5 +51,21 @@ config.db
 worktrees/
 
 # Worktree directories (org policy)
-.worktrees/
 .claude/worktrees/
+Cargo.lock
+Cargo.lock
+
+# ===== Standard auto-generated hygiene ignores (do not edit manually) =====
+.env.*
+!.env.example
+node_modules/
+dist/
+build/
+coverage/
+.pytest_cache/
+__pycache__/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+# ===== End standard hygiene ignores =====
