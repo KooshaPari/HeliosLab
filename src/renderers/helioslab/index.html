@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HeliosLab</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body {
+        background: #0d1117;
+        color: #e6edf3;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+      .titlebar {
+        height: 38px;
+        background: #161b22;
+        display: flex;
+        align-items: center;
+        padding: 0 16px;
+        -webkit-app-region: drag;
+        border-bottom: 1px solid #30363d;
+        gap: 8px;
+        flex-shrink: 0;
+      }
+      .titlebar-logo {
+        width: 18px;
+        height: 18px;
+        background: linear-gradient(135deg, #f78166 0%, #ff9500 50%, #ffd60a 100%);
+        border-radius: 4px;
+        -webkit-app-region: no-drag;
+      }
+      .titlebar-title {
+        font-size: 13px;
+        font-weight: 600;
+        color: #8b949e;
+        letter-spacing: 0.5px;
+      }
+      .main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 24px;
+        padding: 32px;
+      }
+      .hero {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+      }
+      .logo-large {
+        width: 72px;
+        height: 72px;
+        background: linear-gradient(135deg, #f78166 0%, #ff9500 50%, #ffd60a 100%);
+        border-radius: 16px;
+        box-shadow: 0 0 40px rgba(247, 129, 102, 0.3);
+      }
+      h1 {
+        font-size: 28px;
+        font-weight: 700;
+        letter-spacing: -0.5px;
+        background: linear-gradient(135deg, #f78166, #ffd60a);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      .subtitle {
+        font-size: 14px;
+        color: #8b949e;
+        text-align: center;
+        max-width: 360px;
+        line-height: 1.6;
+      }
+      .status-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        width: 100%;
+        max-width: 480px;
+      }
+      .status-card {
+        background: #161b22;
+        border: 1px solid #30363d;
+        border-radius: 8px;
+        padding: 14px 16px;
+      }
+      .status-card-label {
+        font-size: 11px;
+        color: #8b949e;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        margin-bottom: 4px;
+      }
+      .status-card-value {
+        font-size: 13px;
+        color: #e6edf3;
+        font-family: "SF Mono", "Fira Code", monospace;
+      }
+      .status-card-value.ok { color: #3fb950; }
+      .status-card-value.warn { color: #d29922; }
+      .actions {
+        display: flex;
+        gap: 10px;
+      }
+      .btn {
+        padding: 8px 18px;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        border: none;
+        -webkit-app-region: no-drag;
+      }
+      .btn-primary {
+        background: linear-gradient(135deg, #f78166, #ff9500);
+        color: #0d1117;
+      }
+      .btn-secondary {
+        background: #21262d;
+        color: #e6edf3;
+        border: 1px solid #30363d;
+      }
+      .btn:hover { opacity: 0.85; }
+      .version-badge {
+        font-size: 11px;
+        color: #484f58;
+        font-family: monospace;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="titlebar">
+      <div class="titlebar-logo"></div>
+      <span class="titlebar-title">HeliosLab</span>
+    </div>
+    <div class="main">
+      <div class="hero">
+        <div class="logo-large"></div>
+        <h1>HeliosLab</h1>
+        <p class="subtitle">Phenotype-org research lab — pheno-core · pheno-db · pheno-crypto · pheno-cli</p>
+      </div>
+      <div class="status-grid">
+        <div class="status-card">
+          <div class="status-card-label">Shell</div>
+          <div class="status-card-value ok" id="shell-status">Electrobun</div>
+        </div>
+        <div class="status-card">
+          <div class="status-card-label">Rust Core</div>
+          <div class="status-card-value ok" id="core-status">pheno-cli</div>
+        </div>
+        <div class="status-card">
+          <div class="status-card-label">Platform</div>
+          <div class="status-card-value" id="platform-status">Detecting...</div>
+        </div>
+        <div class="status-card">
+          <div class="status-card-label">IPC</div>
+          <div class="status-card-value ok">stdio / socket</div>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn btn-primary" onclick="window.__electrobun_rpc?.openWorkspace?.()">Open Workspace</button>
+        <button class="btn btn-secondary" onclick="window.__electrobun_rpc?.openTerminal?.()">Terminal</button>
+      </div>
+      <span class="version-badge" id="version-badge">v0.1.0-dev</span>
+    </div>
+    <script>
+      document.getElementById('platform-status').textContent =
+        navigator.platform || navigator.userAgent.split(' ')[0];
+    </script>
+    <script src="views://helioslab/index.js"></script>
+  </body>
+</html>
