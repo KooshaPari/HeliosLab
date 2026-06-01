@@ -1,0 +1,78 @@
+{
+  "name": "colab-webflow",
+  "version": "0.1.0",
+  "description": "Webflow integration for Colab - DevLink sync, Code Components, Cloud deployment, and asset management",
+  "main": "src/index.ts",
+  "keywords": ["colab-plugin", "webflow", "devlink", "cms"],
+  "author": "Colab Team",
+  "license": "MIT",
+  "colab-plugin": {
+    "displayName": "Webflow",
+    "description": "Sync DevLink components, share Code Components, deploy to Webflow Cloud, and manage custom assets",
+    "main": "src/index.ts",
+    "contributes": {
+      "commands": [
+        {
+          "id": "webflow.init",
+          "title": "Initialize Webflow Project"
+        },
+        {
+          "id": "webflow.sync",
+          "title": "Sync DevLink Components"
+        },
+        {
+          "id": "webflow.share",
+          "title": "Share Code Components Library"
+        },
+        {
+          "id": "webflow.deploy",
+          "title": "Deploy to Webflow Cloud"
+        },
+        {
+          "id": "webflow.uploadAssets",
+          "title": "Upload Assets to Webflow"
+        }
+      ],
+      "webviewHooks": ["onLoad"]
+    },
+    "entitlements": {
+      "filesystem": {
+        "read": true,
+        "write": true,
+        "reason": "Reads and writes DevLink components, Cloud project files, and asset configurations"
+      },
+      "network": {
+        "internet": true,
+        "domains": ["api.webflow.com", "webflow.com", "*.webflow.io"],
+        "reason": "Connects to Webflow APIs for site management, DevLink sync, and deployments"
+      },
+      "process": {
+        "spawn": true,
+        "reason": "Runs Webflow CLI commands for DevLink sync and library sharing"
+      },
+      "terminal": {
+        "commands": true,
+        "reason": "Registers 'wf' terminal command for Webflow operations"
+      },
+      "sensitive": {
+        "credentials": true,
+        "reason": "Stores and manages Webflow OAuth tokens securely"
+      },
+      "ui": {
+        "statusBar": true,
+        "contextMenu": true,
+        "fileDecorations": true,
+        "notifications": true,
+        "reason": "Shows sync status, adds context menu actions, decorates Webflow config files"
+      }
+    },
+    "activationEvents": ["*"]
+  },
+  "dependencies": {
+    "webflow-api": "^3.1.2"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "^5.0.0"
+  }
+}

@@ -1,0 +1,89 @@
+name: CI
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+
+on:
+  push:
+    branches: [main, feature/*, bugfix/*, docs/*, release/*, hotfix/*]
+  pull_request:
+    branches: [main]
+
+env:
+  CARGO_TERM_COLOR: always
+
+permissions:
+  contents: read
+
+jobs:
+  typecheck:
+    name: typecheck
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.1.1
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8
+      - name: Check workspace
+        run: cargo check --workspace --exclude pheno-ffi-python
+
+  lint:
+    name: lint
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.1.1
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8
+        with:
+          components: clippy
+      - name: Run clippy
+        run: >
+          cargo clippy --workspace --exclude pheno-ffi-python --
+          -A clippy::not_unsafe_ptr_arg_deref
+          -A clippy::print_literal
+          -A clippy::upper_case_acronyms
+          -D warnings
+
+  unit-tests:
+    name: unit-tests
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.1.1
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8
+      - name: Run tests
+        run: cargo test --workspace --exclude pheno-ffi-python
+
+  coverage:
+    name: coverage
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.1.1
+      - name: Coverage placeholder
+        run: echo "Coverage is reported by the dedicated Coverage workflow."
+
+  secret-scan:
+    name: secret-scan
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.1.1
+      - name: Secret scan placeholder
+        run: echo "Secret scanning is handled by the security guard workflows."
+
+  ci-summary:
+    name: ci-summary
+    runs-on: ubuntu-24.04
+    needs: [typecheck, lint, unit-tests, coverage, secret-scan]
+    if: always()
+    steps:
+      - name: Summarize CI
+        run: |
+          if [ "${{ contains(needs.*.result, 'failure') }}" = "true" ]; then
+            echo "One or more CI jobs failed."
+            exit 1
+          fi
+          if [ "${{ contains(needs.*.result, 'cancelled') }}" = "true" ]; then
+            echo "One or more CI jobs were cancelled."
+            exit 1
+          fi
+          echo "CI jobs completed successfully."

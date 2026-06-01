@@ -1,4 +1,6 @@
 > **Pinned references (Phenotype-org)**
+
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 > - MSRV: see rust-toolchain.toml
 > - cargo-deny config: see deny.toml
 > - cargo-audit: rustsec/audit-check@v2 weekly
@@ -6,6 +8,8 @@
 > - Authority: phenotype-org-governance/SUPERSEDED.md
 
 # HeliosLab
+
+**Status:** stable
 
 [![CI](https://github.com/KooshaPari/HeliosLab/actions/workflows/ci.yml/badge.svg)](https://github.com/KooshaPari/HeliosLab/actions/workflows/ci.yml)
 
