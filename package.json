@@ -1,4 +1,5 @@
 {
+	"private": true,
 	"name": "colab",
 	"version": "0.14.11-canary.3",
 	"description": "A hybrid browser + code editor for deep work",
@@ -31,6 +32,10 @@
 	],
 	"author": "Blackboard Technologies Inc.",
 	"license": "MIT",
+	"engines": {
+		"node": ">=18",
+		"bun": ">=1.0"
+	},
 	"bugs": {
 		"url": "https://github.com/blackboardsh/colab/issues"
 	},
