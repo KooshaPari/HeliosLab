@@ -1,3 +1,6 @@
+> **Work state:** ACTIVE · **Progress:** `███████░░░ 65%`
+> TS+Rust monorepo lab (journeys/contracts/desktop); active feat/journey-impl · updated 2026-06-02
+
 > **Pinned references (Phenotype-org)**
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
