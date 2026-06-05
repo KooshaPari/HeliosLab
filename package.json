@@ -1,6 +1,6 @@
 {
 	"private": true,
-	"name": "colab",
+	"name": "helioslab",
 	"version": "0.14.11-canary.3",
 	"description": "A hybrid browser + code editor for deep work",
 	"main": "index.js",
