@@ -55,7 +55,7 @@ jobs:
   #     - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.1.1
   #
   #     - name: Promote to staging
-  #       uses: KooshaPari/phenotypeActions/promote@main
+  #       uses: KooshaPari/phenotypeActions/promote@0000000000000000000000000000000000000000 # placeholder SHA; source 404s; replace when reachable
   #       with:
   #         version: ${{ needs.release.outputs.version }}
   #         channel: beta
