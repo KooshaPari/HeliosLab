@@ -9,21 +9,20 @@ on:
     branches: [main, feature/*, bugfix/*, docs/*, release/*, hotfix/*]
   pull_request:
     branches: [main]
-
-env:
-  CARGO_TERM_COLOR: always
-
 permissions:
   contents: read
 
+
+env:
+  CARGO_TERM_COLOR: always
 jobs:
   typecheck:
     name: typecheck
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.1.1
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v4
       - name: Setup Rust
-        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8
+        uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9 # v-latest
       - name: Check workspace
         run: cargo check --workspace --exclude pheno-ffi-python
 
@@ -31,9 +30,9 @@ jobs:
     name: lint
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.1.1
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v4
       - name: Setup Rust
-        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8
+        uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9 # v-latest
         with:
           components: clippy
       - name: Run clippy
@@ -48,9 +47,9 @@ jobs:
     name: unit-tests
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.1.1
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v4
       - name: Setup Rust
-        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8
+        uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9 # v-latest
       - name: Run tests
         run: cargo test --workspace --exclude pheno-ffi-python
 
@@ -58,7 +57,7 @@ jobs:
     name: coverage
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.1.1
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v4
       - name: Coverage placeholder
         run: echo "Coverage is reported by the dedicated Coverage workflow."
 
@@ -66,7 +65,7 @@ jobs:
     name: secret-scan
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.1.1
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v4
       - name: Secret scan placeholder
         run: echo "Secret scanning is handled by the security guard workflows."
 
