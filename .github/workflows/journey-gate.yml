@@ -1,17 +1,50 @@
-﻿name: Journey Gate
+name: Journey Gate
+
 on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
-  workflow_dispatch:
+
 jobs:
-  journey-gate:
-    uses: KooshaPari/phenotype-tooling/.github/workflows/reusable/journey-gate.yml@604fcb5352a8fb68fdd52a9503fefea1163dc2ea # pinned from @ref; org SHA may shift on new commits
-permissions:
-  contents: read
+  journey-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+      - name: Verify journey manifest directory exists
+        run: |
+          if [ ! -d docs/journeys/manifests ]; then
+            echo "ERROR: docs/journeys/manifests/ directory not found"
+            exit 1
+          fi
+          echo "Journey manifests directory exists"
 
+      - name: Verify iconography spec exists
+        run: |
+          if [ ! -f docs/operations/iconography/SPEC.md ]; then
+            echo "ERROR: docs/operations/iconography/SPEC.md not found"
+            exit 1
+          fi
+          echo "Iconography spec exists"
+
+      - name: Verify journey-traceability.md exists
+        run: |
+          if [ ! -f docs/operations/journey-traceability.md ]; then
+            echo "ERROR: docs/operations/journey-traceability.md not found"
+            exit 1
+          fi
+          echo "Journey traceability doc exists"
+
+      - name: Validate manifest JSON (if any exist)
+        run: |
+          if ls docs/journeys/manifests/*.json 1>/dev/null 2>&1; then
+            for f in docs/journeys/manifests/*.json; do
+              if ! jq empty "$f" 2>/dev/null; then
+                echo "INVALID JSON: $f"
+                exit 1
+              fi
+            done
+            echo "All manifests valid JSON"
+          else
+            echo "No manifests yet (placeholder only)"
+          fi

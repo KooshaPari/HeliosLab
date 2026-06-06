@@ -1,7 +1,6 @@
-import DefaultTheme from 'vitepress/theme'
-import type { Theme } from 'vitepress'
-import CategorySwitcher from './components/CategorySwitcher.vue'
-import './style.css'
+import type { Theme } from "vitepress";
+import DefaultTheme from "vitepress/theme";
+import CategorySwitcher from "./components/CategorySwitcher.vue";
 
 const theme: Theme = {
 	extends: DefaultTheme,

@@ -1,6 +1,3 @@
-> **Work state:** ACTIVE · **Progress:** `███████░░░ 65%`
-> TS+Rust monorepo lab (journeys/contracts/desktop); active feat/journey-impl · updated 2026-06-02
-
 > **Pinned references (Phenotype-org)**
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
@@ -11,8 +8,6 @@
 > - Authority: phenotype-org-governance/SUPERSEDED.md
 
 # HeliosLab
-
-**Status:** stable
 
 [![CI](https://github.com/KooshaPari/HeliosLab/actions/workflows/ci.yml/badge.svg)](https://github.com/KooshaPari/HeliosLab/actions/workflows/ci.yml)
 

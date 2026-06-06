@@ -1,11 +1,14 @@
 {
 	"private": true,
 	"name": "colab",
-	"version": "0.14.11-canary.3",
+	"version": "0.14.11-canary.1",
 	"description": "A hybrid browser + code editor for deep work",
 	"main": "index.js",
 	"scripts": {
 		"setup": "bun run scripts/setup-deps.ts",
+		"typecheck": "tsc --noEmit",
+		"lint": "bunx @biomejs/biome check . --diagnostic-level=error",
+		"test": "bun test --pass-with-no-tests",
 		"build:dev": "bun setup && electrobun build",
 		"dev": "bun setup && electrobun dev",
 		"build:canary": "electrobun build --env=canary",
@@ -14,11 +17,16 @@
 		"docs:build": "cd documentation && bun install && bun run build",
 		"docs:serve": "cd documentation && bun run serve",
 		"build:docs:release": "cd documentation && bun run build",
+		"docs:site:install": "npm --prefix docs ci",
+		"docs:site:build": "npm --prefix docs run docs:build",
+		"docs:site:test": "npm --prefix docs run docs:test",
+		"docs:site:check": "npm --prefix docs run docs:check",
 		"push:canary": "npm version prerelease --preid=canary && git push origin main --tags",
 		"push:patch": "npm version prepatch --preid=canary && git push origin main --tags",
 		"push:minor": "npm version preminor --preid=canary && git push origin main --tags",
 		"push:major": "npm version premajor --preid=canary && git push origin main --tags",
-		"push:stable": "npm version patch && git push origin main --tags"
+		"push:stable": "npm version patch && git push origin main --tags",
+		"gate:protocol-parity": "node tools/gates/protocol-parity.mjs"
 	},
 	"repository": {
 		"type": "git",
@@ -48,7 +56,7 @@
 		"@xterm/addon-webgl": "^0.18.0",
 		"@xterm/xterm": "^5.5.0",
 		"ansi-to-html": "^0.7.2",
-		"electrobun": "1.18.1",
+		"electrobun": "1.16.0-beta.0",
 		"esbuild": "^0.25.12",
 		"esbuild-monaco-editor-plugin": "^0.1.1",
 		"esbuild-plugin-solid": "^0.5.0",
