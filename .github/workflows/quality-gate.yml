@@ -7,13 +7,23 @@ concurrency:
 on:
   pull_request:
     branches: [main]
+  workflow_call:
+    inputs:
+      coverage_threshold:
+        description: 'Minimum coverage percentage required to pass the gate'
+        type: number
+        default: 85
+      rust_toolchain:
+        description: 'Rust toolchain to use (passed to dtolnay/rust-toolchain)'
+        type: string
+        default: stable
 permissions:
   contents: read
 
 
 env:
   CARGO_TERM_COLOR: always
-  COVERAGE_THRESHOLD: 85
+  COVERAGE_THRESHOLD: ${{ inputs.coverage_threshold }}
 jobs:
   check-changes:
     runs-on: ubuntu-24.04
@@ -42,6 +52,8 @@ jobs:
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9 # v-latest
+        with:
+          toolchain: ${{ inputs.rust_toolchain }}
 
       - name: Cache dependencies
         uses: Swatinem/rust-cache@874b06e0d3f63371f9ddbee43d4c8ebc73021583 # v-latest
@@ -78,6 +90,8 @@ jobs:
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9 # v-latest
+        with:
+          toolchain: ${{ inputs.rust_toolchain }}
 
       - name: Cache dependencies
         uses: Swatinem/rust-cache@874b06e0d3f63371f9ddbee43d4c8ebc73021583 # v-latest
@@ -95,6 +109,8 @@ jobs:
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9 # v-latest
+        with:
+          toolchain: ${{ inputs.rust_toolchain }}
 
       - name: Cache dependencies
         uses: Swatinem/rust-cache@874b06e0d3f63371f9ddbee43d4c8ebc73021583 # v-latest
