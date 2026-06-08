@@ -9,11 +9,9 @@ import {
 } from "solid-js";
 import { state, setState, updateSyncedAppSettings } from "../store";
 import {
-  SettingsPaneSaveClose,
+  SettingsPageShell,
   SettingsPaneFormSection,
   SettingsPaneField,
-  SettingsInputField,
-  SettingsReadonlyField,
 } from "./forms";
 import { aiCompletionService } from "../services/aiCompletionService";
 import { electrobun } from "../init";
@@ -280,12 +278,7 @@ export const LlamaSettings = (): JSXElement => {
   };
 
   return (
-    <div
-      style="background: #404040; color: #d9d9d9; height: 100vh; overflow: hidden; display: flex; flex-direction: column;"
-    >
-      <form onSubmit={onSubmit} style="height: 100%; display: flex; flex-direction: column;">
-        <SettingsPaneSaveClose label="AI Model Settings" />
-        
+    <SettingsPageShell label="AI Model Settings" onSubmit={onSubmit}>
         <div style="flex: 1; overflow-y: auto; padding: 0; margin-bottom: 60px;">
           <SettingsPaneFormSection label="Status">
             <SettingsPaneField label="Models">
@@ -498,7 +491,6 @@ export const LlamaSettings = (): JSXElement => {
             </SettingsPaneField>
           </SettingsPaneFormSection>
         </div>
-      </form>
-    </div>
+    </SettingsPageShell>
   );
 };

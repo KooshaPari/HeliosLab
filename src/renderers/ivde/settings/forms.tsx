@@ -9,6 +9,42 @@ import {
 } from "solid-js";
 import { setState } from "../store";
 
+export const SettingsPageShell = ({
+  label,
+  saveDisabled = () => false,
+  children,
+  onSubmit,
+}: {
+  label: string;
+  saveDisabled?: () => boolean;
+  children: JSXElement;
+  onSubmit?: (e: SubmitEvent) => void;
+}) => {
+  const onCloseClick = (e: MouseEvent) => {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    setState("settingsPane", { type: "", data: {} });
+  };
+
+  const handleSubmit = (e: SubmitEvent) => {
+    e.preventDefault();
+    onSubmit?.(e);
+  };
+
+  return (
+    <div
+      style="background: #404040; color: #d9d9d9; height: 100vh; overflow: hidden; display: flex; flex-direction: column;"
+    >
+      <form onSubmit={handleSubmit} style="height: 100%; display: flex; flex-direction: column;">
+        <SettingsPaneSaveClose label={label} saveDisabled={saveDisabled} />
+        <div style="flex: 1; overflow-y: auto; padding: 0; margin-bottom: 60px;">
+          {children}
+        </div>
+      </form>
+    </div>
+  );
+};
+
 export const SettingsPaneSaveClose = ({
   label,
   saveDisabled = () => false,
@@ -146,69 +182,5 @@ export const SettingsPaneField = ({
         {children}
       </div>
     </div>
-  );
-};
-
-export const SettingsInputField = ({
-  value,
-  placeholder,
-  name,
-  ref,
-}: {
-  value: string;
-  placeholder: string;
-  // onInput: (e: Event) => void,
-  name: string;
-  ref: HTMLInputElement | undefined;
-}) => {
-  return (
-    <input
-      type="text"
-      ref={ref}
-      name={name}
-      value={value}
-      // onInput={onInput}
-      placeholder={placeholder}
-      style="background: #2b2b2b;border-radius: #2b2b2b;border: 1px solid #212121;color: #d9d9d9;outline: none;cursor: text;display: block;font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', Helvetica, Arial, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;font-size: 12px;padding-top: 8px;padding-right: 9px;padding-bottom: 8px;padding-left: 9px;line-height: 14px;"
-    ></input>
-  );
-};
-
-export const SettingsReadonlyField = ({
-  label,
-  value,
-}: {
-  label: string;
-  value: string | number;
-}) => {
-  return (
-    <span
-      style="background: #202020;
-    padding-top: 5px;
-    padding-right: 9px;
-    padding-bottom: 5px;
-    padding-left: 9px;
-    margin-bottom: '4px'
-    -webkit-user-select: none;
-    line-height: 14px;"
-    >
-      {label}:
-      <span
-        style="background: #2b2b2b;
-        padding-top: 2px;
-        padding-right: 9px;
-        padding-bottom: 2px;
-        padding-left: 9px;
-        line-height: 22px;
-        color: #d9d9d9;
-        font-size: 12px;
-      word-break: break-all;
-      -webkit-user-select: text;
-      margin-left: 5px;
-      "
-      >
-        {value}
-      </span>
-    </span>
   );
 };

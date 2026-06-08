@@ -8,32 +8,30 @@ import * as os from "os";
 const OSXKEYCHAIN_HELPER = "/Library/Developer/CommandLineTools/usr/libexec/git-core/git-credential-osxkeychain";
 
 // Environment variables for vendored git
-// - GIT_EXEC_PATH: sets exec path so git can find helpers like git-remote-https
-// - HOME: ensures git can find ~/.gitconfig for user.name and user.email
 const gitEnv = {
   GIT_EXEC_PATH: GIT_VENDOR_PATH,
   HOME: os.homedir(),
 };
 
-// Check if osxkeychain helper is available for credential management
 const hasOsxKeychainHelper = fs.existsSync(OSXKEYCHAIN_HELPER);
 
-const git = (baseDir: string) => {
+// Shared simple-git configuration to eliminate duplication across all git operations
+const createGitInstance = (baseDir?: string): SimpleGit => {
   return simpleGit({
     binary: GIT_BINARY_PATH,
-    // note: unsafe allows us to use special characters in the file path
-    // with this option enabled it will warn instead of throw https://github.com/steveukx/git-js/blob/859699d0cc1d0c9b94f53de9c61a060a2cecb656/simple-git/src/lib/plugins/custom-binary.plugin.ts#L25C18-L25C22
     unsafe: {
       allowUnsafeCustomBinary: true,
       allowUnsafePack: true,
-      allowUnsafeProtocolOverride: true
+      allowUnsafeProtocolOverride: true,
     },
-    baseDir: baseDir,
-    maxConcurrentProcesses: 2, // Reduced to avoid overwhelming the system
+    baseDir,
+    maxConcurrentProcesses: 2,
     trimmed: false,
-    config: ['core.quotepath=false'], // Disable path quoting that might cause issues
+    config: baseDir ? ['core.quotepath=false'] : undefined,
   }).env(gitEnv);
 };
+
+const git = (baseDir: string) => createGitInstance(baseDir);
 
 export const gitShow = (repoRoot: string, options: string[]) => {
   return git(repoRoot).show(options);
@@ -122,17 +120,7 @@ export const initGit = async (repoRoot: string) => {
 
 export const gitValidateUrl = async (gitUrl: string) => {
   try {
-    // Use git ls-remote to check if the repository is reachable and clonable
-    const gitInstance = simpleGit({
-      binary: GIT_BINARY_PATH,
-      unsafe: {
-        allowUnsafeCustomBinary: true,
-        allowUnsafePack: true,
-        allowUnsafeProtocolOverride: true,
-      },
-      maxConcurrentProcesses: 2,
-      trimmed: false,
-    }).env(gitEnv);
+    const gitInstance = createGitInstance();
 
     // Build ls-remote command with credential helper for private repos
     const lsRemoteArgs: string[] = [];
@@ -166,17 +154,7 @@ export const gitClone = async (repoPath: string, gitUrl: string, createMainBranc
       }
 
       // Initialize git with main branch
-      const repoGit = simpleGit({
-        baseDir: targetPath,
-        binary: GIT_BINARY_PATH,
-        unsafe: {
-          allowUnsafeCustomBinary: true,
-          allowUnsafePack: true,
-          allowUnsafeProtocolOverride: true,
-        },
-        maxConcurrentProcesses: 2,
-        trimmed: false,
-      }).env(gitEnv);
+      const repoGit = createGitInstance(targetPath);
 
       await repoGit.init(['--initial-branch=main']);
       await repoGit.addRemote('origin', gitUrl);
@@ -191,17 +169,7 @@ export const gitClone = async (repoPath: string, gitUrl: string, createMainBranc
       return `Successfully cloned empty repository and initialized main branch at ${repoPath}`;
     } else {
       // Normal clone for repositories with existing branches
-      const gitInstance = simpleGit({
-        baseDir: parentDir,
-        binary: GIT_BINARY_PATH,
-        unsafe: {
-          allowUnsafeCustomBinary: true,
-          allowUnsafePack: true,
-          allowUnsafeProtocolOverride: true,
-        },
-        maxConcurrentProcesses: 2,
-        trimmed: false,
-      }).env(gitEnv);
+      const gitInstance = createGitInstance(parentDir);
 
       // Build clone command with credential helper for private repos
       const cloneArgs: string[] = [];
@@ -308,17 +276,7 @@ export const gitAddRemote = async (repoRoot: string, remoteName: string, remoteU
 
 export const gitFetch = async (repoRoot: string, remote?: string, options: string[] = []) => {
   try {
-    const gitInstance = simpleGit({
-      baseDir: repoRoot,
-      binary: GIT_BINARY_PATH,
-      unsafe: {
-        allowUnsafeCustomBinary: true,
-        allowUnsafePack: true,
-        allowUnsafeProtocolOverride: true,
-      },
-      maxConcurrentProcesses: 2,
-      trimmed: false,
-    }).env(gitEnv);
+    const gitInstance = createGitInstance(repoRoot);
 
     // Build fetch command with credential helper configuration
     const fetchArgs: string[] = [];
@@ -341,17 +299,7 @@ export const gitFetch = async (repoRoot: string, remote?: string, options: strin
 
 export const gitPull = async (repoRoot: string, remote?: string, branch?: string, options: string[] = []) => {
   try {
-    const gitInstance = simpleGit({
-      baseDir: repoRoot,
-      binary: GIT_BINARY_PATH,
-      unsafe: {
-        allowUnsafeCustomBinary: true,
-        allowUnsafePack: true,
-        allowUnsafeProtocolOverride: true,
-      },
-      maxConcurrentProcesses: 2,
-      trimmed: false,
-    }).env(gitEnv);
+    const gitInstance = createGitInstance(repoRoot);
 
     // Build pull command with credential helper configuration
     const pullArgs: string[] = [];
@@ -377,17 +325,7 @@ export const gitPull = async (repoRoot: string, remote?: string, branch?: string
 
 export const gitPush = async (repoRoot: string, remote?: string, branch?: string, options: string[] = []) => {
   try {
-    const gitInstance = simpleGit({
-      baseDir: repoRoot,
-      binary: GIT_BINARY_PATH,
-      unsafe: {
-        allowUnsafeCustomBinary: true,
-        allowUnsafePack: true,
-        allowUnsafeProtocolOverride: true,
-      },
-      maxConcurrentProcesses: 2,
-      trimmed: false,
-    }).env(gitEnv);
+    const gitInstance = createGitInstance(repoRoot);
 
     // Build push command with credential helper configuration
     const pushArgs: string[] = [];
@@ -424,16 +362,7 @@ export const gitBranch = async (repoRoot: string, options: string[] = []) => {
 // Get global git configuration (user.name, user.email)
 export const getGitConfig = async (): Promise<{ name: string; email: string; hasKeychainHelper: boolean }> => {
   try {
-    const gitInstance = simpleGit({
-      binary: GIT_BINARY_PATH,
-      unsafe: {
-        allowUnsafeCustomBinary: true,
-        allowUnsafePack: true,
-        allowUnsafeProtocolOverride: true,
-      },
-      maxConcurrentProcesses: 2,
-      trimmed: false,
-    }).env(gitEnv);
+    const gitInstance = createGitInstance();
 
     let name = '';
     let email = '';
@@ -460,16 +389,7 @@ export const getGitConfig = async (): Promise<{ name: string; email: string; has
 // Set global git configuration
 export const setGitConfig = async (name: string, email: string): Promise<void> => {
   try {
-    const gitInstance = simpleGit({
-      binary: GIT_BINARY_PATH,
-      unsafe: {
-        allowUnsafeCustomBinary: true,
-        allowUnsafePack: true,
-        allowUnsafeProtocolOverride: true,
-      },
-      maxConcurrentProcesses: 2,
-      trimmed: false,
-    }).env(gitEnv);
+    const gitInstance = createGitInstance();
 
     if (name) {
       await gitInstance.raw(['config', '--global', 'user.name', name]);
