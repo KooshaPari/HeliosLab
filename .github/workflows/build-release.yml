@@ -1,36 +1,13 @@
 name: Build and Release
-on:
-  workflow_dispatch:
-
-permissions:
-  contents: read
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
-
-# CACHE WARMING NOTE:
-# GitHub caches are scoped by branch/ref. Tags cannot share caches with each other.
-# Caches from 'main' branch ARE accessible to all tags.
-#
-# If you update versions.env (zig/llama.cpp versions), you must warm the cache:
-#   1. Push the change to main, OR
-#   2. Manually run this workflow from main: Actions → Build and Release → Run workflow → main
-#
-# Otherwise the first tag build after a version change will have a cache miss (~10 min rebuild).
-
-on:
+'on':
+  workflow_dispatch: null
   push:
     tags:
-      - 'v*'
+    - v*
     branches:
-      - main
+    - main
     paths:
-      # Only rebuild deps cache when versions change
-      - '.github/workflows/versions.env'
-  workflow_dispatch:
-    # Allows manual runs to warm the cache from main branch
+    - .github/workflows/versions.env
 jobs:
   build-deps:
     runs-on: ubuntu-24.04

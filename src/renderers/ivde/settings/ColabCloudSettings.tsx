@@ -6,7 +6,7 @@ import {
 } from "solid-js";
 import { state, setState, updateSyncedAppSettings } from "../store";
 import {
-  SettingsPaneSaveClose,
+  SettingsPageShell,
   SettingsPaneFormSection,
   SettingsPaneField,
 } from "./forms";
@@ -322,12 +322,7 @@ export const ColabCloudSettings = (): JSXElement => {
   };
 
   return (
-    <div
-      style="background: #404040; color: #d9d9d9; height: 100vh; overflow: hidden; display: flex; flex-direction: column;"
-    >
-      <form onSubmit={onSubmit} style="height: 100%; display: flex; flex-direction: column;">
-        <SettingsPaneSaveClose label="Colab Cloud" />
-
+    <SettingsPageShell label="Colab Cloud" onSubmit={onSubmit}>
         <div style="flex: 1; overflow-y: auto; padding: 0; margin-bottom: 60px;">
           <SettingsPaneFormSection label="Connection Status">
             <SettingsPaneField label="Status">
@@ -660,7 +655,6 @@ export const ColabCloudSettings = (): JSXElement => {
             </SettingsPaneField>
           </SettingsPaneFormSection>
         </div>
-      </form>
-    </div>
+    </SettingsPageShell>
   );
 };

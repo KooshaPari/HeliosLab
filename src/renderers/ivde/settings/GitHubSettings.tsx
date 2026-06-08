@@ -6,7 +6,7 @@ import {
 } from "solid-js";
 import { state, setState, updateSyncedAppSettings } from "../store";
 import {
-  SettingsPaneSaveClose,
+  SettingsPageShell,
   SettingsPaneFormSection,
   SettingsPaneField,
 } from "./forms";
@@ -202,207 +202,199 @@ export const GitHubSettings = (): JSXElement => {
   };
 
   return (
-    <div
-      style="background: #404040; color: #d9d9d9; height: 100vh; overflow: hidden; display: flex; flex-direction: column;"
-    >
-      <form onSubmit={onSubmit} style="height: 100%; display: flex; flex-direction: column;">
-        <SettingsPaneSaveClose label="Git & GitHub" />
+    <SettingsPageShell label="Git & GitHub" onSubmit={onSubmit}>
+      {/* Status Banner */}
+      <Show when={statusMessage()}>
+        <div style="background: #2b2b2b; padding: 8px 16px; font-size: 12px; color: #51cf66; border-bottom: 1px solid #333;">
+          {statusMessage()}
+        </div>
+      </Show>
 
-        <div style="flex: 1; overflow-y: auto; padding: 0; margin-bottom: 60px;">
-          {/* Status Banner */}
-          <Show when={statusMessage()}>
-            <div style="background: #2b2b2b; padding: 8px 16px; font-size: 12px; color: #51cf66; border-bottom: 1px solid #333;">
-              {statusMessage()}
-            </div>
-          </Show>
+      {/* Git Identity Section */}
+      <SettingsPaneFormSection label="Git">
+        <SettingsPaneField label="Author Name">
+          <input
+            type="text"
+            value={gitName()}
+            onInput={(e) => setGitName(e.currentTarget.value)}
+            placeholder="Your Name"
+            style="background: #2b2b2b; border: 1px solid #555; color: #d9d9d9; padding: 8px 12px; border-radius: 4px; font-size: 12px; width: 100%; box-sizing: border-box;"
+          />
+          <div style="font-size: 10px; color: #777; margin-top: 4px;">
+            Used for commit author attribution
+          </div>
+        </SettingsPaneField>
 
-          {/* Git Identity Section */}
-          <SettingsPaneFormSection label="Git">
-            <SettingsPaneField label="Author Name">
-              <input
-                type="text"
-                value={gitName()}
-                onInput={(e) => setGitName(e.currentTarget.value)}
-                placeholder="Your Name"
-                style="background: #2b2b2b; border: 1px solid #555; color: #d9d9d9; padding: 8px 12px; border-radius: 4px; font-size: 12px; width: 100%; box-sizing: border-box;"
-              />
-              <div style="font-size: 10px; color: #777; margin-top: 4px;">
-                Used for commit author attribution
-              </div>
-            </SettingsPaneField>
+        <SettingsPaneField label="Author Email">
+          <input
+            type="email"
+            value={gitEmail()}
+            onInput={(e) => setGitEmail(e.currentTarget.value)}
+            placeholder="your@email.com"
+            style="background: #2b2b2b; border: 1px solid #555; color: #d9d9d9; padding: 8px 12px; border-radius: 4px; font-size: 12px; width: 100%; box-sizing: border-box;"
+          />
+          <div style="font-size: 10px; color: #777; margin-top: 4px;">
+            Used for commit author attribution
+          </div>
+        </SettingsPaneField>
 
-            <SettingsPaneField label="Author Email">
-              <input
-                type="email"
-                value={gitEmail()}
-                onInput={(e) => setGitEmail(e.currentTarget.value)}
-                placeholder="your@email.com"
-                style="background: #2b2b2b; border: 1px solid #555; color: #d9d9d9; padding: 8px 12px; border-radius: 4px; font-size: 12px; width: 100%; box-sizing: border-box;"
-              />
-              <div style="font-size: 10px; color: #777; margin-top: 4px;">
-                Used for commit author attribution
-              </div>
-            </SettingsPaneField>
+        <SettingsPaneField label="">
+          <button
+            type="button"
+            onClick={saveIdentity}
+            style={{
+              background: identitySaved() ? "#51cf66" : "#0969da",
+              color: "white",
+              border: "none",
+              padding: "8px 16px",
+              "border-radius": "4px",
+              cursor: "pointer",
+              "font-size": "12px",
+              width: "100%",
+            }}
+          >
+            {identitySaved() ? "Saved" : "Save Identity"}
+          </button>
+        </SettingsPaneField>
+      </SettingsPaneFormSection>
 
-            <SettingsPaneField label="">
-              <button
-                type="button"
-                onClick={saveIdentity}
-                style={{
-                  background: identitySaved() ? "#51cf66" : "#0969da",
-                  color: "white",
-                  border: "none",
-                  padding: "8px 16px",
-                  "border-radius": "4px",
-                  cursor: "pointer",
-                  "font-size": "12px",
-                  width: "100%",
-                }}
-              >
-                {identitySaved() ? "Saved" : "Save Identity"}
-              </button>
-            </SettingsPaneField>
-          </SettingsPaneFormSection>
-
-          {/* GitHub Section */}
-          <SettingsPaneFormSection label="GitHub">
-            <Show
-              when={isConnected()}
-              fallback={
-                <>
-                  {/* Not connected - show input fields */}
-                  <SettingsPaneField label="">
-                    <div style="background: #1a1a1a; border: 1px solid #333; padding: 12px; border-radius: 4px; margin-bottom: 8px;">
-                      <div style="font-size: 11px; color: #ffa500; font-weight: 500; margin-bottom: 6px;">
-                        Use a Classic PAT
-                      </div>
-                      <div style="font-size: 11px; color: #999; line-height: 1.4;">
-                        Fine-grained PATs may not work for push/pull. Create a <strong>Classic</strong> token with <code>repo</code> scope.
-                      </div>
-                      <a
-                        href="#"
-                        onClick={openTokenPage}
-                        style="display: inline-block; margin-top: 8px; font-size: 11px; color: #0969da; text-decoration: none;"
-                      >
-                        Create Classic Token on GitHub
-                      </a>
-                    </div>
-                  </SettingsPaneField>
-
-                  <SettingsPaneField label="Username">
-                    <input
-                      type="text"
-                      value={usernameInput()}
-                      onInput={(e) => setUsernameInput(e.currentTarget.value)}
-                      placeholder="your-github-username"
-                      style="background: #2b2b2b; border: 1px solid #555; color: #d9d9d9; padding: 8px 12px; border-radius: 4px; font-size: 12px; width: 100%; box-sizing: border-box;"
-                    />
-                  </SettingsPaneField>
-
-                  <SettingsPaneField label="Personal Access Token">
-                    <input
-                      type="password"
-                      value={patInput()}
-                      onInput={(e) => setPatInput(e.currentTarget.value)}
-                      placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
-                      style="background: #2b2b2b; border: 1px solid #555; color: #d9d9d9; padding: 8px 12px; border-radius: 4px; font-size: 12px; width: 100%; box-sizing: border-box; font-family: 'Fira Code', monospace;"
-                    />
-                    <div style="font-size: 10px; color: #777; margin-top: 4px;">
-                      Classic tokens start with <code>ghp_</code>
-                    </div>
-                  </SettingsPaneField>
-
-                  <SettingsPaneField label="">
-                    <button
-                      type="button"
-                      onClick={connectGitHub}
-                      disabled={isVerifyingPat()}
-                      style={{
-                        background: isVerifyingPat() ? "#555" : "#51cf66",
-                        color: "white",
-                        border: "none",
-                        padding: "8px 16px",
-                        "border-radius": "4px",
-                        cursor: isVerifyingPat() ? "wait" : "pointer",
-                        "font-size": "12px",
-                        width: "100%",
-                      }}
-                    >
-                      {isVerifyingPat() ? "Connecting..." : "Connect GitHub"}
-                    </button>
-                  </SettingsPaneField>
-
-                  <Show when={!hasKeychainHelper()}>
-                    <SettingsPaneField label="">
-                      <div style="background: #3d2020; border: 1px solid #5a3030; padding: 12px; border-radius: 4px; font-size: 11px; color: #ff9999;">
-                        macOS Keychain helper not available. Install Xcode Command Line Tools to enable secure credential storage.
-                      </div>
-                    </SettingsPaneField>
-                  </Show>
-                </>
-              }
-            >
-              {/* Connected - show status */}
+      {/* GitHub Section */}
+      <SettingsPaneFormSection label="GitHub">
+        <Show
+          when={isConnected()}
+          fallback={
+            <>
+              {/* Not connected - show input fields */}
               <SettingsPaneField label="">
-                <div style="background: #2b2b2b; padding: 16px; border-radius: 4px;">
-                  <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-                    <img
-                      src={userInfo()?.avatar_url}
-                      style="width: 48px; height: 48px; border-radius: 50%;"
-                      alt="GitHub Avatar"
-                    />
-                    <div style="display: flex; flex-direction: column; flex: 1;">
-                      <span style="font-size: 14px; font-weight: 500; color: #d9d9d9;">
-                        {userInfo()?.name || userInfo()?.login}
-                      </span>
-                      <span style="font-size: 12px; color: #999;">
-                        @{userInfo()?.login}
-                      </span>
-                    </div>
+                <div style="background: #1a1a1a; border: 1px solid #333; padding: 12px; border-radius: 4px; margin-bottom: 8px;">
+                  <div style="font-size: 11px; color: #ffa500; font-weight: 500; margin-bottom: 6px;">
+                    Use a Classic PAT
                   </div>
+                  <div style="font-size: 11px; color: #999; line-height: 1.4;">
+                    Fine-grained PATs may not work for push/pull. Create a <strong>Classic</strong> token with <code>repo</code> scope.
+                  </div>
+                  <a
+                    href="#"
+                    onClick={openTokenPage}
+                    style="display: inline-block; margin-top: 8px; font-size: 11px; color: #0969da; text-decoration: none;"
+                  >
+                    Create Classic Token on GitHub
+                  </a>
+                </div>
+              </SettingsPaneField>
 
-                  <div style="display: flex; flex-direction: column; gap: 8px; padding-top: 12px; border-top: 1px solid #444;">
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                      <div style={{
-                        width: "8px",
-                        height: "8px",
-                        "border-radius": "50%",
-                        background: "#51cf66",
-                      }}></div>
-                      <span style="font-size: 11px; color: #999;">
-                        {userInfo()?.public_repos || 0} public repos, {userInfo()?.private_repos || 0} private repos
-                      </span>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                      <div style={{
-                        width: "8px",
-                        height: "8px",
-                        "border-radius": "50%",
-                        background: keychainCredentials().hasCredentials ? "#51cf66" : "#ffa500",
-                      }}></div>
-                      <span style="font-size: 11px; color: #999;">
-                        {keychainCredentials().hasCredentials
-                          ? "Push/pull credentials stored in Keychain"
-                          : "Push/pull credentials not stored"}
-                      </span>
-                    </div>
-                  </div>
+              <SettingsPaneField label="Username">
+                <input
+                  type="text"
+                  value={usernameInput()}
+                  onInput={(e) => setUsernameInput(e.currentTarget.value)}
+                  placeholder="your-github-username"
+                  style="background: #2b2b2b; border: 1px solid #555; color: #d9d9d9; padding: 8px 12px; border-radius: 4px; font-size: 12px; width: 100%; box-sizing: border-box;"
+                />
+              </SettingsPaneField>
+
+              <SettingsPaneField label="Personal Access Token">
+                <input
+                  type="password"
+                  value={patInput()}
+                  onInput={(e) => setPatInput(e.currentTarget.value)}
+                  placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+                  style="background: #2b2b2b; border: 1px solid #555; color: #d9d9d9; padding: 8px 12px; border-radius: 4px; font-size: 12px; width: 100%; box-sizing: border-box; font-family: 'Fira Code', monospace;"
+                />
+                <div style="font-size: 10px; color: #777; margin-top: 4px;">
+                  Classic tokens start with <code>ghp_</code>
                 </div>
               </SettingsPaneField>
 
               <SettingsPaneField label="">
                 <button
                   type="button"
-                  onClick={disconnect}
-                  style="background: #ff6b6b; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 12px; width: 100%;"
+                  onClick={connectGitHub}
+                  disabled={isVerifyingPat()}
+                  style={{
+                    background: isVerifyingPat() ? "#555" : "#51cf66",
+                    color: "white",
+                    border: "none",
+                    padding: "8px 16px",
+                    "border-radius": "4px",
+                    cursor: isVerifyingPat() ? "wait" : "pointer",
+                    "font-size": "12px",
+                    width: "100%",
+                  }}
                 >
-                  Disconnect GitHub
+                  {isVerifyingPat() ? "Connecting..." : "Connect GitHub"}
                 </button>
               </SettingsPaneField>
-            </Show>
-          </SettingsPaneFormSection>
-        </div>
-      </form>
-    </div>
+
+              <Show when={!hasKeychainHelper()}>
+                <SettingsPaneField label="">
+                  <div style="background: #3d2020; border: 1px solid #5a3030; padding: 12px; border-radius: 4px; font-size: 11px; color: #ff9999;">
+                    macOS Keychain helper not available. Install Xcode Command Line Tools to enable secure credential storage.
+                  </div>
+                </SettingsPaneField>
+              </Show>
+            </>
+          }
+        >
+          {/* Connected - show status */}
+          <SettingsPaneField label="">
+            <div style="background: #2b2b2b; padding: 16px; border-radius: 4px;">
+              <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                <img
+                  src={userInfo()?.avatar_url}
+                  style="width: 48px; height: 48px; border-radius: 50%;"
+                  alt="GitHub Avatar"
+                />
+                <div style="display: flex; flex-direction: column; flex: 1;">
+                  <span style="font-size: 14px; font-weight: 500; color: #d9d9d9;">
+                    {userInfo()?.name || userInfo()?.login}
+                  </span>
+                  <span style="font-size: 12px; color: #999;">
+                    @{userInfo()?.login}
+                  </span>
+                </div>
+              </div>
+
+              <div style="display: flex; flex-direction: column; gap: 8px; padding-top: 12px; border-top: 1px solid #444;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <div style={{
+                    width: "8px",
+                    height: "8px",
+                    "border-radius": "50%",
+                    background: "#51cf66",
+                  }}></div>
+                  <span style="font-size: 11px; color: #999;">
+                    {userInfo()?.public_repos || 0} public repos, {userInfo()?.private_repos || 0} private repos
+                  </span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <div style={{
+                    width: "8px",
+                    height: "8px",
+                    "border-radius": "50%",
+                    background: keychainCredentials().hasCredentials ? "#51cf66" : "#ffa500",
+                  }}></div>
+                  <span style="font-size: 11px; color: #999;">
+                    {keychainCredentials().hasCredentials
+                      ? "Push/pull credentials stored in Keychain"
+                      : "Push/pull credentials not stored"}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </SettingsPaneField>
+
+          <SettingsPaneField label="">
+            <button
+              type="button"
+              onClick={disconnect}
+              style="background: #ff6b6b; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 12px; width: 100%;"
+            >
+              Disconnect GitHub
+            </button>
+          </SettingsPaneField>
+        </Show>
+      </SettingsPaneFormSection>
+    </SettingsPageShell>
   );
 };

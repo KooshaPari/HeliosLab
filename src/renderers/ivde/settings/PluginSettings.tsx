@@ -13,7 +13,6 @@ import {
 } from "solid-js";
 import { state, setState } from "../store";
 import {
-  SettingsPaneSaveClose,
   SettingsPaneFormSection,
   SettingsPaneField,
 } from "./forms";
