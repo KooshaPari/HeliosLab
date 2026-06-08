@@ -1,18 +1,7 @@
 name: required-check-names-guard
-on:
-  workflow_dispatch:
-
-permissions:
-  contents: read
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
-
-on:
-  pull_request:
-  workflow_dispatch:
+'on':
+  workflow_dispatch: null
+  pull_request: null
 jobs:
   verify-required-check-names:
     name: verify-required-check-names
