@@ -4,7 +4,7 @@ members = ["pheno-core", "pheno-db", "pheno-crypto", "pheno-cli", "crates/pheno-
 
 [workspace.package]
 license = "MIT OR Apache-2.0"
-version = "0.1.1"
+version = "0.14.11-canary.3"
 edition = "2021"
 
 [workspace.dependencies]
