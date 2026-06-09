@@ -1,0 +1,12 @@
+# OpenSSF Scorecard policy
+# Documents the security best practices HeliosLab enforces.
+# Consumed by https://scorecard.dev for public scoring.
+checks:
+  Branch-Protection: 7
+  Code-Review: 7
+  Dangerous-Workflow: 9
+  Dependency-Update-Tool: 9
+  Pinned-Dependencies: 8
+  SAST: 7
+  Security-Policy: 10
+  Token-Permissions: 9
