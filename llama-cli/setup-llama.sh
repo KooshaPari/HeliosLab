@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
 # Script to fetch and set up llama.cpp for the llama-cli project
 
