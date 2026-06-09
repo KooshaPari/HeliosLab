@@ -1,5 +1,8 @@
 # HeliosApp
 
+> **Work state:** ACTIVE · **Progress:** `stable` · Updated 2026-06-08 (hygiene bundle).
+
+
 [![Build](https://img.shields.io/github/actions/workflow/status/KooshaPari/heliosApp/ci.yml?branch=main&label=build)](https://github.com/KooshaPari/heliosApp/actions)
 [![Release](https://img.shields.io/github/v/release/KooshaPari/heliosApp?include_prereleases&sort=semver)](https://github.com/KooshaPari/heliosApp/releases)
 [![License](https://img.shields.io/github/license/KooshaPari/heliosApp)](LICENSE)
