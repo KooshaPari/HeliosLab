@@ -1,3 +1,14 @@
+## Work State
+
+| Field | Value |
+|---|---|
+| Last commit | 2026-06-08 |
+| Open issues | 0 |
+| Open PRs | 2 |
+| Focus | TS+Rust monorepo lab (journeys/contracts/desktop) |
+
+Progress: ████████░░ 80%
+
 > **Work state:** ACTIVE · **Progress:** `███████░░░ 65%`
 > TS+Rust monorepo lab (journeys/contracts/desktop); active feat/journey-impl · updated 2026-06-02
 
