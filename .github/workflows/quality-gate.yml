@@ -17,6 +17,7 @@ env:
 jobs:
   check-changes:
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     outputs:
       has_tests: ${{ steps.check.outputs.has_tests }}
       has_e2e: ${{ steps.check.outputs.has_e2e }}
@@ -37,6 +38,7 @@ jobs:
   unit-tests:
     name: Unit Tests
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v4
 
@@ -73,6 +75,7 @@ jobs:
     needs: check-changes
     if: needs.check-changes.outputs.has_e2e == 'true'
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v4
 
@@ -90,6 +93,7 @@ jobs:
     needs: check-changes
     if: needs.check-changes.outputs.has_integration == 'true'
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v4
 
@@ -105,6 +109,7 @@ jobs:
   fr-annotation-check:
     name: FR Annotation Check
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v4
         with:
@@ -143,6 +148,7 @@ jobs:
     needs: [unit-tests, e2e-tests, integration-tests, fr-annotation-check]
     if: always()
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v4
 

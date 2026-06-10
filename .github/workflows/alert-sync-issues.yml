@@ -11,5 +11,6 @@ permissions:
 jobs:
   sync:
     uses: KooshaPari/phenoShared/.github/workflows/reusable/alert-sync-issues.yml@6a6e1b06026e9443449e419a2892cd0e47c19442
+    timeout-minutes: 10
     with:
       auto-label: auto-alert-sync

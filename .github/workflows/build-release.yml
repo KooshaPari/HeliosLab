@@ -11,6 +11,7 @@ name: Build and Release
 jobs:
   build-deps:
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     outputs:
       cache-hit: ${{ steps.cache-check.outputs.cache-hit }}
 
@@ -56,6 +57,7 @@ jobs:
   build:
     needs: build-deps
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     # Only run full build on tag pushes, not on main branch cache-warming runs
     if: startsWith(github.ref, 'refs/tags/')
 
@@ -223,6 +225,7 @@ jobs:
   publish-demo-plugin:
     needs: build
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     # Only publish for stable releases (not canary), and only on tag pushes
     if: ${{ startsWith(github.ref, 'refs/tags/') && !contains(github.ref, '-canary') }}
     steps:

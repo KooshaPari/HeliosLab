@@ -8,6 +8,7 @@ on:
 jobs:
   journey-gate:
     uses: KooshaPari/phenotype-tooling/.github/workflows/reusable/journey-gate.yml@604fcb5352a8fb68fdd52a9503fefea1163dc2ea # pinned from @ref; org SHA may shift on new commits
+    timeout-minutes: 10
 permissions:
   contents: read
 
