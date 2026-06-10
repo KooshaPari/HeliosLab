@@ -5,6 +5,8 @@ use clap::{Parser, Subcommand};
 use pheno_core::*;
 use pheno_db::Database;
 use std::path::PathBuf;
+use std::sync::{Mutex, OnceLock};
+use phenotype_rate_limit::TokenBucket;
 
 #[derive(Parser)]
 #[command(name = "phenoctl", about = "Phenotype configuration manager")]
@@ -428,6 +430,24 @@ fn handle_promote(repo: &Option<PathBuf>, name: String, target_stage: String) {
 }
 
 fn handle_status(repo: &Option<PathBuf>) {
+    // Rate-limit `status`: it performs four DB reads (configs, flags,
+    // secrets, versions) and is the most likely target of an
+    // accidental `while true; do phenoctl status; done` tight loop.
+    // We allow a 3-call burst, then refill at 1 token/sec — a
+    // sustained ceiling of one status call per second. Non-blocking:
+    // a denied acquire exits with a clear message.
+    {
+        let mut bucket = status_rate_limiter()
+            .lock()
+            .expect("status rate limiter poisoned");
+        if !bucket.try_acquire() {
+            eprintln!(
+                "status: rate limit exceeded (burst=3, refill=1/s); \
+                 wait a second and retry"
+            );
+            std::process::exit(1);
+        }
+    }
     let db = open_db(repo);
     let configs = db.list_config(NS).unwrap_or_default();
     let flags = db.list_flags(NS).unwrap_or_default();
@@ -446,4 +466,23 @@ fn whoami() -> String {
     std::env::var("USER")
         .or_else(|_| std::env::var("USERNAME"))
         .unwrap_or_else(|_| "unknown".to_string())
+}
+
+/// Process-wide [`TokenBucket`] for the `phenoctl status` command.
+///
+/// `phenotype_rate_limit::TokenBucket` is `!Sync` (it owns an
+/// interior `Instant`), so we wrap it in a `Mutex`. The bucket is
+/// allocated lazily on first call via `OnceLock` to avoid paying the
+/// construction cost when the user never invokes `status`.
+///
+/// Tuning:
+/// * `capacity = 3` — three `status` calls in immediate succession
+///   are accepted without complaint, so a quick `phenoctl status;
+///   phenoctl status; phenoctl status` works as expected.
+/// * `refill_per_sec = 1` — sustained ceiling of one call per
+///   second. A 4th call within the same second is rejected; the
+///   caller is told to back off and retry.
+fn status_rate_limiter() -> &'static Mutex<TokenBucket> {
+    static LIMITER: OnceLock<Mutex<TokenBucket>> = OnceLock::new();
+    LIMITER.get_or_init(|| Mutex::new(TokenBucket::new(3, 1)))
 }
