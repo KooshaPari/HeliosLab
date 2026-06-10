@@ -157,3 +157,16 @@ fn draw(frame: &mut Frame, db: &Database, tab: Tab) {
         .split(chunks[1]);
     frame.render_widget(help, footer[1]);
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn tab_title_returns_expected_label() {
+        assert_eq!(Tab::Config.title(), "Config");
+        assert_eq!(Tab::Flags.title(), "Flags");
+        assert_eq!(Tab::Secrets.title(), "Secrets");
+        assert_eq!(Tab::Versions.title(), "Versions");
+    }
+}
