@@ -4,6 +4,7 @@ use chrono::Utc;
 use clap::{Parser, Subcommand};
 use pheno_core::*;
 use pheno_db::Database;
+use phenotype_secret::Secret;
 use std::path::PathBuf;
 
 #[derive(Parser)]
@@ -320,9 +321,16 @@ fn handle_secrets(repo: &Option<PathBuf>, cmd: SecretCmd) {
     });
     match cmd {
         SecretCmd::Set { key } => {
-            let plaintext = rpassword::prompt_password("Enter secret value: ").unwrap();
+            // Wrap the user-supplied plaintext in a `Secret<String>` so
+            // that any accidental `format!`, `tracing::info!`, or
+            // `dbg!` invocation downstream emits `[REDACTED]` instead
+            // of the real value. The only place the inner bytes are
+            // reachable is the explicit `Secret::expose` call below,
+            // which is grep-able for security review.
+            let plaintext: Secret<String> =
+                Secret::from(rpassword::prompt_password("Enter secret value: ").unwrap());
             let (ciphertext, nonce) =
-                pheno_crypto::encrypt(plaintext.as_bytes(), &key_bytes).unwrap();
+                pheno_crypto::encrypt(plaintext.expose().as_bytes(), &key_bytes).unwrap();
             let entry = SecretEntry {
                 key: key.clone(),
                 encrypted_value: ciphertext,
@@ -337,9 +345,20 @@ fn handle_secrets(repo: &Option<PathBuf>, cmd: SecretCmd) {
                 eprintln!("Secret not found: {key}");
                 std::process::exit(1);
             });
-            let plaintext =
-                pheno_crypto::decrypt(&entry.encrypted_value, &entry.nonce, &key_bytes).unwrap();
-            println!("{}", String::from_utf8_lossy(&plaintext));
+            // Decrypt, then immediately wrap the result in a
+            // `Secret<String>` so the redaction guarantees apply
+            // around the read path as well. The explicit
+            // `Secret::expose` call below is the only place the
+            // plaintext leaves the wrapper, which keeps a security
+            // audit a single `rg "Secret::expose"` away.
+            let plaintext: Secret<String> = Secret::from(
+                String::from_utf8(
+                    pheno_crypto::decrypt(&entry.encrypted_value, &entry.nonce, &key_bytes)
+                        .unwrap(),
+                )
+                .unwrap(),
+            );
+            println!("{}", plaintext.expose());
         }
         SecretCmd::List => {
             let keys = db.list_secrets().unwrap();
