@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- `deny.toml` cargo-deny policy ([graph] / [advisories] / [licenses] / [bans] / [sources]) so the `cargo-deny` CI job has a checked-in config to enforce
 
 ### Changed
 
