@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   check-merge-readiness:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     name: Check Merge Readiness
     permissions:
       contents: read

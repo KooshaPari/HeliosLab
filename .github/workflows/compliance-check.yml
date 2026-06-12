@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   compliance-check:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     name: Constitution Compliance Validation
     timeout-minutes: 2
     permissions:

@@ -12,7 +12,7 @@ permissions:
 jobs:
   bridge:
     name: Required Checks Bridge
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Wait for other workflows to start
         run: sleep 30
