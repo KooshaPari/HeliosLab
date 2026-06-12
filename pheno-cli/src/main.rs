@@ -2,6 +2,7 @@ mod tui;
 
 use chrono::Utc;
 use clap::{Parser, Subcommand};
+use clap_ext::prelude::{ConfigArg, Verbosity, setup_tracing};
 use pheno_core::*;
 use pheno_db::Database;
 use std::path::PathBuf;
@@ -9,6 +10,12 @@ use std::path::PathBuf;
 #[derive(Parser)]
 #[command(name = "phenoctl", about = "Phenotype configuration manager")]
 struct Cli {
+    #[command(flatten)]
+    verbosity: Verbosity,
+
+    #[command(flatten)]
+    config: ConfigArg,
+
     #[command(subcommand)]
     command: Commands,
 
@@ -138,8 +145,8 @@ fn open_db(repo: &Option<PathBuf>) -> Database {
 const NS: &str = "default";
 
 fn main() {
-    tracing_subscriber::fmt::init();
     let cli = Cli::parse();
+    setup_tracing(cli.verbosity.to_filter());
 
     match cli.command {
         Commands::Flags { cmd } => handle_flags(&cli.repo, cmd),
@@ -446,4 +453,27 @@ fn whoami() -> String {
     std::env::var("USER")
         .or_else(|_| std::env::var("USERNAME"))
         .unwrap_or_else(|_| "unknown".to_string())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use clap::Parser;
+
+    #[test]
+    fn cli_parses_with_clap_ext_flattens() {
+        // Verify the new Verbosity + ConfigArg flattens parse cleanly.
+        let cli = Cli::try_parse_from(["phenoctl", "--quiet", "--config", "/tmp/x.yml", "status"])
+            .expect("parse");
+        assert!(cli.verbosity.quiet);
+        assert_eq!(cli.config.config.as_deref(), Some(std::path::Path::new("/tmp/x.yml")));
+    }
+
+    #[test]
+    fn cli_parses_default_verbosity() {
+        // No flags => Verbosity::default() (verbose=0, quiet=false)
+        let cli = Cli::try_parse_from(["phenoctl", "status"]).expect("parse");
+        assert_eq!(cli.verbosity.verbose, 0);
+        assert!(!cli.verbosity.quiet);
+    }
 }

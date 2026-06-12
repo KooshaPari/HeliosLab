@@ -12,7 +12,8 @@ path = "src/main.rs"
 pheno-core = { path = "../pheno-core" }
 pheno-db = { path = "../pheno-db" }
 pheno-crypto = { path = "../pheno-crypto" }
-clap = { version = "4", features = ["derive"] }
+clap = { workspace = true }
+clap-ext = { workspace = true }
 chrono = "0.4"
 ratatui = "0.29"
 crossterm = "0.28"
