@@ -1,0 +1,34 @@
+name: PR Governance Gate
+
+on:
+  pull_request:
+    branches: ["**"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  governance-check:
+    name: Governance baseline check
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify governance baseline
+        run: |
+          set -euo pipefail
+          missing=()
+          for f in .editorconfig LICENSE CODEOWNERS SECURITY.md .github/dependabot.yml; do
+            if [ ! -f "$f" ]; then
+              missing+=("$f")
+            fi
+          done
+          if [ "${#missing[@]}" -gt 0 ]; then
+            echo "::error::Missing required governance files: ${missing[*]}"
+            exit 1
+          fi
+          echo "PR Governance Gate passed"
+          echo "All required governance baseline files are present."
