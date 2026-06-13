@@ -1,0 +1,39 @@
+name: Governance Baseline Audit
+
+on:
+  schedule:
+    - cron: '23 4 * * 1'
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  governance-audit:
+    name: L1.4 Governance baseline audit
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify governance baseline files
+        run: |
+          set -euo pipefail
+          missing=()
+          for f in .github/workflows/scorecard.yml \
+                   .github/workflows/governance.yml \
+                   .github/dependabot.yml \
+                   SECURITY.md \
+                   cliff.toml; do
+            if [ ! -f "$f" ]; then
+              missing+=("$f")
+            fi
+          done
+          if [ "${#missing[@]}" -gt 0 ]; then
+            echo "::error::Missing L1.4 governance baseline files: ${missing[*]}"
+            exit 1
+          fi
+          echo "L1.4 Governance Baseline Audit passed"
+          echo "All required governance files are present."
