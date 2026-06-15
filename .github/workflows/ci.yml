@@ -1,9 +1,4 @@
 name: CI
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
-
 on:
   push:
     branches: [main, feature/*, bugfix/*, docs/*, release/*, hotfix/*]
@@ -13,6 +8,10 @@ permissions:
   contents: read
 
 
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 env:
   CARGO_TERM_COLOR: always
 jobs:
