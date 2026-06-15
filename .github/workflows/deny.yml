@@ -6,13 +6,14 @@ on:
   push:
     branches: [main]
     paths: ['Cargo.toml','Cargo.lock','deny.toml']
+
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   cargo-deny:
     uses: KooshaPari/phenotype-tooling/.github/workflows/reusable/cargo-deny.yml@604fcb5352a8fb68fdd52a9503fefea1163dc2ea # pinned from @ref; org SHA may shift on new commits
 permissions:
   contents: read
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
 

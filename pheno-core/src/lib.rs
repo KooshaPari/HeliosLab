@@ -12,13 +12,21 @@ pub enum Error {
     Crypto(String),
     #[error("invalid stage transition: {0}")]
     InvalidTransition(String),
+    #[error("environment variable error: {0}")]
+    EnvVar(String),
     #[error("{0}")]
     Other(String),
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+impl From<std::env::VarError> for Error {
+    fn from(e: std::env::VarError) -> Self {
+        Error::EnvVar(e.to_string())
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct ConfigEntry {
     pub key: String,
     pub value: String,
@@ -28,7 +36,7 @@ pub struct ConfigEntry {
     pub updated_by: String,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub enum ValueType {
     String,
     Int,
@@ -535,5 +543,58 @@ mod tests {
         // Without env vars set, defaults should be used
         assert!(!build_info::HELIOS_STAGE.is_empty() || build_info::HELIOS_STAGE == "unknown");
         assert!(!build_info::HELIOS_CHANNEL.is_empty() || build_info::HELIOS_CHANNEL == "dev");
+    }
+
+    #[test]
+    fn test_error_from_env_var_not_present() {
+        let env_err = std::env::var("HELIOSLAB_NONEXISTENT_VAR_FOR_TEST").unwrap_err();
+        let err: Error = env_err.into();
+        assert!(matches!(err, Error::EnvVar(_)));
+        assert!(err.to_string().contains("environment variable"));
+    }
+
+    // --- ConfigEntry Eq/Hash tests ---
+
+    #[test]
+    fn test_config_entry_hash_set() {
+        // Verifies that ConfigEntry implements Eq, Hash, and PartialEq
+        // by deduplicating equivalent entries in a HashSet.
+        use std::collections::HashSet;
+
+        let fixed_ts = DateTime::parse_from_rfc3339("2026-01-01T00:00:00Z")
+            .unwrap()
+            .with_timezone(&Utc);
+        let mk = |key: &str, value: &str, vt: ValueType| ConfigEntry {
+            key: key.to_string(),
+            value: value.to_string(),
+            value_type: vt,
+            namespace: "default".to_string(),
+            updated_at: fixed_ts,
+            updated_by: "tester".to_string(),
+        };
+
+        let a = mk("k", "v", ValueType::String);
+        let b = mk("k", "v", ValueType::String);
+        let c = mk("k", "other", ValueType::String);
+        let d = mk("other", "v", ValueType::Int);
+
+        // Equal entries (a, b) must collapse into one slot.
+        let mut set: HashSet<ConfigEntry> = HashSet::new();
+        set.insert(a.clone());
+        set.insert(b.clone());
+        set.insert(c.clone());
+        set.insert(d.clone());
+        assert_eq!(set.len(), 3, "duplicate equal entries should dedupe to 3");
+
+        // Containment works for all entries.
+        assert!(set.contains(&a));
+        assert!(set.contains(&b));
+        assert!(set.contains(&c));
+        assert!(set.contains(&d));
+
+        // And equality holds for structurally identical entries.
+        assert_eq!(a, b);
+        assert_ne!(a, c);
+        assert_ne!(a, d);
     }
 }
