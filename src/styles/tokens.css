@@ -1,0 +1,22 @@
+/**
+ * Focus ring design tokens for HeliosLab.
+ *
+ * Used by `src/styles/a11y.css` to define a single, auditable source of truth
+ * for keyboard-focus indicators across the renderer surface. Monaco owns its
+ * own focus styles internally and is intentionally NOT overridden here.
+ */
+:root {
+	--focus-ring-color: #60a5fa;
+	--focus-ring-width: 2px;
+	--focus-ring-offset: 2px;
+	--focus-ring-shadow: 0 0 0 var(--focus-ring-width) var(--focus-ring-color);
+}
+
+[data-theme="dark"] {
+	--focus-ring-color: #93c5fd;
+}
+
+[data-theme="high-contrast"] {
+	--focus-ring-color: #ffffff;
+	--focus-ring-width: 3px;
+}

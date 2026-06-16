@@ -1,0 +1,62 @@
+name: a11y-helioslab
+
+# HeliosLab WCAG 2.1 AA gate. Calls the proposed reusable workflow at
+# OmniRoute-3rd/.github/workflows/reusable-a11y.yml once that lands; until
+# then, the steps here are inlined.
+#
+# Triggers: every push to main, every PR. Skips runs for changes that don't
+# touch src/, e2e/, or this workflow file.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  axe:
+    name: axe-core WCAG 2.1 AA
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.1.x
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: bunx playwright install --with-deps chromium
+
+      - name: Run a11y unit tests
+        run: bun test tests/unit/a11y.test.ts tests/unit/a11y/
+
+      - name: Check i18n keys
+        run: bun run scripts/check-i18n-keys.mjs
+        continue-on-error: false
+
+      - name: Check hardcoded strings
+        run: bun run scripts/check-hardcoded-strings.mjs
+        continue-on-error: false
+
+      - name: Run axe a11y e2e tests
+        env:
+          HELIOSLAB_RENDERER_URL: http://localhost:5173
+        run: bunx playwright test e2e/a11y/ --reporter=github
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-helioslab
+          path: playwright-report/
+          retention-days: 7
