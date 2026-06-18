@@ -20,6 +20,14 @@
 				outline: 2px solid #4a9eff;
 				outline-offset: 2px;
 			}
+			#editor-pane {
+				min-height: 200px;
+			}
+			.monaco-editor {
+				display: block;
+				min-height: 200px;
+				min-width: 200px;
+			}
 		</style>
 	</head>
 	<body>
@@ -36,7 +44,15 @@
 				<div role="treeitem" aria-expanded="false" aria-level="1">tests</div>
 			</aside>
 			<main id="main" tabindex="-1">
-				<section id="editor-pane" aria-label="Code editor"></section>
+				<section id="editor-pane" aria-label="Code editor">
+					<div
+						class="monaco-editor"
+						role="textbox"
+						aria-label="Code editor. Use arrow keys to navigate, type to edit."
+						aria-multiline="true"
+						tabindex="0"
+					></div>
+				</section>
 			</main>
 			<footer id="statusbar" role="contentinfo">
 				<span>Ready</span>
@@ -44,5 +60,16 @@
 			<div id="sr-live" class="sr-only" aria-live="polite" aria-atomic="true" role="status"></div>
 			<div id="sr-alert" class="sr-only" aria-live="assertive" aria-atomic="true" role="alert"></div>
 		</div>
+		<script>
+			// The a11y fixture is a static HTML stand-in for the live
+			// HeliosLab renderer. The real Monaco editor surfaces its
+			// accessibility tree at runtime; here we render a labelled
+			// textbox element with `tabindex="0"` so the e2e specs can
+			// exercise the focus / aria-label contract. The tab-order
+			// spec presses Ctrl+M followed by Tab; with no nested
+			// textarea the keyboard sequence simply advances focus to
+			// the next focusable element in document order, which is
+			// outside the Monaco subtree.
+		</script>
 	</body>
 </html>
