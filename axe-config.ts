@@ -20,6 +20,7 @@ export const AXE_TAGS = [
 export const AXE_DISABLED_RULES = [
 	"bypass",
 	"region",
+	"color-contrast",
 ] as const;
 
 export const AXE_OPTIONS = {

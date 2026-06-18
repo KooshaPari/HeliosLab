@@ -24,13 +24,3 @@ export const ACCESSIBLE_EDITOR_OPTIONS: editor.IStandaloneEditorConstructionOpti
 	fontSize: 14,
 	lineNumbers: "on",
 };
-
-/**
- * Merge the accessibility defaults with caller overrides. Caller wins for any
- * key it specifies.
- */
-export function accessibleEditorOptions(
-	overrides: editor.IStandaloneEditorConstructionOptions = {},
-): editor.IStandaloneEditorConstructionOptions {
-	return { ...ACCESSIBLE_EDITOR_OPTIONS, ...overrides };
-}

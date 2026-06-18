@@ -27,6 +27,11 @@ const ALERT_REGION_ID = "sr-alert";
 let liveEl: HTMLElement | null = null;
 let alertEl: HTMLElement | null = null;
 
+// Track pending setTimeout handles per region so `cancel()` can flush them.
+// Without this, a `cancel()` between `writeRegion`'s `textContent = ""` and
+// the deferred write would still land the message after the cancel.
+const pendingTimers: WeakMap<HTMLElement, ReturnType<typeof setTimeout>> = new WeakMap();
+
 function ensureRegions(): { live: HTMLElement; alert: HTMLElement } | null {
 	if (typeof document === "undefined") return null;
 
@@ -63,12 +68,16 @@ function ensureRegions(): { live: HTMLElement; alert: HTMLElement } | null {
  * successive messages (e.g. "Saved" twice) are still announced.
  */
 function writeRegion(el: HTMLElement, message: string) {
+	const existing = pendingTimers.get(el);
+	if (existing !== undefined) clearTimeout(existing);
 	// Clear first so the screen reader re-announces on identical text.
 	el.textContent = "";
 	// setTimeout(0) forces the DOM mutation to flush before the new text lands.
-	setTimeout(() => {
+	const handle = setTimeout(() => {
 		el.textContent = message;
+		pendingTimers.delete(el);
 	}, 16);
+	pendingTimers.set(el, handle);
 }
 
 export function useAnnounce(): UseAnnounce {
@@ -93,8 +102,14 @@ export function useAnnounce(): UseAnnounce {
 	const cancel = () => {
 		const regions = ensureRegions();
 		if (!regions) return;
-		regions.live.textContent = "";
-		regions.alert.textContent = "";
+		for (const el of [regions.live, regions.alert]) {
+			const existing = pendingTimers.get(el);
+			if (existing !== undefined) {
+				clearTimeout(existing);
+				pendingTimers.delete(el);
+			}
+			el.textContent = "";
+		}
 	};
 
 	return { announce, cancel };

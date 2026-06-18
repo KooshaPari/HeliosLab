@@ -8,6 +8,7 @@ import { createMemo, createResource, type Accessor } from "solid-js";
 import { I18nContext, type PrimitiveDict, flatten } from "@solid-primitives/i18n";
 import enDict from "./en.json";
 import esDict from "./es.json";
+import { applyDocumentLocale } from "./dir";
 
 export type Locale = "en" | "es";
 
@@ -44,7 +45,7 @@ function detectLocale(): Locale {
 export function setLocale(locale: Locale): void {
 	try {
 		localStorage.setItem(STORAGE_KEY, locale);
-		document.documentElement.lang = locale;
+		applyDocumentLocale(locale);
 	} catch {
 		// best-effort
 	}

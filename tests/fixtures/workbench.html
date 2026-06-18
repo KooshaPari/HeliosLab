@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>HeliosLab Workbench</title>
+		<style>
+			.sr-only {
+				position: absolute;
+				width: 1px;
+				height: 1px;
+				padding: 0;
+				margin: -1px;
+				overflow: hidden;
+				clip: rect(0, 0, 0, 0);
+				white-space: nowrap;
+				border: 0;
+			}
+			:focus {
+				outline: 2px solid #4a9eff;
+				outline-offset: 2px;
+			}
+		</style>
+	</head>
+	<body>
+		<a id="skip-to-main" href="#main">Skip to main content</a>
+		<a id="skip-to-file-tree" href="#file-tree">Skip to file tree</a>
+		<a id="skip-to-editor" href="#editor-pane">Skip to editor</a>
+		<div id="workbench-container">
+			<header id="topbar" role="banner">
+				<button id="new-file-btn" type="button" aria-label="New file">New</button>
+				<button id="open-file-btn" type="button" aria-label="Open file">Open</button>
+			</header>
+			<aside id="file-tree" role="tree" aria-label="Files">
+				<div role="treeitem" aria-expanded="false" aria-level="1">src</div>
+				<div role="treeitem" aria-expanded="false" aria-level="1">tests</div>
+			</aside>
+			<main id="main" tabindex="-1">
+				<section id="editor-pane" aria-label="Code editor"></section>
+			</main>
+			<footer id="statusbar" role="contentinfo">
+				<span>Ready</span>
+			</footer>
+			<div id="sr-live" class="sr-only" aria-live="polite" aria-atomic="true" role="status"></div>
+			<div id="sr-alert" class="sr-only" aria-live="assertive" aria-atomic="true" role="alert"></div>
+		</div>
+	</body>
+</html>
