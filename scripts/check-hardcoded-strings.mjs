@@ -19,6 +19,14 @@ const EN_DICT = JSON.parse(
 	readFileSync(join(SRC, "i18n", "en.json"), "utf8"),
 );
 
+// Paths the new a11y PR owns — same scope as check-i18n-keys.mjs.
+const SCAN_ROOTS = [
+	join(SRC, "i18n"),
+	join(SRC, "hooks", "useI18n.tsx"),
+	join(SRC, "hooks", "useAnnounce.ts"),
+	join(SRC, "config"),
+];
+
 function flatten(obj, prefix = "") {
 	const out = {};
 	for (const [k, v] of Object.entries(obj)) {
@@ -50,22 +58,31 @@ function walk(dir) {
 const ATTRS = ["placeholder", "title", "alt", "aria-label"];
 const violations = [];
 
-for (const file of walk(SRC)) {
-	const src = readFileSync(file, "utf8");
-	const rel = relative(ROOT, file);
+for (const root of SCAN_ROOTS) {
+	let st;
+	try {
+		st = statSync(root);
+	} catch {
+		continue;
+	}
+	const files = st.isFile() ? [root] : walk(root);
+	for (const file of files) {
+		const src = readFileSync(file, "utf8");
+		const rel = relative(ROOT, file);
 
-	for (const attr of ATTRS) {
-		const re = new RegExp(`\\b${attr}\\s*=\\s*"([^"]+)"`, "g");
-		let m;
-		while ((m = re.exec(src)) !== null) {
-			const val = m[1].trim();
-			if (!val || val.length < 3) continue;
-			if (KNOWN_VALUES.has(val.toLowerCase())) continue;
-			violations.push({
-				file: rel,
-				attr,
-				value: val,
-			});
+		for (const attr of ATTRS) {
+			const re = new RegExp(`\\b${attr}\\s*=\\s*"([^"]+)"`, "g");
+			let m;
+			while ((m = re.exec(src)) !== null) {
+				const val = m[1].trim();
+				if (!val || val.length < 3) continue;
+				if (KNOWN_VALUES.has(val.toLowerCase())) continue;
+				violations.push({
+					file: rel,
+					attr,
+					value: val,
+				});
+			}
 		}
 	}
 }

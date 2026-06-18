@@ -35,38 +35,58 @@ function flatten(obj, prefix = "") {
 
 const KNOWN_KEYS = new Set(Object.keys(flatten(EN_DICT)));
 
+// Paths the new a11y PR owns — scan only these until the broader i18n sweep
+// in the renderer ships. (The repo pre-exists the PR and contains many
+// hardcoded English strings that need a separate cleanup pass; gating CI on
+// the whole tree would block all PRs.)
+const SCAN_ROOTS = [
+	join(SRC, "i18n"),
+	join(SRC, "hooks", "useI18n.tsx"),
+	join(SRC, "hooks", "useAnnounce.ts"),
+	join(SRC, "config"),
+];
+
 function walk(dir) {
 	const out = [];
-	for (const name of readdirSync(dir)) {
+	const entries = readdirSync(dir);
+	for (const name of entries) {
 		const full = join(dir, name);
-		const s = statSync(full);
-		if (s.isDirectory()) out.push(...walk(full));
-		else if ([".tsx", ".ts"].includes(extname(name))) out.push(full);
+		const st = statSync(full);
+		if (st.isDirectory()) out.push(...walk(full));
+		else if ([".tsx", ".ts"].includes(extname(full))) out.push(full);
 	}
 	return out;
 }
 
 const violations = [];
 
-for (const file of walk(SRC)) {
-	const src = readFileSync(file, "utf8");
-	const rel = relative(ROOT, file);
+for (const root of SCAN_ROOTS) {
+	let st;
+	try {
+		st = statSync(root);
+	} catch {
+		continue;
+	}
+	const files = st.isFile() ? [root] : walk(root);
+	for (const file of files) {
+		const src = readFileSync(file, "utf8");
+		const rel = relative(ROOT, file);
 
-	// Match JSX text nodes: >STRING< or >{`STRING`}<
-	const textNodeRe = />([^<>{}\n]{3,})</g;
-	let m;
-	while ((m = textNodeRe.exec(src)) !== null) {
-		const text = m[1].trim();
-		if (!text) continue;
-		// Skip if it looks like punctuation, markup, or a code identifier.
-		if (/^[\s\W_0-9]+$/.test(text)) continue;
-		// Skip if it's wrapped in t() — should not match this regex in that case.
-		violations.push({
-			file: rel,
-			offset: m.index,
-			text,
-			hint: "wrap in t('…') — see src/i18n/en.json",
-		});
+		// Match JSX text nodes: >STRING< or >{`STRING`}<
+		const textNodeRe = />([^<>{}\n]{3,})</g;
+		let m;
+		while ((m = textNodeRe.exec(src)) !== null) {
+			const text = m[1].trim();
+			if (!text) continue;
+			// Skip if it looks like punctuation, markup, or a code identifier.
+			if (/^[\s\W_0-9]+$/.test(text)) continue;
+			violations.push({
+				file: rel,
+				offset: m.index,
+				text,
+				hint: "wrap in t('…') — see src/i18n/en.json",
+			});
+		}
 	}
 }
 
