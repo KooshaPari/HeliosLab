@@ -75,7 +75,7 @@ jobs:
       - name: Run axe a11y e2e tests
         env:
           HELIOSLAB_RENDERER_URL: http://localhost:5173
-        run: bunx playwright test e2e/a11y/ --reporter=github
+        run: node node_modules/playwright/cli.js test e2e/a11y/ --reporter=github
 
       - name: Upload Playwright report on failure
         if: failure()
