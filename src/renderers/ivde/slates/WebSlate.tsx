@@ -943,10 +943,13 @@ console.log('Preload script loaded for:', window.location.href);
 					disabled={isBackDisabled()}
 					type="button"
 					onClick={onClickBack}
+					aria-label="Back"
+					title="Back"
 				>
 					<img
 						width="16"
 						height="16"
+						alt=""
 						src={`views://assets/file-icons/browser-back.svg`}
 					/>
 				</button>
@@ -955,25 +958,30 @@ console.log('Preload script loaded for:', window.location.href);
 					type="button"
 					onClick={onClickForward}
 					class="browser-btn"
+					aria-label="Forward"
+					title="Forward"
 				>
 					<img
 						width="16"
 						height="16"
+						alt=""
 						src={`views://assets/file-icons/browser-forward.svg`}
 					/>
 				</button>
-				<button class="browser-btn" type="button" onClick={onClickReload}>
+				<button class="browser-btn" type="button" onClick={onClickReload} aria-label="Reload" title="Reload">
 					<img
 						width="12"
 						height="12"
+						alt=""
 						src={`views://assets/file-icons/browser-reload.svg`}
 					/>
 				</button>
 
-				<button class="browser-btn" type="button" onClick={onClickHome}>
+				<button class="browser-btn" type="button" onClick={onClickHome} aria-label="Home" title="Home">
 					<img
 						width="12"
 						height="12"
+						alt=""
 						src={`views://assets/file-icons/browser-home.svg`}
 					/>
 				</button>
@@ -1131,6 +1139,7 @@ console.log('Preload script loaded for:', window.location.href);
 						<img
 							width="12"
 							height="12"
+							alt=""
 							src={`views://assets/file-icons/browser-add-bookmark.svg`}
 						/>
 					</button>
@@ -1146,6 +1155,7 @@ console.log('Preload script loaded for:', window.location.href);
 						<img
 							width="12"
 							height="12"
+							alt=""
 							src={`views://assets/file-icons/browser-add-bookmark.svg`}
 						/>
 					</button>
@@ -1158,6 +1168,7 @@ console.log('Preload script loaded for:', window.location.href);
 						<img
 							width="12"
 							height="12"
+							alt=""
 							src={`views://assets/file-icons/browser-script.svg`}
 						/>
 					</button>

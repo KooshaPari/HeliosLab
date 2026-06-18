@@ -1,0 +1,72 @@
+{
+	"app": {
+		"name": "Co(lab)",
+		"tagline": "Un navegador y editor de código híbrido para trabajo profundo"
+	},
+	"nav": {
+		"fileTree": "Archivos del proyecto",
+		"openFiles": "Archivos abiertos",
+		"search": "Buscar en archivos",
+		"terminal": "Terminal",
+		"settings": "Configuración",
+		"commandPalette": "Paleta de comandos"
+	},
+	"actions": {
+		"newFile": "Nuevo archivo",
+		"newFolder": "Nueva carpeta",
+		"open": "Abrir",
+		"save": "Guardar",
+		"close": "Cerrar",
+		"closeTab": "Cerrar pestaña",
+		"closeWindow": "Cerrar ventana",
+		"closePane": "Cerrar panel",
+		"splitHorizontal": "Dividir panel horizontalmente",
+		"splitVertical": "Dividir panel verticalmente",
+		"undo": "Deshacer",
+		"redo": "Rehacer",
+		"format": "Formatear documento",
+		"find": "Buscar",
+		"replace": "Reemplazar",
+		"browserBack": "Atrás",
+		"browserForward": "Adelante",
+		"browserReload": "Recargar",
+		"browserHome": "Inicio"
+	},
+	"editor": {
+		"screenReaderMode": "Modo de lector de pantalla del editor",
+		"tabInserted": "Carácter de tabulación insertado",
+		"focusMovedToEditor": "Foco movido al editor",
+		"focusMovedFromEditor": "Foco movido fuera del editor"
+	},
+	"status": {
+		"saved": "Archivo guardado",
+		"formatting": "Formateando documento",
+		"building": "Compilación en curso",
+		"buildSucceeded": "Compilación exitosa",
+		"buildFailed": "Compilación fallida",
+		"deploying": "Desplegando",
+		"deploySucceeded": "Despliegue exitoso",
+		"deployFailed": "Despliegue fallido",
+		"copyToClipboard": "Copiado al portapapeles"
+	},
+	"errors": {
+		"fileNotFound": "Archivo no encontrado",
+		"fileDeleted": "El archivo de esta pestaña fue eliminado, renombrado o movido fuera de co(lab) y ya no existe",
+		"permissionDenied": "Permiso denegado",
+		"networkError": "Error de red"
+	},
+	"a11y": {
+		"skipToMain": "Saltar al contenido principal",
+		"skipToFileTree": "Saltar al árbol de archivos",
+		"skipToEditor": "Saltar al editor",
+		"pageLoaded": "Página cargada"
+	},
+	"settings": {
+		"workspace": "Configuración del espacio de trabajo",
+		"global": "Configuración global",
+		"theme": "Tema",
+		"themeDark": "Oscuro",
+		"themeLight": "Claro",
+		"language": "Idioma"
+	}
+}

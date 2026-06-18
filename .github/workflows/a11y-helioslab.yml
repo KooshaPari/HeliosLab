@@ -1,0 +1,86 @@
+name: a11y-helioslab
+
+# HeliosLab WCAG 2.1 AA gate. Calls the proposed reusable workflow at
+# OmniRoute-3rd/.github/workflows/reusable-a11y.yml once that lands; until
+# then, the steps here are inlined.
+#
+# Triggers: every push to main, every PR. Skips runs for changes that don't
+# touch src/, e2e/, or this workflow file.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "e2e/**"
+      - ".github/workflows/a11y-helioslab.yml"
+      - "tests/**"
+      - "scripts/**"
+      - "package.json"
+      - "bun.lock"
+      - "playwright.config.ts"
+      - "bunfig.toml"
+      - "axe-config.ts"
+  pull_request:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "e2e/**"
+      - ".github/workflows/a11y-helioslab.yml"
+      - "tests/**"
+      - "scripts/**"
+      - "package.json"
+      - "bun.lock"
+      - "playwright.config.ts"
+      - "bunfig.toml"
+      - "axe-config.ts"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  axe:
+    name: axe-core WCAG 2.1 AA
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@61b9e3751b92087fd0b06925ba6dd6314e06f089 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.1.0
+        with:
+          bun-version: 1.2.0
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: bunx playwright install --with-deps chromium
+
+      - name: Run a11y unit tests
+        run: bun test tests/unit/a11y.test.ts tests/unit/a11y/
+
+      - name: Check i18n keys
+        run: bun run scripts/check-i18n-keys.mjs
+        continue-on-error: false
+
+      - name: Check hardcoded strings
+        run: bun run scripts/check-hardcoded-strings.mjs
+        continue-on-error: false
+
+      - name: Run axe a11y e2e tests
+        env:
+          HELIOSLAB_RENDERER_URL: http://localhost:5173
+        run: node node_modules/playwright/cli.js test e2e/a11y/ --reporter=github
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4.4.3
+        with:
+          name: playwright-report-helioslab
+          path: playwright-report/
+          retention-days: 7

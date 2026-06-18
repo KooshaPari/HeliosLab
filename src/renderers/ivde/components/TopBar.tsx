@@ -83,6 +83,7 @@ export const TopBar = () => {
         <img
           width="16px"
           height="16px"
+          alt=""
           src={`views://assets/file-icons/sidebar-left${
             getWindow()?.ui.showSidebar ? "-filled" : ""
           }.svg`}
@@ -119,6 +120,7 @@ export const TopBar = () => {
         <img
           width="16px"
           height="16px"
+          alt=""
           src="views://assets/file-icons/new-window.svg"
         />
       </div>
@@ -209,6 +211,7 @@ export const TopBar = () => {
             height: "20px",
             width: "20px",
           }}
+          alt=""
           src="views://assets/icon_32x32@2x.png"
         />
         <span style="color: #fff; font-weight: bold;">co(lab){state.buildVars.channel === "dev" ? " - dev" :

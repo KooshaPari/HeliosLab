@@ -1741,32 +1741,41 @@ const Pane = ({
 						<Show when={getRootPane()?.type === "container"}>
 							<button
 								onClick={onCloseSplitClick}
+								aria-label="Close pane"
+								title="Close pane"
 								style="background: #333;border: 1px solid #111;margin: 2px;color: #fff;display:flex; align-items:center; justify-content: center;"
 							>
 								<img
 									width="18px"
 									height="18px"
+									alt=""
 									src={`views://assets/file-icons/${paneJoinIcon}.svg`}
 								/>
 							</button>
 						</Show>
 						<button
 							onClick={onHorizontalSplitClick}
+							aria-label="Split pane horizontally"
+							title="Split pane horizontally"
 							style="background: #333;border: 1px solid #111;margin: 2px;color: #fff;display:flex; align-items:center; justify-content:center;"
 						>
 							<img
 								width="18px"
 								height="18px"
+								alt=""
 								src={"views://assets/file-icons/horizontal-split-right.svg"}
 							/>
 						</button>
 						<button
 							onClick={onVerticalSplitClick}
+							aria-label="Split pane vertically"
+							title="Split pane vertically"
 							style="background: #333;border: 1px solid #111;margin: 2px;color: #fff;display:flex; align-items:center; justify-content: center;"
 						>
 							<img
 								width="18px"
 								height="18px"
+								alt=""
 								src={"views://assets/file-icons/vertical-split-down.svg"}
 							/>
 						</button>
@@ -2354,7 +2363,7 @@ const PaneTab = ({
 						"align-items": "center",
 					}}
 				>
-					<img src={icon()} width="20" height="20" />
+					<img src={icon()} alt="" width="20" height="20" />
 				</div>
 				<span style={{}}>{title()}</span>
 				<Show when={file()?.isDirty && !isHovered()}>

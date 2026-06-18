@@ -1,0 +1,108 @@
+/**
+ * Accessibility styles for HeliosLab renderer (ivde).
+ *
+ * Covers:
+ *  - Focus rings (AT2) — keyboard-only :focus-visible, suppress mouse rings
+ *  - Skip link (AT2) — first focusable element jumps to #main
+ *  - Screen-reader-only utility (AT3) — `.sr-only` for visually-hidden text
+ *  - RTL logical properties (AT5) — `flex-direction: row-reverse` in rtl
+ *
+ * Monaco editor surface is exempt from focus-ring overrides (it ships its own
+ * accessible focus styles via `accessibilitySupport: 'on'`).
+ */
+
+/* ---- Focus rings (AT2) -------------------------------------------------- */
+*:focus-visible {
+	outline: var(--focus-ring-width) solid var(--focus-ring-color);
+	outline-offset: var(--focus-ring-offset);
+	border-radius: 2px;
+}
+
+/* Suppress default focus rings on mouse interaction */
+:focus:not(:focus-visible) {
+	outline: none;
+}
+
+/* Buttons rendered as <img> wrappers get a slightly larger ring for visibility */
+button:focus-visible {
+	outline-offset: 3px;
+}
+
+/* ---- Skip link (AT2) ---------------------------------------------------- */
+.skip-link {
+	position: absolute;
+	top: -100px;
+	left: 0;
+	padding: 8px 16px;
+	background: var(--focus-ring-color, #60a5fa);
+	color: #000;
+	font-weight: 600;
+	text-decoration: none;
+	z-index: 10000;
+	border-radius: 0 0 4px 0;
+	transform: translateY(-100%);
+	transition: transform 120ms ease-in-out;
+}
+
+.skip-link:focus,
+.skip-link:focus-visible {
+	transform: translateY(100px);
+	outline: 2px solid #fff;
+	outline-offset: 2px;
+}
+
+/* ---- Screen-reader-only utility (AT3) ----------------------------------- */
+.sr-only {
+	position: absolute !important;
+	width: 1px !important;
+	height: 1px !important;
+	padding: 0 !important;
+	margin: -1px !important;
+	overflow: hidden !important;
+	clip: rect(0, 0, 0, 0) !important;
+	white-space: nowrap !important;
+	border: 0 !important;
+}
+
+/* ---- RTL mirroring (AT5) ------------------------------------------------ */
+html[dir="rtl"] .pane-tab-container {
+	flex-direction: row-reverse;
+}
+
+html[dir="rtl"] .pane-split-controls {
+	flex-direction: row-reverse;
+}
+
+html[dir="rtl"] .sidebar {
+	/* logical property — flips automatically with dir */
+	margin-inline-start: 0;
+	margin-inline-end: 0;
+}
+
+html[dir="rtl"] .icon-flip {
+	transform: scaleX(-1);
+}
+
+/* ---- Live regions (AT3) ------------------------------------------------- */
+#sr-live,
+#sr-alert {
+	/* Visually hidden but available to screen readers */
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip: rect(0 0 0 0);
+	clip-path: inset(50%);
+}
+
+/* ---- Reduce motion preference ------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+		scroll-behavior: auto !important;
+	}
+}

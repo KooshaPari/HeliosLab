@@ -1,0 +1,72 @@
+{
+	"app": {
+		"name": "Co(lab)",
+		"tagline": "A hybrid browser and code editor for deep work"
+	},
+	"nav": {
+		"fileTree": "Project files",
+		"openFiles": "Open files",
+		"search": "Find in files",
+		"terminal": "Terminal",
+		"settings": "Settings",
+		"commandPalette": "Command palette"
+	},
+	"actions": {
+		"newFile": "New file",
+		"newFolder": "New folder",
+		"open": "Open",
+		"save": "Save",
+		"close": "Close",
+		"closeTab": "Close tab",
+		"closeWindow": "Close window",
+		"closePane": "Close pane",
+		"splitHorizontal": "Split pane horizontally",
+		"splitVertical": "Split pane vertically",
+		"undo": "Undo",
+		"redo": "Redo",
+		"format": "Format document",
+		"find": "Find",
+		"replace": "Replace",
+		"browserBack": "Back",
+		"browserForward": "Forward",
+		"browserReload": "Reload",
+		"browserHome": "Home"
+	},
+	"editor": {
+		"screenReaderMode": "Editor screen reader mode",
+		"tabInserted": "Tab character inserted",
+		"focusMovedToEditor": "Focus moved to editor",
+		"focusMovedFromEditor": "Focus moved out of editor"
+	},
+	"status": {
+		"saved": "File saved",
+		"formatting": "Formatting document",
+		"building": "Build in progress",
+		"buildSucceeded": "Build succeeded",
+		"buildFailed": "Build failed",
+		"deploying": "Deploying",
+		"deploySucceeded": "Deployment succeeded",
+		"deployFailed": "Deployment failed",
+		"copyToClipboard": "Copied to clipboard"
+	},
+	"errors": {
+		"fileNotFound": "File not found",
+		"fileDeleted": "The file for this tab was deleted, renamed, or moved outside of co(lab) and no longer exists",
+		"permissionDenied": "Permission denied",
+		"networkError": "Network error"
+	},
+	"a11y": {
+		"skipToMain": "Skip to main content",
+		"skipToFileTree": "Skip to file tree",
+		"skipToEditor": "Skip to editor",
+		"pageLoaded": "Page loaded"
+	},
+	"settings": {
+		"workspace": "Workspace settings",
+		"global": "Global settings",
+		"theme": "Theme",
+		"themeDark": "Dark",
+		"themeLight": "Light",
+		"language": "Language"
+	}
+}
