@@ -1741,6 +1741,8 @@ const Pane = ({
 						<Show when={getRootPane()?.type === "container"}>
 							<button
 								onClick={onCloseSplitClick}
+								aria-label="Close pane"
+								title="Close pane"
 								style="background: #333;border: 1px solid #111;margin: 2px;color: #fff;display:flex; align-items:center; justify-content: center;"
 							>
 								<img
@@ -1753,6 +1755,8 @@ const Pane = ({
 						</Show>
 						<button
 							onClick={onHorizontalSplitClick}
+							aria-label="Split pane horizontally"
+							title="Split pane horizontally"
 							style="background: #333;border: 1px solid #111;margin: 2px;color: #fff;display:flex; align-items:center; justify-content:center;"
 						>
 							<img
@@ -1764,6 +1768,8 @@ const Pane = ({
 						</button>
 						<button
 							onClick={onVerticalSplitClick}
+							aria-label="Split pane vertically"
+							title="Split pane vertically"
 							style="background: #333;border: 1px solid #111;margin: 2px;color: #fff;display:flex; align-items:center; justify-content: center;"
 						>
 							<img

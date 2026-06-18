@@ -19,13 +19,18 @@
 		"close": "Close",
 		"closeTab": "Close tab",
 		"closeWindow": "Close window",
+		"closePane": "Close pane",
 		"splitHorizontal": "Split pane horizontally",
 		"splitVertical": "Split pane vertically",
 		"undo": "Undo",
 		"redo": "Redo",
 		"format": "Format document",
 		"find": "Find",
-		"replace": "Replace"
+		"replace": "Replace",
+		"browserBack": "Back",
+		"browserForward": "Forward",
+		"browserReload": "Reload",
+		"browserHome": "Home"
 	},
 	"editor": {
 		"screenReaderMode": "Editor screen reader mode",
