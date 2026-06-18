@@ -4,9 +4,9 @@
  * independent and run under bun:test.
  */
 import { describe, it, expect } from "bun:test";
-import { dirFor, applyDocumentLocale } from "../src/i18n/dir";
-import { ACCESSIBLE_EDITOR_OPTIONS } from "../src/config/editor";
-import { AXE_TAGS, AXE_DISABLED_RULES, blockingViolations } from "../axe-config";
+import { dirFor, applyDocumentLocale } from "../../src/i18n/dir";
+import { ACCESSIBLE_EDITOR_OPTIONS } from "../../src/config/editor";
+import { AXE_TAGS, AXE_DISABLED_RULES, blockingViolations } from "../../axe-config";
 
 describe("a11y helpers", () => {
 	describe("dirFor()", () => {

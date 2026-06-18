@@ -481,6 +481,7 @@ const TemplateNodeItem = ({
 		>
 			<img
 				src={template.icon}
+				alt=""
 				style={{
 					width: "16px",
 					height: "16px",
@@ -648,6 +649,7 @@ const OpenFileItem = ({
 		>
 			<img
 				src={getIcon()}
+				alt=""
 				style={{
 					width: "16px",
 					height: "16px",
@@ -1916,6 +1918,7 @@ const NodeName = ({
 						<img
 							width={10}
 							height={10}
+							alt=""
 							src={`views://assets/file-icons/folder-arrow-down.svg`}
 							style={{
 								rotate: isExpanded() ? "0deg" : "-90deg",
@@ -1944,7 +1947,7 @@ const NodeName = ({
 						"align-items": "center",
 					}}
 				>
-					<img src={getIconForNode(nodeToRender())} width="16" height="16" />
+					<img src={getIconForNode(nodeToRender())} alt="" width="16" height="16" />
 				</div>
 
 				<span

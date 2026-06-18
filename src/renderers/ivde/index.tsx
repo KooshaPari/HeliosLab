@@ -1746,6 +1746,7 @@ const Pane = ({
 								<img
 									width="18px"
 									height="18px"
+									alt=""
 									src={`views://assets/file-icons/${paneJoinIcon}.svg`}
 								/>
 							</button>
@@ -1757,6 +1758,7 @@ const Pane = ({
 							<img
 								width="18px"
 								height="18px"
+								alt=""
 								src={"views://assets/file-icons/horizontal-split-right.svg"}
 							/>
 						</button>
@@ -1767,6 +1769,7 @@ const Pane = ({
 							<img
 								width="18px"
 								height="18px"
+								alt=""
 								src={"views://assets/file-icons/vertical-split-down.svg"}
 							/>
 						</button>
@@ -2354,7 +2357,7 @@ const PaneTab = ({
 						"align-items": "center",
 					}}
 				>
-					<img src={icon()} width="20" height="20" />
+					<img src={icon()} alt="" width="20" height="20" />
 				</div>
 				<span style={{}}>{title()}</span>
 				<Show when={file()?.isDirty && !isHovered()}>

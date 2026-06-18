@@ -11,7 +11,7 @@ import { describe, it, expect } from "bun:test";
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, extname } from "node:path";
 
-const SRC_ROOT = join(import.meta.dir, "..", "..", "src");
+const SRC_ROOT = join(import.meta.dir, "..", "..", "..", "src");
 
 function walk(dir: string): string[] {
 	const out: string[] = [];
@@ -53,14 +53,13 @@ describe("a11y: alt text on <img>", () => {
 				it("contains no <img> tags (no requirement to assert)", () => {
 					expect(imgs.length).toBe(0);
 				});
-				continue;
-			}
-
-			for (const { match } of imgs) {
-				const hasAlt = /\balt\s*=/.test(match);
-				it(`<img> has alt attribute: ${match.slice(0, 60)}…`, () => {
-					expect(hasAlt).toBe(true);
-				});
+			} else {
+				for (const { match } of imgs) {
+					const hasAlt = /\balt\s*=/.test(match);
+					it(`<img> has alt attribute: ${match.slice(0, 60)}…`, () => {
+						expect(hasAlt).toBe(true);
+					});
+				}
 			}
 		});
 	}

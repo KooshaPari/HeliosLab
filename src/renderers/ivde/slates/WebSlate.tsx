@@ -947,6 +947,7 @@ console.log('Preload script loaded for:', window.location.href);
 					<img
 						width="16"
 						height="16"
+						alt=""
 						src={`views://assets/file-icons/browser-back.svg`}
 					/>
 				</button>
@@ -959,6 +960,7 @@ console.log('Preload script loaded for:', window.location.href);
 					<img
 						width="16"
 						height="16"
+						alt=""
 						src={`views://assets/file-icons/browser-forward.svg`}
 					/>
 				</button>
@@ -966,6 +968,7 @@ console.log('Preload script loaded for:', window.location.href);
 					<img
 						width="12"
 						height="12"
+						alt=""
 						src={`views://assets/file-icons/browser-reload.svg`}
 					/>
 				</button>
@@ -974,6 +977,7 @@ console.log('Preload script loaded for:', window.location.href);
 					<img
 						width="12"
 						height="12"
+						alt=""
 						src={`views://assets/file-icons/browser-home.svg`}
 					/>
 				</button>
@@ -1131,6 +1135,7 @@ console.log('Preload script loaded for:', window.location.href);
 						<img
 							width="12"
 							height="12"
+							alt=""
 							src={`views://assets/file-icons/browser-add-bookmark.svg`}
 						/>
 					</button>
@@ -1146,6 +1151,7 @@ console.log('Preload script loaded for:', window.location.href);
 						<img
 							width="12"
 							height="12"
+							alt=""
 							src={`views://assets/file-icons/browser-add-bookmark.svg`}
 						/>
 					</button>
@@ -1158,6 +1164,7 @@ console.log('Preload script loaded for:', window.location.href);
 						<img
 							width="12"
 							height="12"
+							alt=""
 							src={`views://assets/file-icons/browser-script.svg`}
 						/>
 					</button>
