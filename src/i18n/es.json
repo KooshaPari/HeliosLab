@@ -19,13 +19,18 @@
 		"close": "Cerrar",
 		"closeTab": "Cerrar pestaña",
 		"closeWindow": "Cerrar ventana",
+		"closePane": "Cerrar panel",
 		"splitHorizontal": "Dividir panel horizontalmente",
 		"splitVertical": "Dividir panel verticalmente",
 		"undo": "Deshacer",
 		"redo": "Rehacer",
 		"format": "Formatear documento",
 		"find": "Buscar",
-		"replace": "Reemplazar"
+		"replace": "Reemplazar",
+		"browserBack": "Atrás",
+		"browserForward": "Adelante",
+		"browserReload": "Recargar",
+		"browserHome": "Inicio"
 	},
 	"editor": {
 		"screenReaderMode": "Modo de lector de pantalla del editor",
