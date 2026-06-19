@@ -1,4 +1,5 @@
 [graph]
+all-features = true
 always-allow-build-rt = false
 
 [advisories]
