@@ -1,4 +1,4 @@
-﻿name: cargo-deny
+name: cargo-deny
 on:
   workflow_dispatch:
   pull_request:
@@ -15,4 +15,3 @@ permissions:
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
-
