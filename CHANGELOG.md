@@ -9,8 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - `deny.toml` cargo-deny policy ([graph] / [advisories] / [licenses] / [bans] / [sources]) so the `cargo-deny` CI job has a checked-in config to enforce
+- Tier-0 hygiene pass (orch-v12-s1-008): justfile recipes (`build`/`test`/`lint`/`fmt`/`audit`/`deny`/`grade`/`ci`) sourced from `just/phenotype.just`, GitHub workflows (CI, audit, deny, scorecard, release) with concurrency + SHA-pinned actions, `.github/CODEOWNERS` ownership of `@KooshaPari`, governance docs (`CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, `SECURITY.md`, `CHANGELOG.md`), issue templates (`bug.yml`, `feature.yml`, `config.yml`), pull request template, `.editorconfig`, and canonical `.gitattributes`
 
 ### Changed
+- `.github/workflows/scorecard.yml`: removed duplicate top-level `permissions:` block; job-level `permissions:` now the single source of truth
 
 ### Deprecated
 

@@ -12,9 +12,6 @@ on:
 permissions:
   contents: read
 
-
-permissions: read-all
-
 jobs:
   analysis:
     name: Scorecard analysis
