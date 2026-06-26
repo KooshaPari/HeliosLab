@@ -22,9 +22,17 @@ export default {
             bunny: {
                 entrypoint: "src/renderers/bunny/index.ts",
             },
+            ivde: {
+                entrypoint: "src/renderers/ivde/index.ts",
+            },
         },
         "copy": {
             "src/renderers/helioslab/index.html": "views/helioslab/index.html",
+            "src/renderers/ivde/index.html": "views/ivde/index.html",
+            "src/renderers/ivde/styles/": "views/ivde/styles/",
+            "assets/custom.editor.worker.js": "views/ivde/custom.editor.worker.js",
+            "assets/": "views/assets/",
+            "node_modules/@xterm/xterm/css/xterm.css": "views/ivde/xterm.css",
             "src/renderers/bunny/index.html": "views/bunny/index.html",
             "src/renderers/bunny/index.css": "views/bunny/index.css",
             "assets/bunny.png": "views/bunny/assets/bunny.png",
