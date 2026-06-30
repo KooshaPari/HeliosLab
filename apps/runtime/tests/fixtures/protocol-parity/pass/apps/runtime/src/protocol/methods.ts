@@ -1,0 +1,28 @@
+export const METHODS = [
+  "runtime.runtime.workspace.create",
+  "runtime.runtime.workspace.open",
+  "runtime.runtime.project.clone",
+  "runtime.runtime.project.init",
+  "runtime.runtime.session.create",
+  "runtime.runtime.session.attach",
+  "runtime.runtime.session.terminate",
+  "runtime.runtime.terminal.spawn",
+  "runtime.runtime.terminal.resize",
+  "runtime.runtime.terminal.input",
+  "runtime.runtime.renderer.switch",
+  "runtime.runtime.renderer.capabilities",
+  "runtime.runtime.agent.run",
+  "runtime.runtime.agent.cancel",
+  "runtime.runtime.approval.request.resolve",
+  "runtime.runtime.share.upterm.start",
+  "runtime.runtime.share.upterm.stop",
+  "runtime.runtime.share.tmate.start",
+  "runtime.runtime.share.tmate.stop",
+  "runtime.runtime.zmx.checkpoint",
+  "runtime.runtime.zmx.restore",
+  "runtime.runtime.lane.create",
+  "runtime.runtime.lane.attach",
+  "runtime.runtime.lane.cleanup",
+] as const;
+
+export type ProtocolMethod = (typeof METHODS)[number];

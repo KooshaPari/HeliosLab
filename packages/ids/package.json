@@ -1,0 +1,22 @@
+{
+	"name": "@phenotype/ids",
+	"version": "0.1.0",
+	"type": "module",
+	"main": "src/index.ts",
+	"types": "src/index.ts",
+	"exports": {
+		".": {
+			"import": "./src/index.ts",
+			"types": "./src/index.ts"
+		}
+	},
+	"dependencies": {},
+	"devDependencies": {
+		"@types/bun": "latest"
+	},
+	"scripts": {
+		"test": "bun test",
+		"typecheck": "bunx tsc --noEmit",
+		"bench": "bun run tests/bench/id-bench.ts"
+	}
+}

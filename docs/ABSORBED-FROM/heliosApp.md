@@ -1,0 +1,21 @@
+# ABSORBED-FROM: heliosApp
+
+- Source: `../app-src` (`KooshaPari/heliosApp`, git clone required by task)
+- Merged into HeliosLab on `feat/absorb-heliosapp-runtime`
+- Scope remap: `@helios/*`  ->  `@phenotype/*` for all copied package and local import references.
+- Imported modules:
+  - `packages/{ids, logger, errors, types, runtime-core}`
+  - `apps/runtime/src/protocol/*`
+  - `apps/runtime/src/audit/*`
+  - runtime tests:
+    - `apps/runtime/tests/unit/protocol/*`
+    - `apps/runtime/tests/unit/audit/*`
+    - `apps/runtime/tests/integration/protocol/*`
+    - `apps/runtime/tests/integration/audit/*`
+    - `apps/runtime/tests/fixtures/protocol-parity/*`
+- Renamed LocalBus method names from `session.*` style to `runtime.session.*` style to avoid collisions.
+- Dropped during absorption:
+  - `apps/desktop`
+  - `app-src/colab-renderer`
+  - `app-src/renderer`
+  - heliosApp-specific docs
