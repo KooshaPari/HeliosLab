@@ -2,10 +2,10 @@ name: cargo-deny
 on:
   workflow_dispatch:
   pull_request:
-    paths: ['Cargo.toml', 'Cargo.lock', 'deny.toml', '.github/workflows/deny.yml']
+    paths: ['**/Cargo.toml', '**/Cargo.lock', 'deny.toml', '.github/workflows/deny.yml']
   push:
     branches: [main]
-    paths: ['Cargo.toml', 'Cargo.lock', 'deny.toml', '.github/workflows/deny.yml']
+    paths: ['**/Cargo.toml', '**/Cargo.lock', 'deny.toml', '.github/workflows/deny.yml']
 
 permissions:
   contents: read
@@ -43,4 +43,4 @@ jobs:
           tool: cargo-deny
 
       - name: Run cargo-deny against the workspace
-        run: cargo deny check --workspace --all-features
+        run: cargo deny --workspace --all-features check
