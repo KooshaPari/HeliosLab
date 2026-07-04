@@ -53,6 +53,19 @@ pub fn decrypt(ciphertext: &[u8], nonce_bytes: &[u8], key: &[u8]) -> Result<Vec<
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::sync::{Mutex, OnceLock};
+
+    fn secret_key_env_lock() -> &'static Mutex<()> {
+        static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
+        LOCK.get_or_init(|| Mutex::new(()))
+    }
+
+    fn restore_secret_key(previous: Option<std::ffi::OsString>) {
+        match previous {
+            Some(value) => std::env::set_var("PHENO_SECRET_KEY", value),
+            None => std::env::remove_var("PHENO_SECRET_KEY"),
+        }
+    }
 
     #[test]
     fn test_generate_key_produces_32_bytes() {
@@ -134,9 +147,11 @@ mod tests {
     #[test]
     fn test_load_key_from_env_missing_var() {
         // Traces to: FR-CRYPTO-004
-        // Ensure env var is not set
+        let _guard = secret_key_env_lock().lock().unwrap();
+        let previous = std::env::var_os("PHENO_SECRET_KEY");
         std::env::remove_var("PHENO_SECRET_KEY");
         let result = load_key_from_env();
+        restore_secret_key(previous);
         assert!(result.is_err());
         let err = result.unwrap_err().to_string();
         assert!(err.contains("PHENO_SECRET_KEY"), "Error should mention the env var name");
@@ -145,20 +160,24 @@ mod tests {
     #[test]
     fn test_load_key_from_env_invalid_hex() {
         // Traces to: FR-CRYPTO-004
+        let _guard = secret_key_env_lock().lock().unwrap();
+        let previous = std::env::var_os("PHENO_SECRET_KEY");
         std::env::set_var("PHENO_SECRET_KEY", "not-valid-hex!!!");
         let result = load_key_from_env();
-        std::env::remove_var("PHENO_SECRET_KEY");
+        restore_secret_key(previous);
         assert!(result.is_err());
     }
 
     #[test]
     fn test_load_key_from_env_valid_hex() {
         // Traces to: FR-CRYPTO-004
+        let _guard = secret_key_env_lock().lock().unwrap();
+        let previous = std::env::var_os("PHENO_SECRET_KEY");
         let key = generate_key();
         let hex_key = hex::encode(&key);
         std::env::set_var("PHENO_SECRET_KEY", &hex_key);
         let loaded = load_key_from_env().expect("should load key from valid hex");
-        std::env::remove_var("PHENO_SECRET_KEY");
+        restore_secret_key(previous);
         assert_eq!(loaded, key);
     }
 }
