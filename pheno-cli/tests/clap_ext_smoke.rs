@@ -1,4 +1,5 @@
 //! Smoke tests verifying that clap-ext's Verbosity and ConfigArg work in this CLI.
+// FR: CLI argument parsing supports verbosity and config options.
 
 use clap::Parser;
 use clap_ext::prelude::*;
