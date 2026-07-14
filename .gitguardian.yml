@@ -1,0 +1,13 @@
+# GitGuardian Configuration
+# Whitelist test fixtures for secrets redaction engine test cases
+# These are intentional test fixtures used to validate redaction functionality
+
+version: 2
+
+secret:
+  ignored_paths:
+    - "apps/runtime/src/secrets/__tests__/__fixtures__/**"
+    - "apps/runtime/src/secrets/__tests__/*.test.ts"
+    - "apps/runtime/tests/unit/audit/export.test.ts"
+    - "scripts/tests/compliance-checker.test.ts"
+    - ".github/branch-protection.md"

@@ -1,0 +1,9 @@
+{
+	"feature_number": "016",
+	"slug": "016-workspace-lane-session-ui-tabs",
+	"friendly_name": "Multi-Tab Navigation UI",
+	"mission": "software-dev",
+	"created_at": "2026-02-27T00:00:00Z",
+	"target_branch": "main",
+	"vcs": "git"
+}

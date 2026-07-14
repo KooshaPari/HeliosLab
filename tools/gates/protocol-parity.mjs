@@ -4,7 +4,7 @@ import { resolve } from "node:path";
 function parseLiteralArray(tsPath, constName) {
 	const source = readFileSync(tsPath, "utf8");
 	const regex = new RegExp(
-		`export const ${constName} = \\[(?<body>[\\s\\S]*?)\\] as const[^;]*;`,
+		`export const ${constName} = \\[(?<body>[\\s\\S]*?)\\] as const;`,
 	);
 	const match = source.match(regex);
 	if (!match?.groups?.body) {
@@ -121,6 +121,8 @@ const contract = readJson(
 		root,
 		"kitty-specs/001-colab-agent-terminal-control-plane/contracts/orchestration-envelope.schema.json",
 	),
+
+
 );
 
 const contractMethods = (contract.properties?.method?.enum ?? []).filter(
@@ -149,32 +151,32 @@ const formalOnlyContractTopics = formalTopics.filter(
 	(topic) => !contractTopics.includes(topic),
 );
 
-if (runtimeOnlyMethods.length) {
+if (runtimeOnlyMethods.length > 0) {
 	errors.push(
 		`Runtime-only methods missing from formal assets: ${runtimeOnlyMethods.join(", ")}`,
 	);
 }
-if (runtimeOnlyTopics.length) {
+if (runtimeOnlyTopics.length > 0) {
 	errors.push(
 		`Runtime-only topics missing from formal assets: ${runtimeOnlyTopics.join(", ")}`,
 	);
 }
-if (formalOnlyMethods.length) {
+if (formalOnlyMethods.length > 0) {
 	errors.push(
 		`Formal-only methods missing from runtime assets: ${formalOnlyMethods.join(", ")}`,
 	);
 }
-if (formalOnlyTopics.length) {
+if (formalOnlyTopics.length > 0) {
 	errors.push(
 		`Formal-only topics missing from runtime assets: ${formalOnlyTopics.join(", ")}`,
 	);
 }
-if (formalOnlyContractMethods.length) {
+if (formalOnlyContractMethods.length > 0) {
 	errors.push(
 		`Formal methods missing from contract schema enum: ${formalOnlyContractMethods.join(", ")}`,
 	);
 }
-if (formalOnlyContractTopics.length) {
+if (formalOnlyContractTopics.length > 0) {
 	errors.push(
 		`Formal topics missing from contract schema enum: ${formalOnlyContractTopics.join(", ")}`,
 	);
@@ -183,12 +185,12 @@ if (formalOnlyContractTopics.length) {
 validateMatrixEntries("method", formalMethods, matrix.methods ?? [], errors);
 validateMatrixEntries("topic", formalTopics, matrix.topics ?? [], errors);
 
-if (errors.length) {
-	console.error("Protocol parity gate failed.");
+if (errors.length > 0) {
+	process.stderr.write("Protocol parity gate failed.\n");
 	for (const message of errors) {
-		console.error(`- ${message}`);
+		process.stderr.write(`- ${message}\n`);
 	}
 	process.exit(1);
 }
 
-console.log("Protocol parity gate passed.");
+process.stdout.write("Protocol parity gate passed.\n");

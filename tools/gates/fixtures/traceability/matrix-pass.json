@@ -1,0 +1,25 @@
+{
+	"requirements": [
+		{
+			"id": "FR-001",
+			"status": "[x]",
+			"code": ["tools/gates/requirement-traceability.mjs"],
+			"tests": ["tools/gates/requirement-traceability.test.mjs"],
+			"evidence": ["tools/gates/fixtures/traceability/evidence-pass.txt"]
+		},
+		{
+			"id": "FR-002",
+			"status": "[x]",
+			"code": ["tools/gates/requirement-traceability.mjs"],
+			"tests": ["tools/gates/requirement-traceability.test.mjs"],
+			"evidence": ["tools/gates/fixtures/traceability/evidence-pass.txt"]
+		},
+		{
+			"id": "NFR-001",
+			"status": "[x]",
+			"code": ["tools/gates/requirement-traceability.mjs"],
+			"tests": ["tools/gates/requirement-traceability.test.mjs"],
+			"evidence": ["tools/gates/fixtures/traceability/evidence-pass.txt"]
+		}
+	]
+}

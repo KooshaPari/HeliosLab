@@ -1,39 +1,199 @@
 version: "3"
 
+vars:
+  PROJECT_LANGUAGE:
+    sh: |
+      if [ -f tsconfig.json ] || [ -f tsconfig.base.json ]; then
+        echo typescript
+      elif [ -f package.json ]; then
+        echo javascript
+      elif [ -f go.mod ]; then
+        echo go
+      elif [ -f pyproject.toml ] || [ -f requirements.txt ]; then
+        echo python
+      elif [ -f Cargo.toml ]; then
+        echo rust
+      else
+        echo unknown
+      fi
+  PROJECT_TOOLCHAIN:
+    sh: |
+      if [ -f bun.lock ] || [ -f bun.lockb ] || { [ -f package.json ] && grep -q '"packageManager"[[:space:]]*:[[:space:]]*"bun@' package.json; }; then
+        echo bun
+      elif [ -f pnpm-lock.yaml ] || { [ -f package.json ] && grep -q '"packageManager"[[:space:]]*:[[:space:]]*"pnpm@' package.json; }; then
+        echo pnpm
+      elif [ -f yarn.lock ] || { [ -f package.json ] && grep -q '"packageManager"[[:space:]]*:[[:space:]]*"yarn@' package.json; }; then
+        echo yarn
+      elif [ -f package-lock.json ] || [ -f package.json ]; then
+        echo npm
+      elif [ -f go.mod ]; then
+        echo go
+      elif [ -f pyproject.toml ] || [ -f requirements.txt ]; then
+        echo python
+      elif [ -f Cargo.toml ]; then
+        echo rust
+      else
+        echo unknown
+      fi
+  BUILD_COMMAND:
+    sh: |
+      if [ -f package.json ] && bun -e "const pkg = await import('./package.json', { with: { type: 'json' } }); process.exit(pkg.default.scripts?.build ? 0 : 1)"; then
+        case "{{.PROJECT_TOOLCHAIN}}" in
+          bun) echo "bun run build" ;;
+          pnpm) echo "pnpm run build" ;;
+          yarn) echo "yarn build" ;;
+          npm|node) echo "npm run build" ;;
+          *) echo "" ;;
+        esac
+      else
+        echo ""
+      fi
+  TEST_COMMAND:
+    sh: |
+      if [ -f package.json ] && bun -e "const pkg = await import('./package.json', { with: { type: 'json' } }); process.exit(pkg.default.scripts?.test ? 0 : 1)"; then
+        case "{{.PROJECT_TOOLCHAIN}}" in
+          bun) echo "bun run test" ;;
+          pnpm) echo "pnpm run test" ;;
+          yarn) echo "yarn test" ;;
+          npm|node) echo "npm run test" ;;
+          *) echo "" ;;
+        esac
+      else
+        echo ""
+      fi
+  LINT_COMMAND:
+    sh: |
+      if [ -f package.json ] && bun -e "const pkg = await import('./package.json', { with: { type: 'json' } }); process.exit(pkg.default.scripts?.lint ? 0 : 1)"; then
+        case "{{.PROJECT_TOOLCHAIN}}" in
+          bun) echo "bun run lint" ;;
+          pnpm) echo "pnpm run lint" ;;
+          yarn) echo "yarn lint" ;;
+          npm|node) echo "npm run lint" ;;
+          *) echo "" ;;
+        esac
+      else
+        echo ""
+      fi
+
 tasks:
-  lint:
-    desc: "Run clippy linter and check formatting"
+  default:
     cmds:
-      - cargo clippy --all-targets -- -D warnings
-      - cargo fmt -- --check
+      - task --list
+    silent: true
 
-  test:
-    desc: "Run all tests"
+  language:
+    desc: Print the detected project language/toolchain
     cmds:
-      - cargo test --all
-
-  quality:
-    desc: "Run quality checks (lint + test)"
-    cmds:
-      - task: lint
-      - task: test
+      - echo "{{.PROJECT_LANGUAGE}}/{{.PROJECT_TOOLCHAIN}}"
 
   build:
-    desc: "Build release binary"
+    desc: Build the detected project
     cmds:
-      - cargo build --release
+      - |
+        set -euo pipefail
+        case "{{.PROJECT_TOOLCHAIN}}" in
+          bun|pnpm|yarn|npm|node)
+            if [ -z "{{.BUILD_COMMAND}}" ]; then
+              echo "[FAIL] package.json does not define a build script"
+              exit 1
+            fi
+            {{.BUILD_COMMAND}}
+            ;;
+          go)
+            go build ./...
+            ;;
+          python)
+            python -m compileall .
+            ;;
+          rust)
+            cargo build --all-targets
+            ;;
+          *)
+            echo "[FAIL] unable to detect project language from repository manifests"
+            exit 1
+            ;;
+        esac
 
-  fmt:
-    desc: "Format code with rustfmt"
+  test:
+    desc: Run the detected project's primary test suite
     cmds:
-      - cargo fmt
+      - |
+        set -euo pipefail
+        case "{{.PROJECT_TOOLCHAIN}}" in
+          bun|pnpm|yarn|npm|node)
+            if [ -z "{{.TEST_COMMAND}}" ]; then
+              echo "[FAIL] package.json does not define a test script"
+              exit 1
+            fi
+            {{.TEST_COMMAND}}
+            ;;
+          go)
+            go test ./...
+            ;;
+          python)
+            if command -v pytest >/dev/null 2>&1; then
+              pytest
+            else
+              python -m unittest discover
+            fi
+            ;;
+          rust)
+            cargo test --all-targets
+            ;;
+          *)
+            echo "[FAIL] unable to detect project language from repository manifests"
+            exit 1
+            ;;
+        esac
+
+  lint:
+    desc: Run the detected project's configured lint checks
+    cmds:
+      - |
+        set -euo pipefail
+        case "{{.PROJECT_TOOLCHAIN}}" in
+          bun|pnpm|yarn|npm|node)
+            if [ -z "{{.LINT_COMMAND}}" ]; then
+              echo "[FAIL] package.json does not define a lint script"
+              exit 1
+            fi
+            {{.LINT_COMMAND}}
+            ;;
+          go)
+            if command -v golangci-lint >/dev/null 2>&1; then
+              golangci-lint run
+            else
+              go vet ./...
+            fi
+            ;;
+          python)
+            if command -v ruff >/dev/null 2>&1; then
+              ruff check .
+            else
+              python -m compileall .
+            fi
+            ;;
+          rust)
+            cargo clippy --all-targets --all-features
+            ;;
+          *)
+            echo "[FAIL] unable to detect project language from repository manifests"
+            exit 1
+            ;;
+        esac
 
   clean:
-    desc: "Clean build artifacts"
+    desc: Remove generated artifacts from the working tree
     cmds:
-      - cargo clean
-
-  check:
-    desc: "Check code compiles without warnings"
-    cmds:
-      - cargo check --all-targets
+      - |
+        set -euo pipefail
+        rm -rf \
+          apps/desktop/dist \
+          apps/runtime/dist \
+          apps/colab-renderer/dist \
+          apps/renderer/dist \
+          docs/.vitepress/dist \
+          coverage \
+          .turbo \
+          .vite \
+          .vitest

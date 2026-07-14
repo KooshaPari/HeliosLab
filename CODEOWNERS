@@ -1,2 +1,8 @@
-# Default owners
+# HeliosApp Codeowners
+# Primary maintainer
 * @KooshaPari
+
+# App ownership
+/src/ @KooshaPari
+/public/ @KooshaPari
+/.github/workflows/ @KooshaPari

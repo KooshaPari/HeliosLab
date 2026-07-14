@@ -1,12 +1,104 @@
 {
-	"vcs": {
-		"enabled": true,
-		"clientKind": "git",
-		"useIgnoreFile": true
-	},
-	"javascript": {
-		"formatter": {
-			"quoteStyle": "double"
-		}
-	}
+  "$schema": "https://biomejs.dev/schemas/2.4.9/schema.json",
+  "files": {
+    "includes": [
+      "**",
+      "!node_modules",
+      "!.archive",
+      "!docs/.vitepress/dist",
+      "!docs/.generated",
+      "!.worktrees",
+      "!kitty-specs",
+      "!agileplus",
+      "!docs/sessions",
+      "!tsconfig*.json",
+      "!all_prs.json",
+      "!pr_details.json"
+    ]
+  },
+  "formatter": {
+    "enabled": true,
+    "lineWidth": 100,
+    "indentStyle": "space",
+    "indentWidth": 2
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "suspicious": {
+        "recommended": true,
+        "noExplicitAny": "off",
+        "useAwait": "warn",
+        "noEmptyBlockStatements": "warn",
+        "noEvolvingTypes": "warn",
+        "noMisplacedAssertion": "warn",
+        "noAssignInExpressions": "warn"
+      },
+      "correctness": {
+        "recommended": true,
+        "noNodejsModules": "off",
+        "useImportExtensions": "off",
+        "noUndeclaredVariables": "off",
+        "noUndeclaredDependencies": "off",
+        "useHookAtTopLevel": "warn"
+      },
+      "style": {
+        "recommended": true,
+        "useNamingConvention": "off",
+        "noNonNullAssertion": "warn",
+        "noParameterProperties": "off",
+        "noDefaultExport": "off",
+        "useFilenamingConvention": "off",
+        "noDoneCallback": "warn",
+        "useForOf": "warn",
+        "useDefaultSwitchClause": "warn",
+        "useCollapsedElseIf": "warn",
+        "useConst": "warn"
+      },
+      "complexity": {
+        "recommended": true,
+        "noExcessiveCognitiveComplexity": "warn",
+        "noVoid": "warn",
+        "noForEach": "warn"
+      },
+      "security": {
+        "recommended": true
+      },
+      "a11y": {
+        "useButtonType": "warn",
+        "useKeyWithClickEvents": "warn",
+        "noLabelWithoutControl": "warn",
+        "useFocusableInteractive": "warn"
+      }
+    }
+  },
+  "javascript": {
+    "formatter": {
+      "arrowParentheses": "asNeeded",
+      "bracketSameLine": false,
+      "bracketSpacing": true,
+      "jsxQuoteStyle": "double",
+      "quoteProperties": "asNeeded",
+      "semicolons": "always",
+      "trailingCommas": "es5"
+    }
+  },
+  "overrides": [
+    {
+      "includes": ["apps/desktop/src/runtime_client.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useNamingConvention": "off"
+          }
+        }
+      }
+    }
+  ],
+  "json": {
+    "formatter": {
+      "trailingCommas": "none"
+    }
+  }
 }

@@ -24,6 +24,9 @@
 		"zmx.restore",
 		"lane.create",
 		"lane.attach",
-		"lane.cleanup"
+		"lane.cleanup",
+		"boundary.local.dispatch",
+		"boundary.tool.dispatch",
+		"boundary.a2a.dispatch"
 	]
 }

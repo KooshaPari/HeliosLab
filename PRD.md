@@ -1,139 +1,252 @@
-# Product Requirements Document — phenotype-config (colab)
+# Product Requirements Document — heliosApp
 
 **Status:** ACTIVE
 **Owner:** Phenotype Engineering
 **Last Updated:** 2026-03-26
+**Version:** 2.0
 
 ---
 
 ## Overview
 
-`phenotype-config` is a local-first Rust SDK and CLI that provides Phenotype projects with a unified, auditable, and encrypted configuration surface. It covers four concern domains: application configuration, feature flag lifecycle, secrets management, and version/release-stage tracking. All data is persisted locally in a SQLite database with WAL mode; no remote dependency is required.
+heliosApp is a native desktop application and runtime for agent-driven software engineering. It provides a unified interface for developers and AI agents to collaborate within isolated workspace lanes, each containing PTY terminal sessions, multiplexed shell environments, and a local bus protocol for command/event coordination. The system is built as a Bun monorepo (`apps/runtime`, `apps/desktop`) with TypeScript throughout, targeting macOS (Apple Silicon) and Linux (NVIDIA GPU) as primary platforms.
 
-The system is delivered as:
-- A Rust workspace with four crates (`pheno-core`, `pheno-db`, `pheno-crypto`, `pheno-cli`) plus FFI shims for Python and Go.
-- A `phenoctl` CLI binary.
-- A `ratatui`-based TUI for interactive exploration.
+The MVP target is a persistent chat-plus-terminal interface where a user can issue natural language prompts, observe real-time streamed responses, watch the agent's tool calls inline, and interact with spawned terminal sessions — all within a single desktop application.
 
 ---
 
-## E1: Configuration Management
+## E1: Runtime Orchestration
 
-### E1.1: Namespaced Key-Value Store
-As a developer, I want to set, get, and delete typed configuration entries (string, int, float, bool, JSON) in named namespaces so that runtime settings are isolated per concern.
-
-**Acceptance Criteria:**
-- `phenoctl config set <key> <value>` writes to the default namespace.
-- `phenoctl config get <key>` retrieves the current value with its type.
-- `phenoctl config list` shows all entries in a namespace.
-- `phenoctl config delete <key>` removes an entry.
-- Supported types: `string`, `int`, `float`, `bool`, `json`.
-- Entries are persisted in `<repo>/.phenotype/config.db` (SQLite, WAL mode).
-
-### E1.2: Audit Trail for Config Changes
-As an operator, I want every config change recorded in an audit log so that I can trace who changed what and when.
+### E1.1: Local Bus Protocol
+As the runtime, I want a unified message bus so that workspace, lane, session, and terminal entities can communicate via typed commands, events, and responses without tight coupling.
 
 **Acceptance Criteria:**
-- Every write to `config_entries` records old value, new value, `changed_by`, and timestamp in `config_audit`.
-- `phenoctl config audit <key>` displays the audit history for a key.
-- Audit records are immutable (append-only table).
+- `LocalBusEnvelope` protocol with three envelope types: command (method-based), event (topic-based pub/sub), response (success or error).
+- All envelopes carry: `id`, `correlation_id`, `type`, `ts`, and context IDs (`workspace_id`, `lane_id`, `session_id`, `terminal_id`).
+- Correlation tracking via `correlation_id` links commands to their events and responses.
+- Lifecycle ordering enforcement: state machine transitions are validated and invalid ordering is rejected.
+- `InMemoryLocalBus` and `BoundaryDispatcher` implementations both satisfy the bus interface.
+
+**Code:** `apps/runtime/src/protocol/bus.ts`, `apps/runtime/src/protocol/types.ts`, `apps/runtime/src/protocol/methods.ts`
+
+### E1.2: Workspace and Lane Management
+As a developer, I want to create workspaces containing named lanes so that I can organize parallel agent sessions with independent state.
+
+**Acceptance Criteria:**
+- Workspace CRUD: create, read, list, delete. Each workspace has a unique ID, name, and persistent metadata.
+- Lane CRUD within a workspace. Lanes support PAR (parallel) execution mode.
+- Lane-to-session binding: a lane can hold one or more sessions.
+- Lane state machine: `idle -> active -> paused -> terminated`.
+- Orphan detection: lanes without active sessions after a timeout are flagged for remediation.
+- Workspace and lane metadata persisted to durable storage across restarts.
+
+**Code:** `apps/runtime/src/workspace/`, `apps/runtime/src/lanes/`
+
+### E1.3: Session and Terminal Lifecycle
+As a developer, I want to attach sessions to lanes and spawn PTY terminals so that agents and users can execute commands in real shell environments.
+
+**Acceptance Criteria:**
+- Session attach/detach with state machine (`created -> attaching -> attached -> detaching -> detached -> terminated`).
+- `PTYLifecycleManager` spawns real PTY processes using the user's default shell.
+- Terminal output streamed with full ANSI color and cursor support.
+- Terminal resize events propagated to the PTY process.
+- Multiple concurrent terminal instances supported.
+- PTY idle monitoring: terminals inactive beyond a threshold trigger a watchdog scan.
+- Zellij mux adapter available for multiplexed multi-pane session management.
+
+**Code:** `apps/runtime/src/pty/`, `apps/runtime/src/sessions/`, `apps/runtime/src/integrations/zellij/`
 
 ---
 
-## E2: Feature Flag Lifecycle
+## E2: Desktop Application
 
-### E2.1: Flag Creation and Toggle
-As a developer, I want to create feature flags and enable/disable them so that I can gate functionality without code deployments.
-
-**Acceptance Criteria:**
-- `phenoctl flags create <name> --description <text>` creates a flag at stage `SP` (Specification/Planning).
-- `phenoctl flags enable <name>` and `phenoctl flags disable <name>` toggle a flag.
-- `phenoctl flags list` shows all flags with their state, stage, and transience class.
-- `phenoctl flags get <name>` shows full flag detail.
-
-### E2.2: Stage Lifecycle (16 Stages)
-As a release manager, I want flags to be associated with one of 16 lifecycle stages so that I can track readiness and enforce promotion gates.
+### E2.1: Tauri Desktop Shell
+As a user, I want a native desktop application so that I can interact with the runtime visually with OS-level integration.
 
 **Acceptance Criteria:**
-- Stages in order: `SP -> POC -> IP -> A -> FP -> B -> EP -> CN -> RC -> GA -> LTS -> HF -> SS -> DEP -> AR -> EOL`.
-- `phenoctl flags promote <name> <stage>` advances a flag to a target stage (forward-only).
-- Reverse transitions are rejected with a clear error: `invalid stage transition`.
-- `phenoctl stage list` shows all flags grouped by stage.
+- Tauri-based desktop app (`apps/desktop`) with TypeScript renderer.
+- Desktop app communicates with runtime via local bus client (`runtime_client.ts`).
+- Application launches on macOS and Linux without requiring Node.js in the environment.
+- App settings persisted across restarts (preferred model, theme, keybindings).
 
-### E2.3: Transience Classes and Channel Gating
-As a developer, I want flags to carry a transience class (F=Permanent, T=Transient, E=Experimental) and channel list so that flags are only active in appropriate release channels.
+**Code:** `apps/desktop/src/`, `apps/desktop/src/runtime_client.ts`
+
+### E2.2: Chat Interface
+As a user, I want a persistent chat interface with real-time streaming so that I can issue natural language prompts and observe agent responses token by token.
 
 **Acceptance Criteria:**
-- Flags carry `transience_class` (F, T, or E) and `channel` (JSON array, e.g. `["dev","beta"]`).
-- Transience class `T` flags must have a `retire_at_stage` set.
-- `TransienceClass::valid_at_stage()` gate is enforced at flag evaluation time.
-- `phenoctl flags promote` validates transience constraints before writing.
+- Left sidebar: conversation history and navigation.
+- Center panel: active chat conversation with streaming output.
+- Bottom input area: model selector and send controls.
+- Agent tool calls (file reads, writes, terminal commands) rendered inline in the chat.
+- Multi-turn conversations with full context retention.
+- Interrupt/cancel in-progress agent actions.
+- All conversations persisted across app restarts.
+
+**Code:** `apps/desktop/src/pages/`, `apps/desktop/src/panels/`
+
+### E2.3: Terminal Panels
+As a user, I want integrated terminal panels so that I can observe and interact with the shell sessions the agent is using.
+
+**Acceptance Criteria:**
+- Terminal panels displayable in bottom or side layout.
+- ANSI color and cursor rendering.
+- Terminal resize propagated to PTY.
+- Agent can execute commands in any open terminal panel.
+- Keyboard shortcut to toggle terminal visibility.
+
+**Code:** `apps/desktop/src/panels/`, `apps/runtime/src/runtime/terminal.ts`
+
+### E2.4: Tabs and Lane Navigation
+As a user, I want tab-based navigation between workspaces and lanes so that I can switch context without losing state.
+
+**Acceptance Criteria:**
+- Tab bar showing open workspaces and lanes.
+- Tab creation, closing, and reordering.
+- Active tab state persisted.
+- Lane status visible in tabs (idle, active, error).
+
+**Code:** `apps/desktop/src/tabs.ts`, `apps/desktop/src/tabs/`
 
 ---
 
-## E3: Secrets Management
+## E3: Provider and Extension System
 
-### E3.1: Encrypted Secret Storage
-As a developer, I want secrets stored encrypted in the local database so that plaintext credentials never appear in config files or version control.
+### E3.1: Multi-Backend Inference
+As a developer, I want to switch between cloud and local inference providers so that I can use the best available model for my hardware and connectivity.
 
 **Acceptance Criteria:**
-- `phenoctl secrets set <name>` reads value from stdin (not args) and encrypts with AES-256-GCM before writing.
-- `phenoctl secrets get <name>` decrypts and prints to stdout.
-- `phenoctl secrets list` shows secret names only (not values).
-- `phenoctl secrets delete <name>` removes entry.
-- Encryption key loaded from `PHENO_SECRET_KEY` env var (hex-encoded 32-byte key).
-- `pheno-crypto` generates a random key if none is set (`generate_key()`).
+- At least one cloud provider: Anthropic API.
+- Local inference on Apple Silicon via MLX.
+- Local inference on NVIDIA GPU via llama.cpp.
+- Auto-detect available hardware at startup.
+- Switch providers without losing conversation state.
+- Graceful fallback when a selected provider becomes unavailable.
+
+**Code:** `apps/runtime/src/providers/`
+
+### E3.2: Provider Adapter Interface
+As a developer, I want a pluggable provider adapter interface so that new AI providers can be added without modifying core runtime.
+
+**Acceptance Criteria:**
+- `ProviderAdapter` interface with lifecycle hooks: `initialize`, `generate`, `stream`, `dispose`.
+- Provider registry for discovery and management.
+- Configuration per-provider stored in app settings.
+- MCP (Model Context Protocol) adapter bridge for MCP-compliant tools and servers.
+
+**Code:** `apps/runtime/src/providers/`, `apps/runtime/src/integrations/`
 
 ---
 
-## E4: Version and Release Tracking
+## E4: Observability and Security
 
-### E4.1: Version Information Store
-As a developer, I want to record and retrieve structured version information per project so that tooling can query release state.
+### E4.1: Audit Logging and Session Replay
+As an operator, I want audit logging of all bus events so that I can review and replay agent actions post-hoc.
 
 **Acceptance Criteria:**
-- `phenoctl version set --semver <x.y.z> --stage <stage> --channel <ch>` writes version record.
-- `phenoctl version show` displays current version, stage, and channel.
-- Version records are immutable history; each set appends a new row.
+- Audit subscriber captures all bus envelopes with monotonic sequence numbers per topic.
+- Audit records include: `id`, `type`, `topic/method`, `correlation_id`, `timestamp`, `payload`, `outcome` (accepted/rejected), `validation_errors`.
+- Queryable by topic, `correlation_id`, or time range.
+- Session replay reconstructs system state from audit trail.
+- Audit log retained with configurable retention policy.
+
+**Code:** `apps/runtime/src/audit/`
+
+### E4.2: Secrets Management and Redaction
+As a developer, I want secure secret handling so that credentials are never exposed in terminal sessions or event logs.
+
+**Acceptance Criteria:**
+- `RedactionEngine` scrubs sensitive patterns from all bus events before logging.
+- Default redaction rules cover common secret patterns (API keys, tokens, passwords).
+- Secret injection into terminal environments without exposing values in command arguments.
+- Secrets module with encrypted storage.
+
+**Code:** `apps/runtime/src/secrets/redaction-engine.ts`, `apps/runtime/src/secrets/redaction-rules.ts`
+
+### E4.3: Command Policy Engine
+As an operator, I want a policy engine that can approve or block agent commands so that I can enforce safety constraints without disabling the agent.
+
+**Acceptance Criteria:**
+- Policy rules defined per command method.
+- Approval workflow: commands can be held pending explicit user approval.
+- Blocked commands produce a clear rejection event (not a silent drop).
+- Policy state persisted across sessions.
+
+**Code:** `apps/runtime/src/policy/`
 
 ---
 
-## E5: Interactive TUI
+## E5: Resilience and Recovery
 
-### E5.1: Ratatui-Based Operational Dashboard
-As a developer, I want an interactive terminal UI so that I can browse and edit configuration, flags, secrets, and version info without memorizing CLI syntax.
+### E5.1: Crash Recovery
+As a developer, I want session state checkpointed periodically so that a crash does not lose more than one checkpoint interval of work.
 
 **Acceptance Criteria:**
-- `phenoctl tui` launches the ratatui TUI.
-- TUI provides tabs/panels for: Config, Flags, Secrets, Version.
-- Keyboard navigation (arrow keys, Enter, Escape) is functional.
-- TUI reads from and writes to the same SQLite database as the CLI.
+- `RecoveryRegistry` tracks all active sessions and their last checkpoint.
+- Checkpoint written on session state transitions and on a periodic timer.
+- On restart, `RecoveryBootstrapResult` identifies recoverable vs. unrecoverable sessions.
+- Orphaned lanes (no session reattached within timeout) are remediated.
+
+**Code:** `apps/runtime/src/sessions/registry.ts`, `apps/runtime/src/recovery/`
+
+### E5.2: Performance Baseline
+As a developer, I want runtime instrumentation so that I can detect regressions and set performance budgets.
+
+**Acceptance Criteria:**
+- Latency instrumentation on bus command dispatch and PTY output streaming.
+- PTY output backpressure metrics: queue depth and backlog size.
+- Performance baseline exported in a structured format for CI comparison.
+
+**Code:** `apps/runtime/src/diagnostics/`
 
 ---
 
-## E6: FFI Bindings
+## E6: Collaboration
 
-### E6.1: Python FFI (pheno-ffi-python)
-As a Python developer, I want to call `pheno-core` types from Python so that Phenotype Python services can consume the same config surface.
-
-**Acceptance Criteria:**
-- `crates/pheno-ffi-python` builds a Python extension via PyO3.
-- At minimum: `get_config`, `set_config`, `get_flag`, `set_flag` are exposed.
-- Importable as `import pheno` in a Python environment.
-
-### E6.2: Go FFI (pheno-ffi-go)
-As a Go developer, I want to call `pheno-core` types from Go via CGO so that Phenotype Go services share the same config surface.
+### E6.1: Session Sharing
+As a developer, I want to share terminal sessions with collaborators or external tools so that pair programming and tool integration are possible.
 
 **Acceptance Criteria:**
-- `crates/pheno-ffi-go` exposes a C ABI header.
-- At minimum: config get/set and flag get/enable functions are exported.
-- Compiles cleanly with `cargo build --release`.
+- Share session via tty-share or equivalent external tool.
+- Share URL generated and displayed to the user.
+- Shared session read-only by default; write access requires explicit grant.
+- Session sharing state visible in the lane UI.
+
+**Code:** `apps/runtime/src/` (share integration)
+
+---
+
+## E7: Build, CI, and Dependency Management
+
+### E7.1: Monorepo Build System
+As a developer, I want a unified build system so that all packages build, lint, and test with a single command.
+
+**Acceptance Criteria:**
+- Bun workspaces with `apps/runtime` and `apps/desktop` as packages.
+- `bun run build` produces a production-optimized desktop bundle.
+- `bun run typecheck` runs TypeScript strict-mode check across all packages (exit non-zero on error).
+- Biome linting and formatting enforced across all TypeScript source.
+- Taskfile for standard targets: `lint`, `test`, `build`, `typecheck`.
+
+**Code:** `package.json`, `Taskfile.yml`, `biome.json`, `tsconfig.base.json`
+
+### E7.2: Dependency Management
+As a developer, I want automated dependency tracking and rollback so that prerelease dependency upgrades do not silently break the build.
+
+**Acceptance Criteria:**
+- Dependency registry manifest tracking each prerelease dep: name, current pin, channel, upstream source, known-good history.
+- `bun run deps:status` reports current state and available upgrades.
+- `bun run deps:rollback <package>` atomically reverts to last known-good pin.
+- Every upgrade attempt recorded in structured `deps-changelog.json` with timestamp, versions, gate results, and actor.
+- Canary process: isolated branch, upgrade, full quality gates, auto-merge on pass or issue on failure.
+
+**Code:** `deps-registry.json`, `deps-changelog.json`
 
 ---
 
 ## Future Roadmap
 
-- **Phase 2**: Remote config sync (S3/GCS backend) with conflict resolution.
-- **Phase 3**: Multi-tenant namespace access control.
-- **Phase 4**: gRPC service wrapper for microservice consumption.
-- **Phase 5**: Web UI for operational teams.
+- **Phase 2**: Remote workspace sync across machines.
+- **Phase 3**: Multi-user collaborative lanes with CRDT-based state.
+- **Phase 4**: Plugin marketplace for provider adapters and MCP tools.
+- **Phase 5**: Cloud-hosted runtime for fully remote agent execution.

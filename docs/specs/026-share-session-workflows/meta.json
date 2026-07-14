@@ -1,0 +1,9 @@
+{
+	"feature_number": 26,
+	"slug": "share-session-workflows",
+	"friendly_name": "Share Session Workflows",
+	"mission": "software-dev",
+	"created_at": "2026-02-27T00:00:00Z",
+	"target_branch": "main",
+	"vcs": "git"
+}

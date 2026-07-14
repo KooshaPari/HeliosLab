@@ -1,0 +1,1 @@
+Fixture evidence exists so checked traceability mappings can be validated.

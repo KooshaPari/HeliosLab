@@ -2,13 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
 ## [Unreleased]
 
 ### Added
-- `deny.toml` cargo-deny policy ([graph] / [advisories] / [licenses] / [bans] / [sources]) so the `cargo-deny` CI job has a checked-in config to enforce
 
 ### Changed
 
@@ -20,19 +16,1031 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
-## [0.1.1] - 2026-04-25
+## [2026.04A.4] - 2026-04-25
+
+### Bug Fixes
+
+- *(W-55)* Fix 32 production bugs: catch scoping, variable shadowing, missing imports
+
+## [2026.05B.0] — 2026-04-25
+
+### Documentation
+
+- *(traceability)* FR coverage 96.9%: 19 test files annotated with FR IDs (commit ab51eea)
+- *(e2e-traceability)* Phase-2 e2e annotations: 8 orphaned tests traced to FRs, 10 deferred (commit 2fd5a40)
+
+### Miscellaneous Tasks
+
+- *(chore)* Set alert-sync min_severity to medium (#411)
+
+## [unreleased]
+
+### Documentation
+
+- *(heliosApp)* Update CHANGELOG with 247/247 integration test fix results
+
+### Miscellaneous Tasks
+
+- *(release)* Create VERSION file and release 0.1.0
+- Rescue unpushed docs and deps commits (#349)
+
+## [0.1.0] - 2026-03-29
+
+### Auto
+
+- Sync and evaluate codex/launch-20260314 (#281)
+- Codex: oxc-migration-20260305-heliosapp-consolidated (#296)
+
+### Bug Fixes
+
+- Stabilize llama.cpp adapter for tsc and biome
+- Reduce runtime lint warnings in stubs and muxer route
+- Resolve exec integration warnings and close phase-3 items
+- *(runtime)* Stabilize sharing types and stabilize ci checks
+- *(WP02)* Rebase and resolve lifecycle contract review findings
+- *(WP02)* Rebase and resolve lifecycle contract review findings
+- *(WP02)* Rebase and resolve lifecycle contract review findings
+- *(WP02)* Rebase and resolve lifecycle contract review findings
+- *(WP01)* Resolve review findings on protocol semantics
+- *(WP02)* Rebase and resolve lifecycle contract review findings
+- *(WP02)* Address second-pass lifecycle regressions
+- *(WP02)* Rebase and resolve lifecycle contract review findings
+- *(WP03)* Rebase and resolve terminal lifecycle review findings
+- *(WP03)* Address second-pass terminal data-plane regressions
+- *(WP02)* Rebase and resolve lifecycle contract review findings
+- *(WP04)* Rebase and resolve ui/context review findings
+- *(WP04)* Tighten diagnostics assertions and renderer failure behavior
+- *(WP02)* Rebase and resolve lifecycle contract review findings
+- *(WP05)* Rebase and resolve recovery/audit review findings
+- *(WP05)* Address second-pass lifecycle correlation regressions
+- *(WP05)* Align protocol assets and schema topic parity
+- *(WP02)* Rebase and resolve lifecycle contract review findings
+- *(WP06)* Rebase and resolve hardening gate review findings
+- *(WP06)* Resolve restack regressions in protocol and harness routing
+- *(WP08)* Align feature docs to kitty-specs artifact paths
+- Update test to handle provisioning state before cleanup
+- Resolve TypeScript errors after WP merge
+- *(WP01)* Address review findings - HKDF, path traversal, chmod
+- Restore JSX/SolidJS config in tsconfig.json after 028 merge
+- Restore compareCapabilities and queryCapabilities exports
+- *(ci)* Resolve all CI gate failures (#44)
+- Unblock quality/compliance gates with clean replay (#53)
+- *(WP02)* Rebase and resolve lifecycle contract review findings
+- *(WP02)* Rebase and resolve lifecycle contract review findings
+- *(WP02)* Rebase and resolve lifecycle contract review findings
+- *(WP02)* Rebase and resolve lifecycle contract review findings
+- *(WP01)* Resolve review findings on protocol semantics
+- *(WP02)* Rebase and resolve lifecycle contract review findings
+- *(WP02)* Address second-pass lifecycle regressions
+- *(WP02)* Rebase and resolve lifecycle contract review findings
+- *(WP03)* Rebase and resolve terminal lifecycle review findings
+- *(WP02)* Rebase and resolve lifecycle contract review findings
+- *(WP04)* Rebase and resolve ui/context review findings
+- *(WP04)* Tighten diagnostics assertions and renderer failure behavior
+- *(WP02)* Rebase and resolve lifecycle contract review findings
+- *(WP05)* Rebase and resolve recovery/audit review findings
+- *(WP05)* Address second-pass lifecycle correlation regressions
+- *(WP05)* Align protocol assets and schema topic parity
+- *(WP02)* Rebase and resolve lifecycle contract review findings
+- *(WP06)* Rebase and resolve hardening gate review findings
+- *(WP06)* Resolve restack regressions in protocol and harness routing
+- *(WP08)* Align feature docs to kitty-specs artifact paths
+- Resolve TypeScript errors after WP merge
+- Restore JSX/SolidJS config in tsconfig.json after 028 merge
+- Tech debt wave — CI gates, runtime impl, OXC migration (#78)
+- HeliosApp CI workflow billing
+- Disable GCA workflow that requires paid API token
+- *(ci)* Remove status trigger from self-merge-gate and fix approvals variable bug
+- Resolve tech debt in CI gates and runtime Bun compat
+- Reconcile type-tightening changes across source files
+- Update test files for type-tightened source interfaces
+- Remove duplicate dependencies blocks and fix gate-bypass-detect
+- Replace fake secrets in audit test to satisfy GitGuardian
+- Resolve 11 of 17 unit test failures in runtime package
+- Expand DOM shim globals for happy-dom querySelector compat
+- Cast Window via unknown for TS2352 compat in dom-shim
+- Fix remaining TS2352 cast in dom-shim loop body
+- Make OrphanWatchdog duration test CI-resilient
+- Resolve 13 desktop test failures
+- Exclude integration/e2e tests from typecheck
+- Make Gate 4 (E2E) non-blocking in CI
+- Update static analysis baselines for oversized files
+- Exclude test fixture files from bypass-detect gate
+- Resolve flaky unit test failures
+- Resolve signals test failures and gate-bypass-detect issues
+- Resolve CI failures — formatting, flaky test, secret scan config
+- Resolve KeyboardShortcuts test failures for CI coverage gate
+- Resolve type errors in keyboard_shortcuts.ts
+- Align compliance test with advisory type-safety policy
+- Update static analysis baselines and enable constitution compliance
+- Increase OrphanWatchdog test timeout and use bun in compliance CI
+- Exclude test fixtures from bypass detection scanner
+- Apply file-level exclusion in bypass detection scanner
+- *(ci)* Remove --frozen-lockfile from all workflow install steps
+- *(ci)* Remove --frozen-lockfile from all workflow install steps
+- Increase timeout for all OrphanWatchdog polling tests (#132)
+- *(ci)* Add required checks bridge for workflow-only PRs (#148)
+- *(ci)* Allow GitHub Update Branch merge commits in policy gate (#159)
+- *(ci)* Remove shallow fetch in policy-gate base ref (#210)
+- *(ci)* Add missing scripts/quality-gate.sh stub (#214)
+- Resolve package.json merge conflicts
+- *(ci)* Resolve CI failures and biome lint errors
+- *(ci)* Add gitguardian whitelist and rewrite self-merge gate
+- *(ci)* Fix coverage gate, compliance runner, and gitguardian config
+- *(ci)* Raise static analysis file-length limit to 800
+- *(ci)* Remove biome-ignore suppression directives
+- *(ci)* Fix compliance checker test discovery and merge gate permissions
+- *(test)* Increase checkpoint scheduler test timeouts for coverage
+- *(ci)* Add missing scripts/quality-gate.sh stub (#250)
+- Resolve TypeScript type errors blocking CI
+- *(desktop)* Restore solid-jsx syntax for ModelSelector and lane_event_handler (#291)
+- Resolve signals test failures and gate-bypass-detect issues (#297)
+- Stabilize runtime and desktop components @kooshapari (#303)
+- Unified stabilization for runtime and desktop @kooshapari (#304)
+- Consolidated stabilization for CI and runtime (#306)
+- Update deprecated trailingComma to trailingCommas in biome.json
+- Resolve conflict in apps/runtime/bun.lock
+- Resolve TypeScript errors for Bun spawn API type incompatibilities
+- Update bun types and tsconfig
+- Resolve Bun type compatibility and apply biome formatting
+- Resolve biome lint issues in @phenotype/metrics
+- Resolve TypeScript type errors and apply biome auto-formatting
+- Update ModelSelector and gate-lint
+- Add type='button' to desktop components for a11y compliance
+- *(heliosApp)* Update ModelSelector component
+- *(heliosApp)* Update ShareModal component
+- *(heliosApp)* Final ShareModal update
+- *(heliosApp)* Update lane panel and settings lock
+- *(lint)* Disable strict biome rules causing CI failures (#316)
+- *(heliosApp)* Update desktop panels and settings
+- *(heliosApp)* Settings lock update
+- *(heliosApp)* Update renderer preferences and tabs
+- *(ci)* Exclude complexity checks from lint to allow legitimate complex functions
+- *(typecheck)* Convert @ts-expect-error to @ts-ignore for resolved type errors
+- Resolve all biome v2 lint errors across 631 files (#320)
+- Remove docs from workspaces and root @phenotype/docs dependency
+- Exclude docs/.vitepress from lint since it imports unresolvable @phenotype/docs
+- *(ci)* Remove @phenotype/docs from devDependencies in heliosApp package.json
+- *(ci)* Remove docs local dependencies and clean compliance workflow formatting
+- Use oxlint instead of biome in lint script
+- *(ci)* Fix oxlintrc.json format - use array format for all rules
+- Resolve Biome v2 lint errors across 631 files (#323)
+- *(tsconfig)* Add ignoreDeprecations 6.0 to silence baseUrl deprecation warning
+- *(types)* Use AuditEvent for AuditRecord.envelope instead of Record<string,unknown>
+- *(types)* Allow readonly string[] for MCPConfig.args
+- *(tests)* Replace deprecated rmdirSync with rmSync for recursive removal
+- *(docs)* Fall back to vitepress default theme until phenodocs-theme is published
+- *(ci)* Resolve merge conflicts and add missing permissions in CI workflows (#335)
+- *(docs)* Externalize vue/server-renderer to fix VitePress SSR build
+- *(runtime)* Expose full LocalBus from createRuntime instead of partial bus
+- *(types)* Restore AuditRecord.envelope as Record<string,unknown> for flexibility
+- *(types)* Cast AuditEvent to Record<string,unknown> when storing in AuditRecord.envelope
+- *(tests)* Replace remaining rmdirSync with rmSync
+- Resolve merge conflict in protocol-parity.mjs - use kitty-specs paths
+- *(runtime)* Prevent infinite recursion in instrumented bus by not mutating bus object
+- *(runtime)* Use Proxy to intercept request without mutating the bus object
+- *(types)* Use unknown intermediary in Proxy cast to satisfy TypeScript
+- *(ci)* Enable GitHub Pages deployment via workflow (#339)
+- Resolve typecheck errors across runtime, audit, protocol, and test modules (#340)
+- Enrich terminal events with workspace/lane/session context
+- Address CodeRabbit security and correctness findings
+- *(security)* Address CodeRabbit security and correctness findings
+- *(runtime)* Resolve TypeScript errors causing CI typecheck failure
+- *(ts)* Resolve module resolution errors and type mismatches (#344)
+- *(ts)* Resolve module resolution errors and type mismatches (#345)
+- *(tests)* Increase timeout for storage size test and Bun test runner (#346)
+- *(runtime)* Cycle numbering, ORDER BY tiebreaker, false-positive test cleanup (#347)
+- Unit + integration test suite convergence
+- GetByCorrelationChain ordering — UUID v7 tiebreaker
+- *(sqlite-store)* Remove ordering dependency in getByCorrelationChain test
+
+### Documentation
+
+- *(governance)* Codify review bot retrigger protocol
+- Unify VitePress IA categories and index pipeline (#1)
+- Add dual-repo parity guard run report
+- *(WP01)* Mark WP01 subtasks as done
+- *(WP02)* Mark all subtasks as done
+- *(WP01)* Mark WP01 subtasks as done
+- *(WP02)* Mark all subtasks as done
+- Add dual-repo parity guard run report
+- Extract functional requirements from kitty-specs
+- Create architecture decision records
+- Refresh parity and typecheck evidence artifacts (#200)
+- Update CHANGELOG.md for CI stabilization release
+- Enforce .worktrees/ and legacy path migration policy
+- Mass injection of standardized Phenotype governance and worktree policies
+- Turn 10 mass synchronization - CI/Release/Docs/Dependencies
+- Turn 10/11 mass synchronization - Governance/CI/Release/Docs/Archival
+- Add AgilePlus mandate to governance files
+- *(heliosApp)* Add extracted packages documentation
+- Add CODEOWNERS and CI workflow governance files
+- Add real spec docs (PRD, FR, ADR) from codebase analysis (#322)
+- Add FR-DIAG section for diagnostics/SLO instrumentation layer (#334)
+- Add USER_JOURNEYS.md
+- Enhance PLAN.md with full phased WBS, DAG, and FR traces (#336)
+- Add standard docs/ subdirectory structure (#337)
+- Add docs-site scaffold and verification harness
+- Add docs-site scaffold and verification harness
+
+### Features
+
+- Add platform specs 001-028, constitution v2, ADR-001, WP00
+- Add implementation plans for specs 002-028
+- *(WP01)* Protocol contracts and runtime foundation
+- *(WP02)* Lane and session lifecycle with harness routing
+- *(WP04)* Editorless control plane ui and context cohesion
+- *(WP07)* Protocol boundary delegation and traceability gates
+- *(WP08)* Durability placeholder and retention compliance
+- *(WP09)* Formal protocol surface completion
+- *(WP01)* Envelope schema, types, validation, and error taxonomy
+- *(WP01)* Envelope schema, types, validation, and error taxonomy
+- *(WP02)* Method/topic registries with dispatch and fan-out
+- *(WP01)* Envelope schema, types, validation, and error taxonomy
+- *(WP02)* Method/topic registries with dispatch and fan-out
+- *(WP03)* Event sequencing, correlation propagation, payload enforcement, and tests
+- *(WP01)* Workspace CRUD, store abstraction, and unit tests
+- *(WP02)* Project binding, stale detection, git clone, and bus events
+- *(WP03)* JSON file persistence with atomic writes, corruption recovery, and concurrency control
+- *(WP01)* Settings schema, persistence, hot-reload, and unit tests
+- *(WP02)* Feature flag system with zero-alloc reads, restart-pending semantics, and benchmarks
+- *(WP01)* ULID library, prefix format, and validation
+- *(WP01)* ULID library, prefix format, and validation
+- *(WP02)* Cross-repo compatibility, collision/format tests, and benchmarks
+- *(WP01)* Instrumentation hooks and timer API
+- *(WP02)* Rolling percentiles and SLO definitions
+- *(WP03)* Violation events and bus integration
+- *(WP01)* PTY spawn, state machine, and process registry
+- *(WP02)* Implement PTY input, resize, terminate handlers and signal handling
+- *(WP03)* Bounded output buffering, backpressure, and tests
+- *(WP01)* Par-lane orchestrator integration
+- *(WP01)* Lane state machine and lifecycle commands
+- *(WP02)* Lane orchestrator commands
+- *(WP03)* Par task binding, execution, stale detection, and lifecycle events
+- *(WP04)* Orphan reconciliation and comprehensive lane tests
+- *(WP01)* Zellij mux session adapter
+- *(WP02)* Pane/tab topology, layout snapshots, health monitoring
+- *(WP03)* Mux event relay, reattach, and reconciliation with tests
+- *(WP01)* Renderer adapter interface
+- *(WP02)* Stream binding, switch buffering, and comprehensive tests
+- *(WP02)* Renderer adapter implementation
+- *(WP01)* Ghostty renderer backend
+- *(WP02)* Render loop monitoring, input passthrough, and frame metrics
+- *(WP03)* PTY stream piping, GPU rendering surface, and comprehensive tests
+- *(WP01)* Rio renderer backend adapter with feature flag
+- *(WP02)* Crash fallback to ghostty, feature flag toggle, and comprehensive tests
+- *(030)* Add Helios MVP Agent IDE spec, meta, and checklists
+- *(WP01)* SolidJS foundation, shared types, inference engine, persistence
+- *(WP02)* App shell layout with sidebar, status bar, and keyboard shortcuts
+- *(WP03)* Chat panel with message rendering, input, and tool call display
+- *(WP04)* Agent chat loop with conversation management, multi-turn context, and cancel
+- *(WP05)* Terminal panel with xterm.js, multi-tab support, and terminal store
+- *(WP06)* Conversation persistence with localStorage and session restore
+- *(WP07)* Hardware detection, MLX, Anthropic, and llama.cpp inference adapters
+- *(WP08)* VLLM adapter and model selector component
+- *(WP09)* Muxer dispatch and session sharing modal
+- *(WP10)* File context panel, diff view, setup wizard, toast notifications
+- *(WP01)* Encrypted credential store with AES-256-GCM, provider isolation, and audit events
+- *(WP02)* Redaction engine with pattern matching, rule management, and audit trail
+- *(WP03)* Protected paths, audit integration, CI verification, integration tests
+- *(WP01)* Bun workspace monorepo with TS strict mode
+- *(WP02)* Build, dev, typecheck scripts with path aliases and tests
+- *(WP02)* Hot-swap implementation, rollback, and concurrent switch rejection
+- *(WP03)* Restart-with-restore fallback, degraded mode, terminal queue, and comprehensive tests
+- *(WP01)* Implement terminal registry, binding CRUD, and validation middleware
+- *(WP02)* Implement binding lifecycle events, persistence, and integration tests
+- *(WP01)* Implement watchdog scheduler and three detectors
+- *(WP02)* Implement remediation UI, recovery suppression, and integration tests
+- *(WP01)* Implement active context store, tab surfaces, tab bar, and persistence
+- *(WP02)* Implement five tab surfaces with context binding and error handling
+- *(WP03)* Implement context propagation, keyboard shortcuts, and E2E tests
+- *(WP01)* Implement lane panel with status badges and keyboard navigation
+- *(WP02)* Implement CRUD actions, confirmation dialog, and real-time event handling
+- *(WP01)* Implement renderer settings panel with capabilities and preferences
+- *(WP02)* Implement hot-swap toggle, status indicators, and settings lock
+- *(WP01)* Implement registry manifest, status command, and changelog infrastructure
+- *(WP02)* Implement rollback automation, canary upgrade process, and integration tests
+- *(WP01)* Implement quality gates pipeline infrastructure and first four gates
+- *(WP02)* Implement coverage, security, and static analysis quality gates
+- *(WP03)* Implement bypass detection gate and local gates mirror
+- *(WP01)* GCA/CodeRabbit configuration and review requirements
+- *(WP01)* GCA/CodeRabbit configuration and review requirements
+- *(WP02)* Compliance checker, ADR workflow, and tests
+- *(WP01)* Policy rule model and storage with hot-swap
+- *(WP01)* Policy rule model and storage with hot-swap
+- *(WP02)* Policy evaluation engine and approval request queue
+- *(WP01)* Policy rule model and storage with hot-swap
+- *(WP02)* Policy evaluation engine and approval request queue
+- *(WP03)* Approval lifecycle UI and workflow page
+- *(WP03)* Add approval types and workflow page (continued)
+- *(WP01)* Audit event schema, sink, and bus subscriber
+- *(WP02)* Ring buffer, SQLite storage, and overflow handling
+- *(WP03)* Searchable ledger, filtering API, and correlation chain traversal
+- *(WP04)* Session replay, retention, and export with redaction
+- *(WP01)* Implement provider adapter interface, registry, error taxonomy, and isolation foundation
+- *(WP02)* Implement ACP client adapter with lifecycle, policy gate, and health monitoring
+- *(WP03)* Implement MCP tool bridge with discovery, schema registration, and sandboxing
+- *(WP04)* Implement A2A router, health monitoring coordinator, and failover with comprehensive tests
+- *(WP01)* Implement share session management with upterm and tmate adapters
+- *(WP01)* Implement crash detection and watchdog system
+- *(WP02)* Implement recovery state machine and checkpoint system
+- *(WP03)* Implement restoration pipeline, orphan reconciliation, and recovery UI
+- *(WP07)* Protocol boundary delegation and traceability gates
+- *(WP08)* Durability placeholder and retention compliance
+- *(WP09)* Formal protocol surface completion
+- *(WP03)* Event sequencing, correlation propagation, payload enforcement, and tests
+- *(WP02)* Cross-repo compatibility, collision/format tests, and benchmarks
+- *(WP02)* Rolling percentiles and SLO definitions
+- *(WP03)* Par task binding, execution, stale detection, and lifecycle events
+- *(WP04)* Orphan reconciliation and comprehensive lane tests
+- *(WP01)* SolidJS foundation, shared types, inference engine, persistence
+- *(WP02)* App shell layout with sidebar, status bar, and keyboard shortcuts
+- *(WP05)* Terminal panel with xterm.js, multi-tab support, and terminal store
+- *(WP01)* Encrypted credential store with AES-256-GCM, provider isolation, and audit events
+- *(WP01)* Implement registry manifest, status command, and changelog infrastructure
+- Implement createRuntime and fix DOM test shim
+- Runtime audit logic (#204)
+- *(shared)* Add @helios/logger, @helios/errors, and @helios/types packages
+- *(governance)* Add KILL_SWITCH, SBOM CI, and fix desktop syntax/types
+- Modernize heliosApp 2026 (#266)
+- Code reduction for heliosApp (#286)
+- Complete spec documentation for heliosApp
+- Add ADR framework, xDD methodology catalog, and hexagonal template
+- Add @phenotype/metrics package with TDD/BDD tests
+- Add @phenotype/project package (domain: ProjectService, ports, entities, tests scaffold)
+- Extract @phenotype/project package (#319)
+- *(heliosApp)* Restore OXC migration fixes and runtime improvements
+- Merge colab-renderer + extract @helios/runtime-core (#341)
+
+### Miscellaneous Tasks
+
+- Standardize CodeRabbit and Gemini review policy
+- WP01 claimed for implementation
+- WP02 claimed for implementation
+- WP03 claimed for implementation
+- WP04 claimed for implementation
+- WP05 claimed for implementation
+- WP06 claimed for implementation
+- Mark T001 as done on spec 001
+- Mark T002 as done on spec 001
+- Mark T003 as done on spec 001
+- Mark T004 as done on spec 001
+- Mark T005 as done on spec 001
+- Mark T006 as done on spec 001
+- Mark T007 as done on spec 001
+- Mark T008 as done on spec 001
+- Mark T009 as done on spec 001
+- Mark T010 as done on spec 001
+- Mark T011 as done on spec 001
+- Mark T012 as done on spec 001
+- Mark T013 as done on spec 001
+- Mark T014 as done on spec 001
+- Mark T015 as done on spec 001
+- Mark T016 as done on spec 001
+- Mark T017 as done on spec 001
+- Mark T018 as done on spec 001
+- Mark T019 as done on spec 001
+- Mark T020 as done on spec 001
+- Mark T021 as done on spec 001
+- Mark T022 as done on spec 001
+- Mark T023 as done on spec 001
+- Mark T024 as done on spec 001
+- Mark T025 as done on spec 001
+- Mark T026 as done on spec 001
+- Mark T027 as done on spec 001
+- Mark T028 as done on spec 001
+- Mark T029 as done on spec 001
+- Mark T030 as done on spec 001
+- Move WP01 to for_review on spec 001
+- Move WP02 to for_review on spec 001
+- Move WP03 to for_review on spec 001
+- Move WP04 to for_review on spec 001
+- Move WP05 to for_review on spec 001
+- Move WP06 to for_review on spec 001
+- *(governance)* Stabilize review bot policy
+- Move WP01 to for_review on spec 001
+- Move WP02 to for_review on spec 001
+- Move WP03 to for_review on spec 001
+- Move WP04 to for_review on spec 001
+- Move WP05 to for_review on spec 001
+- Move WP06 to for_review on spec 001
+- WP07 claimed for implementation
+- WP08 claimed for implementation
+- WP09 claimed for implementation
+- Mark T031 as done on spec 001
+- Mark T032 as done on spec 001
+- Mark T033 as done on spec 001
+- Mark T034 as done on spec 001
+- Mark T035 as done on spec 001
+- Mark T036 as done on spec 001
+- Mark T037 as done on spec 001
+- Mark T038 as done on spec 001
+- Mark T039 as done on spec 001
+- Mark T040 as done on spec 001
+- Mark T041 as done on spec 001
+- Mark T042 as done on spec 001
+- Move WP07 to for_review on spec 001
+- Move WP08 to for_review on spec 001
+- Move WP09 to for_review on spec 001
+- Start WP01 review [codex]
+- Move WP01 to done on spec 001 [codex]
+- Add tasks.md and WP prompt files for all 27 specs (002-028)
+- WP01 claimed for implementation
+- Start WP01 implementation [claude-opus]
+- Move WP01 to planned on spec 028 [claude-opus]
+- Archive duplicate WP files from 019 and 020
+- WP01 claimed for implementation
+- Start WP01 implementation [claude-opus]
+- Mark 7 subtasks as done on spec 019
+- Move WP01 to for_review on spec 019 [claude-opus]
+- WP02 claimed for implementation
+- Start WP02 implementation [wp02-agent]
+- WP01 claimed for implementation
+- Start WP01 implementation [wp01-bus-agent]
+- Mark 6 subtasks as done on spec 028
+- Mark 6 subtasks as done on spec 019
+- Move WP02 to for_review on spec 019 [wp02-agent]
+- Mark 6 subtasks as done on spec 028
+- Mark 6 subtasks as done on spec 002
+- Move WP01 to for_review on spec 002 [wp01-bus-agent]
+- WP02 claimed for implementation
+- Start WP02 implementation [wp02-bus-agent]
+- WP01 claimed for implementation
+- Start WP01 implementation [wp01-ids-agent]
+- WP01 claimed for implementation
+- Start WP01 implementation [wp01-ws-agent]
+- WP01 claimed for implementation
+- Start WP01 implementation [wp01-settings-agent]
+- Mark 5 subtasks as done on spec 003
+- Mark 6 subtasks as done on spec 005
+- Mark 6 subtasks as done on spec 028
+- Move WP02 to for_review on spec 028
+- Move WP01 to for_review on spec 003 [wp01-ws-agent]
+- Mark 7 subtasks as done on spec 004
+- Move WP01 to for_review on spec 005 [wp01-ids-agent]
+- Move WP01 to for_review on spec 004 [wp01-settings-agent]
+- WP03 claimed for implementation
+- Start WP03 implementation [wp03-bus-agent]
+- WP02 claimed for implementation
+- Start WP02 implementation [wp02-ws-agent]
+- WP02 claimed for implementation
+- Start WP02 implementation [wp02-flags-agent]
+- WP01 claimed for implementation
+- Start WP01 implementation [wp01-perf-agent]
+- WP03 claimed for implementation
+- Start WP03 implementation [wp03-ws-agent]
+- Move WP02 to for_review on spec 028
+- Move WP02 to for_review on spec 028
+- Mark 5 subtasks as done on spec 028
+- Mark T016 as done on spec 003
+- Mark 5 subtasks as done on spec 003
+- Mark 5 subtasks as done on spec 003
+- Move WP02 to for_review on spec 003 [wp02-ws-agent]
+- Mark 6 subtasks as done on spec 006
+- Move WP03 to for_review on spec 003 [wp03-ws-agent]
+- Mark 3 subtasks as done on spec 002
+- Move WP03 to for_review on spec 028
+- Move WP01 to for_review on spec 006 [wp01-perf-agent]
+- WP02 claimed for implementation
+- Start WP02 implementation [claude-wp02-006]
+- WP03 claimed for implementation
+- Start WP03 implementation [claude-wp03-006]
+- WP01 claimed for implementation
+- Start WP01 implementation [claude-wp01-007]
+- WP01 claimed for implementation
+- Start WP01 implementation [claude-wp01-008]
+- WP01 claimed for implementation
+- Start WP01 implementation [claude-wp01-009]
+- WP01 claimed for implementation
+- Start WP01 implementation [claude-wp01-010]
+- Mark 6 subtasks as done on spec 006
+- Move WP03 to for_review on spec 006 [claude-wp03-006]
+- Mark 5 subtasks as done on spec 009
+- Mark 6 subtasks as done on spec 006
+- Mark 6 subtasks as done on spec 010
+- Move WP02 to for_review on spec 006 [claude-wp02-006]
+- Mark 5 subtasks as done on spec 008
+- Move WP01 to for_review on spec 008 [claude-wp01-008]
+- Move WP01 to for_review on spec 008 [claude-wp01-008]
+- Move WP01 to for_review on spec 009 [claude-wp01-009]
+- Move WP01 to for_review on spec 010 [claude-wp01-010]
+- Move WP01 to planned on spec 007 [claude-wp01-007]
+- WP02 claimed for implementation
+- Start WP02 implementation [claude-wp02-008]
+- WP01 claimed for implementation
+- WP02 claimed for implementation
+- Start WP02 implementation [claude-wp02-009]
+- WP02 claimed for implementation
+- Start WP02 implementation [claude-wp02-010]
+- WP01 claimed for implementation
+- Start WP01 implementation [claude-wp01-012]
+- Mark 5 subtasks as done on spec 008
+- Move WP02 to for_review on spec 008 [claude-wp02-008]
+- Mark 5 subtasks as done on spec 010
+- Mark 5 subtasks as done on spec 007
+- Move WP02 to for_review on spec 010 [claude-wp02-010]
+- Move WP01 to for_review on spec 007 [claude-wp01-007]
+- Mark 6 subtasks as done on spec 012
+- Move WP01 to for_review on spec 012 [claude-wp01-012]
+- Move WP02 to for_review on spec 010 [claude-wp02-010]
+- Mark 5 subtasks as done on spec 011
+- Move WP01 to for_review on spec 011 [claude-wp01-011]
+- Move WP01 to planned on spec 007 [claude-wp01-007]
+- Move WP02 to planned on spec 009 [claude-wp02-009]
+- WP01 claimed for implementation
+- WP02 claimed for implementation
+- Start WP02 implementation [claude-wp02-011]
+- WP02 claimed for implementation
+- Start WP02 implementation [claude-wp02-012]
+- Move WP02 to planned on spec 009 [claude-wp02-009]
+- Move WP02 to for_review on spec 028
+- Move WP01 to for_review on spec 007 [claude-wp01-007]
+- Mark 6 subtasks as done on spec 012
+- Move WP02 to for_review on spec 012 [claude-wp02-012]
+- Move WP02 to for_review on spec 002 [wp02-bus-agent]
+- Move WP03 to for_review on spec 002 [wp03-bus-agent]
+- Move WP02 to for_review on spec 004 [wp02-flags-agent]
+- Move WP02 to for_review on spec 005 [wp02-ids-agent]
+- Move WP02 to for_review on spec 011 [claude-wp02-011]
+- WP02 claimed for implementation
+- Start WP02 implementation [claude-wp02-007]
+- WP03 claimed for implementation
+- Start WP03 implementation [claude-wp03-011]
+- WP03 claimed for implementation
+- Start WP03 implementation [claude-wp03-008]
+- Mark 5 subtasks as done on spec 008
+- Move WP03 to for_review on spec 008 [claude-wp03-008]
+- Mark 6 subtasks as done on spec 007
+- Move WP02 to for_review on spec 007 [claude-wp02-007]
+- Move WP03 to for_review on spec 028
+- Mark 5 subtasks as done on spec 011
+- Move WP03 to for_review on spec 011 [claude-wp03-011]
+- Move WP04 to for_review on spec 008
+- WP03 claimed for implementation
+- Start WP03 implementation [claude-wp03-007-direct]
+- WP03 claimed for implementation
+- Start WP03 implementation [claude-wp03-009-direct]
+- Move WP03 to for_review on spec 009 [claude-wp03-009-direct]
+- Move WP03 to for_review on spec 007 [claude-wp03-007-direct]
+- Move WP03 to for_review on spec 007 [claude-wp03-007-direct]
+- Add project tooling, CI, and governance
+- Add governance files (#39)
+- Add lint-test composite action workflow (#41)
+- Migrate to composite policy-gate action (#38)
+- Reapply heliosApp devops/hook stabilization on upstream base
+- Harden heliosApp ci devops gates and agent policy
+- Stabilize heliosApp ci devops merge gate and push flow
+- Add push queue worker mode and docs
+- Complete heliosApp stabilization stabilization pass
+- Update heliosApp stabilization index links
+- Add docs session validation and publish readiness gates
+- Finalize heliosApp devops hardening and queue publish docs
+- Finish recovery lint cleanup and tests
+- Finalize heliosApp stabilization working changes
+- Mark 5 subtasks as done on spec 028
+- Move WP04 to for_review on spec 008 [claude-wp04-008]
+- Add security guard and pre-commit scaffolding
+- Remove stale lockfile artifact
+- Add push fallback helper script
+- Move helios devops workflows to shared helpers
+- Add local security hook bootstrap and audit workflow
+- Add heliosApp audit report artifact
+- *(WP01)* Add timestamp strictness coverage for optional field
+- *(WP06)* Tighten soak stability and gate documentation fidelity
+- Update gitignore for sparse-checkout
+- Add tsbuildinfo, node_modules, dist to gitignore
+- Update gitignore for sparse-checkout
+- Add tsbuildinfo, node_modules, dist to gitignore
+- Update gitignore for sparse-checkout
+- Add tsbuildinfo, node_modules, dist to gitignore
+- Include sparse-checkout gitignore entry
+- Add lockfile and tsbuildinfo
+- *(WP02)* Update tsbuildinfo
+- Add bun.lock
+- *(WP01)* Add bun lockfile
+- *(WP01)* Gitignore build artifacts
+- Add node_modules, tsbuildinfo, dist to gitignore
+- Move WP04 to for_review on spec 008 [claude-wp04-008]
+- *(WP02)* Update tsbuildinfo
+- *(WP03)* Update tsconfig build info
+- Mark T001 as done on spec 029
+- Mark T002 as done on spec 029
+- Mark T003 as done on spec 029
+- Mark T004 as done on spec 029
+- Mark T005 as done on spec 029
+- Mark T006 as done on spec 029
+- Mark T007 as done on spec 029
+- Mark T008 as done on spec 029
+- Mark T009 as done on spec 029
+- Mark T010 as done on spec 029
+- Mark T011 as done on spec 029
+- Mark T012 as done on spec 029
+- Mark T013 as done on spec 029
+- Mark T014 as done on spec 029
+- Mark T015 as done on spec 029
+- Mark T016 as done on spec 029
+- Mark T017 as done on spec 029
+- Mark T018 as done on spec 029
+- Mark T019 as done on spec 029
+- Mark T020 as done on spec 029
+- Mark T021 as done on spec 029
+- Mark T022 as done on spec 029
+- Mark T023 as done on spec 029
+- Mark T024 as done on spec 029
+- Move WP01 to done on spec 029
+- Move WP02 to done on spec 029
+- Move WP03 to done on spec 029
+- Move WP04 to done on spec 029
+- WP01 claimed for implementation
+- Start WP01 implementation [claude-opus]
+- Mark 4 subtasks as done on spec 030
+- Move WP01 to for_review on spec 030 [claude-opus]
+- WP02 claimed for implementation
+- Start WP02 implementation [claude-opus]
+- WP05 claimed for implementation
+- Start WP05 implementation [claude-opus]
+- WP07 claimed for implementation
+- Start WP07 implementation [claude-opus]
+- WP03 claimed for implementation
+- Start WP03 implementation [claude-opus]
+- WP04 claimed for implementation
+- Start WP04 implementation [claude-opus]
+- Mark 4 subtasks as done on spec 030
+- Mark 4 subtasks as done on spec 030
+- Mark 3 subtasks as done on spec 030
+- Move WP02 to for_review on spec 030 [claude-opus]
+- Move WP05 to for_review on spec 030 [claude-opus]
+- Move WP07 to for_review on spec 030 [claude-opus]
+- Mark 3 subtasks as done on spec 030
+- Mark 3 subtasks as done on spec 030
+- Move WP03 to for_review on spec 030 [claude-opus]
+- Move WP04 to for_review on spec 030 [claude-opus]
+- WP06 claimed for implementation
+- Start WP06 implementation [claude-opus]
+- WP08 claimed for implementation
+- Start WP08 implementation [claude-opus]
+- WP09 claimed for implementation
+- Start WP09 implementation [claude-opus]
+- WP10 claimed for implementation
+- Start WP10 implementation [claude-opus]
+- Mark 3 subtasks as done on spec 030
+- Mark 3 subtasks as done on spec 030
+- Mark 6 subtasks as done on spec 030
+- Move WP06 to for_review on spec 030 [claude-opus]
+- Move WP09 to for_review on spec 030 [claude-opus]
+- Move WP10 to for_review on spec 030 [claude-opus]
+- Mark 3 subtasks as done on spec 030
+- Move WP08 to for_review on spec 030 [claude-opus]
+- Move WP01 to done on spec 030 [claude-opus]
+- Move WP02 to done on spec 030 [claude-opus]
+- Move WP03 to done on spec 030 [claude-opus]
+- Move WP04 to done on spec 030 [claude-opus]
+- Move WP05 to done on spec 030 [claude-opus]
+- Move WP06 to done on spec 030 [claude-opus]
+- Move WP07 to done on spec 030 [claude-opus]
+- Move WP08 to done on spec 030 [claude-opus]
+- Move WP09 to done on spec 030 [claude-opus]
+- Move WP10 to done on spec 030 [claude-opus]
+- Start WP01 implementation [claude-opus]
+- Move WP01 to for_review on spec 028 [claude-opus]
+- Start WP01 review [claude-opus]
+- Move WP01 to done on spec 028 [claude-opus]
+- Start WP02 review [claude-opus]
+- Move WP02 to doing on spec 028 [claude-opus]
+- Move WP02 to for_review on spec 028 [claude-opus]
+- Move WP02 to done on spec 028 [claude-opus]
+- Start WP03 implementation [claude-opus]
+- Mark 5 subtasks as done on spec 028
+- Move WP03 to done on spec 028 [claude-opus]
+- Move WP02 to done on spec 001
+- Move WP01 to done on spec 002 [wp01-bus-agent]
+- Move WP01 to done on spec 003 [wp01-ws-agent]
+- Move WP03 to done on spec 002 [wp03-bus-agent]
+- Move WP02 to done on spec 004 [wp02-flags-agent]
+- Move WP01 to done on spec 005 [wp01-ids-agent]
+- Move WP02 to done on spec 005 [wp02-ids-agent]
+- Stage pending workflow and config changes
+- Move WP01 to done on spec 001 [codex]
+- Move WP02 to done on spec 001
+- Move WP03 to done on spec 001
+- Move WP04 to done on spec 001
+- Move WP05 to done on spec 001
+- Move WP06 to done on spec 001
+- Move WP07 to done on spec 001
+- Move WP08 to done on spec 001
+- Move WP09 to done on spec 001
+- Move WP01 to done on spec 002 [wp01-bus-agent]
+- Move WP02 to done on spec 002 [wp02-bus-agent]
+- Move WP03 to done on spec 002 [wp03-bus-agent]
+- Move WP01 to done on spec 003 [wp01-ws-agent]
+- Move WP02 to done on spec 003 [wp02-ws-agent]
+- Move WP03 to done on spec 003 [wp03-ws-agent]
+- Move WP01 to done on spec 004 [wp01-settings-agent]
+- Move WP02 to done on spec 004 [wp02-flags-agent]
+- Move WP01 to done on spec 006 [wp01-perf-agent]
+- Move WP02 to done on spec 006 [claude-wp02-006]
+- Move WP03 to done on spec 006 [claude-wp03-006]
+- Move WP01 to done on spec 007 [claude-wp01-007]
+- Move WP02 to done on spec 007 [claude-wp02-007]
+- Move WP03 to done on spec 007 [claude-wp03-007-direct]
+- Move WP01 to done on spec 008 [claude-wp01-008]
+- Move WP02 to done on spec 008 [claude-wp02-008]
+- Move WP03 to done on spec 008 [claude-wp03-008]
+- Move WP04 to done on spec 008 [claude-wp04-008]
+- Move WP01 to done on spec 009 [claude-wp01-009]
+- Move WP02 to done on spec 009 [claude-wp02-009]
+- Move WP03 to done on spec 009 [claude-wp03-009-direct]
+- Move WP01 to done on spec 010 [claude-wp01-010]
+- Move WP02 to done on spec 010 [claude-wp02-010]
+- Move WP01 to done on spec 011 [claude-wp01-011]
+- Move WP02 to done on spec 011 [claude-wp02-011]
+- Move WP03 to done on spec 011 [claude-wp03-011]
+- Move WP01 to done on spec 012 [claude-wp01-012]
+- Move WP02 to done on spec 012 [claude-wp02-012]
+- Add tsbuildinfo and dist to gitignore
+- *(WP02)* Gitignore tsc build artifacts in test directories
+- Move WP01 to done on spec 019 [claude-opus]
+- Move WP02 to done on spec 019 [wp02-agent]
+- WP01 claimed for implementation
+- WP01 claimed for implementation
+- Start WP01 implementation [claude-haiku]
+- WP01 claimed for implementation
+- Start WP01 implementation [claude-haiku]
+- WP01 claimed for implementation
+- Start WP01 implementation [claude-haiku]
+- WP01 claimed for implementation
+- Start WP01 implementation [claude-haiku]
+- WP01 claimed for implementation
+- Start WP01 implementation [claude-haiku]
+- WP01 claimed for implementation
+- Start WP01 implementation [claude-haiku]
+- WP01 claimed for implementation
+- Start WP01 implementation [claude-haiku]
+- WP01 claimed for implementation
+- Start WP01 implementation [claude-haiku]
+- Mark 5 subtasks as done on spec 013
+- Move WP01 to done on spec 013 [claude-haiku]
+- WP02 claimed for implementation
+- Start WP02 implementation [claude-haiku]
+- Mark 4 subtasks as done on spec 014
+- Mark 5 subtasks as done on spec 020
+- Move WP01 to done on spec 014 [claude-haiku]
+- WP02 claimed for implementation
+- Start WP02 implementation [claude-haiku]
+- WP02 claimed for implementation
+- Start WP02 implementation [claude-haiku]
+- WP02 claimed for implementation
+- Start WP02 implementation [claude-haiku]
+- Move WP01 to done on spec 024 [claude-haiku]
+- Mark 5 subtasks as done on spec 016
+- WP02 claimed for implementation
+- Start WP02 implementation [claude-haiku]
+- Move WP01 to done on spec 015 [claude-haiku]
+- Move WP01 to done on spec 022 [claude-haiku]
+- Move WP01 to done on spec 016 [claude-haiku]
+- WP02 claimed for implementation
+- Start WP02 implementation [claude-haiku]
+- Move WP01 to done on spec 017 [claude-haiku]
+- WP02 claimed for implementation
+- Start WP02 implementation [claude-haiku]
+- WP02 claimed for implementation
+- Start WP02 implementation [claude-haiku]
+- WP02 claimed for implementation
+- Start WP02 implementation [claude-haiku]
+- Mark 5 subtasks as done on spec 025
+- Move WP01 to done on spec 025 [claude-haiku]
+- Mark 6 subtasks as done on spec 020
+- Move WP02 to done on spec 020 [claude-haiku]
+- WP02 claimed for implementation
+- Start WP02 implementation [claude-haiku]
+- WP01 claimed for implementation
+- Start WP01 implementation [claude-haiku]
+- Mark 5 subtasks as done on spec 013
+- Move WP02 to done on spec 013 [claude-haiku]
+- WP03 claimed for implementation
+- Start WP03 implementation [claude-haiku]
+- Move WP02 to done on spec 027 [claude-haiku]
+- Mark 6 subtasks as done on spec 022
+- Move WP02 to done on spec 022 [claude-haiku]
+- WP03 claimed for implementation
+- Start WP03 implementation [claude-haiku]
+- Move WP01 to done on spec 014 [claude-haiku]
+- WP02 claimed for implementation
+- Start WP02 implementation [claude-haiku]
+- WP02 claimed for implementation
+- Start WP02 implementation [claude-haiku]
+- WP02 claimed for implementation
+- Start WP02 implementation [claude-haiku]
+- Move WP01 to done on spec 024 [claude-haiku]
+- Mark 5 subtasks as done on spec 016
+- WP02 claimed for implementation
+- Start WP02 implementation [claude-haiku]
+- Move WP01 to done on spec 015 [claude-haiku]
+- Move WP01 to done on spec 022 [claude-haiku]
+- Move WP01 to done on spec 016 [claude-haiku]
+- WP02 claimed for implementation
+- Start WP02 implementation [claude-haiku]
+- Move WP01 to done on spec 017 [claude-haiku]
+- WP02 claimed for implementation
+- Start WP02 implementation [claude-haiku]
+- WP02 claimed for implementation
+- Start WP02 implementation [claude-haiku]
+- WP02 claimed for implementation
+- Start WP02 implementation [claude-haiku]
+- Mark 5 subtasks as done on spec 025
+- Move WP01 to done on spec 025 [claude-haiku]
+- Mark 6 subtasks as done on spec 020
+- Move WP02 to done on spec 020 [claude-haiku]
+- WP02 claimed for implementation
+- Start WP02 implementation [claude-haiku]
+- WP01 claimed for implementation
+- Start WP01 implementation [claude-haiku]
+- Mark 5 subtasks as done on spec 013
+- Move WP02 to done on spec 013 [claude-haiku]
+- WP03 claimed for implementation
+- Start WP03 implementation [claude-haiku]
+- Move WP02 to done on spec 027 [claude-haiku]
+- Mark 6 subtasks as done on spec 022
+- Move WP02 to done on spec 022 [claude-haiku]
+- WP03 claimed for implementation
+- Start WP03 implementation [claude-haiku]
+- WP01 claimed for implementation
+- Start WP01 implementation [claude-haiku]
+- Move WP02 to done on spec 014 [claude-haiku]
+- Move WP02 to done on spec 015 [claude-haiku]
+- Start WP01 implementation [claude-haiku]
+- Mark 5 subtasks as done on spec 025
+- Move WP02 to done on spec 024 [claude-haiku]
+- Move WP02 to done on spec 025 [claude-haiku]
+- WP03 claimed for implementation
+- Start WP03 implementation [claude-haiku]
+- WP03 claimed for implementation
+- Start WP03 implementation [claude-haiku]
+- Mark 6 subtasks as done on spec 021
+- Move WP01 to done on spec 021 [claude-haiku]
+- Mark 5 subtasks as done on spec 023
+- WP02 claimed for implementation
+- Start WP02 implementation [claude-haiku]
+- Mark 6 subtasks as done on spec 016
+- Move WP01 to done on spec 023 [claude-haiku]
+- Move WP02 to done on spec 016 [claude-haiku]
+- WP02 claimed for implementation
+- Start WP02 implementation [claude-haiku]
+- WP03 claimed for implementation
+- Start WP03 implementation [claude-haiku]
+- Mark 5 subtasks as done on spec 025
+- Move WP03 to done on spec 027 [claude-haiku]
+- Move WP03 to done on spec 025 [claude-haiku]
+- WP04 claimed for implementation
+- Start WP04 implementation [claude-haiku]
+- Move WP03 to done on spec 024 [claude-haiku]
+- Mark 5 subtasks as done on spec 023
+- Mark 6 subtasks as done on spec 013
+- Move WP03 to done on spec 013 [claude-haiku]
+- WP04 claimed for implementation
+- Start WP04 implementation [claude-haiku]
+- WP03 claimed for implementation
+- Start WP03 implementation [claude-haiku]
+- Move WP01 to done on spec 018 [claude-haiku]
+- WP02 claimed for implementation
+- Start WP02 implementation [claude-haiku]
+- Mark 5 subtasks as done on spec 023
+- Move WP03 to done on spec 023 [claude-haiku]
+- Mark 5 subtasks as done on spec 025
+- Move WP04 to done on spec 025 [claude-haiku]
+- Mark 5 subtasks as done on spec 021
+- Mark 5 subtasks as done on spec 016
+- Move WP02 to done on spec 021 [claude-haiku]
+- WP01 claimed for implementation
+- Start WP01 implementation [claude-haiku]
+- Move WP03 to done on spec 016 [claude-haiku]
+- WP03 claimed for implementation
+- Start WP03 implementation [claude-haiku]
+- Move WP04 to done on spec 024 [claude-haiku]
+- Move WP02 to done on spec 018 [claude-haiku]
+- Mark 5 subtasks as done on spec 026
+- Mark 6 subtasks as done on spec 021
+- Harden heliosApp ci devops gates and agent policy
+- Stabilize heliosApp ci devops merge gate and push flow
+- Complete heliosApp stabilization stabilization pass
+- Add docs session validation and publish readiness gates
+- Finish recovery lint cleanup and tests
+- Finalize heliosApp stabilization working changes
+- Move WP04 to for_review on spec 008 [claude-wp04-008]
+- Remove stale lockfile artifact
+- *(WP01)* Add timestamp strictness coverage for optional field
+- *(WP06)* Tighten soak stability and gate documentation fidelity
+- Add lockfile and tsbuildinfo
+- Move WP04 to for_review on spec 008 [claude-wp04-008]
+- Mark 5 subtasks as done on spec 028
+- Move WP02 to done on spec 014 [claude-haiku]
+- Move constitution to docs/reference and update references
+- Add path aliases for @helios/runtime and @helios/desktop
+- Reconcile automated linter fixes in apps/desktop
+- Reconcile automated linter fixes in apps/runtime
+- Reconcile automated linter fixes in renderer, config, and misc
+- Reconcile linter auto-fix changes in runtime modules
+- Update AGENTS.md
+- Trigger CI re-evaluation
+- Remove stale comment in backend test
+- *(deps)* Bump oven-sh/setup-bun from 1 to 2 (#63)
+- *(deps-dev)* Bump vitepress from 1.6.3 to 1.6.4 (#68)
+- *(deps)* Bump actions/upload-artifact from 4 to 7 (#66)
+- Sync main to gh main (#206)
+- PR50 OXC comments (#208)
+- Add lint-test composite action workflow (#178)
+- Add AgilePlus governance block to CLAUDE.md
+- *(ci)* Resolve merge conflicts in bun.lock and package.json (drop @biomejs/biome, normalize devDependencies)
+- *(ci)* Finalize package.json merge resolution (normalize scripts/devDependencies)
+- *(ci)* Auto-resolve workflow and config merge conflicts (workflows prefer HEAD, json prefer incoming)
+- Resolve all merge conflicts (upstream wins)
+- *(ci)* Resolve all merge conflicts by restoring from tech-debt branch
+- Update desktop UI components
+- Update stabilize gate reports
+- *(ci)* Restore desktop files from tech-debt branch
+- Add spec documentation (PRD, ADR, FR, PLAN, trackers)
+- *(ci)* Restore clean apps from tech-debt branch to main (#259)
+- Dotagents setup (#288)
+- Bump version to 0.1.1 and update CHANGELOG.md (#290)
+- Oxc migration governance (#300)
+- Oxc migration composite (#298)
+- *(governance)* Roll out policy-gate merge-token workflows (#301)
+- Oxc migration consolidated (#302)
+- Update lockfile and dependencies for stabilization
+- Apply biome auto-formatting fixes
+- Governance sync
+- Integrate @phenotype/docs into VitePress docs (#317)
+- Final sync
+- Import ProjectEntity type from @phenotype/project in project_tab.ts
+- Apply remaining feature improvements from PR #317
+- *(lint)* Ignore cognitive complexity for createStatusElement in switch_status.ts
+- Final cleanup commit
+- *(lint)* Fix lint violations in switch_status, switch_confirmation, stream_binding tests
+- *(deps-dev)* Bump vitepress from 1.6.3 to 1.6.4 (#327)
+- *(deps-dev)* Bump happy-dom from 20.8.7 to 20.8.9 (#331)
+- *(deps)* Bump @xterm/addon-web-links from 0.11.0 to 0.12.0 (#326)
+- *(deps)* Bump @xterm/addon-fit from 0.10.0 to 0.11.0 (#328)
+- *(deps-dev)* Bump typescript from 5.8.2 to 6.0.2 (#325)
+- *(deps-dev)* Bump vitest from 2.1.9 to 4.1.2 (#330)
+- *(deps-dev)* Bump @biomejs/biome from 1.9.4 to 2.4.9 (#332)
+- *(deps)* Bump @xterm/xterm from 5.5.0 to 6.0.0 (#329)
+- *(governance)* Remove duplicated governance blocks, reference thegent templates (#333)
+- Migrate kitty-specs to docs/specs (AgilePlus format) (#338)
+- Archive kitty-specs (#343)
+- Commit working changes from work-audit session 2026-03-28
+- Commit working changes from work-audit session 2026-03-28
+- Commit working changes from work-audit session 2026-03-28
+- Commit working changes from work-audit session 2026-03-28
+- Update registry binding lifecycle and lane session integration tests
+
+### Refactor
+
+- Decompose runtime into pty/renderer/secrets/lanes services (#40)
+- *(runtime)* Harden bus and event surfaces with typed envelopes
+- Decompose bus.ts into focused modules
+- Migrate from biome to oxlint/oxfmt
+- Separate unit and integration tests in CI
+- Split files exceeding 500-line static analysis limit
+- Phase2 decompose (merged with main) (#305)
+
+### Testing
+
+- Fix zellij review blockers and runtime edge cases
+- Fix zellij review blockers and runtime edge cases
+- Add session restore reconnect e2e coverage (#56)
+- Fix zellij review blockers and runtime edge cases
+
+### Ci
+
+- Align required-check names with workflow job labels
+- *(governance)* Enforce required-check parity and align manifest
+- Retrigger required checks for PR #48
+- Add release-drafter config
+
+### Resolve
+
+- Merge conflicts in docs tests
+
+
+
+## [v2026.05A.0] - 2026-04-25
 
 ### Added
-- Test suite: 54 tests across pheno-core, pheno-db, pheno-crypto, pheno-cli, and FFI bindings (Go/Python)
-- SECURITY.md and CONTRIBUTING.md governance guides
-- OpenSSF Scorecard audit workflow
-- Canonical .gitattributes for LF normalization
+- FR traceability annotations on 12 compliance and gate-report tests
+- Comprehensive FR coverage dashboard (174/283 FRs traced, 61.5%)
+- Strict CI gate enforcement with lint baseline
 
-## [0.14.11-canary.1] - 2026-03-29
+### Fixed
+- Reduced lint warnings from 161 to 0 (100% resolution)
+- Test infrastructure isolation (separate temp dirs, fixed spy mocks, unified bun runner)
+- Path resolution and mock signature alignment
+- Applied phenotype-tooling governance workflows (wave-3)
 
-### Added
-- phenotype-config core functionality
-- Feature flag lifecycle management
-- Secret value storage abstractions
-- Version inspection and rollout state tracking
-- Terminal UI for operational workflows
+### Changed
+- Adopted monthly SBOM refresh cycle (CycloneDX)
+- Updated CI max-warnings gate to enforce zero-baseline
+
+### Compliance
+- All 12 MVP-001..027 FRs fully traced in tests
+- FR coverage now auditable and enforced by CI
+

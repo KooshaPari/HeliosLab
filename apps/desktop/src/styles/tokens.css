@@ -1,0 +1,75 @@
+/* apps/desktop/src/styles/tokens.css
+ * Design tokens for heliosApp. Consumed by every app via CSS variables
+ * (set in apps/desktop/src/styles/index.css which links the other apps).
+ *
+ * Focus-ring values are picked up by the global :focus-visible rule below.
+ * The values are mirrored in apps/runtime/src/styles/tokens.css and
+ * apps/colab-renderer/src/styles/tokens.css; change in one place via the
+ * runtime-core token loader (see packages/runtime-core/src/a11y/tokens.ts).
+ */
+
+:root {
+  /* Focus ring */
+  --focus-ring-color: #38bdf8;
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
+
+  /* Surfaces */
+  --color-bg: #1e1e2e;
+  --color-fg: #cdd6f4;
+  --color-muted: #6c7086;
+  --color-accent: #89b4fa;
+  --color-border: #313244;
+  --color-danger: #f38ba8;
+  --color-success: #a6e3a1;
+}
+
+/* Skip link — visually hidden until focused, then pinned to top-left. */
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: 0;
+  z-index: 9999;
+  padding: 0.5rem 1rem;
+  background: var(--color-accent);
+  color: var(--color-bg);
+  text-decoration: none;
+  font-weight: 600;
+  border-radius: 0 0 4px 0;
+}
+.skip-link:focus {
+  top: 0;
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* Global focus ring — applied to every focusable element.
+ * The colab-renderer terminal <canvas> is exempt because :focus-visible
+ * does not match canvas surfaces (per HTML spec). */
+*:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+/* Suppress mouse-click rings on buttons and links. */
+*:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Visually hidden but available to assistive tech. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* RTL logical-property baseline. See AT5 for the codemod that flips
+ * `margin-left`/`margin-right` to `margin-inline-start`/`-end`. */
+[dir="rtl"] .app-shell {
+  flex-direction: row-reverse;
+}

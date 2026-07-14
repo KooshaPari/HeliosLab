@@ -1,0 +1,9 @@
+{
+	"feature_number": "020",
+	"slug": "020-prerelease-dependency-registry",
+	"friendly_name": "Prerelease Dependency Registry",
+	"mission": "software-dev",
+	"created_at": "2026-02-27T00:00:00Z",
+	"target_branch": "main",
+	"vcs": "git"
+}

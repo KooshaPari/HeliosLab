@@ -1,0 +1,9 @@
+{
+	"feature_number": 28,
+	"slug": "secrets-management-and-redaction",
+	"friendly_name": "Secrets Management and Log Redaction",
+	"mission": "software-dev",
+	"created_at": "2026-02-27T00:00:00Z",
+	"target_branch": "main",
+	"vcs": "git"
+}

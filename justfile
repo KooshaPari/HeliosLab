@@ -1,34 +1,61 @@
-# HeliosLab Justfile
-#
-# After 2026-06-11, this justfile is a thin shell that re-exports the shared
-# `phenotype.just` library (defined in just/phenotype.just). The most common
-# recipes (default, build, test, lint, fmt, audit, unused, ci, docs) are
-# defined once in the library and parameterized over the build system.
-#
-# Stack-specific recipes (`deny`, `grade`) stay in this file so the library
-# stays polyglot-neutral.
-#
-# To upgrade: pull the latest phenotype.just from the central repo, or
-# vendor it as a git submodule.
+set shell := ["bash", "-euo", "pipefail", "-c"]
 
-import "just/phenotype.just"
+default:
+  task --list
 
-# Run cargo-deny against the checked-in deny.toml policy.
-# Stack: cargo. Hard-fails if cargo-deny is not installed (mirrors CI).
-deny:
-    @if [ -f Cargo.toml ]; then \
-        command -v cargo-deny >/dev/null || { echo "cargo-deny not installed; install with: cargo install cargo-deny"; exit 1; }; \
-        cargo deny check; \
-    else echo "no Cargo.toml at repo root; nothing to deny-check"; fi
+preflight:
+  task preflight
 
-# Generate the tier-0 hygiene grade report (audit_scorecard.json).
-# Stack-agnostic: prints the committed scorecard summary if present,
-# otherwise reminds the operator to run the upstream grader.
-grade:
-    @if [ -f audit_scorecard.json ]; then \
-        echo "Tier-0 grade summary ($(basename "$PWD")):"; \
-        jq -r '"  overall: \(.overall)\n  grade:    \(.grade)\n  top wins:\n\(.scores | to_entries | sort_by(-.value) | .[0:5] | map("    - \(.key): \(.value)") | join("\n"))"' audit_scorecard.json; \
-    else \
-        echo "audit_scorecard.json not found in repo root."; \
-        echo "Run the upstream Phenotype grader, or: just audit && just deny && just lint && just test"; \
-    fi
+deps:
+  task deps
+
+typecheck:
+  task typecheck
+
+lint:
+  task lint
+
+test:
+  task test
+
+coverage:
+  task coverage
+
+docs-index:
+  task docs:index
+
+docs-build:
+  task docs:build
+
+quality-quick:
+  task quality:quick
+
+quality-strict:
+  task quality:strict
+
+check:
+  task check
+
+ci:
+  task ci
+
+devops-status:
+  task devops:status
+
+devops-check:
+  task devops:check
+
+devops-check-ci:
+  task devops:check:ci
+
+devops-check-ci-summary:
+  task devops:check:ci-summary
+
+devops-push *ARGS:
+  bash scripts/push-heliosapp-with-fallback.sh {{ARGS}}
+
+devops-push-origin *ARGS:
+  bash scripts/push-heliosapp-with-fallback.sh --skip-primary {{ARGS}}
+
+devops-checker *ARGS:
+  bash scripts/devops-checker.sh {{ARGS}}

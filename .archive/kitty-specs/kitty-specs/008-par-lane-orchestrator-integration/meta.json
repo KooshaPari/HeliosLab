@@ -1,0 +1,9 @@
+{
+	"feature_number": "008",
+	"slug": "008-par-lane-orchestrator-integration",
+	"friendly_name": "Par Lane Orchestrator Integration",
+	"mission": "software-dev",
+	"created_at": "2026-02-27T00:00:00Z",
+	"target_branch": "main",
+	"vcs": "git"
+}

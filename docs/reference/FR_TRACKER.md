@@ -1,23 +1,22 @@
-# FR Implementation Tracker — phenotype-config (colab)
+# FR Implementation Tracker — heliosApp
 
-| FR ID | Description | Status | Code Location |
-|-------|-------------|--------|---------------|
-| FR-CFG-001 | Config key-value persistence | Implemented | `pheno-db/` |
-| FR-CFG-002 | Config CRUD operations | Implemented | `pheno-db/`, `pheno-cli/` |
-| FR-CFG-003 | Audit trail for mutations | Implemented | `pheno-db/` |
-| FR-CFG-004 | Point-in-time restore | Implemented | `pheno-db/` |
-| FR-FLG-001 | Feature flag CRUD | Implemented | `pheno-db/`, `pheno-cli/` |
-| FR-FLG-002 | Flag evaluation (is_enabled) | Implemented | `pheno-core/` |
-| FR-FLG-003 | Flag persistence with metadata | Implemented | `pheno-db/` |
-| FR-FLG-004 | Default value for unknown flags | Implemented | `pheno-core/` |
-| FR-SEC-001 | AES-256-GCM encryption | Implemented | `pheno-crypto/` |
-| FR-SEC-002 | Key derivation | Implemented | `pheno-crypto/` |
-| FR-SEC-003 | Secret set/get operations | Implemented | `pheno-cli/`, `pheno-crypto/` |
-| FR-VER-001 | Version metadata storage | Implemented | `pheno-core/`, `pheno-db/` |
-| FR-VER-002 | Version show command | Implemented | `pheno-cli/` |
-| FR-CLI-001 | phenoctl clap binary | Implemented | `pheno-cli/` |
-| FR-CLI-002 | Ratatui TUI mode | Implemented | `pheno-cli/` |
-| FR-CLI-003 | Subcommand groups | Implemented | `pheno-cli/` |
-| FR-DB-001 | SQLite with auto-migration | Implemented | `pheno-db/` |
-| FR-DB-002 | Default database path | Implemented | `pheno-db/` |
-| FR-DB-003 | Store trait CRUD | Implemented | `pheno-core/`, `pheno-db/` |
+Comprehensive FR list is in `FUNCTIONAL_REQUIREMENTS.md`. This tracker covers implementation status by category.
+
+| Category | FR Count | Status | Code Location |
+|----------|----------|--------|---------------|
+| FR-BUS (Local Bus) | 10 | Implemented | `apps/runtime/src/protocol/` |
+| FR-ID (ID Standards) | 9 | Implemented | `apps/runtime/src/types/` |
+| FR-CFG (App Settings) | 10 | Implemented | `apps/runtime/src/config/` |
+| FR-LAN (Lane Orchestrator) | 8 | Implemented | `apps/runtime/src/lanes/` |
+| FR-PTY (PTY Lifecycle) | 8 | Implemented | `apps/runtime/src/pty/` |
+| FR-ZMX (Zellij Mux) | 8 | Implemented | `apps/runtime/src/sessions/` |
+| FR-BND (Terminal Binding) | 8 | Implemented | `apps/runtime/src/sessions/` |
+| FR-ENG (Renderer Engine) | 8 | Implemented | `apps/runtime/src/renderer/` |
+| FR-PVD (Provider Adapter) | 12 | Planned | `apps/runtime/src/providers/` |
+| FR-AUD (Audit Logging) | 11 | Planned | `apps/runtime/src/audit/` |
+| FR-SHR (Share Session) | 11 | Planned | — |
+| FR-CI (CI/CD) | 11 | Implemented | `.github/workflows/` |
+| FR-REV (Code Review) | 10 | Implemented | `.github/workflows/` |
+| FR-DEP (Dependencies) | 8 | Implemented | `package.json`, `bun.lock` |
+| FR-RUN (Runtime Setup) | 8 | Implemented | `apps/runtime/` |
+| FR-MVP (Helios MVP) | 27 | In Progress | `apps/` |

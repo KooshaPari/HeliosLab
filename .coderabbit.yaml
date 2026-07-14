@@ -1,22 +1,60 @@
-# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+# CodeRabbit AI Code Review Configuration
 
-reviews:
-  profile: assertive
-  request_changes_workflow: true
-  auto_review:
-    enabled: true
-    auto_incremental_review: true
+# Global settings
+rules:
+  - type: patch
+    description: |
+      Automated code review for pull requests to main.
+      Rate-limiting blocks merge with author notification.
 
-pre_merge_checks:
-  docstrings:
-    mode: warning
-  title:
-    mode: warning
-  description:
-    mode: warning
-  issue_assessment:
-    mode: warning
+# Automatic review on PR events
+review:
+  auto: true
+  # Trigger review on PR creation and updates
+  on: [pull_request]
+  
+  # Review only changes on main branch PRs
+  rules:
+    - branch: main
+      enabled: true
+      
+      # Large PR handling
+      max_files: 50
+      max_lines: 2000
+      
+      # Timeout with retry
+      timeout_seconds: 300
 
-pr_validation:
-  block_on:
-    severity: info
+# Chat settings
+chat:
+  auto_reply: true
+
+# Autofix disabled to prevent unwanted changes
+autofix: false
+
+# CodeRabbit settings with retry configuration
+settings:
+  # Rate limit handling: stay pending, retry
+  rate_limit:
+    strategy: block_and_retry
+    initial_delay_seconds: 60
+    backoff_multiplier: 2
+    max_retries: 5
+    max_wait_seconds: 900
+    
+  # Failure behavior: block merge
+  on_failure:
+    action: block_merge
+    notify_author: true
+
+# Skip review for specific files/patterns
+review:
+  rules:
+    - path: |
+        docs/**
+        **/*.md
+      skip: true
+    - path: |
+        node_modules/**
+        dist/**
+      skip: true

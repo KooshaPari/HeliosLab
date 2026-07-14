@@ -1,0 +1,9 @@
+{
+	"feature_number": "014",
+	"slug": "014-terminal-to-lane-session-binding",
+	"friendly_name": "Terminal Registry and Context Binding",
+	"mission": "software-dev",
+	"created_at": "2026-02-27T00:00:00Z",
+	"target_branch": "main",
+	"vcs": "git"
+}

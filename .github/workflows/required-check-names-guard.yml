@@ -1,14 +1,19 @@
 name: required-check-names-guard
-'on':
-  workflow_dispatch: null
-  pull_request: null
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
 jobs:
   verify-required-check-names:
     name: verify-required-check-names
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.1.1
 
       - name: Verify required check names exist
         run: |
@@ -20,10 +25,11 @@ jobs:
           fi
 
           missing=0
-          while IFS='|' read -r workflow_file job_name; do
+          while IFS='|' read -r workflow_file job_name check_id; do
             [ -z "${workflow_file}" ] && continue
             case "${workflow_file}" in
               \#*) continue ;;
+              external) continue ;;
             esac
 
             workflow_path=".github/workflows/${workflow_file}"
@@ -44,3 +50,6 @@ jobs:
             echo "Required check name guard failed."
             exit 1
           fi
+
+      - name: Verify required-check parity
+        run: .github/scripts/required-check-parity.sh

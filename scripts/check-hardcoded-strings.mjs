@@ -1,105 +1,88 @@
-#!/usr/bin/env bun
-/**
- * scripts/check-hardcoded-strings.mjs — companion to check-i18n-keys.mjs.
- *
- * Scans src/** /*.{tsx,ts} for English text fragments inside attribute values
- * (placeholder, title, alt, aria-label) and asserts each one matches a key
- * in en.json. Catches the common mistake of writing
- *   <input placeholder="Search files" />
- * without going through the i18n layer.
- *
- * Run from repo root. Exits non-zero on violations.
- */
-import { readdirSync, readFileSync, statSync } from "node:fs";
-import { join, extname, relative } from "node:path";
+#!/usr/bin/env node
+// scripts/check-hardcoded-strings.mjs
+// CI gate: fails if any JSX text node in apps/ contains a hardcoded English
+// string that is not wrapped in a t() call. Walks every .tsx file under
+// apps/ and parses out the literal text content of JSX elements.
+//
+// Detection strategy:
+//   1. Tokenize with a small regex-based JSX scanner (no Babel dep).
+//   2. For each text run between > and < markers, check whether the run:
+//      a) is a single space / punctuation / number (allowed)
+//      b) matches a t("…") call pattern (allowed)
+//      c) is wrapped in {t("…")} expression (allowed)
+//      d) contains an English-like word (allowed chars: a-zA-Z')
+//   3. Report any (d) as a violation.
+//
+// Exits with code 1 if any violations are found.
 
-const ROOT = process.cwd();
-const SRC = join(ROOT, "src");
-const EN_DICT = JSON.parse(
-	readFileSync(join(SRC, "i18n", "en.json"), "utf8"),
-);
+import { readFileSync, readdirSync, statSync } from "node:fs";
+import { join, relative } from "node:path";
 
-// Paths the new a11y PR owns — same scope as check-i18n-keys.mjs.
-const SCAN_ROOTS = [
-	join(SRC, "i18n"),
-	join(SRC, "hooks", "useI18n.tsx"),
-	join(SRC, "hooks", "useAnnounce.ts"),
-	join(SRC, "config"),
-];
-
-function flatten(obj, prefix = "") {
-	const out = {};
-	for (const [k, v] of Object.entries(obj)) {
-		const path = prefix ? `${prefix}.${k}` : k;
-		if (v && typeof v === "object") Object.assign(out, flatten(v, path));
-		else out[path] = v;
-	}
-	return out;
-}
-
-// Build a set of *values* in en.json. If the hardcoded string matches one of
-// these, we know it's intentionally the untranslated value and the key is
-// already in the dictionary.
-const KNOWN_VALUES = new Set(
-	Object.values(flatten(EN_DICT)).map((v) => String(v).toLowerCase()),
-);
+const ROOT = process.argv[2] ?? "apps";
+const SKIP_DIRS = new Set(["node_modules", "dist", ".vite"]);
 
 function walk(dir) {
-	const out = [];
-	for (const name of readdirSync(dir)) {
-		const full = join(dir, name);
-		const s = statSync(full);
-		if (s.isDirectory()) out.push(...walk(full));
-		else if ([".tsx", ".ts"].includes(extname(name))) out.push(full);
-	}
-	return out;
+  const out = [];
+  let entries;
+  try {
+    entries = readdirSync(dir);
+  } catch {
+    return out;
+  }
+  for (const e of entries) {
+    if (SKIP_DIRS.has(e)) continue;
+    const p = join(dir, e);
+    const s = statSync(p);
+    if (s.isDirectory()) out.push(...walk(p));
+    else if (p.endsWith(".tsx") || p.endsWith(".jsx")) out.push(p);
+  }
+  return out;
 }
 
-const ATTRS = ["placeholder", "title", "alt", "aria-label"];
-const violations = [];
-
-for (const root of SCAN_ROOTS) {
-	let st;
-	try {
-		st = statSync(root);
-	} catch {
-		continue;
-	}
-	const files = st.isFile() ? [root] : walk(root);
-	for (const file of files) {
-		const src = readFileSync(file, "utf8");
-		const rel = relative(ROOT, file);
-
-		for (const attr of ATTRS) {
-			const re = new RegExp(`\\b${attr}\\s*=\\s*"([^"]+)"`, "g");
-			let m;
-			while ((m = re.exec(src)) !== null) {
-				const val = m[1].trim();
-				if (!val || val.length < 3) continue;
-				if (KNOWN_VALUES.has(val.toLowerCase())) continue;
-				violations.push({
-					file: rel,
-					attr,
-					value: val,
-				});
-			}
-		}
-	}
+function findHardcodedStrings(src) {
+  const issues = [];
+  // Match: `>some text<` (JSX text content). Skip expressions `>{...}<`.
+  const textRe = />([^<>{]+)</g;
+  let m;
+  while ((m = textRe.exec(src))) {
+    const raw = m[1];
+    // Strip leading/trailing whitespace; ignore pure whitespace runs.
+    const text = raw.replace(/^\s+|\s+$/g, "");
+    if (text.length === 0) continue;
+    // Skip if it looks like t() inside the expression — already covered by
+    // the no-braces rule, but allow pure punctuation/numbers.
+    if (/^[\d\s.,!?:;()'"-]+$/.test(text)) continue;
+    // Heuristic: must contain at least 3 letters in a row to be a string.
+    if (!/[A-Za-z]{3,}/.test(text)) continue;
+    // Skip {var} interpolations like `Hello, {name}!` — already covered
+    // because the expression portion is excluded by the regex.
+    issues.push({ text, line: lineOf(src, m.index) });
+  }
+  return issues;
 }
 
-if (violations.length > 0) {
-	console.error(
-		`[check-hardcoded-strings] ${violations.length} untranslated attribute value(s):`,
-	);
-	for (const v of violations.slice(0, 20)) {
-		console.error(`  ${v.file}  ${v.attr}="${v.value}"`);
-	}
-	if (violations.length > 20) {
-		console.error(`  … and ${violations.length - 20} more`);
-	}
-	process.exit(1);
+function lineOf(src, idx) {
+  return src.slice(0, idx).split("\n").length;
 }
 
-console.log(
-	"[check-hardcoded-strings] OK — all placeholder/title/alt/aria-label values match en.json",
-);
+const files = walk(ROOT);
+let totalIssues = 0;
+for (const f of files) {
+  const src = readFileSync(f, "utf-8");
+  const issues = findHardcodedStrings(src);
+  if (issues.length > 0) {
+    console.error(`\n${relative(process.cwd(), f)}`);
+    for (const i of issues) {
+      console.error(`  L${i.line}: ${JSON.stringify(i.text)}`);
+      totalIssues++;
+    }
+  }
+}
+
+if (totalIssues > 0) {
+  console.error(
+    `\n[check-hardcoded-strings] ${totalIssues} hardcoded string(s) found. Wrap with t() from @helios/runtime-core/i18n.`,
+  );
+  process.exit(1);
+}
+console.log("[check-hardcoded-strings] OK — no hardcoded strings detected.");

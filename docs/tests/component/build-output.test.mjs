@@ -1,9 +1,13 @@
-import assert from "node:assert/strict";
-import { existsSync } from "node:fs";
-import test from "node:test";
+import { describe, it, expect } from 'bun:test'
+import { existsSync } from 'node:fs'
+import { resolve, dirname } from 'path'
+import { fileURLToPath } from 'url'
 
-test("vitepress config exists", () => {
-	assert.ok(
-		existsSync(".vitepress/config.ts") || existsSync(".vitepress/config.mts"),
-	);
-});
+describe('VitePress build output', () => {
+  it('vitepress config exists', () => {
+    // Test runs from project root, config is in docs/.vitepress/
+    const configExistsMts = existsSync(resolve('docs', '.vitepress', 'config.mts'))
+    const configExistsTs = existsSync(resolve('docs', '.vitepress', 'config.ts'))
+    expect(configExistsMts || configExistsTs).toBe(true)
+  })
+})

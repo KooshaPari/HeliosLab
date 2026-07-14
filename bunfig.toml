@@ -1,2 +1,18 @@
+# Bun configuration for heliosApp monorepo
+# See: https://bun.sh/docs/runtime/bunfig
+
+[install]
+# Use devDependencies during development
+peer = false
+
+# Prefer linked workspace packages over registry versions
+# This ensures @helios/* imports resolve to local source
+exact = true
+
+[install.lockfile]
+# Deterministic builds: always save lockfile
+save = true
+
 [test]
-preload = ["./tests/setup-dom.ts"]
+preload = ["./apps/desktop/tests/unit/dom-shim.ts"]
+timeout = 60000

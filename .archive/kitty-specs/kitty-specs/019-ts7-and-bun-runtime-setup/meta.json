@@ -1,0 +1,9 @@
+{
+	"feature_number": "019",
+	"slug": "019-ts7-and-bun-runtime-setup",
+	"friendly_name": "TS7 and Bun Runtime Setup",
+	"mission": "software-dev",
+	"created_at": "2026-02-27T00:00:00Z",
+	"target_branch": "main",
+	"vcs": "git"
+}

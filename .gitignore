@@ -1,18 +1,6 @@
 # Phenotype-org standard .gitignore — Node
 # Source: https://github.com/KooshaPari/phenotype-tooling/blob/main/templates/gitignore-node
 
-build
-node_modules
-.DS_Store
-/artifacts
-/bun.lockb
-/vendors/
-.zig-cache
-zig-out
-llama-cli/llama-cli
-package-lock.json
-!docs/package-lock.json
-
 # Added by Spec Kitty CLI (auto-managed)
 .opencode/
 .windsurf/
@@ -22,17 +10,18 @@ package-lock.json
 .amazonq/
 .github/copilot/
 .kittify/.dashboard
-
-target/
-*.db
-*.key
-
-.env
-
-# Phenotype Config
-.phenotype/
-config.db
-*.key
+!.gemini/
+!.gemini/config.yaml
+*.tsbuildinfo
+node_modules/
+dist/
+# tsc --build emit artifacts in test dirs
+apps/*/tests/**/*.js
+apps/*/tests/**/*.js.map
+apps/*/tests/**/*.d.ts
+apps/*/tests/**/*.d.ts.map
+# Excluded via sparse-checkout
+agileplus/
 
 # AI tool artifacts
 .claude/
@@ -46,38 +35,15 @@ config.db
 .claudeignore
 .llmignore
 
-# Local scratch (never commit)
-.tmp/
-.tmp/**
-.idea/
-*.iml
-worktrees/
-
 # Worktree directories (org policy)
+.worktrees/
 .claude/worktrees/
-Cargo.lock
-Cargo.lock
-
-# ===== Standard auto-generated hygiene ignores (do not edit manually) =====
-.env.*
-!.env.example
-node_modules/
-dist/
-build/
-coverage/
-.pytest_cache/
-__pycache__/
-.mypy_cache/
-.ruff_cache/
-.venv/
-venv/
-# ===== End standard hygiene ignores =====
-/worktrees/
-/*-wtrees/
 
 # --- adopted from phenotype-tooling/templates/gitignore-node ---
 .cache/
+.DS_Store
 .eslintcache
+.idea/
 .npm/
 .parcel-cache/
 .pnp

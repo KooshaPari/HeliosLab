@@ -2,3 +2,4 @@ node_modules/
 .vitepress/dist/
 .vitepress/cache/
 test-results/
+package-lock.json

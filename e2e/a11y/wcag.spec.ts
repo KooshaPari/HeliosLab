@@ -1,70 +1,63 @@
-/**
- * e2e/a11y/wcag.spec.ts — axe-core WCAG 2.1 AA gate for HeliosLab renderer.
- *
- * Boots the ivde renderer (or the dev server equivalent), then asserts no
- * critical or serious axe violations on the main shell page. The list of
- * routes is intentionally short — HeliosLab is a single-window desktop app;
- * navigation between editor surfaces is in-app SPA-style.
- *
- * Excluded rules: see `axe-config.ts` (bypass, region). Monaco's complex
- * DOM doesn't satisfy those checks even when the underlying app is sound.
- */
-import { test, expect } from "@playwright/test";
+// wcag.spec.ts
+// e2e axe-core WCAG 2.1 AA gate for heliosApp.
+//
+// Boots each app's dev server (via playwright.config.ts webServer array) and
+// runs AxeBuilder against the route map. Any critical/serious violation fails
+// the spec. Warnings are surfaced in the report but do not fail.
+
 import AxeBuilder from "@axe-core/playwright";
-import { AXE_OPTIONS, blockingViolations } from "../../axe-config";
+import { expect, test } from "@playwright/test";
+import { PORTS } from "../../playwright.config.js";
+import { AXE_TAGS, type AxeAppKey, disabledRulesFor } from "./axe-config.js";
 
-const BASE_URL = process.env.HELIOSLAB_RENDERER_URL ?? "http://localhost:5173";
+interface AppRoute {
+  app: AxeAppKey;
+  name: string;
+  url: string;
+}
 
-const ROUTES: Array<{ name: string; path: string }> = [
-	{ name: "Workbench (default shell)", path: "/" },
-	{ name: "Command palette overlay", path: "/?ui=command-palette" },
-	{ name: "Settings pane", path: "/?ui=settings" },
-];
+const APP_ORIGINS: Record<AxeAppKey, string> = {
+  "apps/desktop": `http://localhost:${PORTS.desktop}`,
+  "apps/runtime": `http://localhost:${PORTS.runtime}`,
+  "apps/colab-renderer": `http://localhost:${PORTS.colab}`,
+};
 
-test.describe("HeliosLab WCAG 2.1 AA", () => {
-	for (const route of ROUTES) {
-		test(`no critical/serious violations on ${route.name}`, async ({ page }) => {
-			await page.goto(`${BASE_URL}${route.path}`);
-			// Wait for the renderer root to mount.
-			await page.waitForSelector("#workbench-container", { timeout: 10_000 });
+const ROUTES: readonly AppRoute[] = [
+  { app: "apps/desktop", name: "desktop-home", url: "/" },
+  { app: "apps/desktop", name: "desktop-settings", url: "/settings" },
+  { app: "apps/runtime", name: "runtime-home", url: "/" },
+  { app: "apps/runtime", name: "runtime-status", url: "/status" },
+  { app: "apps/colab-renderer", name: "colab-home", url: "/" },
+].map(route => ({
+  ...route,
+  url: `${APP_ORIGINS[route.app]}${route.url}`,
+}));
 
-			const results = await new AxeBuilder({ page })
-				.options(AXE_OPTIONS)
-				.analyze();
+for (const route of ROUTES) {
+  test(`a11y [${route.app}] ${route.name} meets WCAG 2.1 AA`, async ({ page }, testInfo) => {
+    await page.goto(route.url, { waitUntil: "networkidle" });
 
-			const blocking = blockingViolations(results);
+    const builder = new AxeBuilder({ page })
+      .withTags([...AXE_TAGS])
+      .disableRules([...disabledRulesFor(route.app)]);
 
-			if (blocking.length > 0) {
-				// Log the violation ids to make CI failures debuggable.
-				console.error(
-					`[a11y] ${blocking.length} blocking violations on ${route.name}:`,
-					blocking.map((v) => v.id),
-				);
-			}
+    const results = await builder.analyze();
 
-			expect(blocking, JSON.stringify(blocking, null, 2)).toEqual([]);
-		});
-	}
+    const failing = results.violations.filter(
+      v => v.impact === "critical" || v.impact === "serious"
+    );
 
-	test("all violations (including minor) are reported for visibility", async ({ page }) => {
-		await page.goto(`${BASE_URL}/`);
-		await page.waitForSelector("#workbench-container", { timeout: 10_000 });
+    if (failing.length > 0) {
+      const summary = failing
+        .map(v => `  - [${v.impact}] ${v.id}: ${v.help} (${v.nodes.length} node(s))`)
+        .join("\n");
+      await testInfo.attach(`axe-${route.name}.json`, {
+        body: JSON.stringify(results, null, 2),
+        contentType: "application/json",
+      });
+      throw new Error(`WCAG 2.1 AA violations on ${route.app}:${route.name}\n${summary}`);
+    }
 
-		const results = await new AxeBuilder({ page })
-			.options(AXE_OPTIONS)
-			.analyze();
-
-		// Tolerate minor/moderate in dev — these are tracked in the AT dashboard.
-		const tracked = results.violations.filter(
-			(v) => v.impact === "minor" || v.impact === "moderate",
-		);
-		// Surface to test output for the a11y dashboard to ingest.
-		test.info().annotations.push({
-			type: "tracked-violations",
-			description: JSON.stringify(
-				tracked.map((v) => ({ id: v.id, count: v.nodes.length, impact: v.impact })),
-			),
-		});
-		expect(Array.isArray(tracked)).toBe(true);
-	});
-});
+    expect(failing).toEqual([]);
+  });
+}

@@ -2,7 +2,12 @@
 
 <CategorySwitcher />
 
-Use the category switcher to navigate Wiki, Development Guide, Document Index, API, and Roadmap.
+Welcome to the unified docs surface.
 
-## SLSA
-- [`slsa.md`](slsa.md) — SLSA Build L2 attestation documentation
+## Super Categories
+
+- [Wiki (User Guides)](/wiki/)
+- [Development Guide](/development/)
+- [Document Index](/index/)
+- [API](/api/)
+- [Roadmap](/roadmap/)

@@ -1,73 +1,56 @@
-/**
- * e2e/a11y/tab-order.spec.ts — exercise the Tab navigation order and verify
- * Monaco keyboard behaviour (Tab inserts a tab character; Ctrl+M moves
- * focus out of the editor surface).
- */
-import { test, expect } from "@playwright/test";
+// tab-order.spec.ts
+// Tab navigation smoke test. Verifies that:
+//   1. The skip-link receives focus first.
+//   2. The main landmark is reachable via the skip-link's href.
+//   3. Tree items (apps/desktop file tree) cycle focus in document order.
+//   4. The colab-renderer's PTY input is NOT tab-stolen by the terminal.
 
-const BASE_URL = process.env.HELIOSLAB_RENDERER_URL ?? "http://localhost:5173";
+import { expect, test } from "@playwright/test";
 
-test.describe("Tab order", () => {
-	test.beforeEach(async ({ page }) => {
-		await page.goto(`${BASE_URL}/`);
-		await page.waitForSelector("#workbench-container", { timeout: 10_000 });
-	});
+test("desktop: tab order hits skip-link, header, nav, main", async ({ page }) => {
+  await page.goto("/");
+  await page.keyboard.press("Tab");
+  const first = await page.evaluate(() => document.activeElement?.tagName);
+  expect(first).toBe("A"); // skip-link
 
-	test("document order is skip-links → topbar → sidebar → main → statusbar", async ({ page }) => {
-		// Walk the DOM and collect all focusable ancestors of the workbench.
-		const focusableOrder = await page.evaluate(() => {
-			const selector =
-				'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])';
-			const all = Array.from(document.querySelectorAll(selector)) as HTMLElement[];
-			// Only keep the first 5 we expect in the canonical order.
-			return all.slice(0, 5).map((el) => ({
-				tag: el.tagName.toLowerCase(),
-				id: el.id,
-				role: el.getAttribute("role"),
-				text: (el.textContent ?? "").trim().slice(0, 32),
-			}));
-		});
+  // The skip-link's target must be a <main> with id="main" and tabindex="-1".
+  const mainHandle = await page.evaluate(() => {
+    const m = document.getElementById("main");
+    return m
+      ? {
+          tag: m.tagName,
+          tabindex: m.getAttribute("tabindex"),
+          isMain: m instanceof HTMLElement && m.role === "main",
+        }
+      : null;
+  });
+  expect(mainHandle).not.toBeNull();
+  expect(mainHandle?.tag).toBe("MAIN");
+  expect(mainHandle?.tabindex).toBe("-1");
+});
 
-		// The first 3 should be the three skip-links per AT2 spec.
-		expect(focusableOrder[0]?.id).toBe("skip-to-main");
-		expect(focusableOrder[1]?.id).toBe("skip-to-file-tree");
-		expect(focusableOrder[2]?.id).toBe("skip-to-editor");
-	});
+test("desktop: file tree items use arrow keys (role=treeitem)", async ({ page }) => {
+  await page.goto("/");
+  const tree = page.locator('[role="tree"]').first();
+  const treeCount = await tree.count();
+  if (treeCount === 0) test.skip();
+  const items = tree.locator('[role="treeitem"]');
+  const count = await items.count();
+  if (count === 0) test.skip();
+  await items.first().focus();
+  await page.keyboard.press("ArrowDown");
+  const activeText = await page.evaluate(() => document.activeElement?.textContent ?? "");
+  // The focus moved to the second tree item.
+  expect(activeText).not.toBe(await items.first().textContent());
+});
 
-	test("Monaco editor receives focus via Tab and Ctrl+M returns focus to the toolbar", async ({ page }) => {
-		// Click into the editor area to focus it.
-		const editor = page.locator(".monaco-editor").first();
-		await editor.click();
-
-		// Send Ctrl+M (Monaco's "tab focus mode toggle" — moves focus OUT).
-		await page.keyboard.press("Control+M");
-		await page.keyboard.press("Tab");
-
-		const focusedTag = await page.evaluate(() => {
-			const el = document.activeElement as HTMLElement | null;
-			return el?.tagName.toLowerCase();
-		});
-		// After Ctrl+M, Tab should land on the next focusable outside the editor.
-		// We don't assert which one — only that it's not inside the Monaco subtree.
-		expect(focusedTag).not.toBe("textarea");
-	});
-
-	test("focus ring is visible when keyboard-focused", async ({ page }) => {
-		// Tab into the first interactive element.
-		await page.keyboard.press("Tab");
-		const outline = await page.evaluate(() => {
-			const el = document.activeElement as HTMLElement | null;
-			if (!el) return null;
-			const cs = getComputedStyle(el);
-			return {
-				outlineWidth: cs.outlineWidth,
-				outlineColor: cs.outlineColor,
-				outlineStyle: cs.outlineStyle,
-			};
-		});
-		expect(outline).not.toBeNull();
-		// Focus ring must be solid (not "none") and at least 2px wide.
-		expect(outline?.outlineStyle).not.toBe("none");
-		expect(parseInt(outline?.outlineWidth ?? "0", 10)).toBeGreaterThanOrEqual(2);
-	});
+test("colab: terminal canvas is not in the tab order", async ({ page }) => {
+  await page.goto("/");
+  // The terminal canvas is inside .xterm; verify no element inside has tabindex=0.
+  const tabbableInsideTerminal = await page.evaluate(() => {
+    const term = document.querySelector(".xterm");
+    if (!term) return 0;
+    return term.querySelectorAll("[tabindex='0']").length;
+  });
+  expect(tabbableInsideTerminal).toBe(0);
 });

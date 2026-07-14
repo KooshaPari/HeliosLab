@@ -1,31 +1,15 @@
 name: Security Guard (Hooks)
-'on':
-  workflow_dispatch: null
+
+on:
   pull_request:
-    types:
-    - opened
-    - synchronize
-    - reopened
+    types: [opened, synchronize, reopened]
   push:
     branches:
-    - '**'
+      - "**"
+
+permissions:
+  contents: read
+
 jobs:
   guard:
-    runs-on: ubuntu-24.04
-    steps:
-      - name: Checkout
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v4
-        with:
-          fetch-depth: 0
-
-      - name: Wire Git hook path and verify guard hook
-        run: |
-          git config core.hooksPath .github/hooks
-          test -f .github/hooks/pre-commit
-          test -x .github/hooks/pre-commit
-          test -f .github/hooks/security-guard.sh
-          test -x .github/hooks/security-guard.sh
-
-      - name: Run security guard hook
-        run: |
-          .github/hooks/pre-commit
+    uses: KooshaPari/phenoShared/.github/workflows/security-guard-hook-audit.yml@95d94d5d77015368ee802130bf4feaae0b3566db

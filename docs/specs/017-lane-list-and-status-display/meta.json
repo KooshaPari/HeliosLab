@@ -1,0 +1,9 @@
+{
+	"feature_number": "017",
+	"slug": "017-lane-list-and-status-display",
+	"friendly_name": "Lane Manager Panel",
+	"mission": "software-dev",
+	"created_at": "2026-02-27T00:00:00Z",
+	"target_branch": "main",
+	"vcs": "git"
+}

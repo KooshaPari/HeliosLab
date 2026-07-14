@@ -1,0 +1,150 @@
+name: Stage Gates
+
+on:
+  pull_request:
+    branches: ["**"]
+
+permissions:
+  contents: read
+
+jobs:
+  detect-stage:
+    name: detect-stage
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      stage: ${{ steps.detect.outputs.stage }}
+      gates: ${{ steps.detect.outputs.gates }}
+    steps:
+      - name: Detect stage from branch
+        id: detect
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          # Sanitized: read PR head ref via API (PR_NUMBER is integer-typed, safe).
+          # Avoids ${{ github.head_ref }} interpolation flagged by Scorecard
+          # DangerousWorkflow regardless of context (env: or run:).
+          BRANCH=$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" --jq .head.ref)
+          case "$BRANCH" in
+            spike/*)
+              echo "stage=SP" >> "$GITHUB_OUTPUT"
+              echo "gates=format" >> "$GITHUB_OUTPUT"
+              ;;
+            poc/*|preview/*)
+              echo "stage=POC" >> "$GITHUB_OUTPUT"
+              echo "gates=format,lint,unit" >> "$GITHUB_OUTPUT"
+              ;;
+            feature/*|feature-preview/*)
+              echo "stage=FEATURE" >> "$GITHUB_OUTPUT"
+              echo "gates=format,lint,unit,secrets" >> "$GITHUB_OUTPUT"
+              ;;
+            beta/*|release/beta-*)
+              echo "stage=BETA" >> "$GITHUB_OUTPUT"
+              echo "gates=format,lint,unit,coverage,secrets" >> "$GITHUB_OUTPUT"
+              ;;
+            release/*|hotfix/*)
+              echo "stage=RELEASE" >> "$GITHUB_OUTPUT"
+              echo "gates=format,lint,unit,coverage,secrets,e2e-smoke" >> "$GITHUB_OUTPUT"
+              ;;
+            *)
+              echo "stage=DEFAULT" >> "$GITHUB_OUTPUT"
+              echo "gates=format,lint,unit,coverage,secrets" >> "$GITHUB_OUTPUT"
+              ;;
+          esac
+
+  format-check:
+    name: format-check
+    runs-on: ubuntu-24.04
+    needs: [detect-stage]
+    if: contains(needs.detect-stage.outputs.gates, 'format')
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.1.1
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
+      - name: Install dependencies
+        run: bun install
+      - name: Verify format
+        run: bunx oxfmt --check apps docs/.vitepress playwright.config.ts tsconfig.json package.json
+
+  lint-check:
+    name: lint-check
+    runs-on: ubuntu-24.04
+    needs: [detect-stage]
+    if: contains(needs.detect-stage.outputs.gates, 'lint')
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.1.1
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
+      - name: Install dependencies
+        run: bun install
+      - name: Run lint
+        run: bun run lint
+
+  unit-check:
+    name: unit-check
+    runs-on: ubuntu-24.04
+    needs: [detect-stage]
+    if: contains(needs.detect-stage.outputs.gates, 'unit')
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.1.1
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
+      - name: Install dependencies
+        run: bun install
+      - name: Run tests
+        run: bun run test
+
+  coverage-check:
+    name: coverage-check
+    runs-on: ubuntu-24.04
+    needs: [detect-stage]
+    if: contains(needs.detect-stage.outputs.gates, 'coverage')
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.1.1
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
+      - name: Install dependencies
+        run: bun install
+      - name: Run coverage
+        run: bun run test:coverage
+
+  secret-scan:
+    name: stage-secret-scan
+    runs-on: ubuntu-24.04
+    needs: [detect-stage]
+    if: contains(needs.detect-stage.outputs.gates, 'secrets')
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.1.1
+        with:
+          fetch-depth: 0
+      - name: Secrets scan (trufflehog)
+        uses: trufflesecurity/trufflehog@6261f5cd38e133cdcf00c23e3943f3e9d012d538  # was: @main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          extra_args: --only-verified
+  e2e-smoke:
+    name: e2e-smoke
+    runs-on: ubuntu-24.04
+    needs: [detect-stage]
+    if: contains(needs.detect-stage.outputs.gates, 'e2e-smoke')
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.1.1
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
+      - name: Install dependencies
+        run: bun install
+      - name: Install Playwright browsers
+        run: bunx playwright install --with-deps chromium
+      - name: Run e2e smoke
+        run: bun run test:e2e

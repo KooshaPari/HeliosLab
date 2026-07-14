@@ -1,42 +1,27 @@
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0
+    rev: v4.6.0
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer
       - id: check-yaml
+      - id: check-json
       - id: check-toml
       - id: check-added-large-files
         args: ["--maxkb=500"]
-      - id: detect-private-key
       - id: check-merge-conflict
-      - id: check-case-conflict
-      
+      - id: detect-private-key
   - repo: local
     hooks:
-      - id: cargo-fmt
-        name: cargo-fmt
-        entry: cargo fmt -- --check
+      - id: lint-staged
+        name: lint-staged
+        entry: bun run lint
         language: system
+        files: \.(ts|tsx|js|jsx|json|md)$
+        pass_filenames: true
+      - id: security-guard-pre-commit-pre-push
+        name: security-guard pre-commit/pre-push
+        entry: .github/scripts/security-guard.sh
+        language: script
         pass_filenames: false
-        files: \.rs$
-      - id: cargo-clippy
-        name: cargo-clippy
-        entry: cargo clippy -- -D warnings
-        language: system
-        pass_filenames: false
-        files: \.rs$
-      - id: typos
-        name: typos
-        description: Spell/typo check via typos-cli (honors _typos.toml)
-        entry: typos
-        language: system
-        types_or: [text]
-        require_serial: false
-
-  - repo: https://github.com/gitleaks/gitleaks
-    rev: v8.18.2
-    hooks:
-      - id: gitleaks
-        name: Detect secrets (gitleaks)
-        description: Detect hardcoded secrets using Gitleaks
+        stages: [pre-commit, pre-push]

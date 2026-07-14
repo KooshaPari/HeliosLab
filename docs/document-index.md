@@ -1,3 +1,3 @@
-# Document Index
+# Document Index Entry
 
-Generated index data: `docs/.generated/doc-index.json`.
+Use [/index/](/index/) for the unified categorized index.
