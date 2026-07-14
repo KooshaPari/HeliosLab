@@ -28,7 +28,13 @@ jobs:
         run: |
           set -euo pipefail
 
-          # Prevent merge commits in PR branch diff range
+          # Prevent merge commits in the PR branch diff range. A repository-history
+          # consolidation may opt in explicitly so the imported DAG remains intact.
+          if [[ "$PR_LABELS" == *'"history-import"'* ]]; then
+            echo "History import label present; preserving imported merge commits."
+            exit 0
+          fi
+
           PR_HEAD="${HEAD_SHA}"
           if ! git fetch origin "$BASE_REF"; then
             echo "ERROR: failed to fetch base ref $BASE_REF."
