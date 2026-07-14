@@ -195,7 +195,7 @@ export class AuditLedger {
         events.forEach(event => {
           try {
             callback(event);
-          } catch {
+          } catch (err) {
             console.error("[AuditLedger] Subscription callback error:", err);
           }
         });

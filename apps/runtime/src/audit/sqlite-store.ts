@@ -212,7 +212,7 @@ export class SQLiteAuditStore {
 
       const stats = fs.statSync(this.dbPath);
       return stats.size;
-    } catch {
+    } catch (err) {
       console.error("[SQLiteAuditStore] Error getting storage size:", err);
       return 0;
     }
@@ -308,7 +308,7 @@ export class SQLiteAuditStore {
           CREATE INDEX idx_workspace_timestamp ON audit_events(workspace_id, timestamp);
         `);
       }
-    } catch {
+    } catch (err) {
       handleSchemaFailure(err);
     }
   }

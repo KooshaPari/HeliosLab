@@ -248,7 +248,7 @@ function validateResponseEnvelope(envelope: Record<string, unknown>): void {
   // Skip METHOD_SET check — METHODS is empty; rely on METHOD_CONTEXT_REQUIREMENTS
   void assertOptionalString(envelope, "method");
 
-  const _topic = assertOptionalString(envelope, "topic");
+  const topic = assertOptionalString(envelope, "topic");
   if (topic && !/^[a-z][a-z0-9]*(\.[a-z][a-z0-9_]*)*$/.test(topic)) {
     throw new ProtocolValidationError("INVALID_TOPIC", `Malformed topic '${topic}'`, {
       topic,

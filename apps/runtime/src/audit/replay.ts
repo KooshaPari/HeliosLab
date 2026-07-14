@@ -38,7 +38,7 @@ export class ReplayEngine {
   async loadSession(sessionId: string, _store: any): Promise<ReplayStream> {
     // TODO: Integrate with actual store queries
     // For now, return empty replay stream
-    const _startTime = new Date();
+    const startTime = new Date();
     const endTime = new Date();
 
     return {

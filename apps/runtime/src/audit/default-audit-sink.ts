@@ -81,7 +81,7 @@ export class DefaultAuditSink implements AuditSink {
         }
 
         break;
-      } catch {
+      } catch (err) {
         retries++;
         if (retries >= MAX_RETRIES) {
           throw new Error(`[AuditSink] Failed to flush after ${MAX_RETRIES} retries: ${err}`);

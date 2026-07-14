@@ -72,7 +72,7 @@ export class SnapshotCapture {
       };
 
       onSnapshot(snapshot);
-    } catch {
+    } catch (err) {
       console.error("[SnapshotCapture] Failed to capture snapshot:", err);
     }
   }

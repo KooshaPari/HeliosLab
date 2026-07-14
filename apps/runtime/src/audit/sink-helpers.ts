@@ -124,7 +124,7 @@ export function shouldRetainRecord(
   policy: RetentionPolicyConfig,
   now: Date
 ): boolean {
-  const _topic = readEnvelopeTopic(record.envelope);
+  const topic = readEnvelopeTopic(record.envelope);
   if (topic && policy.exempt_topics.includes(topic)) {
     return true;
   }

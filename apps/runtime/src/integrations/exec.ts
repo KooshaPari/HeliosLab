@@ -73,7 +73,7 @@ export class HarnessRouteSelector {
             fallback_transport: "native_openai",
             degrade_reason: probeResult.reason ?? "cliproxy_healthcheck_failed",
           };
-    } catch {
+    } catch (error) {
       this.status = {
         status: "degraded",
         fallback_transport: "native_openai",

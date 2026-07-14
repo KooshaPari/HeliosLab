@@ -78,7 +78,7 @@ export class AuditSink {
    * re-parsed before storage to ensure no secrets persist in memory.
    */
   async ingest(envelope: LocalBusEnvelope): Promise<AuditRecord | null> {
-    const _topic = envelope.topic ?? "";
+    const topic = envelope.topic ?? "";
     if (!this.watchedTopics.has(topic)) return null;
 
     const correlationId: string =

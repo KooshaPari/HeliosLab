@@ -165,7 +165,7 @@ export class SLOMonitor {
               console.error("[slo] Bus publish error:", err);
             });
           }
-        } catch {
+        } catch (err) {
           console.error("[slo] Bus publish error:", err);
         }
       } else {

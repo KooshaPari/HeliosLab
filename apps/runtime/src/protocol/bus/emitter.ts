@@ -231,7 +231,7 @@ export class InMemoryLocalBus implements LocalBus {
         };
       }
 
-      const _startTime = Date.now();
+      const startTime = Date.now();
       const ctx = this.getHandlerContext();
 
       if (command.method === "lane.create") return handleLaneCreate(command, startTime, ctx);

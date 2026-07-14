@@ -140,7 +140,7 @@ export class CommandBusImpl implements LocalBus {
         );
       }
       return result as ResponseEnvelope;
-    } catch {
+    } catch (err) {
       const msg =
         err instanceof Error ? err.message.replace(/\/[\w/.:-]+/g, "<path>") : String(err);
       return makeErrorResponse(

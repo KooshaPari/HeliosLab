@@ -18,7 +18,7 @@ export class ConversationStore {
       // For now, we'll return an empty array as a placeholder
       const result = Array.from(this.conversations.values());
       return result;
-    } catch {
+    } catch (error) {
       console.error(`[ConversationStore] Failed to load conversations:`, error);
       return [];
     }
@@ -35,7 +35,7 @@ export class ConversationStore {
       }
       // In a real implementation, this would write to Bun.file(this.filePath)
       console.log(`[ConversationStore] Saved ${conversations.length} conversations`);
-    } catch {
+    } catch (error) {
       console.error(`[ConversationStore] Failed to save conversations:`, error);
     }
   }
@@ -48,7 +48,7 @@ export class ConversationStore {
       this.conversations.set(conversation.id, conversation);
       // In a real implementation, this would update the persisted file
       console.log(`[ConversationStore] Saved conversation ${conversation.id}`);
-    } catch {
+    } catch (error) {
       console.error(`[ConversationStore] Failed to save conversation:`, error);
     }
   }
@@ -61,7 +61,7 @@ export class ConversationStore {
       this.conversations.delete(id);
       // In a real implementation, this would update the persisted file
       console.log(`[ConversationStore] Deleted conversation ${id}`);
-    } catch {
+    } catch (error) {
       console.error(`[ConversationStore] Failed to delete conversation:`, error);
     }
   }
@@ -93,7 +93,7 @@ export class ConversationStore {
       conv.updatedAt = new Date().toISOString();
       this.conversations.set(conversationId, conv);
       await this.saveConversation(conv);
-    } catch {
+    } catch (error) {
       console.error(`[ConversationStore] Failed to add message:`, error);
     }
   }
@@ -106,7 +106,7 @@ export class ConversationStore {
       this.conversations.clear();
       // In a real implementation, this would clear the persisted file
       console.log(`[ConversationStore] Cleared all conversations`);
-    } catch {
+    } catch (error) {
       console.error(`[ConversationStore] Failed to clear conversations:`, error);
     }
   }

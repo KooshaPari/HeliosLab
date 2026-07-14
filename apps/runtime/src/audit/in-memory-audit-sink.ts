@@ -68,7 +68,7 @@ export class InMemoryAuditSink implements AuditSink {
     const cutoffMs = this.retentionDays * 24 * 60 * 60 * 1000;
     const retained = this.records.filter(record => {
       const envelope = record.envelope as Record<string, unknown>;
-      const _topic = envelope.topic as string | undefined;
+      const topic = envelope.topic as string | undefined;
       if (topic === "audit.retention.deleted") {
         return true;
       }

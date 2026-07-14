@@ -53,7 +53,7 @@ describe("SQLiteAuditStore", () => {
         events.push(event);
       }
 
-      const _startTime = Date.now();
+      const startTime = Date.now();
       store.persist(events);
       const endTime = Date.now();
 
@@ -91,13 +91,13 @@ describe("SQLiteAuditStore", () => {
     });
 
     it("should query with workspace filter", () => {
-      const _results = store.query({ workspaceId: "ws-1" });
+      const results = store.query({ workspaceId: "ws-1" });
       expect(results.length).toBeLessThanOrEqual(100);
       expect(results.every(e => e.workspaceId === "ws-1")).toBe(true);
     });
 
     it("should query with event type filter", () => {
-      const _results = store.query({
+      const results = store.query({
         eventType: AUDIT_EVENT_TYPES.COMMAND_EXECUTED,
       });
       expect(results.length).toBeGreaterThan(0);
@@ -209,7 +209,7 @@ describe("SQLiteAuditStore", () => {
 
       // Persist while querying (simulates concurrent access)
       store.persist(events.slice(0, 50));
-      const _results = store.query({ workspaceId: "ws-1" });
+      const results = store.query({ workspaceId: "ws-1" });
 
       store.persist(events.slice(50, 100));
       const finalResults = store.query({ workspaceId: "ws-1" });

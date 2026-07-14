@@ -14,7 +14,7 @@ describe("ReplayEngine", () => {
     engine = new ReplayEngine();
 
     // Create mock replay stream
-    const _startTime = new Date("2026-03-01T10:00:00Z");
+    const startTime = new Date("2026-03-01T10:00:00Z");
     const endTime = new Date("2026-03-01T11:00:00Z");
 
     const snapshot: SessionSnapshot = {

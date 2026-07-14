@@ -162,7 +162,7 @@ export class DefaultAuditSink implements AuditSink {
           await this.persistWithRetry();
         }
         break;
-      } catch {
+      } catch (err) {
         retries++;
         if (retries >= this.MAX_RETRIES) {
           throw new Error(`[AuditSink] Failed to flush after ${this.MAX_RETRIES} retries: ${err}`);
@@ -204,7 +204,7 @@ export class DefaultAuditSink implements AuditSink {
           // Only clear buffer after successful commit
           this.buffer = this.buffer.slice(eventsToPersist.length);
           return;
-        } catch {
+        } catch (err) {
           this.metrics.persistenceFailures++;
           this.metrics.retryCount++;
           retries++;
@@ -238,7 +238,7 @@ export class DefaultAuditSink implements AuditSink {
           this.overflowQueue.splice(0, eventsToPersist.length);
 
           retries = 0;
-        } catch {
+        } catch (err) {
           this.metrics.sqliteWriteFailures!++;
           this.metrics.sqliteRetryCount!++;
           retries++;
