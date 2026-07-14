@@ -18,7 +18,7 @@ mod tui;
 
 use chrono::Utc;
 use clap::{Parser, Subcommand};
-use clap_ext::prelude::{ConfigArg, Verbosity, setup_tracing};
+use clap_ext::prelude::{setup_tracing, ConfigArg, Verbosity};
 use pheno_core::*;
 use pheno_db::Database;
 use std::path::PathBuf;
@@ -83,8 +83,12 @@ enum Commands {
 #[derive(Subcommand)]
 enum FlagCmd {
     List,
-    Enable { name: String },
-    Disable { name: String },
+    Enable {
+        name: String,
+    },
+    Disable {
+        name: String,
+    },
     Create {
         name: String,
         #[arg(short, long, default_value = "")]
@@ -102,7 +106,9 @@ enum FlagCmd {
 
 #[derive(Subcommand)]
 enum ConfigCmd {
-    Get { key: String },
+    Get {
+        key: String,
+    },
     Set {
         key: String,
         value: String,
@@ -110,8 +116,13 @@ enum ConfigCmd {
         r#type: String,
     },
     List,
-    Audit { key: String },
-    Restore { key: String, audit_id: i64 },
+    Audit {
+        key: String,
+    },
+    Restore {
+        key: String,
+        audit_id: i64,
+    },
 }
 
 #[derive(Subcommand)]
@@ -188,7 +199,10 @@ fn handle_flags(repo: &Option<PathBuf>, cmd: FlagCmd) {
                 println!("No flags.");
                 return;
             }
-            println!("{:<30} {:<10} {:<6} {:<6} {:<20} DESCRIPTION", "NAME", "ENABLED", "STAGE", "CLASS", "CHANNELS");
+            println!(
+                "{:<30} {:<10} {:<6} {:<6} {:<20} DESCRIPTION",
+                "NAME", "ENABLED", "STAGE", "CLASS", "CHANNELS"
+            );
             for f in flags {
                 println!(
                     "{:<30} {:<10} {:<6} {:<6} {:<20} {}",
@@ -228,7 +242,13 @@ fn handle_flags(repo: &Option<PathBuf>, cmd: FlagCmd) {
             db.set_flag(&flag).unwrap();
             println!("Disabled flag: {name}");
         }
-        FlagCmd::Create { name, description, stage, class, channel } => {
+        FlagCmd::Create {
+            name,
+            description,
+            stage,
+            class,
+            channel,
+        } => {
             // Validate stage and class
             if stage.parse::<Stage>().is_err() {
                 eprintln!("Invalid stage: {stage}");
@@ -258,7 +278,10 @@ fn handle_flags(repo: &Option<PathBuf>, cmd: FlagCmd) {
                 println!("No flags past their retirement stage.");
                 return;
             }
-            println!("{:<30} {:<6} {:<10} DESCRIPTION", "NAME", "STAGE", "RETIRE_AT");
+            println!(
+                "{:<30} {:<6} {:<10} DESCRIPTION",
+                "NAME", "STAGE", "RETIRE_AT"
+            );
             for f in flags {
                 println!(
                     "{:<30} {:<6} {:<10} {}",
@@ -401,7 +424,10 @@ fn handle_version(repo: &Option<PathBuf>, cmd: VersionCmd) {
                 );
             }
         }
-        VersionCmd::Bump { repo: name, version } => {
+        VersionCmd::Bump {
+            repo: name,
+            version,
+        } => {
             let mut info = db.get_version(&name).unwrap_or(VersionInfo {
                 repo: name.clone(),
                 our_version: "0.0.0".to_string(),
@@ -436,17 +462,25 @@ fn handle_stage(cmd: StageCmd) {
         StageCmd::Show => {
             println!("Build stage   : {}", build_info::HELIOS_STAGE);
             println!("Build channel : {}", build_info::HELIOS_CHANNEL);
-            println!("Build flags   : {}", if build_info::HELIOS_BUILD_FLAGS.is_empty() { "(none)" } else { build_info::HELIOS_BUILD_FLAGS });
+            println!(
+                "Build flags   : {}",
+                if build_info::HELIOS_BUILD_FLAGS.is_empty() {
+                    "(none)"
+                } else {
+                    build_info::HELIOS_BUILD_FLAGS
+                }
+            );
         }
     }
 }
 
 fn handle_promote(repo: &Option<PathBuf>, name: String, target_stage: String) {
     let db = open_db(repo);
-    db.promote_flag(NS, &name, &target_stage, &whoami()).unwrap_or_else(|e| {
-        eprintln!("Promote failed: {e}");
-        std::process::exit(1);
-    });
+    db.promote_flag(NS, &name, &target_stage, &whoami())
+        .unwrap_or_else(|e| {
+            eprintln!("Promote failed: {e}");
+            std::process::exit(1);
+        });
     println!("Promoted {name} to stage {target_stage}");
 }
 
@@ -458,7 +492,11 @@ fn handle_status(repo: &Option<PathBuf>) {
     let versions = db.list_versions().unwrap_or_default();
     println!("=== Phenotype Status ===");
     println!("Config entries : {}", configs.len());
-    println!("Feature flags  : {} ({} enabled)", flags.len(), flags.iter().filter(|f| f.enabled).count());
+    println!(
+        "Feature flags  : {} ({} enabled)",
+        flags.len(),
+        flags.iter().filter(|f| f.enabled).count()
+    );
     println!("Secrets        : {}", secrets.len());
     println!("Tracked repos  : {}", versions.len());
     println!("Build stage    : {}", build_info::HELIOS_STAGE);
@@ -482,7 +520,10 @@ mod tests {
         let cli = Cli::try_parse_from(["phenoctl", "--quiet", "--config", "/tmp/x.yml", "status"])
             .expect("parse");
         assert!(cli.verbosity.quiet);
-        assert_eq!(cli.config.config.as_deref(), Some(std::path::Path::new("/tmp/x.yml")));
+        assert_eq!(
+            cli.config.config.as_deref(),
+            Some(std::path::Path::new("/tmp/x.yml"))
+        );
     }
 
     #[test]

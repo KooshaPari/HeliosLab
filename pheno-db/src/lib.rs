@@ -29,8 +29,7 @@ impl Database {
             std::fs::create_dir_all(parent)
                 .map_err(|e| Error::Database(format!("create dir: {e}")))?;
         }
-        let conn =
-            Connection::open(path).map_err(|e| Error::Database(format!("open: {e}")))?;
+        let conn = Connection::open(path).map_err(|e| Error::Database(format!("open: {e}")))?;
         conn.execute_batch("PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON;")
             .map_err(|e| Error::Database(e.to_string()))?;
         let db = Self { conn };
@@ -101,7 +100,7 @@ impl Database {
             "ALTER TABLE feature_flags ADD COLUMN stage TEXT NOT NULL DEFAULT 'SP';
              ALTER TABLE feature_flags ADD COLUMN transience_class TEXT NOT NULL DEFAULT 'F';
              ALTER TABLE feature_flags ADD COLUMN channel TEXT NOT NULL DEFAULT '[\"dev\"]';
-             ALTER TABLE feature_flags ADD COLUMN retire_at_stage TEXT;"
+             ALTER TABLE feature_flags ADD COLUMN retire_at_stage TEXT;",
         );
 
         Ok(())
@@ -186,7 +185,10 @@ impl ConfigStore for Database {
                 Ok(ConfigEntry {
                     key: row.get(0)?,
                     value: row.get(1)?,
-                    value_type: row.get::<_, String>(2)?.parse().unwrap_or(ValueType::String),
+                    value_type: row
+                        .get::<_, String>(2)?
+                        .parse()
+                        .unwrap_or(ValueType::String),
                     namespace: row.get(3)?,
                     updated_at: parse_dt(&row.get::<_, String>(4)?),
                     updated_by: row.get(5)?,
@@ -289,14 +291,19 @@ impl FlagStore for Database {
                 read_flag_row,
             )
             .map_err(|e| match e {
-                rusqlite::Error::QueryReturnedNoRows => Error::NotFound(format!("{namespace}/{name}")),
+                rusqlite::Error::QueryReturnedNoRows => {
+                    Error::NotFound(format!("{namespace}/{name}"))
+                }
                 _ => Error::Database(e.to_string()),
             })
     }
 
     fn list_flags(&self, namespace: &str) -> Result<Vec<FeatureFlag>> {
-        let mut stmt = self.conn
-            .prepare(&format!("SELECT {FLAG_COLS} FROM feature_flags WHERE namespace=?1 ORDER BY name"))
+        let mut stmt = self
+            .conn
+            .prepare(&format!(
+                "SELECT {FLAG_COLS} FROM feature_flags WHERE namespace=?1 ORDER BY name"
+            ))
             .map_err(|e| Error::Database(e.to_string()))?;
         let rows = stmt
             .query_map(params![namespace], read_flag_row)
@@ -370,14 +377,19 @@ impl FlagStore for Database {
     fn audit_flags(&self, namespace: &str) -> Result<Vec<FeatureFlag>> {
         // Return flags whose current stage ordinal >= their retire_at_stage ordinal
         let all = self.list_flags(namespace)?;
-        Ok(all.into_iter().filter(|f| {
-            if let (Ok(current), Some(ref retire_str)) = (f.stage.parse::<Stage>(), &f.retire_at_stage) {
-                if let Ok(retire) = retire_str.parse::<Stage>() {
-                    return current.ordinal() >= retire.ordinal();
+        Ok(all
+            .into_iter()
+            .filter(|f| {
+                if let (Ok(current), Some(ref retire_str)) =
+                    (f.stage.parse::<Stage>(), &f.retire_at_stage)
+                {
+                    if let Ok(retire) = retire_str.parse::<Stage>() {
+                        return current.ordinal() >= retire.ordinal();
+                    }
                 }
-            }
-            false
-        }).collect())
+                false
+            })
+            .collect())
     }
 }
 
@@ -419,7 +431,8 @@ impl SecretStore for Database {
     }
 
     fn list_secrets(&self) -> Result<Vec<String>> {
-        let mut stmt = self.conn
+        let mut stmt = self
+            .conn
             .prepare("SELECT key FROM secrets ORDER BY key")
             .map_err(|e| Error::Database(e.to_string()))?;
         let rows = stmt
@@ -498,12 +511,12 @@ impl VersionStore for Database {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use chrono::Utc;
     use pheno_core::{
-        ConfigEntry, ConfigStore, FeatureFlag, FlagStore, SecretEntry, SecretStore,
-        ValueType, VersionInfo, VersionStore,
+        ConfigEntry, ConfigStore, FeatureFlag, FlagStore, SecretEntry, SecretStore, ValueType,
+        VersionInfo, VersionStore,
     };
     use std::path::Path;
-    use chrono::Utc;
 
     fn open_in_memory() -> Database {
         Database::open(Path::new(":memory:")).expect("in-memory db should open")
@@ -528,7 +541,9 @@ mod tests {
         let db = open_in_memory();
         let entry = make_config_entry("app", "theme", "dark");
         db.set_config(&entry).expect("set_config should succeed");
-        let fetched = db.get_config("app", "theme").expect("get_config should succeed");
+        let fetched = db
+            .get_config("app", "theme")
+            .expect("get_config should succeed");
         assert_eq!(fetched.value, "dark");
         assert_eq!(fetched.namespace, "app");
     }
@@ -557,9 +572,12 @@ mod tests {
     fn test_config_list_by_namespace() {
         // Traces to: FR-DB-002
         let db = open_in_memory();
-        db.set_config(&make_config_entry("ns1", "key1", "val1")).unwrap();
-        db.set_config(&make_config_entry("ns1", "key2", "val2")).unwrap();
-        db.set_config(&make_config_entry("ns2", "key3", "val3")).unwrap();
+        db.set_config(&make_config_entry("ns1", "key1", "val1"))
+            .unwrap();
+        db.set_config(&make_config_entry("ns1", "key2", "val2"))
+            .unwrap();
+        db.set_config(&make_config_entry("ns2", "key3", "val3"))
+            .unwrap();
         let ns1_entries = db.list_config("ns1").unwrap();
         assert_eq!(ns1_entries.len(), 2);
         let ns2_entries = db.list_config("ns2").unwrap();
@@ -570,7 +588,8 @@ mod tests {
     fn test_config_delete() {
         // Traces to: FR-DB-003
         let db = open_in_memory();
-        db.set_config(&make_config_entry("app", "key", "value")).unwrap();
+        db.set_config(&make_config_entry("app", "key", "value"))
+            .unwrap();
         db.delete_config("app", "key").unwrap();
         let result = db.get_config("app", "key");
         assert!(result.is_err());
@@ -580,10 +599,15 @@ mod tests {
     fn test_config_audit_log_records_changes() {
         // Traces to: FR-DB-004
         let db = open_in_memory();
-        db.set_config(&make_config_entry("app", "debug", "false")).unwrap();
-        db.set_config(&make_config_entry("app", "debug", "true")).unwrap();
+        db.set_config(&make_config_entry("app", "debug", "false"))
+            .unwrap();
+        db.set_config(&make_config_entry("app", "debug", "true"))
+            .unwrap();
         let audit = db.audit_log("app", "debug").unwrap();
-        assert!(!audit.is_empty(), "Audit log should have entries after set_config calls");
+        assert!(
+            !audit.is_empty(),
+            "Audit log should have entries after set_config calls"
+        );
     }
 
     // --- FlagStore integration tests ---
@@ -608,7 +632,9 @@ mod tests {
         let db = open_in_memory();
         let flag = make_feature_flag("myapp", "new-editor", true);
         db.set_flag(&flag).expect("set_flag should succeed");
-        let fetched = db.get_flag("myapp", "new-editor").expect("get_flag should succeed");
+        let fetched = db
+            .get_flag("myapp", "new-editor")
+            .expect("get_flag should succeed");
         assert_eq!(fetched.name, "new-editor");
         assert!(fetched.enabled);
     }
@@ -625,8 +651,10 @@ mod tests {
     fn test_flag_list() {
         // Traces to: FR-DB-005
         let db = open_in_memory();
-        db.set_flag(&make_feature_flag("app", "flag-a", true)).unwrap();
-        db.set_flag(&make_feature_flag("app", "flag-b", false)).unwrap();
+        db.set_flag(&make_feature_flag("app", "flag-a", true))
+            .unwrap();
+        db.set_flag(&make_feature_flag("app", "flag-b", false))
+            .unwrap();
         let flags = db.list_flags("app").unwrap();
         assert_eq!(flags.len(), 2);
     }
@@ -635,7 +663,8 @@ mod tests {
     fn test_flag_delete() {
         // Traces to: FR-DB-005
         let db = open_in_memory();
-        db.set_flag(&make_feature_flag("app", "temp-flag", true)).unwrap();
+        db.set_flag(&make_feature_flag("app", "temp-flag", true))
+            .unwrap();
         db.delete_flag("app", "temp-flag").unwrap();
         let result = db.get_flag("app", "temp-flag");
         assert!(result.is_err());
@@ -720,7 +749,8 @@ mod tests {
                 our_version: "1.0.0".to_string(),
                 upstream_version: "1.0.0".to_string(),
                 synced_at: Utc::now(),
-            }).unwrap();
+            })
+            .unwrap();
         }
         let versions = db.list_versions().unwrap();
         assert_eq!(versions.len(), 3);

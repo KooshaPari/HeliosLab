@@ -103,9 +103,22 @@ pub enum Stage {
 
 impl Stage {
     pub const ALL: &'static [Stage] = &[
-        Stage::SP, Stage::Poc, Stage::IP, Stage::A, Stage::FP, Stage::B,
-        Stage::EP, Stage::CN, Stage::RC, Stage::GA, Stage::Lts, Stage::HF,
-        Stage::SS, Stage::Dep, Stage::AR, Stage::Eol,
+        Stage::SP,
+        Stage::Poc,
+        Stage::IP,
+        Stage::A,
+        Stage::FP,
+        Stage::B,
+        Stage::EP,
+        Stage::CN,
+        Stage::RC,
+        Stage::GA,
+        Stage::Lts,
+        Stage::HF,
+        Stage::SS,
+        Stage::Dep,
+        Stage::AR,
+        Stage::Eol,
     ];
 
     pub fn ordinal(self) -> usize {
@@ -133,14 +146,28 @@ impl Stage {
 
 impl fmt::Display for Stage {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", match self {
-            Stage::SP => "SP", Stage::Poc => "POC", Stage::IP => "IP",
-            Stage::A => "A", Stage::FP => "FP", Stage::B => "B",
-            Stage::EP => "EP", Stage::CN => "CN", Stage::RC => "RC",
-            Stage::GA => "GA", Stage::Lts => "LTS", Stage::HF => "HF",
-            Stage::SS => "SS", Stage::Dep => "DEP", Stage::AR => "AR",
-            Stage::Eol => "EOL",
-        })
+        write!(
+            f,
+            "{}",
+            match self {
+                Stage::SP => "SP",
+                Stage::Poc => "POC",
+                Stage::IP => "IP",
+                Stage::A => "A",
+                Stage::FP => "FP",
+                Stage::B => "B",
+                Stage::EP => "EP",
+                Stage::CN => "CN",
+                Stage::RC => "RC",
+                Stage::GA => "GA",
+                Stage::Lts => "LTS",
+                Stage::HF => "HF",
+                Stage::SS => "SS",
+                Stage::Dep => "DEP",
+                Stage::AR => "AR",
+                Stage::Eol => "EOL",
+            }
+        )
     }
 }
 
@@ -148,11 +175,21 @@ impl std::str::FromStr for Stage {
     type Err = Error;
     fn from_str(s: &str) -> Result<Self> {
         match s {
-            "SP" => Ok(Stage::SP), "POC" => Ok(Stage::Poc), "IP" => Ok(Stage::IP),
-            "A" => Ok(Stage::A), "FP" => Ok(Stage::FP), "B" => Ok(Stage::B),
-            "EP" => Ok(Stage::EP), "CN" => Ok(Stage::CN), "RC" => Ok(Stage::RC),
-            "GA" => Ok(Stage::GA), "LTS" => Ok(Stage::Lts), "HF" => Ok(Stage::HF),
-            "SS" => Ok(Stage::SS), "DEP" => Ok(Stage::Dep), "AR" => Ok(Stage::AR),
+            "SP" => Ok(Stage::SP),
+            "POC" => Ok(Stage::Poc),
+            "IP" => Ok(Stage::IP),
+            "A" => Ok(Stage::A),
+            "FP" => Ok(Stage::FP),
+            "B" => Ok(Stage::B),
+            "EP" => Ok(Stage::EP),
+            "CN" => Ok(Stage::CN),
+            "RC" => Ok(Stage::RC),
+            "GA" => Ok(Stage::GA),
+            "LTS" => Ok(Stage::Lts),
+            "HF" => Ok(Stage::HF),
+            "SS" => Ok(Stage::SS),
+            "DEP" => Ok(Stage::Dep),
+            "AR" => Ok(Stage::AR),
             "EOL" => Ok(Stage::Eol),
             _ => Err(Error::Other(format!("unknown stage: {s}"))),
         }
@@ -454,10 +491,21 @@ mod tests {
     #[test]
     fn test_flag_gated_valid_at_pre_release_stages() {
         // Traces to: FR-CORE-005
-        for &stage in &[Stage::SP, Stage::Poc, Stage::IP, Stage::A, Stage::FP, Stage::B, Stage::EP, Stage::CN, Stage::RC] {
+        for &stage in &[
+            Stage::SP,
+            Stage::Poc,
+            Stage::IP,
+            Stage::A,
+            Stage::FP,
+            Stage::B,
+            Stage::EP,
+            Stage::CN,
+            Stage::RC,
+        ] {
             assert!(
                 TransienceClass::F.valid_at_stage(stage),
-                "F should be valid at stage {:?}", stage
+                "F should be valid at stage {:?}",
+                stage
             );
         }
     }
@@ -465,10 +513,19 @@ mod tests {
     #[test]
     fn test_flag_gated_invalid_at_production_stages() {
         // Traces to: FR-CORE-005
-        for &stage in &[Stage::GA, Stage::Lts, Stage::HF, Stage::SS, Stage::Dep, Stage::AR, Stage::Eol] {
+        for &stage in &[
+            Stage::GA,
+            Stage::Lts,
+            Stage::HF,
+            Stage::SS,
+            Stage::Dep,
+            Stage::AR,
+            Stage::Eol,
+        ] {
             assert!(
                 !TransienceClass::F.valid_at_stage(stage),
-                "F should NOT be valid at stage {:?}", stage
+                "F should NOT be valid at stage {:?}",
+                stage
             );
         }
     }
@@ -476,10 +533,18 @@ mod tests {
     #[test]
     fn test_compile_gated_valid_up_to_beta() {
         // Traces to: FR-CORE-005
-        for &stage in &[Stage::SP, Stage::Poc, Stage::IP, Stage::A, Stage::FP, Stage::B] {
+        for &stage in &[
+            Stage::SP,
+            Stage::Poc,
+            Stage::IP,
+            Stage::A,
+            Stage::FP,
+            Stage::B,
+        ] {
             assert!(
                 TransienceClass::C.valid_at_stage(stage),
-                "C should be valid at stage {:?}", stage
+                "C should be valid at stage {:?}",
+                stage
             );
         }
     }
@@ -490,7 +555,8 @@ mod tests {
         for &stage in &[Stage::EP, Stage::CN, Stage::RC, Stage::GA, Stage::Lts] {
             assert!(
                 !TransienceClass::C.valid_at_stage(stage),
-                "C should NOT be valid at stage {:?}", stage
+                "C should NOT be valid at stage {:?}",
+                stage
             );
         }
     }
@@ -501,7 +567,8 @@ mod tests {
         for &stage in Stage::ALL {
             assert!(
                 TransienceClass::X.valid_at_stage(stage),
-                "X should always be valid, failed at {:?}", stage
+                "X should always be valid, failed at {:?}",
+                stage
             );
         }
     }
@@ -533,7 +600,10 @@ mod tests {
     fn test_error_display_invalid_transition() {
         // Traces to: FR-CORE-006
         let err = Error::InvalidTransition("SP -> EOL not allowed".to_string());
-        assert_eq!(err.to_string(), "invalid stage transition: SP -> EOL not allowed");
+        assert_eq!(
+            err.to_string(),
+            "invalid stage transition: SP -> EOL not allowed"
+        );
     }
 
     #[test]

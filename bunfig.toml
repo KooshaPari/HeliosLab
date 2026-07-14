@@ -16,3 +16,6 @@ save = true
 [test]
 preload = ["./apps/desktop/tests/unit/dom-shim.ts"]
 timeout = 60000
+coverageSkipTestFiles = true
+coverageReporter = ["text", "lcov"]
+coverageThreshold = { lines = 0.75, functions = 0.75, statements = 0.75 }

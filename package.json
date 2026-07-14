@@ -31,7 +31,7 @@
     "typecheck": "tsc --noEmit",
     "typecheck:rust": "cargo check --workspace --exclude pheno-ffi-python --all-targets",
     "typecheck:all": "bun run typecheck && bun run typecheck:rust",
-    "lint": "oxlint apps packages src scripts tests",
+    "lint": "oxlint --deny-warnings apps packages src scripts tests",
     "lint:rust": "cargo clippy --workspace --exclude pheno-ffi-python --all-targets -- -D warnings",
     "lint:all": "bun run lint && bun run lint:rust && cargo fmt --all -- --check",
     "format": "biome format --write apps docs/.vitepress playwright.config.ts tsconfig.json package.json",

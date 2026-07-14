@@ -5,9 +5,9 @@
 <!-- Slop issues are expected and intentionally present as part of an HITL-less -->
 <!-- /minimized AI-DD metaproject of learning, refining, and building brute-force -->
 <!-- training for both agents and the human operator. -->
-![Downloads](https://img.shields.io/github/downloads/KooshaPari/heliosApp/total?style=flat-square&label=downloads&color=blue)
-![GitHub release](https://img.shields.io/github/v/release/KooshaPari/heliosApp?style=flat-square&label=release)
-![License](https://img.shields.io/github/license/KooshaPari/heliosApp?style=flat-square)
+![Downloads](https://img.shields.io/github/downloads/KooshaPari/HeliosLab/total?style=flat-square&label=downloads&color=blue)
+![GitHub release](https://img.shields.io/github/v/release/KooshaPari/HeliosLab?style=flat-square&label=release)
+![License](https://img.shields.io/github/license/KooshaPari/HeliosLab?style=flat-square)
 ![AI-Slop](https://img.shields.io/badge/AI--DD-Slop%20Expected-orange?style=flat-square)
 ![AI-Only-Maintained](https://img.shields.io/badge/Planned%20%26%20Maintained%20by-AI%20Agents%20Only-red?style=flat-square)
 ![HITL-less](https://img.shields.io/badge/HITL--less%20AI--DD-metaproject-yellow?style=flat-square)
@@ -21,24 +21,24 @@
 > human operator. Bug reports and contributions are still welcome, but please
 > expect AI-generated code, comments, and documentation throughout.
 <!-- AI-DD-META:END -->
-# HeliosApp
+# HeliosLab
 
 > **Work state:** ACTIVE · **Progress:** `stable` · Updated 2026-06-08 (hygiene bundle).
 
 
-[![Build](https://img.shields.io/github/actions/workflow/status/KooshaPari/heliosApp/ci.yml?branch=main&label=build)](https://github.com/KooshaPari/heliosApp/actions)
-[![Release](https://img.shields.io/github/v/release/KooshaPari/heliosApp?include_prereleases&sort=semver)](https://github.com/KooshaPari/heliosApp/releases)
-[![License](https://img.shields.io/github/license/KooshaPari/heliosApp)](LICENSE)
+[![Build](https://img.shields.io/github/actions/workflow/status/KooshaPari/HeliosLab/ci.yml?branch=main&label=build)](https://github.com/KooshaPari/HeliosLab/actions)
+[![Release](https://img.shields.io/github/v/release/KooshaPari/HeliosLab?include_prereleases&sort=semver)](https://github.com/KooshaPari/HeliosLab/releases)
+[![License](https://img.shields.io/github/license/KooshaPari/HeliosLab)](LICENSE)
 [![Phenotype](https://img.shields.io/badge/Phenotype-org-blueviolet)](https://github.com/KooshaPari)
 [![AI Slop Inside](https://sladge.net/badge.svg)](https://sladge.net)
 
-**Status:** stable
+**Status:** consolidation in progress; truthful gates intentionally expose known reds
 
-**Version:** 2026.03A.0  
-**Package Manager:** Bun 1.2.20+  
-**Runtime:** TypeScript 7.x (strict mode)
+**Version:** 2026.05B.0  
+**Package Manager:** Bun 1.3.14  
+**Runtime:** TypeScript 6.x (strict mode) plus Rust 2021
 
-HeliosApp is a developer-focused AI runtime environment with a desktop shell, terminal multiplexing, session management, and multi-provider AI inference. It is structured as a Bun monorepo containing four applications and five shared packages.
+HeliosLab is the canonical independent Helios developer runtime and research lab. It preserves the complete heliosApp history and runtime/desktop architecture while retaining HeliosLab's Rust configuration, FFI, legacy Electrobun shell, plugin, and research capabilities. The standalone heliosApp repository is scheduled for archival after this consolidation is accepted.
 
 ## Quick Start
 

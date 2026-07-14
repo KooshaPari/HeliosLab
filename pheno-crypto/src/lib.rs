@@ -15,7 +15,7 @@
 // limitations under the License.
 
 use aes_gcm::aead::{Aead, KeyInit, OsRng};
-use aes_gcm::{Aes256Gcm, AeadCore, Key, Nonce};
+use aes_gcm::{AeadCore, Aes256Gcm, Key, Nonce};
 use pheno_core::{Error, Result};
 
 pub fn generate_key() -> Vec<u8> {
@@ -99,7 +99,10 @@ mod tests {
         let plaintext = b"same plaintext";
         let (ct1, _) = encrypt(plaintext, &key).unwrap();
         let (ct2, _) = encrypt(plaintext, &key).unwrap();
-        assert_ne!(ct1, ct2, "Ciphertext should differ between encryptions due to random nonce");
+        assert_ne!(
+            ct1, ct2,
+            "Ciphertext should differ between encryptions due to random nonce"
+        );
     }
 
     #[test]
@@ -121,7 +124,10 @@ mod tests {
         let (mut ciphertext, nonce) = encrypt(plaintext, &key).unwrap();
         ciphertext[0] ^= 0xFF; // flip bits in first byte
         let result = decrypt(&ciphertext, &nonce, &key);
-        assert!(result.is_err(), "Decryption of tampered ciphertext must fail");
+        assert!(
+            result.is_err(),
+            "Decryption of tampered ciphertext must fail"
+        );
     }
 
     #[test]
@@ -140,7 +146,8 @@ mod tests {
         // Traces to: FR-CRYPTO-002
         let key = generate_key();
         let (ciphertext, nonce) = encrypt(b"", &key).expect("should encrypt empty plaintext");
-        let decrypted = decrypt(&ciphertext, &nonce, &key).expect("should decrypt empty ciphertext");
+        let decrypted =
+            decrypt(&ciphertext, &nonce, &key).expect("should decrypt empty ciphertext");
         assert_eq!(decrypted, b"");
     }
 
@@ -154,7 +161,10 @@ mod tests {
         restore_secret_key(previous);
         assert!(result.is_err());
         let err = result.unwrap_err().to_string();
-        assert!(err.contains("PHENO_SECRET_KEY"), "Error should mention the env var name");
+        assert!(
+            err.contains("PHENO_SECRET_KEY"),
+            "Error should mention the env var name"
+        );
     }
 
     #[test]
