@@ -5,6 +5,6 @@ ci.yml|traceability
 ci.yml|secret-scan
 ci.yml|ci-summary
 required-check-names-guard.yml|verify-required-check-names
-quality-gates.yml|quality-gates
-compliance-check.yml|compliance-check
+quality-gates.yml|Quality Gates Pipeline|quality-gates
+compliance-check.yml|Constitution Compliance Validation|compliance-check
 external|CodeRabbit|coderabbit-review
