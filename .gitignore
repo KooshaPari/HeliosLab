@@ -61,3 +61,11 @@ pnpm-debug.log*
 Thumbs.db
 yarn-debug.log*
 yarn-error.log*
+# Generated quality and test evidence (CI uploads these as artifacts)
+.gate-reports/
+test-results/
+.vitepress/cache/
+*.bak
+.build_output.log
+.broken_md_refs.txt
+heliosApp-wtrees/
