@@ -151,13 +151,17 @@ async function fetchLatestVersion(
 	pkg: string,
 	source: string,
 ): Promise<string | null> {
-	if (source.includes("registry.npmjs.org")) {
+	let sourceUrl: URL;
+	try {
+		sourceUrl = new URL(source);
+	} catch {
+		return null;
+	}
+
+	if (sourceUrl.hostname === "registry.npmjs.org") {
 		const pkgName = source.split("/").pop();
 		return queryNpmRegistry(pkgName || pkg);
-	} else if (
-		source.includes("github.com") ||
-		source.includes("api.github.com")
-	) {
+	} else if (sourceUrl.hostname === "github.com" || sourceUrl.hostname === "api.github.com") {
 		return queryGitHubReleases(source);
 	}
 	return null;

@@ -207,13 +207,15 @@ async function testImportsSourceFile(
     const testContent = await fs.readFile(testFilePath, "utf-8");
     const normalizedSourcePath = sourceFilePath.replace(/\\/g, "/").replace(/\.(tsx?|mjs)$/, "");
     const sourceFileName = path.basename(sourceFilePath, path.extname(sourceFilePath));
+    const escapedSourcePath = normalizedSourcePath.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const escapedSourceFileName = sourceFileName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
     // Check for various import patterns
     const importPatterns = [
-      new RegExp(`from\\s+['"]\\.?/?.*${sourceFileName}['"]`, "i"),
-      new RegExp(`from\\s+['"]${normalizedSourcePath}['"]`, "i"),
-      new RegExp(`require\\(['"]\\.?/?.*${sourceFileName}['"]`, "i"),
-      new RegExp(`import\\(\\s*['"]\\.?/?.*${sourceFileName}['"]`, "i"),
+      new RegExp(`from\\s+['"]\\.?/?.*${escapedSourceFileName}['"]`, "i"),
+      new RegExp(`from\\s+['"]${escapedSourcePath}['"]`, "i"),
+      new RegExp(`require\\(['"]\\.?/?.*${escapedSourceFileName}['"]`, "i"),
+      new RegExp(`import\\(\\s*['"]\\.?/?.*${escapedSourceFileName}['"]`, "i"),
     ];
 
     return importPatterns.some(pattern => pattern.test(testContent));

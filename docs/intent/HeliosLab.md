@@ -97,11 +97,11 @@ See: [`docs/boundary/HeliosLab.md`](../boundary/HeliosLab.md)
 
 ## Ecosystem Role
 
-<See `ECOSYSTEM_MAP.md` for the canonical ecosystem role.>
+See `ECOSYSTEM_MAP.md` for the canonical ecosystem role.
 
 ## Open Questions
 
-- <To be filled from the latest prompt on this repo.>
+- To be filled from the latest prompt on this repo.
 
 ## Change Log
 
