@@ -50,7 +50,37 @@ test("checked mappings pass from a working directory outside the repository", ()
 test("missing requirement mappings fail closed", () => {
 	const run = runGate("tools/gates/fixtures/traceability/matrix-missing.json");
 	assert.equal(run.status, 1);
-	assert.match(run.stderr, /missing requirement mappings for: FR-002, NFR-001/);
+	assert.match(run.stderr, /missing requirement mappings \(2\): FR-002, NFR-001/);
+});
+
+test("unknown mappings fail closed with an exact count", () => {
+	const run = runMutatedMatrix((matrix) => {
+		matrix.requirements.push({
+			id: "FR-LEGACY-001",
+			status: "[x]",
+			code: ["tools/gates/fixtures/traceability/code.ts"],
+			tests: ["tools/gates/fixtures/traceability/test.ts"],
+			evidence: ["tools/gates/fixtures/traceability/evidence.md"],
+		});
+	});
+	assert.equal(run.status, 1);
+	assert.match(run.stderr, /matrix contains unknown requirements \(1\): FR-LEGACY-001/);
+});
+
+test("duplicate mappings fail closed", () => {
+	const run = runMutatedMatrix((matrix) => {
+		matrix.requirements.push({ ...matrix.requirements[0] });
+	});
+	assert.equal(run.status, 1);
+	assert.match(run.stderr, /duplicate mapping for FR-001/);
+});
+
+test("invalid JSON fails with a controlled error", () => {
+	const matrixPath = resolve(temporaryDirectory, "matrix-invalid.json");
+	writeFileSync(matrixPath, "{not-json");
+	const run = runGate(matrixPath);
+	assert.equal(run.status, 1);
+	assert.match(run.stderr, /matrix file is not valid JSON/);
 });
 
 for (const kind of ["code", "tests", "evidence"]) {

@@ -4,8 +4,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const DEFAULT_SPEC_PATH = "FUNCTIONAL_REQUIREMENTS.md";
-const DEFAULT_MATRIX_PATH =
-	"docs/specs/001-colab-agent-terminal-control-plane/traceability-matrix.json";
+const DEFAULT_MATRIX_PATH = "docs/reference/functional-requirements-traceability.json";
 const ARTIFACT_KINDS = ["code", "tests", "evidence"];
 
 export function extractRequirementIds(specText) {
@@ -37,6 +36,10 @@ function formatIds(ids) {
 	const displayed = ids.slice(0, 10).join(", ");
 	const remainder = ids.length - 10;
 	return remainder > 0 ? `${displayed} (+${remainder} more)` : displayed;
+}
+
+function formatIdCount(label, ids) {
+	return `${label} (${ids.length}): ${formatIds(ids)}`;
 }
 
 export function validateTraceability({ specPath, matrixPath, repoRoot = REPO_ROOT }) {
@@ -82,11 +85,11 @@ export function validateTraceability({ specPath, matrixPath, repoRoot = REPO_ROO
 	const required = new Set(requirementIds);
 	const missing = requirementIds.filter((id) => !byId.has(id));
 	if (missing.length > 0) {
-		errors.push(`missing requirement mappings for: ${formatIds(missing)}`);
+		errors.push(formatIdCount("missing requirement mappings", missing));
 	}
 	const unknown = [...byId.keys()].filter((id) => !required.has(id));
 	if (unknown.length > 0) {
-		errors.push(`matrix contains unknown requirements: ${formatIds(unknown)}`);
+		errors.push(formatIdCount("matrix contains unknown requirements", unknown));
 	}
 
 	for (const id of requirementIds) {

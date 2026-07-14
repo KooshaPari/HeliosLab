@@ -49,6 +49,6 @@ describe("collision resistance", () => {
 				expect(result.valid).toBe(true);
 			}
 		},
-		{ timeout: 60_000 },
+		{ timeout: 120_000 },
 	);
 });

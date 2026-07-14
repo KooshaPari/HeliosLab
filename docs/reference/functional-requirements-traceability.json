@@ -1,0 +1,60 @@
+{
+	"requirements": [
+		{
+			"id": "FR-ID-001",
+			"status": "[x]",
+			"code": ["packages/ids/src/index.ts", "packages/ids/src/prefixes.ts"],
+			"tests": ["packages/ids/tests/generate.test.ts"],
+			"evidence": ["TEST_COVERAGE_MATRIX.md"]
+		},
+		{
+			"id": "FR-ID-002",
+			"status": "[x]",
+			"code": ["packages/ids/src/prefixes.ts"],
+			"tests": ["packages/ids/tests/generate.test.ts"],
+			"evidence": ["TEST_COVERAGE_MATRIX.md"]
+		},
+		{
+			"id": "FR-ID-003",
+			"status": "[x]",
+			"code": ["packages/ids/src/ulid.ts"],
+			"tests": ["packages/ids/tests/ulid.test.ts"],
+			"evidence": ["TEST_COVERAGE_MATRIX.md"]
+		},
+		{
+			"id": "FR-ID-004",
+			"status": "[x]",
+			"code": ["packages/ids/src/ulid.ts"],
+			"tests": ["packages/ids/tests/collision.test.ts"],
+			"evidence": ["TEST_COVERAGE_MATRIX.md"]
+		},
+		{
+			"id": "FR-ID-006",
+			"status": "[x]",
+			"code": ["packages/ids/src/validate.ts"],
+			"tests": ["packages/ids/tests/validate.test.ts"],
+			"evidence": ["TEST_COVERAGE_MATRIX.md"]
+		},
+		{
+			"id": "FR-ID-007",
+			"status": "[x]",
+			"code": ["packages/ids/src/parse.ts"],
+			"tests": ["packages/ids/tests/parse.test.ts"],
+			"evidence": ["TEST_COVERAGE_MATRIX.md"]
+		},
+		{
+			"id": "FR-ID-008",
+			"status": "[x]",
+			"code": ["packages/ids/src/index.ts", "packages/ids/src/ulid.ts"],
+			"tests": ["packages/ids/tests/format.test.ts"],
+			"evidence": ["TEST_COVERAGE_MATRIX.md"]
+		},
+		{
+			"id": "FR-ID-009",
+			"status": "[x]",
+			"code": ["packages/ids/src/ulid.ts"],
+			"tests": ["packages/ids/tests/ulid.test.ts"],
+			"evidence": ["TEST_COVERAGE_MATRIX.md"]
+		}
+	]
+}
