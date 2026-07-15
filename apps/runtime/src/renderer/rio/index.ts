@@ -82,7 +82,7 @@ export async function registerRio(
   let backendModule: typeof import("./backend.js");
   try {
     backendModule = await import("./backend.js");
-  } catch {
+  } catch (err: unknown) {
     console.error("Rio renderer: failed to load backend module", err);
     return;
   }
@@ -131,7 +131,7 @@ export async function handleRioToggle(
       // If rio is active, switch to ghostty first.
       const active = registry.getActive();
       if (active && active.id === "rio") {
-        const _ghostty = registry.get("ghostty");
+        const ghostty = registry.get("ghostty");
         if (ghostty) {
           // Init ghostty if needed.
           const ghosttyState = ghostty.getState();
@@ -232,7 +232,7 @@ export class RioToggleQueue {
       try {
         const events = await handleRioToggle(this._registry, item.enabled, this._config);
         item.resolve(events);
-      } catch {
+      } catch (err: unknown) {
         item.reject(err instanceof Error ? err : new Error(String(err)));
       }
     }

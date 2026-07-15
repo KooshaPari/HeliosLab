@@ -70,7 +70,7 @@ export class RioProcess {
       });
 
       return { pid: this._pid };
-    } catch {
+    } catch (err: unknown) {
       this._running = false;
       this._startLock = false;
       throw new Error(

@@ -5,7 +5,9 @@
  * Prerequisites: skips if rio binary not available or feature flag not enabled.
  */
 
+import { beforeAll, beforeEach, describe, expect, it } from "bun:test";
 import { RioBackend } from "../../../../src/renderer/rio/backend.js";
+import { detectRioBinary, registerRio } from "../../../../src/renderer/rio/index.js";
 import { RendererRegistry } from "../../../../src/renderer/registry.js";
 
 import type {
@@ -84,13 +86,13 @@ const _DEFAULT_CONFIG: RendererConfig = {
 
 describe("Rio registration — feature flag off", () => {
   it("does not register when flag disabled", async () => {
-    const _registry = new RendererRegistry();
+    const registry = new RendererRegistry();
     await registerRio(registry, { featureFlags: { rioRenderer: false } });
     expect(registry.get("rio")).toBeUndefined();
   });
 
   it("does not register when flag missing", async () => {
-    const _registry = new RendererRegistry();
+    const registry = new RendererRegistry();
     await registerRio(registry, {});
     expect(registry.get("rio")).toBeUndefined();
   });
@@ -102,7 +104,7 @@ describe("Rio registration — feature flag on", () => {
       console.log("SKIP: rio binary not available");
       return;
     }
-    const _registry = new RendererRegistry();
+    const registry = new RendererRegistry();
     await registerRio(registry, { featureFlags: { rioRenderer: true } });
     expect(registry.get("rio")).toBeDefined();
     expect(registry.get("rio")?.id).toBe("rio");

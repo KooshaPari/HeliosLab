@@ -776,6 +776,62 @@
 			"code": ["apps/runtime/src/integrations/zellij/reconciliation.ts", "apps/runtime/src/integrations/zellij/registry.ts"],
 			"tests": ["apps/runtime/src/integrations/zellij/__tests__/reconciliation.test.ts", "apps/runtime/tests/integration/integrations/zellij/lifecycle.test.ts"],
 			"evidence": ["docs/specs/009-zellij-mux-session-adapter/spec.md"]
+		},
+		{
+			"id": "FR-RIO-001",
+			"status": "[x]",
+			"code": ["apps/runtime/src/renderer/rio/backend.ts", "apps/runtime/src/renderer/adapter.ts"],
+			"tests": ["apps/runtime/tests/unit/renderer/rio/backend.test.ts", "apps/runtime/tests/integration/renderer/rio/lifecycle.test.ts"],
+			"evidence": ["docs/specs/012-rio-renderer-backend/spec.md"]
+		},
+		{
+			"id": "FR-RIO-002",
+			"status": "[x]",
+			"code": ["apps/runtime/src/renderer/rio/index.ts", "apps/runtime/src/config/flags.ts"],
+			"tests": ["apps/runtime/tests/unit/renderer/rio/feature_flag.test.ts", "apps/runtime/tests/integration/renderer/rio/zero_cost.test.ts"],
+			"evidence": ["docs/specs/012-rio-renderer-backend/spec.md"]
+		},
+		{
+			"id": "FR-RIO-003",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/renderer/rio/process.ts", "apps/runtime/src/renderer/rio/surface.ts", "apps/runtime/src/renderer/rio/backend.ts"],
+			"tests": ["apps/runtime/tests/unit/renderer/rio/process.test.ts", "apps/runtime/tests/integration/renderer/rio/lifecycle.test.ts"],
+			"evidence": ["docs/specs/012-rio-renderer-backend/spec.md"]
+		},
+		{
+			"id": "FR-RIO-004",
+			"status": "[x]",
+			"code": ["apps/runtime/src/renderer/rio/backend.ts", "apps/runtime/src/renderer/rio/input.ts"],
+			"tests": ["apps/runtime/tests/unit/renderer/rio/backend.test.ts", "apps/runtime/tests/integration/renderer/rio/lifecycle.test.ts"],
+			"evidence": ["docs/specs/012-rio-renderer-backend/spec.md"]
+		},
+		{
+			"id": "FR-RIO-005",
+			"status": "[x]",
+			"code": ["apps/runtime/src/renderer/rio/metrics.ts", "apps/runtime/src/renderer/rio/backend.ts"],
+			"tests": ["apps/runtime/tests/unit/renderer/rio/metrics.test.ts", "apps/runtime/tests/benchmark/renderer/rio/slo.test.ts"],
+			"evidence": ["docs/specs/012-rio-renderer-backend/spec.md"]
+		},
+		{
+			"id": "FR-RIO-006",
+			"status": "[x]",
+			"code": ["apps/runtime/src/renderer/rio/capabilities.ts", "apps/runtime/src/renderer/rio/backend.ts"],
+			"tests": ["apps/runtime/tests/integration/renderer/rio/lifecycle.test.ts"],
+			"evidence": ["docs/specs/012-rio-renderer-backend/spec.md"]
+		},
+		{
+			"id": "FR-RIO-007",
+			"status": "[x]",
+			"code": ["apps/runtime/src/renderer/rio/process.ts", "apps/runtime/src/renderer/rio/backend.ts"],
+			"tests": ["apps/runtime/tests/unit/renderer/rio/fallback.test.ts", "apps/runtime/tests/unit/renderer/rio/backend.test.ts"],
+			"evidence": ["docs/specs/012-rio-renderer-backend/spec.md"]
+		},
+		{
+			"id": "FR-RIO-008",
+			"status": "[x]",
+			"code": ["apps/runtime/src/renderer/rio/index.ts", "apps/runtime/src/renderer/rio/backend.ts"],
+			"tests": ["apps/runtime/tests/unit/renderer/rio/feature_flag.test.ts", "apps/runtime/tests/integration/renderer/rio/zero_cost.test.ts"],
+			"evidence": ["docs/specs/012-rio-renderer-backend/spec.md"]
 		}
 	]
 }

@@ -129,8 +129,8 @@ describe("RioBackend — lifecycle with mocked process", () => {
 describe("RioBackend — crash fallback (T007)", () => {
   it("falls back to ghostty when registry has ghostty", async () => {
     const backend = new RioBackend();
-    const _registry = new RendererRegistry();
-    const _ghostty = createMockGhostty();
+    const registry = new RendererRegistry();
+    const ghostty = createMockGhostty();
 
     registry.register(ghostty);
     registry.register(backend);
@@ -156,7 +156,7 @@ describe("RioBackend — crash fallback (T007)", () => {
 
   it("transitions to errored when ghostty not available", async () => {
     const backend = new RioBackend();
-    const _registry = new RendererRegistry();
+    const registry = new RendererRegistry();
     registry.register(backend);
     backend.setRegistry(registry);
 
@@ -173,8 +173,8 @@ describe("RioBackend — crash fallback (T007)", () => {
 
   it("does not double-fallback when already in progress", async () => {
     const backend = new RioBackend();
-    const _registry = new RendererRegistry();
-    const _ghostty = createMockGhostty();
+    const registry = new RendererRegistry();
+    const ghostty = createMockGhostty();
     registry.register(ghostty);
     registry.register(backend);
     backend.setRegistry(registry);

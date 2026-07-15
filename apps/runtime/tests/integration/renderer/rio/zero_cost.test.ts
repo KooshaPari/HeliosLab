@@ -90,7 +90,7 @@ describe("Zero-cost — switch rejection", () => {
 
 describe("Zero-cost — registry empty", () => {
   it("registry.list() has no rio when flag off", async () => {
-    const _registry = new RendererRegistry();
+    const registry = new RendererRegistry();
     await registerRio(registry, { featureFlags: { rioRenderer: false } });
 
     const ids = registry.list().map(a => a.id);
@@ -98,7 +98,7 @@ describe("Zero-cost — registry empty", () => {
   });
 
   it("registry.get('rio') returns undefined when flag off", async () => {
-    const _registry = new RendererRegistry();
+    const registry = new RendererRegistry();
     await registerRio(registry, { featureFlags: { rioRenderer: false } });
 
     expect(registry.get("rio")).toBeUndefined();
@@ -113,7 +113,7 @@ describe("Zero-cost — module loading", () => {
   it("registerRio with flag off does not trigger dynamic import of backend", async () => {
     // We can verify this by checking that registerRio returns quickly
     // and that no RioBackend instance exists in the registry.
-    const _registry = new RendererRegistry();
+    const registry = new RendererRegistry();
     const start = performance.now();
     await registerRio(registry, { featureFlags: { rioRenderer: false } });
     const elapsed = performance.now() - start;

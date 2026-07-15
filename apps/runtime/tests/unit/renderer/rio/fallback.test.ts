@@ -111,7 +111,7 @@ describe("Crash fallback — ghostty available", () => {
 describe("Crash fallback — ghostty unavailable", () => {
   it("transitions to errored when ghostty not registered", async () => {
     const backend = new RioBackend();
-    const _registry = new RendererRegistry();
+    const registry = new RendererRegistry();
     registry.register(backend);
     backend.setRegistry(registry);
 
@@ -129,8 +129,8 @@ describe("Crash fallback — ghostty unavailable", () => {
 describe("Crash fallback — ghostty init fails", () => {
   it("transitions to errored when ghostty init throws", async () => {
     const backend = new RioBackend();
-    const _registry = new RendererRegistry();
-    const _ghostty = createMockGhostty({ failInit: true });
+    const registry = new RendererRegistry();
+    const ghostty = createMockGhostty({ failInit: true });
     registry.register(ghostty);
     registry.register(backend);
     backend.setRegistry(registry);
@@ -145,8 +145,8 @@ describe("Crash fallback — ghostty init fails", () => {
 describe("Crash fallback — double fallback prevention", () => {
   it("second concurrent fallback is a no-op", async () => {
     const backend = new RioBackend();
-    const _registry = new RendererRegistry();
-    const _ghostty = createMockGhostty();
+    const registry = new RendererRegistry();
+    const ghostty = createMockGhostty();
     registry.register(ghostty);
     registry.register(backend);
     backend.setRegistry(registry);
@@ -164,8 +164,8 @@ describe("Crash fallback — double fallback prevention", () => {
 describe("Crash fallback — ghostty already running", () => {
   it("skips init when ghostty already running", async () => {
     const backend = new RioBackend();
-    const _registry = new RendererRegistry();
-    const _ghostty = createMockGhostty();
+    const registry = new RendererRegistry();
+    const ghostty = createMockGhostty();
     ghostty._state = "running"; // already running
     registry.register(ghostty);
     registry.register(backend);
