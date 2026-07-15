@@ -64,6 +64,7 @@ type SpawnResult = {
   readonly stderr: ReadableStream<Uint8Array> | null;
   readonly exited: Promise<number>;
   readonly pid: number;
+  kill(signal?: number): void;
 };
 
 type SpawnOptions = {
@@ -96,12 +97,34 @@ async function runGit(
     stderr: "pipe",
   });
 
-  const [stdout, stderr] = await Promise.all([
-    new Response(proc.stdout).text(),
-    new Response(proc.stderr).text(),
-  ]);
+  const timeoutMs = 30_000;
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+  const timedOut = new Promise<never>((_, reject) => {
+    timeout = setTimeout(() => {
+      try {
+        proc.kill(9);
+      } catch {
+        // The process may have exited while the timeout callback was queued.
+      }
+      reject(new Error(`git ${args.join(" ")} timed out after ${timeoutMs}ms in ${cwd}`));
+    }, timeoutMs);
+  });
 
-  const exitCode = await proc.exited;
+  let stdout: string;
+  let stderr: string;
+  let exitCode: number;
+  try {
+    [stdout, stderr, exitCode] = await Promise.race([
+      Promise.all([
+        new Response(proc.stdout).text(),
+        new Response(proc.stderr).text(),
+        proc.exited,
+      ]),
+      timedOut,
+    ]);
+  } finally {
+    if (timeout !== undefined) clearTimeout(timeout);
+  }
   return { stdout: stdout.trim(), stderr: stderr.trim(), exitCode };
 }
 
@@ -268,12 +291,19 @@ export async function reconcileOrphanedWorktrees(
         result.orphanedWorktrees++;
         const worktreePath = path.join(worktreeRoot, laneId);
         try {
-          await removeWorktree(worktreePath, workspaceRepoPath);
+          // Orphans have no live lane owner. Removing their directory directly avoids
+          // three serialized Git subprocesses per orphan; one prune below repairs
+          // Git's administrative worktree records for the whole batch.
+          fs.rmSync(worktreePath, { recursive: true, force: true });
           result.cleaned++;
         } catch {
           // Best effort cleanup
         }
       }
+    }
+
+    if (result.cleaned > 0) {
+      await runGit(["worktree", "prune"], workspaceRepoPath);
     }
   }
 

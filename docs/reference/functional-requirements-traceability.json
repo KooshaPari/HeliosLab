@@ -275,7 +275,7 @@
 		},
 		{
 			"id": "FR-LAN-002",
-			"status": "[ ]",
+			"status": "[x]",
 			"code": ["apps/runtime/src/lanes/worktree.ts", "apps/runtime/src/lanes/index.ts"],
 			"tests": ["apps/runtime/tests/lanes/worktree.test.ts", "apps/runtime/tests/unit/lanes/worktree.test.ts"],
 			"evidence": ["TEST_COVERAGE_MATRIX.md"]
@@ -317,7 +317,7 @@
 		},
 		{
 			"id": "FR-LAN-008",
-			"status": "[ ]",
+			"status": "[x]",
 			"code": ["apps/runtime/src/lanes/index.ts", "apps/runtime/src/lanes/worktree.ts", "apps/runtime/src/lanes/watchdog/orphan_watchdog.ts"],
 			"tests": ["apps/runtime/tests/integration/lanes/reconciliation.test.ts", "apps/runtime/tests/lanes/lane_manager.test.ts"],
 			"evidence": ["TEST_COVERAGE_MATRIX.md"]

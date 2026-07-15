@@ -7,6 +7,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { _resetIdCounter, LaneManager } from "../../../src/lanes/index.js";
+import { computeBranchName } from "../../../src/lanes/worktree.js";
 
 import { InMemoryLocalBus } from "../../../src/protocol/bus.js";
 
@@ -16,10 +17,26 @@ async function runGit(args: string[], cwd: string): Promise<string> {
     stdout: "pipe",
     stderr: "pipe",
   });
-  const stdout = await new Response(proc.stdout).text();
-  const exitCode = await proc.exited;
+  const timeoutMs = 30_000;
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+  const timedOut = new Promise<never>((_, reject) => {
+    timeout = setTimeout(() => {
+      proc.kill(9);
+      reject(new Error(`git ${args.join(" ")} timed out after ${timeoutMs}ms`));
+    }, timeoutMs);
+  });
+  let stdout: string;
+  let stderr: string;
+  let exitCode: number;
+  try {
+    [stdout, stderr, exitCode] = await Promise.race([
+      Promise.all([new Response(proc.stdout).text(), new Response(proc.stderr).text(), proc.exited]),
+      timedOut,
+    ]);
+  } finally {
+    if (timeout !== undefined) clearTimeout(timeout);
+  }
   if (exitCode !== 0) {
-    const stderr = await new Response(proc.stderr).text();
     throw new Error(`git ${args.join(" ")} failed: ${stderr}`);
   }
   return stdout.trim();

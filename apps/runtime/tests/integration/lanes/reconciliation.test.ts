@@ -13,8 +13,28 @@ async function runGit(args: string[], cwd: string): Promise<string> {
     stdout: "pipe",
     stderr: "pipe",
   });
-  const stdout = await new Response(proc.stdout).text();
-  await proc.exited;
+  const timeoutMs = 30_000;
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+  const timedOut = new Promise<never>((_, reject) => {
+    timeout = setTimeout(() => {
+      proc.kill(9);
+      reject(new Error(`git ${args.join(" ")} timed out after ${timeoutMs}ms`));
+    }, timeoutMs);
+  });
+  let stdout: string;
+  let stderr: string;
+  let exitCode: number;
+  try {
+    [stdout, stderr, exitCode] = await Promise.race([
+      Promise.all([new Response(proc.stdout).text(), new Response(proc.stderr).text(), proc.exited]),
+      timedOut,
+    ]);
+  } finally {
+    if (timeout !== undefined) clearTimeout(timeout);
+  }
+  if (exitCode !== 0) {
+    throw new Error(`git ${args.join(" ")} failed: ${stderr}`);
+  }
   return stdout.trim();
 }
 
