@@ -1,7 +1,10 @@
 {
 	"namespace": "helios.localbus.v1",
 	"topics": [
+		"workspace.created",
 		"workspace.opened",
+		"workspace.closed",
+		"workspace.deleted",
 		"project.ready",
 		"session.created",
 		"session.restore.started",

@@ -57,7 +57,10 @@
 		"topic": {
 			"type": ["string", "null"],
 			"enum": [
+				"workspace.created",
 				"workspace.opened",
+				"workspace.closed",
+				"workspace.deleted",
 				"project.ready",
 				"session.created",
 				"session.attach.started",

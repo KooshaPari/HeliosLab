@@ -159,6 +159,26 @@ describe("gitClone", () => {
 // ── bindGitProject (integration-level, mocked spawn) ────────────────
 
 describe("bindGitProject", () => {
+  test("clones and binds a local git repository", async () => {
+    const sourceDir = join(tempDir, "source-repository");
+    const targetDir = join(tempDir, "clone-target");
+    const init = Bun.spawn(["git", "init", sourceDir], {
+      stdout: "ignore",
+      stderr: "pipe",
+    });
+    expect(await init.exited).toBe(0);
+
+    const bound = await bindGitProject(ws, sourceDir, targetDir);
+
+    expect(bound.projects).toHaveLength(1);
+    expect(bound.projects[0]).toMatchObject({
+      workspaceId: ws.id,
+      rootPath: realpathSync(targetDir),
+      gitUrl: sourceDir,
+      status: "active",
+    });
+  });
+
   test("rejects relative target directory", async () => {
     await expect(
       bindGitProject(ws, "https://example.com/repo.git", "relative/path")

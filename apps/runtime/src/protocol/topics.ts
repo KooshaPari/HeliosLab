@@ -34,7 +34,10 @@ function assertValidTopicName(topic: string): void {
 
 /** Canonical list of known topic names for validation. */
 export const TOPICS: readonly string[] = [
+  "workspace.created",
   "workspace.opened",
+  "workspace.closed",
+  "workspace.deleted",
   "project.ready",
   "session.created",
   "session.restore.started",

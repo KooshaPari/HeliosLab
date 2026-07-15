@@ -3,9 +3,13 @@
  * Verifies: FR-PER-009 (Workspace lifecycle events: created, opened, closed, deleted)
  */
 
-import { WorkspaceService } from "../../../src/workspace/workspace.js";
+import {
+  WorkspaceService,
+  createWorkspaceBusPublisher,
+} from "../../../src/workspace/workspace.js";
 import { createInMemoryStore } from "../../../src/workspace/store.js";
 import type { WorkspaceStore } from "../../../src/workspace/types.js";
+import { InMemoryLocalBus } from "../../../src/protocol/bus.js";
 
 let store: WorkspaceStore;
 let events: Array<{ topic: string; payload: Record<string, unknown> }>;
@@ -20,6 +24,23 @@ beforeEach(() => {
 });
 
 describe("workspace lifecycle events", () => {
+  test("publishes every lifecycle event through the validated protocol bus", async () => {
+    const bus = new InMemoryLocalBus();
+    const svc = new WorkspaceService(store, undefined, createWorkspaceBusPublisher(bus));
+
+    const ws = await svc.create({ name: "Protocol", rootPath: "/tmp/protocol" });
+    await svc.close(ws.id);
+    await svc.open(ws.id);
+    await svc.delete(ws.id);
+
+    expect(bus.getEvents().map(event => event.topic)).toEqual([
+      "workspace.created",
+      "workspace.closed",
+      "workspace.opened",
+      "workspace.deleted",
+    ]);
+  });
+
   test("create emits workspace.created", async () => {
     const svc = new WorkspaceService(store, undefined, publishMock);
     const ws = await svc.create({ name: "Test", rootPath: "/tmp/test" });

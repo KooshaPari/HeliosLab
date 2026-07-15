@@ -3,16 +3,22 @@
 
 import type { CreateWorkspaceInput, Workspace, WorkspaceStore } from "./types.js";
 import { detectStaleProjects } from "./project.js";
+import { generateId } from "@helios/ids";
+import { isAbsolute, parse } from "node:path";
+import { randomUUID } from "node:crypto";
+import type { LocalBus } from "../protocol/bus.js";
 
-// Stub ID generator — uses spec 005 format ws_{ulid}
 function generateWorkspaceId(): string {
-  const timestamp = Date.now().toString(36);
-  const random = Math.random().toString(36).slice(2, 10);
-  return `ws_${timestamp}${random}`;
+  return generateId("workspace");
 }
 
 function normalizeRootPath(rootPath: string): string {
-  return rootPath.endsWith("/") && rootPath.length > 1 ? rootPath.slice(0, -1) : rootPath;
+  const root = parse(rootPath).root;
+  let normalized = rootPath;
+  while (normalized.length > root.length && /[\\/]$/.test(normalized)) {
+    normalized = normalized.slice(0, -1);
+  }
+  return normalized;
 }
 
 /** Bus publish function signature */
@@ -21,6 +27,18 @@ export type BusPublishFn = (
   payload: Record<string, unknown>
 ) => void | Promise<void>;
 
+/** Adapt the protocol bus to the workspace service's narrow publisher contract. */
+export function createWorkspaceBusPublisher(bus: LocalBus): BusPublishFn {
+  return (topic, payload) =>
+    bus.publish({
+      id: randomUUID(),
+      type: "event",
+      ts: new Date().toISOString(),
+      topic,
+      payload,
+    });
+}
+
 // ── Entity functions (immutable state transitions) ──────────────────
 
 export function createWorkspace(input: CreateWorkspaceInput): Workspace {
@@ -28,7 +46,7 @@ export function createWorkspace(input: CreateWorkspaceInput): Workspace {
   if (name.length === 0) {
     throw new Error("Workspace name must not be empty");
   }
-  if (!input.rootPath.startsWith("/")) {
+  if (!isAbsolute(input.rootPath)) {
     throw new Error("Workspace rootPath must be absolute");
   }
   const now = Date.now();
@@ -91,7 +109,7 @@ export class WorkspaceService {
     }
     const ws = createWorkspace(input);
     await this.store.save(ws);
-    this.emitEvent("workspace.created", {
+    await this.emitEvent("workspace.created", {
       workspaceId: ws.id,
       name: ws.name,
       rootPath: ws.rootPath,
@@ -109,7 +127,7 @@ export class WorkspaceService {
       // Stale detection must not block workspace open
     }
     await this.store.save(opened);
-    this.emitEvent("workspace.opened", { workspaceId: opened.id });
+    await this.emitEvent("workspace.opened", { workspaceId: opened.id });
     return opened;
   }
 
@@ -117,7 +135,7 @@ export class WorkspaceService {
     const ws = await this.requireById(id);
     const closed = closeWorkspace(ws);
     await this.store.save(closed);
-    this.emitEvent("workspace.closed", { workspaceId: closed.id });
+    await this.emitEvent("workspace.closed", { workspaceId: closed.id });
     return closed;
   }
 
@@ -128,7 +146,7 @@ export class WorkspaceService {
     // Mark deleted in store then remove
     await this.store.save(deleted);
     await this.store.remove(id);
-    this.emitEvent("workspace.deleted", { workspaceId: id });
+    await this.emitEvent("workspace.deleted", { workspaceId: id });
   }
 
   async list(): Promise<Workspace[]> {
@@ -147,17 +165,11 @@ export class WorkspaceService {
     return ws;
   }
 
-  /** Fire-and-forget bus event. Never fails the calling operation. */
-  private emitEvent(topic: string, payload: Record<string, unknown>): void {
+  /** Publish a lifecycle event without allowing bus failures to fail the operation. */
+  private async emitEvent(topic: string, payload: Record<string, unknown>): Promise<void> {
     if (this.publish == null) return;
     try {
-      // Fire and forget — catch sync throws and promise rejections
-      const result = this.publish(topic, payload);
-      if (result instanceof Promise) {
-        result.catch(() => {
-          // Bus errors are silently swallowed
-        });
-      }
+      await this.publish(topic, payload);
     } catch {
       // Bus errors are silently swallowed
     }

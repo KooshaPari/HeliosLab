@@ -8,6 +8,8 @@
 // FR-MVP-011 (persist conversations/state), FR-MVP-013 (persist lane/session)
 
 import { describe, test, expect } from "bun:test";
+import { resolve, sep } from "node:path";
+import { validateId } from "@helios/ids";
 import {
   createWorkspace,
   openWorkspace,
@@ -26,7 +28,7 @@ describe("createWorkspace", () => {
     expect(ws.state).toBe("active");
     expect(ws.name).toBe("Test");
     expect(ws.rootPath).toBe("/tmp/test");
-    expect(ws.id).toMatch(/^ws_/);
+    expect(validateId(ws.id, "workspace")).toEqual({ valid: true, entityType: "workspace" });
     expect(ws.projects).toEqual([]);
   });
 
@@ -52,6 +54,12 @@ describe("createWorkspace", () => {
   test("keeps root slash as-is", () => {
     const ws = createWorkspace({ name: "Test", rootPath: "/" });
     expect(ws.rootPath).toBe("/");
+  });
+
+  test("accepts and normalizes the platform-native absolute path", () => {
+    const rootPath = `${resolve("workspace-root")}${sep}`;
+    const ws = createWorkspace({ name: "Native", rootPath });
+    expect(ws.rootPath).toBe(resolve("workspace-root"));
   });
 
   test("accepts very long name", () => {
