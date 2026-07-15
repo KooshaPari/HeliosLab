@@ -33,7 +33,11 @@ export type {
   BufferOverflowEvent,
   StreamBindingEventBus,
 } from "./stream_binding.js";
-export { StreamBindingManager, SwitchBuffer } from "./stream_binding.js";
+export {
+  StreamBindingManager,
+  SwitchBuffer,
+  SwitchBufferBackpressureError,
+} from "./stream_binding.js";
 
 export type { HotSwapResult, TerminalContext } from "./hot_swap.js";
 export { executeHotSwap, HotSwapError, HotSwapCapabilityError } from "./hot_swap.js";

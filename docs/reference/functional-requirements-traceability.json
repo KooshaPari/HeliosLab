@@ -436,8 +436,8 @@
 		},
 		{
 			"id": "FR-RND-001",
-			"status": "[ ]",
-			"code": ["apps/runtime/src/renderer/adapter.ts", "apps/runtime/src/renderer/switch.ts"],
+			"status": "[x]",
+			"code": ["apps/runtime/src/renderer/adapter.ts", "apps/runtime/src/renderer/switch.ts", "apps/runtime/src/renderer/ghostty/backend.ts", "apps/runtime/src/renderer/rio/backend.ts"],
 			"tests": ["apps/runtime/tests/unit/renderer/switch.test.ts"],
 			"evidence": ["TEST_COVERAGE_MATRIX.md"]
 		},
@@ -464,16 +464,16 @@
 		},
 		{
 			"id": "FR-RND-005",
-			"status": "[ ]",
+			"status": "[x]",
 			"code": ["apps/runtime/src/renderer/stream_binding.ts", "apps/runtime/src/renderer/switch.ts"],
-			"tests": ["apps/runtime/tests/unit/renderer/stream_binding.test.ts", "apps/runtime/tests/unit/renderer/switch.test.ts"],
+			"tests": ["apps/runtime/tests/unit/renderer/stream_binding.test.ts", "apps/runtime/tests/unit/renderer/switch.test.ts", "apps/runtime/tests/integration/renderer/lifecycle.test.ts"],
 			"evidence": ["TEST_COVERAGE_MATRIX.md"]
 		},
 		{
 			"id": "FR-RND-006",
-			"status": "[ ]",
+			"status": "[x]",
 			"code": ["apps/runtime/src/renderer/index.ts", "apps/runtime/src/renderer/switch.ts"],
-			"tests": ["apps/runtime/tests/unit/renderer/switch.test.ts"],
+			"tests": ["apps/runtime/tests/unit/renderer/switch.test.ts", "apps/runtime/tests/integration/renderer/lifecycle.test.ts"],
 			"evidence": ["TEST_COVERAGE_MATRIX.md"]
 		},
 		{

@@ -11,6 +11,10 @@ import {
 } from "../../../src/renderer/switch.js";
 import { RendererRegistry } from "../../../src/renderer/registry.js";
 import { RendererStateMachine } from "../../../src/renderer/state_machine.js";
+import {
+  SwitchBuffer,
+  SwitchBufferBackpressureError,
+} from "../../../src/renderer/stream_binding.js";
 import type { RendererEventBus, RendererLifecycleEvent } from "../../../src/renderer/index.js";
 import {
   MockGhosttyAdapter,
@@ -50,7 +54,13 @@ describe("switchRenderer", () => {
 
     expect(reg.getActive()?.id).toBe("rio");
     expect(sm.state).toBe("running");
-    expect(events[0]!.type).toBe("renderer.switched");
+    expect(to.switchCallCount).toBe(1);
+    expect(events.map(event => event.type)).toEqual([
+      "renderer.stopped",
+      "renderer.initialized",
+      "renderer.started",
+      "renderer.switched",
+    ]);
   });
 
   it("throws SwitchSameRendererError for same renderer", async () => {
@@ -148,6 +158,83 @@ describe("switchRenderer", () => {
 
     expect(from.unboundPtyIds.sort()).toEqual(["pty-1", "pty-2"]);
     expect([...to.boundStreams.keys()].sort()).toEqual(["pty-1", "pty-2"]);
+  });
+
+  it("prefixes buffered switch output to the live PTY stream without byte loss", async () => {
+    const from = new MockGhosttyAdapter();
+    const to = new MockRioAdapter();
+    const { reg, sm } = setup(from, to);
+    const buffer = new SwitchBuffer(16);
+    const originalSwitch = to.switch.bind(to);
+    to.switch = async (config, surface) => {
+      expect(buffer.write("pty-1", new Uint8Array([1, 2, 3]))).toBe(true);
+      await originalSwitch(config, surface);
+    };
+    const liveStream = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(new Uint8Array([4, 5]));
+        controller.close();
+      },
+    });
+
+    await switchRenderer("ghostty", "rio", {
+      registry: reg,
+      stateMachine: sm,
+      surface: TEST_SURFACE,
+      config: TEST_CONFIG,
+      boundStreams: new Map([["pty-1", liveStream]]),
+      switchBuffer: buffer,
+    });
+
+    const rebound = to.boundStreams.get("pty-1")!;
+    const reader = rebound.getReader();
+    expect((await reader.read()).value).toEqual(new Uint8Array([1, 2, 3]));
+    expect((await reader.read()).value).toEqual(new Uint8Array([4, 5]));
+    expect((await reader.read()).done).toBe(true);
+  });
+
+  it("rolls back instead of committing after switch-buffer backpressure", async () => {
+    const from = new MockGhosttyAdapter();
+    const to = new MockRioAdapter();
+    const { reg, sm } = setup(from, to);
+    const buffer = new SwitchBuffer(2);
+    const originalSwitch = to.switch.bind(to);
+    to.switch = async (config, surface) => {
+      expect(buffer.write("pty-1", new Uint8Array([1, 2, 3]))).toBe(false);
+      await originalSwitch(config, surface);
+    };
+
+    await expect(
+      switchRenderer("ghostty", "rio", {
+        registry: reg,
+        stateMachine: sm,
+        surface: TEST_SURFACE,
+        config: TEST_CONFIG,
+        boundStreams: new Map(),
+        switchBuffer: buffer,
+      })
+    ).rejects.toThrow(SwitchBufferBackpressureError);
+
+    expect(reg.getActive()?.id).toBe("ghostty");
+    expect(sm.state).toBe("running");
+  });
+
+  it("does not let a lifecycle bus failure break a successful switch", async () => {
+    const from = new MockGhosttyAdapter();
+    const to = new MockRioAdapter();
+    const { reg, sm } = setup(from, to);
+
+    await switchRenderer("ghostty", "rio", {
+      registry: reg,
+      stateMachine: sm,
+      surface: TEST_SURFACE,
+      config: TEST_CONFIG,
+      boundStreams: new Map(),
+      eventBus: { publish: () => { throw new Error("bus unavailable"); } },
+    });
+
+    expect(reg.getActive()?.id).toBe("rio");
+    expect(sm.state).toBe("running");
   });
 
   it("times out for slow renderer", async () => {

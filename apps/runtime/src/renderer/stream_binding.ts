@@ -164,7 +164,18 @@ export class StreamBindingManager {
 interface PtyBuffer {
   chunks: Uint8Array[];
   totalBytes: number;
-  droppedBytes: number;
+  rejectedBytes: number;
+}
+
+/** Raised at drain time when a producer exceeded the bounded switch buffer. */
+export class SwitchBufferBackpressureError extends Error {
+  constructor(
+    public readonly ptyId: string,
+    public readonly rejectedBytes: number
+  ) {
+    super(`Switch buffer capacity exceeded for PTY "${ptyId}"; ${rejectedBytes} bytes require retry`);
+    this.name = "SwitchBufferBackpressureError";
+  }
 }
 
 /**
@@ -174,14 +185,16 @@ interface PtyBuffer {
  * renderer. On flush, all buffered data is sent to the new renderer.
  *
  * Each PTY has an independent buffer with a bounded capacity (default 4 MB).
- * When the buffer overflows, the oldest data is dropped and a
- * `renderer.switch.buffer_overflow` event is published.
+ * When capacity is exhausted, the incoming write is rejected and a
+ * `renderer.switch.buffer_overflow` event is published. Accepted bytes are
+ * never evicted; the producer must retain and retry rejected bytes.
  */
 export class SwitchBuffer {
   private readonly _buffers = new Map<string, PtyBuffer>();
   private _buffering = false;
   private readonly _maxBytesPerPty: number;
   private readonly _eventBus: StreamBindingEventBus | undefined;
+  private _backpressureError: SwitchBufferBackpressureError | undefined;
 
   /**
    * @param maxBytesPerPty - Maximum buffer capacity per PTY in bytes (default 4 MB).
@@ -203,54 +216,74 @@ export class SwitchBuffer {
   startBuffering(): void {
     this._buffering = true;
     this._buffers.clear();
+    this._backpressureError = undefined;
   }
 
   /**
    * Write data to the buffer for a specific PTY.
    *
    * Only captures data while buffering is active. If the buffer for a PTY
-   * exceeds capacity, the oldest chunks are dropped.
+   * exceeds capacity, the write is rejected to apply explicit backpressure.
    *
    * @param ptyId - PTY identifier.
    * @param data  - Output data to buffer.
+   * @returns true when accepted; false when inactive or backpressured.
    */
-  write(ptyId: string, data: Uint8Array): void {
+  write(ptyId: string, data: Uint8Array): boolean {
     if (!this._buffering) {
-      return;
+      return false;
     }
 
     let buf = this._buffers.get(ptyId);
     if (buf === undefined) {
-      buf = { chunks: [], totalBytes: 0, droppedBytes: 0 };
+      buf = { chunks: [], totalBytes: 0, rejectedBytes: 0 };
       this._buffers.set(ptyId, buf);
     }
 
-    buf.chunks.push(data);
-    buf.totalBytes += data.byteLength;
-
-    // Enforce capacity limit by dropping oldest chunks
-    while (buf.totalBytes > this._maxBytesPerPty && buf.chunks.length > 1) {
-      const dropped = buf.chunks.shift()!;
-      buf.totalBytes -= dropped.byteLength;
-      buf.droppedBytes += dropped.byteLength;
-    }
-
-    // If a single chunk exceeds the limit, truncate it
-    if (buf.totalBytes > this._maxBytesPerPty && buf.chunks.length === 1) {
-      const excess = buf.totalBytes - this._maxBytesPerPty;
-      buf.droppedBytes += excess;
-      buf.chunks[0] = buf.chunks[0]!.slice(excess);
-      buf.totalBytes = buf.chunks[0]!.byteLength;
-    }
-
-    if (buf.droppedBytes > 0) {
+    if (buf.totalBytes + data.byteLength > this._maxBytesPerPty) {
+      buf.rejectedBytes += data.byteLength;
+      this._backpressureError = new SwitchBufferBackpressureError(ptyId, buf.rejectedBytes);
       this._eventBus?.publish({
         type: "renderer.switch.buffer_overflow",
         ptyId,
-        droppedBytes: buf.droppedBytes,
+        droppedBytes: buf.rejectedBytes,
         timestamp: Date.now(),
       });
+      return false;
     }
+
+    buf.chunks.push(data.slice());
+    buf.totalBytes += data.byteLength;
+    return true;
+  }
+
+  /**
+   * Stop buffering and return accepted bytes without binding them.
+   * Rejected writes are never discarded silently: normal drains fail so the
+   * switch transaction can roll back and the producer can retry them.
+   */
+  drainBufferedData(allowRejected = false): Map<string, Uint8Array> {
+    if (!this._buffering) {
+      return new Map();
+    }
+    if (!allowRejected && this._backpressureError !== undefined) {
+      throw this._backpressureError;
+    }
+
+    const drained = new Map<string, Uint8Array>();
+    for (const [ptyId, buf] of this._buffers) {
+      const merged = new Uint8Array(buf.totalBytes);
+      let offset = 0;
+      for (const chunk of buf.chunks) {
+        merged.set(chunk, offset);
+        offset += chunk.byteLength;
+      }
+      drained.set(ptyId, merged);
+    }
+    this._buffering = false;
+    this._buffers.clear();
+    this._backpressureError = undefined;
+    return drained;
   }
 
   /**
@@ -263,22 +296,9 @@ export class SwitchBuffer {
    * @param renderer - The new renderer to flush data to.
    */
   stopBuffering(renderer: RendererAdapter): void {
-    if (!this._buffering) {
-      return;
-    }
-
-    // Flush each PTY's buffered data to the renderer
-    for (const [ptyId, buf] of this._buffers) {
-      if (buf.chunks.length > 0) {
-        // Concatenate all chunks and send as a single stream
-        const total = buf.chunks.reduce((sum, c) => sum + c.byteLength, 0);
-        const merged = new Uint8Array(total);
-        let offset = 0;
-        for (const chunk of buf.chunks) {
-          merged.set(chunk, offset);
-          offset += chunk.byteLength;
-        }
-
+    const drained = this.drainBufferedData();
+    for (const [ptyId, merged] of drained) {
+      if (merged.byteLength > 0) {
         // Create a one-shot stream with the buffered data and bind it
         const bufferedStream = new ReadableStream<Uint8Array>({
           start(controller) {
@@ -289,9 +309,6 @@ export class SwitchBuffer {
         renderer.bindStream(ptyId, bufferedStream);
       }
     }
-
-    this._buffering = false;
-    this._buffers.clear();
   }
 
   /**
@@ -306,12 +323,12 @@ export class SwitchBuffer {
   }
 
   /**
-   * Get the number of bytes dropped due to overflow for a specific PTY.
+   * Get the number of bytes rejected due to overflow for a specific PTY.
    *
    * @param ptyId - PTY identifier.
    * @returns Bytes dropped, or 0 if no data was dropped.
    */
   getDroppedBytes(ptyId: string): number {
-    return this._buffers.get(ptyId)?.droppedBytes ?? 0;
+    return this._buffers.get(ptyId)?.rejectedBytes ?? 0;
   }
 }

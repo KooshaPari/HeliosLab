@@ -57,6 +57,7 @@ export class MockRendererAdapter implements RendererAdapter {
   initCallCount = 0;
   startCallCount = 0;
   stopCallCount = 0;
+  switchCallCount = 0;
 
   constructor(
     id: string,
@@ -93,6 +94,12 @@ export class MockRendererAdapter implements RendererAdapter {
     if (this._opts.stopDelay) await delay(this._opts.stopDelay);
     if (this._opts.stopFail) throw new Error(`${this.id} stop failed`);
     this._state = "stopped";
+  }
+
+  async switch(config: RendererConfig, surface: RenderSurface): Promise<void> {
+    this.switchCallCount++;
+    await this.init(config);
+    await this.start(surface);
   }
 
   bindStream(ptyId: string, stream: ReadableStream<Uint8Array>): void {
@@ -143,6 +150,7 @@ export class MockRendererAdapter implements RendererAdapter {
     this.initCallCount = 0;
     this.startCallCount = 0;
     this.stopCallCount = 0;
+    this.switchCallCount = 0;
   }
 }
 

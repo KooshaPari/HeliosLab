@@ -21,6 +21,7 @@ function mockAdapter(id: string, version = "1.0.0"): RendererAdapter {
     init: async () => {},
     start: async () => {},
     stop: async () => {},
+    switch: async () => {},
     bindStream: () => {},
     unbindStream: () => {},
     handleInput: () => {},

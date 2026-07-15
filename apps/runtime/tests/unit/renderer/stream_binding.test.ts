@@ -3,7 +3,11 @@
  * Verifies: FR-RND-005 (PTY stream binding/unbinding), FR-TXN-005 (Preserve PTY streams during switch)
  */
 import { describe, expect, it, afterEach } from "bun:test";
-import { StreamBindingManager, SwitchBuffer } from "../../../src/renderer/stream_binding.js";
+import {
+  StreamBindingManager,
+  SwitchBuffer,
+  SwitchBufferBackpressureError,
+} from "../../../src/renderer/stream_binding.js";
 import type { BufferOverflowEvent } from "../../../src/renderer/stream_binding.js";
 import { MockGhosttyAdapter, MockRioAdapter } from "../../helpers/mock_adapter.js";
 
@@ -201,19 +205,22 @@ describe("SwitchBuffer", () => {
     expect(renderer.boundStreams.size).toBe(0);
   });
 
-  it("respects capacity limits and drops oldest data", () => {
+  it("rejects overflow with explicit backpressure without evicting accepted data", () => {
     const events: BufferOverflowEvent[] = [];
     const bus = { publish: (e: BufferOverflowEvent) => events.push(e) };
     const buf = new SwitchBuffer(10, bus); // 10 byte limit
 
     buf.startBuffering();
-    buf.write("pty-1", new Uint8Array(6));
-    buf.write("pty-1", new Uint8Array(6)); // exceeds 10, should drop oldest
+    expect(buf.write("pty-1", new Uint8Array(6))).toBe(true);
+    expect(buf.write("pty-1", new Uint8Array(6))).toBe(false);
 
-    expect(buf.getBufferedBytes()).toBeLessThanOrEqual(10);
+    expect(buf.getBufferedBytes()).toBe(6);
+    expect(buf.getDroppedBytes("pty-1")).toBe(6);
     expect(events.length).toBeGreaterThan(0);
     expect(events[0]!.type).toBe("renderer.switch.buffer_overflow");
     expect(events[0]!.ptyId).toBe("pty-1");
+    expect(() => buf.drainBufferedData()).toThrow(SwitchBufferBackpressureError);
+    expect(buf.drainBufferedData(true).get("pty-1")).toEqual(new Uint8Array(6));
   });
 
   it("buffers independently per PTY", () => {
@@ -226,7 +233,7 @@ describe("SwitchBuffer", () => {
     expect(buf.getBufferedBytes()).toBe(300);
   });
 
-  it("publishes overflow event when data is dropped", () => {
+  it("publishes overflow event when data requires retry", () => {
     const events: BufferOverflowEvent[] = [];
     const bus = { publish: (e: BufferOverflowEvent) => events.push(e) };
     const buf = new SwitchBuffer(5, bus);

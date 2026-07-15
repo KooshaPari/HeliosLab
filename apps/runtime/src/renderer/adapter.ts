@@ -47,6 +47,8 @@ export interface RendererAdapter {
   init(config: RendererConfig): Promise<void>;
   start(surface: RenderSurface): Promise<void>;
   stop(): Promise<void>;
+  /** Initialise and start this adapter as the target of a renderer switch. */
+  switch(config: RendererConfig, surface: RenderSurface): Promise<void>;
 
   bindStream(ptyId: string, stream: ReadableStream<Uint8Array>): void;
   unbindStream(ptyId: string): void;

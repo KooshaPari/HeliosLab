@@ -6,7 +6,7 @@ import { describe, expect, it, beforeEach } from "bun:test";
 import { RendererRegistry } from "../../../src/renderer/registry.js";
 import { RendererStateMachine } from "../../../src/renderer/state_machine.js";
 import { switchRenderer } from "../../../src/renderer/switch.js";
-import { StreamBindingManager } from "../../../src/renderer/stream_binding.js";
+import { StreamBindingManager, SwitchBuffer } from "../../../src/renderer/stream_binding.js";
 import type { RendererEventBus, RendererLifecycleEvent } from "../../../src/renderer/index.js";
 import {
   MockGhosttyAdapter,
@@ -81,7 +81,12 @@ describe("Renderer lifecycle integration", () => {
     sm.transition("init_success");
     registry.setActive("ghostty");
 
-    const stream1 = new ReadableStream<Uint8Array>();
+    const stream1 = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(new Uint8Array([4, 5]));
+        controller.close();
+      },
+    });
     const stream2 = new ReadableStream<Uint8Array>();
     const boundStreams = new Map<string, ReadableStream<Uint8Array>>();
     boundStreams.set("pty-1", stream1);
@@ -92,6 +97,13 @@ describe("Renderer lifecycle integration", () => {
       ghostty.bindStream(id, s);
     }
 
+    const switchBuffer = new SwitchBuffer();
+    const originalSwitch = rio.switch.bind(rio);
+    rio.switch = async (config, surface) => {
+      expect(switchBuffer.write("pty-1", new Uint8Array([1, 2, 3]))).toBe(true);
+      await originalSwitch(config, surface);
+    };
+
     await switchRenderer("ghostty", "rio", {
       registry,
       stateMachine: sm,
@@ -99,6 +111,7 @@ describe("Renderer lifecycle integration", () => {
       config: TEST_CONFIG,
       boundStreams,
       eventBus: bus,
+      switchBuffer,
     });
 
     expect(registry.getActive()?.id).toBe("rio");
@@ -108,6 +121,15 @@ describe("Renderer lifecycle integration", () => {
     expect(rio.boundStreams.has("pty-2")).toBe(true);
     // Byte count: both streams were transferred
     expect(rio.boundStreams.size).toBe(2);
+    const reader = rio.boundStreams.get("pty-1")!.getReader();
+    expect((await reader.read()).value).toEqual(new Uint8Array([1, 2, 3]));
+    expect((await reader.read()).value).toEqual(new Uint8Array([4, 5]));
+    expect(events.map(event => event.type)).toEqual([
+      "renderer.stopped",
+      "renderer.initialized",
+      "renderer.started",
+      "renderer.switched",
+    ]);
   });
 
   it("(e) switch rio -> ghostty round-trip", async () => {

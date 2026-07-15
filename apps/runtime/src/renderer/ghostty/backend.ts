@@ -13,6 +13,7 @@ import { detectCapabilities, getCachedCapabilities } from "./capabilities.js";
 import { GhosttyMetrics } from "./metrics.js";
 import type { MetricsSnapshot, MetricsPublisher } from "./metrics.js";
 import { GhosttyInputRelay } from "./input.js";
+import type { PtyWriter } from "./input.js";
 
 
 // ---------------------------------------------------------------------------
@@ -190,7 +191,7 @@ export class GhosttyBackend implements RendererAdapter {
 
       // Start render loop monitoring (T006)
       this._startRenderLoopMonitoring();
-    } catch {
+    } catch (error: unknown) {
       this._state = "errored";
       throw error;
     }
@@ -240,6 +241,11 @@ export class GhosttyBackend implements RendererAdapter {
 
     this._state = "stopped";
     this._config = undefined;
+  }
+
+  async switch(config: RendererConfig, surface: RenderSurface): Promise<void> {
+    await this.init(config);
+    await this.start(surface);
   }
 
   bindStream(ptyId: string, stream: ReadableStream<Uint8Array>): void {

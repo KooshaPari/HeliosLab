@@ -8,7 +8,8 @@
 import type { RendererAdapter, RenderSurface, RendererConfig } from "./adapter.js";
 import type { RendererRegistry } from "./registry.js";
 import type { RendererStateMachine } from "./state_machine.js";
-import type { RendererEventBus } from "./index.js";
+import type { RendererEventBus, RendererLifecycleEvent } from "./index.js";
+import type { SwitchBuffer } from "./stream_binding.js";
 
 // ---------------------------------------------------------------------------
 // Errors
@@ -42,6 +43,8 @@ export interface SwitchContext {
   boundStreams: Map<string, ReadableStream<Uint8Array>>;
   /** Optional event bus for publishing lifecycle events. */
   eventBus?: RendererEventBus | undefined;
+  /** Captures PTY output produced while the renderer transaction is in flight. */
+  switchBuffer?: SwitchBuffer | undefined;
   /** Switch timeout in ms (default 3000). */
   timeoutMs?: number | undefined;
 }
@@ -68,12 +71,65 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   });
 }
 
+function prependBufferedData(
+  buffered: Uint8Array,
+  stream: ReadableStream<Uint8Array>
+): ReadableStream<Uint8Array> {
+  const reader = stream.getReader();
+  let prefixPending = buffered.byteLength > 0;
+  return new ReadableStream<Uint8Array>({
+    async pull(controller) {
+      if (prefixPending) {
+        prefixPending = false;
+        controller.enqueue(buffered);
+        return;
+      }
+      const result = await reader.read();
+      if (result.done) {
+        controller.close();
+      } else {
+        controller.enqueue(result.value);
+      }
+    },
+    async cancel(reason) {
+      await reader.cancel(reason);
+    },
+  });
+}
+
 function rebindStreams(
   adapter: RendererAdapter,
-  streams: Map<string, ReadableStream<Uint8Array>>
+  streams: Map<string, ReadableStream<Uint8Array>>,
+  bufferedData: Map<string, Uint8Array> = new Map()
 ): void {
   for (const [ptyId, stream] of streams) {
-    adapter.bindStream(ptyId, stream);
+    const buffered = bufferedData.get(ptyId);
+    adapter.bindStream(
+      ptyId,
+      buffered !== undefined && buffered.byteLength > 0
+        ? prependBufferedData(buffered, stream)
+        : stream
+    );
+    bufferedData.delete(ptyId);
+  }
+  for (const [ptyId, buffered] of bufferedData) {
+    adapter.bindStream(
+      ptyId,
+      new ReadableStream<Uint8Array>({
+        start(controller) {
+          controller.enqueue(buffered);
+          controller.close();
+        },
+      })
+    );
+  }
+}
+
+function publish(eventBus: RendererEventBus | undefined, event: RendererLifecycleEvent): void {
+  try {
+    eventBus?.publish(event);
+  } catch {
+    // Lifecycle publication is fire-and-forget and cannot fail a switch.
   }
 }
 
@@ -113,7 +169,7 @@ export async function switchRenderer(
     throw new SwitchSameRendererError(fromId);
   }
 
-  const { registry, stateMachine, surface, config, boundStreams, eventBus } = ctx;
+  const { registry, stateMachine, surface, config, boundStreams, eventBus, switchBuffer } = ctx;
   const timeoutMs = ctx.timeoutMs ?? 3_000;
   const correlationId = crypto.randomUUID();
   const switchStart = Date.now();
@@ -129,6 +185,7 @@ export async function switchRenderer(
 
   // Transition to switching
   stateMachine.transition("switch_request");
+  switchBuffer?.startBuffering();
 
   try {
     await withTimeout(
@@ -138,13 +195,37 @@ export async function switchRenderer(
 
         // 2. Stop the current renderer
         await fromAdapter.stop();
+        publish(eventBus, {
+          type: "renderer.stopped",
+          rendererId: fromId,
+          fromState: "running",
+          toState: "stopped",
+          timestamp: Date.now(),
+          correlationId,
+        });
 
-        // 3. Init + start the new renderer
-        await toAdapter.init(config);
-        await toAdapter.start(surface);
+        // 3. Switch the target adapter through its lifecycle contract.
+        await toAdapter.switch(config, surface);
+        publish(eventBus, {
+          type: "renderer.initialized",
+          rendererId: toId,
+          fromState: "uninitialized",
+          toState: "initializing",
+          timestamp: Date.now(),
+          correlationId,
+        });
+        publish(eventBus, {
+          type: "renderer.started",
+          rendererId: toId,
+          fromState: "initializing",
+          toState: "running",
+          timestamp: Date.now(),
+          correlationId,
+        });
 
-        // 4. Rebind streams to new renderer
-        rebindStreams(toAdapter, boundStreams);
+        // 4. Prefix buffered output to the live streams and bind once.
+        const bufferedData = switchBuffer?.drainBufferedData() ?? new Map();
+        rebindStreams(toAdapter, boundStreams, bufferedData);
 
         // 5. Mark new renderer as active
         registry.setActive(toId);
@@ -155,7 +236,7 @@ export async function switchRenderer(
     // Success
     stateMachine.transition("switch_success");
 
-    eventBus?.publish({
+    publish(eventBus, {
       type: "renderer.switched",
       rendererId: toId,
       fromState: "running",
@@ -176,12 +257,28 @@ export async function switchRenderer(
         // Best effort
       }
 
-      // Restart old renderer
-      await fromAdapter.init(config);
-      await fromAdapter.start(surface);
+      // Restart old renderer through the same lifecycle contract.
+      await fromAdapter.switch(config, surface);
+      publish(eventBus, {
+        type: "renderer.initialized",
+        rendererId: fromId,
+        fromState: "stopped",
+        toState: "initializing",
+        timestamp: Date.now(),
+        correlationId,
+      });
+      publish(eventBus, {
+        type: "renderer.started",
+        rendererId: fromId,
+        fromState: "initializing",
+        toState: "running",
+        timestamp: Date.now(),
+        correlationId,
+      });
 
-      // Rebind to old renderer
-      rebindStreams(fromAdapter, boundStreams);
+      // Rebind to old renderer, preserving all bytes accepted before failure.
+      const bufferedData = switchBuffer?.drainBufferedData(true) ?? new Map();
+      rebindStreams(fromAdapter, boundStreams, bufferedData);
 
       // Restore active marker
       registry.setActive(fromId);
@@ -189,7 +286,7 @@ export async function switchRenderer(
       // Rolled back successfully
       stateMachine.transition("switch_rollback");
 
-      eventBus?.publish({
+      publish(eventBus, {
         type: "renderer.switch_failed",
         rendererId: fromId,
         fromState: "switching",
@@ -205,7 +302,7 @@ export async function switchRenderer(
       // Double failure — errored state
       stateMachine.transition("switch_failure");
 
-      eventBus?.publish({
+      publish(eventBus, {
         type: "renderer.errored",
         rendererId: fromId,
         fromState: "switching",

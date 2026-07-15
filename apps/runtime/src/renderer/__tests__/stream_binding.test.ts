@@ -5,7 +5,11 @@
  */
 
 import { describe, expect, it, beforeEach } from "bun:test";
-import { StreamBindingManager, SwitchBuffer } from "../stream_binding.js";
+import {
+  StreamBindingManager,
+  SwitchBuffer,
+  SwitchBufferBackpressureError,
+} from "../stream_binding.js";
 import type { StreamBindingEventBus, BufferOverflowEvent } from "../stream_binding.js";
 import type { RendererAdapter, RendererState } from "../adapter.js";
 import type { RendererCapabilities } from "../capabilities.js";
@@ -37,6 +41,7 @@ function createMockAdapter(id: string): RendererAdapter & {
     init: async () => {},
     start: async () => {},
     stop: async () => {},
+    switch: async () => {},
     bindStream: (ptyId: string, stream: ReadableStream<Uint8Array>) => {
       boundStreams.set(ptyId, stream);
     },
@@ -241,21 +246,22 @@ describe("SwitchBuffer", () => {
   });
 
   // Buffer capacity enforcement
-  it("drops oldest data when buffer exceeds capacity", () => {
+  it("rejects overflow without evicting accepted data", () => {
     const maxBytes = 10;
     const events: BufferOverflowEvent[] = [];
     const eventBus: StreamBindingEventBus = { publish: e => events.push(e) };
     const buf = new SwitchBuffer(maxBytes, eventBus);
 
     buf.startBuffering();
-    buf.write("pty-1", new Uint8Array(6)); // 6 bytes
-    buf.write("pty-1", new Uint8Array(6)); // 12 > 10, should drop oldest
+    expect(buf.write("pty-1", new Uint8Array(6))).toBe(true);
+    expect(buf.write("pty-1", new Uint8Array(6))).toBe(false);
 
-    expect(buf.getBufferedBytes()).toBeLessThanOrEqual(maxBytes);
+    expect(buf.getBufferedBytes()).toBe(6);
     expect(buf.getDroppedBytes("pty-1")).toBeGreaterThan(0);
     expect(events.length).toBeGreaterThan(0);
     expect(events[0]!.type).toBe("renderer.switch.buffer_overflow");
     expect(events[0]!.ptyId).toBe("pty-1");
+    expect(() => buf.drainBufferedData()).toThrow(SwitchBufferBackpressureError);
   });
 
   // Edge case: multiple PTYs have independent buffers
@@ -281,8 +287,8 @@ describe("SwitchBuffer", () => {
     const maxBytes = 10;
     const buf = new SwitchBuffer(maxBytes);
     buf.startBuffering();
-    buf.write("pty-1", new Uint8Array(20)); // exceeds max
-    expect(buf.getBufferedBytes()).toBeLessThanOrEqual(maxBytes);
+    expect(buf.write("pty-1", new Uint8Array(20))).toBe(false);
+    expect(buf.getBufferedBytes()).toBe(0);
     expect(buf.getDroppedBytes("pty-1")).toBeGreaterThan(0);
   });
 });

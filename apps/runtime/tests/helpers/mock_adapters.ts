@@ -70,6 +70,7 @@ export class BaseMockAdapter implements RendererAdapter {
     init: 0,
     start: 0,
     stop: 0,
+    switch: 0,
     bindStream: 0,
     unbindStream: 0,
     handleInput: 0,
@@ -128,6 +129,12 @@ export class BaseMockAdapter implements RendererAdapter {
     this._state = "stopped";
   }
 
+  async switch(config: RendererConfig, surface: RenderSurface): Promise<void> {
+    this.callCounts.switch++;
+    await this.init(config);
+    await this.start(surface);
+  }
+
   bindStream(ptyId: string, stream: ReadableStream<Uint8Array>): void {
     this.callCounts.bindStream++;
     this.boundStreams.set(ptyId, stream);
@@ -174,6 +181,7 @@ export class BaseMockAdapter implements RendererAdapter {
     this.callCounts.init = 0;
     this.callCounts.start = 0;
     this.callCounts.stop = 0;
+    this.callCounts.switch = 0;
     this.callCounts.bindStream = 0;
     this.callCounts.unbindStream = 0;
     this.callCounts.handleInput = 0;

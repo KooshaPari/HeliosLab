@@ -38,6 +38,10 @@ function createMockGhostty(): RendererAdapter & { _state: RendererState } {
     async stop(): Promise<void> {
       adapter._state = "stopped";
     },
+    async switch(config: RendererConfig, surface: RenderSurface): Promise<void> {
+      await adapter.init(config);
+      await adapter.start(surface);
+    },
     bindStream(_ptyId: string, _stream: ReadableStream<Uint8Array>): void {},
     unbindStream(_ptyId: string): void {},
     handleInput(_ptyId: string, _data: Uint8Array): void {},

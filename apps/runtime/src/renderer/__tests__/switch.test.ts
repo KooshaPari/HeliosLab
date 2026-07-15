@@ -52,6 +52,14 @@ function createMockAdapter(
       if (opts?.stopFail) throw new Error(`${id} stop failed`);
       state = "stopped";
     },
+    switch: async (config, surface) => {
+      if (opts?.initFail) throw new Error(`${id} init failed`);
+      state = "initializing";
+      if (opts?.startFail) throw new Error(`${id} start failed`);
+      void config;
+      void surface;
+      state = "running";
+    },
     bindStream: () => {},
     unbindStream: () => {},
     handleInput: () => {},
@@ -95,8 +103,12 @@ describe("switchRenderer", () => {
 
     expect(reg.getActive()?.id).toBe("rio");
     expect(sm.state).toBe("running");
-    expect(events.length).toBe(1);
-    expect(events[0]!.type).toBe("renderer.switched");
+    expect(events.map(event => event.type)).toEqual([
+      "renderer.stopped",
+      "renderer.initialized",
+      "renderer.started",
+      "renderer.switched",
+    ]);
   });
 
   it("throws for same renderer", async () => {
