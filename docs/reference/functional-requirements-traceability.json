@@ -195,6 +195,76 @@
 			"code": ["apps/runtime/src/audit/retention.ts", "apps/runtime/src/audit/sink-helpers.ts"],
 			"tests": ["apps/runtime/tests/unit/audit/retention.test.ts", "apps/runtime/tests/unit/audit/retention_policy.test.ts"],
 			"evidence": ["TEST_COVERAGE_MATRIX.md"]
+		},
+		{
+			"id": "FR-CFG-001",
+			"status": "[x]",
+			"code": ["apps/runtime/src/config/types.ts", "apps/runtime/src/config/schema.ts"],
+			"tests": ["apps/runtime/tests/unit/config/schema.test.ts", "apps/runtime/tests/unit/config/settings.test.ts"],
+			"evidence": ["TEST_COVERAGE_MATRIX.md"]
+		},
+		{
+			"id": "FR-CFG-002",
+			"status": "[x]",
+			"code": ["apps/runtime/src/config/schema.ts", "apps/runtime/src/config/settings.ts"],
+			"tests": ["apps/runtime/tests/unit/config/schema.test.ts", "apps/runtime/tests/unit/config/settings.test.ts"],
+			"evidence": ["TEST_COVERAGE_MATRIX.md"]
+		},
+		{
+			"id": "FR-CFG-003",
+			"status": "[x]",
+			"code": ["apps/runtime/src/config/store.ts", "apps/runtime/src/config/settings.ts"],
+			"tests": ["apps/runtime/tests/unit/config/store.test.ts", "apps/runtime/tests/unit/config/settings.test.ts"],
+			"evidence": ["TEST_COVERAGE_MATRIX.md"]
+		},
+		{
+			"id": "FR-CFG-004",
+			"status": "[x]",
+			"code": ["apps/runtime/src/config/settings.ts"],
+			"tests": ["apps/runtime/tests/unit/config/settings.test.ts"],
+			"evidence": ["TEST_COVERAGE_MATRIX.md"]
+		},
+		{
+			"id": "FR-CFG-005",
+			"status": "[x]",
+			"code": ["apps/runtime/src/config/settings.ts"],
+			"tests": ["apps/runtime/tests/unit/config/settings.test.ts"],
+			"evidence": ["TEST_COVERAGE_MATRIX.md"]
+		},
+		{
+			"id": "FR-CFG-006",
+			"status": "[x]",
+			"code": ["apps/runtime/src/config/settings.ts", "apps/runtime/src/config/store.ts"],
+			"tests": ["apps/runtime/tests/unit/config/settings.test.ts", "apps/runtime/tests/unit/config/store.test.ts"],
+			"evidence": ["TEST_COVERAGE_MATRIX.md"]
+		},
+		{
+			"id": "FR-CFG-007",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/config/settings.ts"],
+			"tests": ["apps/runtime/tests/unit/config/settings.test.ts"],
+			"evidence": ["TEST_COVERAGE_MATRIX.md"]
+		},
+		{
+			"id": "FR-CFG-008",
+			"status": "[x]",
+			"code": ["apps/runtime/src/config/flags.ts"],
+			"tests": ["apps/runtime/tests/unit/config/flags.test.ts"],
+			"evidence": ["TEST_COVERAGE_MATRIX.md"]
+		},
+		{
+			"id": "FR-CFG-009",
+			"status": "[x]",
+			"code": ["apps/runtime/src/config/schema.ts", "apps/runtime/src/config/flags.ts"],
+			"tests": ["apps/runtime/tests/unit/config/schema.test.ts", "apps/runtime/tests/unit/config/flags.test.ts"],
+			"evidence": ["TEST_COVERAGE_MATRIX.md"]
+		},
+		{
+			"id": "FR-CFG-010",
+			"status": "[x]",
+			"code": ["apps/runtime/src/config/store.ts"],
+			"tests": ["apps/runtime/tests/unit/config/store.test.ts"],
+			"evidence": ["TEST_COVERAGE_MATRIX.md"]
 		}
 	]
 }

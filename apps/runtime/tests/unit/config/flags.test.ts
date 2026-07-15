@@ -249,7 +249,7 @@ describe("FlagRegistry — concurrency", () => {
     await settings.init();
     flags.register(RENDERER_ENGINE_FLAG);
     flags.init();
-    const _results = await Promise.all(
+    const results = await Promise.all(
       Array.from({ length: 1000 }, () => Promise.resolve(flags.get("renderer_engine")))
     );
     expect(new Set(results).size).toBe(1);
