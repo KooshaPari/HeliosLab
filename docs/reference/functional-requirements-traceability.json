@@ -433,6 +433,62 @@
 			"code": ["apps/runtime/src/registry/persistence.ts"],
 			"tests": ["apps/runtime/tests/integration/registry/persistence.test.ts"],
 			"evidence": ["TEST_COVERAGE_MATRIX.md"]
+		},
+		{
+			"id": "FR-RND-001",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/renderer/adapter.ts", "apps/runtime/src/renderer/switch.ts"],
+			"tests": ["apps/runtime/tests/unit/renderer/switch.test.ts"],
+			"evidence": ["TEST_COVERAGE_MATRIX.md"]
+		},
+		{
+			"id": "FR-RND-002",
+			"status": "[x]",
+			"code": ["apps/runtime/src/renderer/state_machine.ts"],
+			"tests": ["apps/runtime/tests/unit/renderer/state_machine.test.ts"],
+			"evidence": ["TEST_COVERAGE_MATRIX.md"]
+		},
+		{
+			"id": "FR-RND-003",
+			"status": "[x]",
+			"code": ["apps/runtime/src/renderer/registry.ts"],
+			"tests": ["apps/runtime/tests/unit/renderer/registry.test.ts"],
+			"evidence": ["TEST_COVERAGE_MATRIX.md"]
+		},
+		{
+			"id": "FR-RND-004",
+			"status": "[x]",
+			"code": ["apps/runtime/src/renderer/switch.ts"],
+			"tests": ["apps/runtime/tests/unit/renderer/switch.test.ts"],
+			"evidence": ["TEST_COVERAGE_MATRIX.md"]
+		},
+		{
+			"id": "FR-RND-005",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/renderer/stream_binding.ts", "apps/runtime/src/renderer/switch.ts"],
+			"tests": ["apps/runtime/tests/unit/renderer/stream_binding.test.ts", "apps/runtime/tests/unit/renderer/switch.test.ts"],
+			"evidence": ["TEST_COVERAGE_MATRIX.md"]
+		},
+		{
+			"id": "FR-RND-006",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/renderer/index.ts", "apps/runtime/src/renderer/switch.ts"],
+			"tests": ["apps/runtime/tests/unit/renderer/switch.test.ts"],
+			"evidence": ["TEST_COVERAGE_MATRIX.md"]
+		},
+		{
+			"id": "FR-RND-007",
+			"status": "[x]",
+			"code": ["apps/runtime/src/renderer/capabilities.ts"],
+			"tests": ["apps/runtime/tests/unit/renderer/capabilities.test.ts"],
+			"evidence": ["TEST_COVERAGE_MATRIX.md"]
+		},
+		{
+			"id": "FR-RND-008",
+			"status": "[x]",
+			"code": ["apps/runtime/src/renderer/registry.ts", "apps/runtime/src/renderer/switch.ts"],
+			"tests": ["apps/runtime/tests/unit/renderer/registry.test.ts", "apps/runtime/tests/unit/renderer/switch.test.ts"],
+			"evidence": ["TEST_COVERAGE_MATRIX.md"]
 		}
 	]
 }

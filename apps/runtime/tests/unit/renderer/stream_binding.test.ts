@@ -170,8 +170,8 @@ describe("SwitchBuffer", () => {
 
   it("flushes buffered data to new renderer on stopBuffering", () => {
     const buf = new SwitchBuffer();
-    const _renderer = new MockGhosttyAdapter();
-    createdRenderers.push(_renderer);
+    const renderer = new MockGhosttyAdapter();
+    createdRenderers.push(renderer);
 
     buf.startBuffering();
     buf.write("pty-1", new Uint8Array([1, 2, 3]));
@@ -186,16 +186,16 @@ describe("SwitchBuffer", () => {
 
   it("stopBuffering is no-op when not buffering", () => {
     const buf = new SwitchBuffer();
-    const _renderer = new MockGhosttyAdapter();
-    createdRenderers.push(_renderer);
+    const renderer = new MockGhosttyAdapter();
+    createdRenderers.push(renderer);
     buf.stopBuffering(renderer); // should not throw
     expect(renderer.boundStreams.size).toBe(0);
   });
 
   it("instant switch with no buffered data: flush is no-op", () => {
     const buf = new SwitchBuffer();
-    const _renderer = new MockGhosttyAdapter();
-    createdRenderers.push(_renderer);
+    const renderer = new MockGhosttyAdapter();
+    createdRenderers.push(renderer);
     buf.startBuffering();
     buf.stopBuffering(renderer);
     expect(renderer.boundStreams.size).toBe(0);
