@@ -937,6 +937,55 @@
 			"code": ["apps/runtime/src/renderer/switch.ts", "apps/runtime/src/renderer/switch_transaction.ts", "apps/runtime/src/renderer/index.ts"],
 			"tests": ["apps/runtime/tests/unit/renderer/switch.test.ts", "apps/runtime/tests/integration/renderer/rollback.test.ts"],
 			"evidence": ["docs/specs/013-renderer-switch-transaction/spec.md"]
+		},
+		{
+			"id": "FR-LST-001",
+			"status": "[ ]",
+			"code": ["apps/desktop/src/panels/lane_panel.ts", "apps/desktop/src/index.ts"],
+			"tests": ["apps/desktop/tests/unit/panels/lane_panel.test.ts"],
+			"evidence": ["docs/specs/017-lane-list-and-status-display/spec.md"]
+		},
+		{
+			"id": "FR-LST-002",
+			"status": "[ ]",
+			"code": ["apps/desktop/src/panels/lane_panel.ts", "apps/desktop/src/panels/lane_list_item.ts", "apps/desktop/src/panels/status_badge.ts"],
+			"tests": ["apps/desktop/tests/unit/panels/lane_list_item.test.ts", "apps/desktop/tests/unit/panels/status_badge.test.ts"],
+			"evidence": ["docs/specs/017-lane-list-and-status-display/spec.md"]
+		},
+		{
+			"id": "FR-LST-003",
+			"status": "[ ]",
+			"code": ["apps/desktop/src/panels/lane_panel.ts", "apps/desktop/src/panels/lane_actions.ts"],
+			"tests": ["apps/desktop/tests/unit/panels/lane_panel.test.ts", "apps/desktop/tests/unit/panels/lane_actions.test.ts"],
+			"evidence": ["docs/specs/017-lane-list-and-status-display/spec.md"]
+		},
+		{
+			"id": "FR-LST-004",
+			"status": "[ ]",
+			"code": ["apps/desktop/src/panels/lane_actions.ts", "apps/desktop/src/panels/confirmation_dialog.ts"],
+			"tests": ["apps/desktop/tests/unit/panels/lane_actions.test.ts", "apps/desktop/tests/unit/panels/confirmation_dialog.test.ts"],
+			"evidence": ["docs/specs/017-lane-list-and-status-display/spec.md"]
+		},
+		{
+			"id": "FR-LST-005",
+			"status": "[ ]",
+			"code": ["apps/desktop/src/panels/lane_event_handler.ts", "apps/desktop/src/panels/lane_panel.ts"],
+			"tests": ["apps/desktop/tests/unit/panels/lane_event_handler.test.ts"],
+			"evidence": ["docs/specs/017-lane-list-and-status-display/spec.md"]
+		},
+		{
+			"id": "FR-LST-006",
+			"status": "[ ]",
+			"code": ["apps/desktop/src/panels/lane_event_handler.ts", "apps/desktop/src/panels/lane_list_item.ts"],
+			"tests": ["apps/desktop/tests/unit/panels/lane_event_handler.test.ts", "apps/desktop/tests/unit/panels/lane_list_item.test.ts"],
+			"evidence": ["docs/specs/017-lane-list-and-status-display/spec.md"]
+		},
+		{
+			"id": "FR-LST-007",
+			"status": "[x]",
+			"code": ["apps/desktop/src/panels/lane_panel.ts", "apps/desktop/src/panels/keyboard_nav.ts", "apps/desktop/src/panels/lane_list_item.ts"],
+			"tests": ["apps/desktop/tests/unit/panels/lane_panel.test.ts", "apps/desktop/tests/unit/panels/keyboard_nav.test.ts", "apps/desktop/tests/unit/panels/lane_list_item.test.ts"],
+			"evidence": ["docs/specs/017-lane-list-and-status-display/spec.md"]
 		}
 	]
 }

@@ -53,7 +53,7 @@ export class LaneActions {
       if (this.options.onLaneCreated) {
         this.options.onLaneCreated(result.id);
       }
-    } catch {
+    } catch (error) {
       this.handleActionError("CREATE_FAILED", error, onOptimistic);
     }
   }
@@ -71,7 +71,7 @@ export class LaneActions {
       if (this.options.onLaneAttached) {
         this.options.onLaneAttached(laneId);
       }
-    } catch {
+    } catch (error) {
       this.handleActionError("ATTACH_FAILED", error, onOptimistic);
     }
   }
@@ -89,7 +89,7 @@ export class LaneActions {
       if (this.options.onLaneDetached) {
         this.options.onLaneDetached(laneId);
       }
-    } catch {
+    } catch (error) {
       this.handleActionError("DETACH_FAILED", error, onOptimistic);
     }
   }
@@ -113,7 +113,7 @@ export class LaneActions {
       }
 
       return true;
-    } catch {
+    } catch (error) {
       this.handleActionError("CLEANUP_FAILED", error);
       return false;
     }
