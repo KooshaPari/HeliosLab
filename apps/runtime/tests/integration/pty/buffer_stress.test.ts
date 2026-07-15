@@ -47,7 +47,7 @@ describe("Buffer stress test — 50MB into 4MB buffer", () => {
       let totalWritten = 0;
       let totalDropped = 0;
 
-      const _startTime = performance.now();
+      const startTime = performance.now();
       let lastResponsivenessCheck = startTime;
       let maxTimeBetweenChecks = 0;
 

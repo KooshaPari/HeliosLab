@@ -100,7 +100,7 @@ function deliverSignal(
     };
     recordSignal(envelope, historyMap, bus, correlation);
     return envelope;
-  } catch {
+  } catch (error) {
     const envelope: SignalEnvelope = {
       ptyId,
       signal,

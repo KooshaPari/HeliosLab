@@ -58,7 +58,7 @@ export class IdleMonitor {
   recordOutput(ptyId: string): void {
     this.lastOutputTs.set(ptyId, Date.now());
 
-    const _record = this.registry.get(ptyId);
+    const record = this.registry.get(ptyId);
     if (record && record.state === "throttled") {
       const lifecycle = this.lifecycles.get(ptyId);
       if (lifecycle && lifecycle.state === "throttled") {

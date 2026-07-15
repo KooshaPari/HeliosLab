@@ -321,6 +321,62 @@
 			"code": ["apps/runtime/src/lanes/index.ts", "apps/runtime/src/lanes/worktree.ts", "apps/runtime/src/lanes/watchdog/orphan_watchdog.ts"],
 			"tests": ["apps/runtime/tests/integration/lanes/reconciliation.test.ts", "apps/runtime/tests/lanes/lane_manager.test.ts"],
 			"evidence": ["TEST_COVERAGE_MATRIX.md"]
+		},
+		{
+			"id": "FR-PTY-001",
+			"status": "[x]",
+			"code": ["apps/runtime/src/pty/state_machine.ts"],
+			"tests": ["apps/runtime/tests/unit/pty/state_machine.test.ts"],
+			"evidence": ["TEST_COVERAGE_MATRIX.md"]
+		},
+		{
+			"id": "FR-PTY-002",
+			"status": "[x]",
+			"code": ["apps/runtime/src/pty/registry.ts", "apps/runtime/src/pty/index.ts"],
+			"tests": ["apps/runtime/tests/unit/pty/registry.test.ts"],
+			"evidence": ["TEST_COVERAGE_MATRIX.md"]
+		},
+		{
+			"id": "FR-PTY-003",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/pty/index.ts", "apps/runtime/src/pty/spawn.ts", "apps/runtime/src/pty/io.ts"],
+			"tests": ["apps/runtime/tests/integration/pty/lifecycle.test.ts"],
+			"evidence": ["TEST_COVERAGE_MATRIX.md"]
+		},
+		{
+			"id": "FR-PTY-004",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/pty/signals.ts"],
+			"tests": ["apps/runtime/tests/unit/pty/signals.test.ts"],
+			"evidence": ["TEST_COVERAGE_MATRIX.md"]
+		},
+		{
+			"id": "FR-PTY-005",
+			"status": "[x]",
+			"code": ["apps/runtime/src/pty/buffers.ts"],
+			"tests": ["apps/runtime/tests/unit/pty/buffers.test.ts", "apps/runtime/tests/integration/pty/buffer_stress.test.ts"],
+			"evidence": ["TEST_COVERAGE_MATRIX.md"]
+		},
+		{
+			"id": "FR-PTY-006",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/pty/events.ts", "apps/runtime/src/pty/index.ts", "apps/runtime/src/pty/io.ts", "apps/runtime/src/pty/signals.ts"],
+			"tests": ["apps/runtime/src/pty/__tests__/events.test.ts", "apps/runtime/src/pty/__tests__/index.test.ts"],
+			"evidence": ["TEST_COVERAGE_MATRIX.md"]
+		},
+		{
+			"id": "FR-PTY-007",
+			"status": "[x]",
+			"code": ["apps/runtime/src/pty/signals.ts"],
+			"tests": ["apps/runtime/tests/unit/pty/signals.test.ts"],
+			"evidence": ["TEST_COVERAGE_MATRIX.md"]
+		},
+		{
+			"id": "FR-PTY-008",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/pty/registry.ts", "apps/runtime/src/pty/index.ts"],
+			"tests": ["apps/runtime/src/pty/__tests__/index.test.ts", "apps/runtime/tests/unit/lanes/watchdog/pty_detector.test.ts"],
+			"evidence": ["TEST_COVERAGE_MATRIX.md"]
 		}
 	]
 }

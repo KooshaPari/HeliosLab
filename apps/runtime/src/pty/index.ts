@@ -142,7 +142,7 @@ export class PtyManager {
    */
   async spawn(options: _SpawnOptions): Promise<_PtyRecord> {
     const result = await _spawnPty(options, this.registry);
-    const _record = result.record;
+    const record = result.record;
 
     // Track lifecycle and process handle.
     const lifecycle = new _PtyLifecycle(record.ptyId, "active");
@@ -223,7 +223,7 @@ export class PtyManager {
    * @throws {InvalidStateError} if the PTY is not in a writable state.
    */
   writeInput(ptyId: string, data: Uint8Array): void {
-    const _record = this.registry.get(ptyId);
+    const record = this.registry.get(ptyId);
     if (!record) {
       throw new Error(`PTY '${ptyId}' not found`);
     }
@@ -250,7 +250,7 @@ export class PtyManager {
    * @throws {InvalidDimensionsError} if dimensions are out of range.
    */
   resize(ptyId: string, cols: number, rows: number): void {
-    const _record = this.registry.get(ptyId);
+    const record = this.registry.get(ptyId);
     if (!record) {
       throw new Error(`PTY '${ptyId}' not found`);
     }
@@ -265,7 +265,7 @@ export class PtyManager {
    * @param options - Termination options.
    */
   async terminate(ptyId: string, options?: _TerminateOptions): Promise<void> {
-    const _record = this.registry.get(ptyId);
+    const record = this.registry.get(ptyId);
     if (!record) {
       // Already removed — idempotent.
       return;
