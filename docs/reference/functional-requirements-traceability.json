@@ -2042,7 +2042,7 @@
 			"status": "[ ]",
 			"code": ["apps/runtime/src/providers/acp-client.ts", "apps/runtime/src/policy/engine.ts"],
 			"tests": ["apps/runtime/src/providers/__tests__/acp-client.test.ts", "apps/runtime/tests/unit/policy/engine.test.ts"],
-			"evidence": ["FUNCTIONAL_REQUIREMENTS.md", "docs/specs/025-provider-adapter-interface-and-lifecycle/spec.md", "docs/specs/023-command-execution-and-approval-policy/spec.md"]
+			"evidence": ["FUNCTIONAL_REQUIREMENTS.md", "docs/specs/025-provider-adapter-interface-and-lifecycle/spec.md", "docs/specs/023-command-policy-engine-and-approval-workflows/spec.md"]
 		}
 	]
 }
