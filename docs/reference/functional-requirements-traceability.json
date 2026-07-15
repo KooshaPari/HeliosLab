@@ -1051,6 +1051,76 @@
 			"evidence": ["FUNCTIONAL_REQUIREMENTS.md"]
 		},
 		{
+			"id": "FR-CRH-001",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/recovery/watchdog.ts"],
+			"tests": ["apps/runtime/src/recovery/__tests__/watchdog.test.ts", "apps/runtime/src/recovery/__tests__/exit-code.test.ts"],
+			"evidence": ["docs/specs/027-crash-recovery-and-restoration/spec.md"]
+		},
+		{
+			"id": "FR-CRH-002",
+			"status": "[x]",
+			"code": ["apps/runtime/src/recovery/state-machine.ts"],
+			"tests": ["apps/runtime/src/recovery/__tests__/state-machine.test.ts"],
+			"evidence": ["docs/specs/027-crash-recovery-and-restoration/spec.md"]
+		},
+		{
+			"id": "FR-CRH-003",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/recovery/checkpoint.ts", "apps/runtime/src/recovery/checkpoint-scheduler.ts", "apps/runtime/src/sessions/checkpoint_store.ts"],
+			"tests": ["apps/runtime/src/recovery/__tests__/checkpoint.test.ts", "apps/runtime/src/recovery/__tests__/checkpoint-scheduler.test.ts", "apps/runtime/tests/unit/sessions/test_checkpoint_store.test.ts"],
+			"evidence": ["docs/specs/027-crash-recovery-and-restoration/spec.md"]
+		},
+		{
+			"id": "FR-CRH-004",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/recovery/checkpoint.ts", "apps/runtime/src/recovery/restoration.ts"],
+			"tests": ["apps/runtime/src/recovery/__tests__/checkpoint-validation.test.ts", "apps/runtime/src/recovery/__tests__/integration.test.ts"],
+			"evidence": ["docs/specs/027-crash-recovery-and-restoration/spec.md"]
+		},
+		{
+			"id": "FR-CRH-005",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/recovery/restoration.ts"],
+			"tests": ["apps/runtime/src/recovery/__tests__/integration.test.ts"],
+			"evidence": ["docs/specs/027-crash-recovery-and-restoration/spec.md"]
+		},
+		{
+			"id": "FR-CRH-006",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/recovery/orphan-reconciler.ts", "apps/runtime/src/lanes/watchdog/orphan_watchdog.ts"],
+			"tests": ["apps/runtime/src/recovery/__tests__/chaos.test.ts", "apps/runtime/tests/integration/lanes/watchdog/recovery_suppression.test.ts"],
+			"evidence": ["docs/specs/027-crash-recovery-and-restoration/spec.md"]
+		},
+		{
+			"id": "FR-CRH-007",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/recovery/banner.ts"],
+			"tests": ["apps/runtime/src/recovery/__tests__/integration.test.ts"],
+			"evidence": ["docs/specs/027-crash-recovery-and-restoration/spec.md"]
+		},
+		{
+			"id": "FR-CRH-008",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/recovery/banner.ts", "apps/runtime/src/recovery/restoration.ts"],
+			"tests": ["apps/runtime/src/recovery/__tests__/integration.test.ts"],
+			"evidence": ["docs/specs/027-crash-recovery-and-restoration/spec.md"]
+		},
+		{
+			"id": "FR-CRH-009",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/recovery/safe-mode.ts", "apps/runtime/src/recovery/watchdog.ts"],
+			"tests": ["apps/runtime/src/recovery/__tests__/safe-mode.test.ts", "apps/runtime/src/recovery/__tests__/chaos.test.ts"],
+			"evidence": ["docs/specs/027-crash-recovery-and-restoration/spec.md"]
+		},
+		{
+			"id": "FR-CRH-010",
+			"status": "[x]",
+			"code": ["apps/runtime/src/recovery/restoration.ts"],
+			"tests": ["apps/runtime/src/recovery/__tests__/integration.test.ts", "apps/runtime/src/recovery/__tests__/chaos.test.ts"],
+			"evidence": ["docs/specs/027-crash-recovery-and-restoration/spec.md"]
+		},
+		{
 			"id": "FR-ORF-001",
 			"status": "[ ]",
 			"code": ["apps/runtime/src/lanes/watchdog/orphan_watchdog.ts", "apps/runtime/src/lanes/index.ts"],

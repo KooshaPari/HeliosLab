@@ -90,8 +90,9 @@ export class RecoveryStateMachine {
       if (this.currentState.attemptCount > MAX_RETRIES_PER_STAGE) {
         throw new Error(`Max retries (${MAX_RETRIES_PER_STAGE}) exceeded for stage ${from}`);
       }
-    } else if (from !== to) {
-      // New stage - reset attempt count
+    } else if (!this.isFailureState(to)) {
+      // Successful progression to a new stage resets that stage's retry budget.
+      // Entering a failure state must preserve the attempts already consumed.
       this.currentState.attemptCount = 0;
     }
 
@@ -179,7 +180,7 @@ export class RecoveryStateMachine {
       // Atomic write
       await fs.writeFile(tempPath, JSON.stringify(this.currentState, null, 2));
       await fs.rename(tempPath, statePath);
-    } catch {
+    } catch (err) {
       console.error("Failed to persist recovery state:", err);
     }
   }

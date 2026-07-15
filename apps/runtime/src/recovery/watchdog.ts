@@ -34,6 +34,7 @@ export class Watchdog {
   private crashHandlers: CrashHandler[] = [];
   private crashDataDir: string;
   private bus?: LocalBus;
+  private pending = new Set<Promise<void>>();
 
   constructor(crashDataDir: string, bus?: LocalBus) {
     this.crashDataDir = crashDataDir;
@@ -77,10 +78,25 @@ export class Watchdog {
     this.crashHandlers.push(callback);
   }
 
+  async flush(): Promise<void> {
+    await Promise.all(this.pending);
+  }
+
+  async dispose(): Promise<void> {
+    for (const name of this.monitors.keys()) {
+      this.unregister(name);
+    }
+    await this.flush();
+  }
+
   private startHeartbeatTimer(monitor: ProcessMonitor): void {
     const timeoutMs = monitor.heartbeatIntervalMs * 2; // 2 missed heartbeats
     monitor.timeoutId = setTimeout(() => {
-      this.handleHeartbeatTimeout(monitor);
+      const operation = this.handleHeartbeatTimeout(monitor).catch(err => {
+        console.error("Heartbeat timeout handling failed:", err);
+      });
+      this.pending.add(operation);
+      void operation.finally(() => this.pending.delete(operation));
     }, timeoutMs);
   }
 
@@ -176,7 +192,7 @@ export class Watchdog {
       // Atomic write: write to temp file then rename
       await fs.writeFile(tempPath, JSON.stringify(event, null, 2));
       await fs.rename(tempPath, recordPath);
-    } catch {
+    } catch (err) {
       // Silently fail - watchdog should not crash due to I/O errors
       console.error("Failed to write crash record:", err);
     }

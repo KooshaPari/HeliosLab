@@ -16,7 +16,7 @@ export type RuntimeTerminalContext = {
   getRuntimeState(): { lane: string; session: string; terminal: "active" | "throttled" | "idle" };
 };
 
-const _METHOD_SET = new Set<string>(METHODS);
+const METHOD_SET = new Set<string>(METHODS);
 
 function normalizePayload(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) {

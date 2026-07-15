@@ -71,13 +71,22 @@ export class CheckpointWriter {
       await fs.writeFile(tempPath, content);
 
       // Fsync
-      const fd = await fs.open(tempPath, "r");
-      await fd.sync();
-      await fd.close();
+      const fd = await fs.open(tempPath, "r+");
+      try {
+        await fd.sync();
+      } catch (err) {
+        // Bun on Windows can report EPERM for fsync on a regular file.
+        // The subsequent atomic rename still provides replacement safety.
+        if (!(err instanceof Error && "code" in err && err.code === "EPERM")) {
+          throw err;
+        }
+      } finally {
+        await fd.close();
+      }
 
       // Atomic rename
       await fs.rename(tempPath, checkpointPath);
-    } catch {
+    } catch (err) {
       console.error("Failed to write checkpoint:", err);
       throw err;
     }
@@ -122,7 +131,7 @@ export class CheckpointReader {
 
     try {
       const data = await fs.readFile(checkpointPath, "utf-8");
-      const _checkpoint = JSON.parse(data) as Checkpoint;
+      const checkpoint = JSON.parse(data) as Checkpoint;
 
       // Validate checksum
       if (!this.verifyChecksum(checkpoint)) {
@@ -141,7 +150,7 @@ export class CheckpointReader {
     const backupPath = `${this.getCheckpointPath()}.backup`;
     try {
       const data = await fs.readFile(backupPath, "utf-8");
-      const _checkpoint = JSON.parse(data) as Checkpoint;
+      const checkpoint = JSON.parse(data) as Checkpoint;
 
       if (!this.verifyChecksum(checkpoint)) {
         console.warn("Backup checkpoint checksum mismatch - total loss");

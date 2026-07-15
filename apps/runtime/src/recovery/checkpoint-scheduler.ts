@@ -17,6 +17,13 @@ export class CheckpointScheduler {
   private activityCounter = 0;
   private lastCheckpointTime = 0;
   private lastWriteDurationMs = 0;
+  private checkpointInFlight?: Promise<void>;
+  private readonly onSigterm = (): void => {
+    void this.handleShutdown();
+  };
+  private readonly onSigint = (): void => {
+    void this.handleShutdown();
+  };
 
   start(writer: CheckpointWriter, stateGetter: () => Checkpoint): void {
     if (this.isRunning) return;
@@ -32,23 +39,40 @@ export class CheckpointScheduler {
     }, this.currentInterval);
 
     // Hook into shutdown signals
-    process.on("SIGTERM", () => this.handleShutdown());
-    process.on("SIGINT", () => this.handleShutdown());
+    process.on("SIGTERM", this.onSigterm);
+    process.on("SIGINT", this.onSigint);
   }
 
-  stop(): void {
+  async stop(): Promise<void> {
     if (this.timerInterval) {
       clearInterval(this.timerInterval);
       this.timerInterval = undefined;
     }
+    process.off("SIGTERM", this.onSigterm);
+    process.off("SIGINT", this.onSigint);
     this.isRunning = false;
+    await this.checkpointInFlight;
   }
 
   async triggerNow(): Promise<void> {
     if (!this.writer || !this.stateGetter) return;
+    if (this.checkpointInFlight) return this.checkpointInFlight;
 
-    const _checkpoint = this.stateGetter();
-    const _startTime = Date.now();
+    const operation = this.writeCheckpoint();
+    this.checkpointInFlight = operation;
+    try {
+      await operation;
+    } finally {
+      if (this.checkpointInFlight === operation) {
+        this.checkpointInFlight = undefined;
+      }
+    }
+  }
+
+  private async writeCheckpoint(): Promise<void> {
+    if (!this.writer || !this.stateGetter) return;
+    const checkpoint = this.stateGetter();
+    const startTime = Date.now();
 
     try {
       await this.writer.write(checkpoint);
@@ -58,20 +82,22 @@ export class CheckpointScheduler {
 
       // Adjust interval based on write time
       this.adjustInterval();
-    } catch {
+    } catch (err) {
       console.error("Failed to write checkpoint:", err);
     }
   }
 
-  recordActivity(): void {
+  recordActivity(): Promise<void> {
     this.activityCounter++;
 
     // Check if activity threshold exceeded
     if (this.activityCounter >= ACTIVITY_THRESHOLD) {
-      this.triggerNow().catch(err => {
+      return this.triggerNow().catch(err => {
         console.error("Activity-triggered checkpoint failed:", err);
       });
     }
+
+    return Promise.resolve();
   }
 
   private onTimer(): void {
@@ -102,8 +128,7 @@ export class CheckpointScheduler {
     // Take final checkpoint synchronously (with timeout)
     if (!this.writer || !this.stateGetter) return;
 
-    const _checkpoint = this.stateGetter();
-    const writePromise = this.writer.write(checkpoint);
+    const writePromise = this.triggerNow();
 
     // Race: wait for write or timeout
     await Promise.race([
@@ -115,6 +140,6 @@ export class CheckpointScheduler {
       console.error("Final checkpoint on shutdown failed:", err);
     });
 
-    this.stop();
+    await this.stop();
   }
 }

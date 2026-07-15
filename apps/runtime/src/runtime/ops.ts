@@ -12,7 +12,7 @@ export type RuntimeOpsContext = RuntimeTerminalContext & {
   rawBusRequest?: (command: LocalBusEnvelope) => Promise<LocalBusEnvelope>;
 };
 
-const _METHOD_SET = new Set<string>(METHODS);
+const METHOD_SET = new Set<string>(METHODS);
 
 function normalizePayload(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) {

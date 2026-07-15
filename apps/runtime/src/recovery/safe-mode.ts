@@ -12,6 +12,7 @@ export class CrashLoopDetector {
   private crashDataDir: string;
   private thresholdCount: number;
   private windowMs: number;
+  private persistQueue: Promise<void> = Promise.resolve();
 
   constructor(crashDataDir: string, thresholdCount: number = 3, windowMs: number = 60000) {
     this.crashDataDir = crashDataDir;
@@ -26,7 +27,7 @@ export class CrashLoopDetector {
   recordCrash(timestamp: number): void {
     this.crashHistory.push(timestamp);
     this.cleanOldCrashes();
-    this.persistCrashHistory();
+    this.persistQueue = this.persistQueue.then(() => this.persistCrashHistory());
   }
 
   isLooping(): boolean {
@@ -54,21 +55,22 @@ export class CrashLoopDetector {
     }
   }
 
-  private persistCrashHistory(): void {
+  async flush(): Promise<void> {
+    await this.persistQueue;
+  }
+
+  private async persistCrashHistory(): Promise<void> {
     try {
       const historyPath = path.join(this.crashDataDir, "recovery", "crash-history.json");
       const tempPath = `${historyPath}.tmp`;
 
-      // Atomic write
-      fs.writeFile(tempPath, JSON.stringify(this.crashHistory), {
+      await fs.mkdir(path.dirname(historyPath), { recursive: true });
+      await fs.writeFile(tempPath, JSON.stringify(this.crashHistory), {
         encoding: "utf-8",
-      })
-        .then(() => fs.rename(tempPath, historyPath))
-        .catch(err => {
-          // Silently fail - don't let history persistence block operations
-          console.error("Failed to persist crash history:", err);
-        });
-    } catch {
+      });
+      await fs.rename(tempPath, historyPath);
+    } catch (err) {
+      // Persistence must never prevent crash-loop classification.
       console.error("Failed to persist crash history:", err);
     }
   }

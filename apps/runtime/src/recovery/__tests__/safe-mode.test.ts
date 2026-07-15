@@ -18,6 +18,7 @@ describe("CrashLoopDetector", () => {
   });
 
   afterEach(async () => {
+    await detector.flush();
     vi.restoreAllMocks();
     vi.useRealTimers();
     await fs.rm(tempDir, { recursive: true, force: true }).catch(() => {});
@@ -54,14 +55,15 @@ describe("CrashLoopDetector", () => {
     const now = Date.now();
     detector.recordCrash(now);
     detector.recordCrash(now + 1000);
+    await detector.flush();
 
     // Create new detector instance and load history
-    await new Promise(resolve => setTimeout(resolve, 50));
     const detector2 = new CrashLoopDetector(tempDir, 3, 60000);
     await detector2.initialize();
 
     detector2.recordCrash(now + 2000);
     expect(detector2.isLooping()).toBe(true);
+    await detector2.flush();
   });
 
   it("should handle corrupted history file gracefully", async () => {
@@ -75,6 +77,7 @@ describe("CrashLoopDetector", () => {
     const now = Date.now();
     detector2.recordCrash(now);
     expect(detector2.isLooping()).toBe(false);
+    await detector2.flush();
   });
 });
 
@@ -117,9 +120,9 @@ describe("SafeMode", () => {
 
   it("should publish exit event to bus", async () => {
     await safeMode.enter();
-    bus.getEvents().length = 0; // Clear events
+    const beforeExit = bus.getEvents().length;
     await safeMode.exit();
-    const events = bus.getEvents();
+    const events = bus.getEvents().slice(beforeExit);
     expect(events.length).toBe(1);
     expect(events[0].topic).toBe("recovery.safemode.exited");
   });
