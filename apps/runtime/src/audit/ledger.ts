@@ -242,7 +242,7 @@ export class AuditLedger {
       }
 
       // Check for parent correlation ID in metadata
-      const parentCorrelationId = event.metadata?.parentCorrelationId;
+      const parentCorrelationId = event.metadata?.["parentCorrelationId"];
       if (parentCorrelationId && typeof parentCorrelationId === "string") {
         this.traverseCorrelationChain(parentCorrelationId, visited, chain);
       }
@@ -272,7 +272,11 @@ export class AuditLedger {
     }
 
     if (filter.eventType) {
-      rbFilter.eventType = Array.isArray(filter.eventType) ? filter.eventType[0] : filter.eventType;
+      rbFilter.eventType = filter.eventType;
+    }
+
+    if (filter.correlationId) {
+      rbFilter.correlationId = filter.correlationId;
     }
 
     if (filter.timeRange) {

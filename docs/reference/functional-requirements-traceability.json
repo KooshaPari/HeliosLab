@@ -128,9 +128,9 @@
 		},
 		{
 			"id": "FR-AUD-002",
-			"status": "[ ]",
-			"code": ["apps/runtime/src/audit/sink.ts"],
-			"tests": ["apps/runtime/tests/unit/audit/sink.test.ts"],
+			"status": "[x]",
+			"code": ["apps/runtime/src/audit/sqlite-store.ts", "apps/runtime/src/audit/sink.ts"],
+			"tests": ["apps/runtime/tests/unit/audit/sqlite-store.test.ts", "apps/runtime/tests/unit/audit/retention_policy.test.ts"],
 			"evidence": ["TEST_COVERAGE_MATRIX.md"]
 		},
 		{
@@ -149,9 +149,9 @@
 		},
 		{
 			"id": "FR-AUD-005",
-			"status": "[ ]",
-			"code": ["apps/runtime/src/audit/ledger.ts", "apps/runtime/src/audit/api.ts"],
-			"tests": ["apps/runtime/tests/unit/audit/ledger.test.ts", "apps/runtime/tests/integration/audit/search-performance.test.ts"],
+			"status": "[x]",
+			"code": ["apps/runtime/src/audit/ledger.ts", "apps/runtime/src/audit/api.ts", "apps/runtime/src/audit/ring-buffer.ts", "apps/runtime/src/audit/sqlite-store.ts"],
+			"tests": ["apps/runtime/tests/unit/audit/ledger.test.ts", "apps/runtime/tests/unit/audit/sqlite-store.test.ts", "apps/runtime/tests/integration/audit/search-performance.test.ts"],
 			"evidence": ["TEST_COVERAGE_MATRIX.md"]
 		},
 		{

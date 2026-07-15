@@ -108,8 +108,14 @@ export class SQLiteAuditStore {
     }
 
     if (filter.eventType) {
-      query += " AND event_type = ?";
-      params.push(filter.eventType);
+      const eventTypes = Array.isArray(filter.eventType) ? filter.eventType : [filter.eventType];
+      query += ` AND event_type IN (${eventTypes.map(() => "?").join(", ")})`;
+      params.push(...eventTypes);
+    }
+
+    if (filter.correlationId) {
+      query += " AND correlation_id = ?";
+      params.push(filter.correlationId);
     }
 
     if (filter.startTime) {
@@ -179,8 +185,16 @@ export class SQLiteAuditStore {
     }
 
     if (actualFilter.eventType) {
-      query += " AND event_type = ?";
-      params.push(actualFilter.eventType);
+      const eventTypes = Array.isArray(actualFilter.eventType)
+        ? actualFilter.eventType
+        : [actualFilter.eventType];
+      query += ` AND event_type IN (${eventTypes.map(() => "?").join(", ")})`;
+      params.push(...eventTypes);
+    }
+
+    if (actualFilter.correlationId) {
+      query += " AND correlation_id = ?";
+      params.push(actualFilter.correlationId);
     }
 
     if (actualFilter.startTime) {

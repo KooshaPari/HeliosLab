@@ -2,9 +2,7 @@
  * FR-HELIOS-091: Audit Search Performance Tests
  * Verifies: FR-AUD-005 (Search/filter performance)
  */
-let _stubDateNow: () => number;
-let _stubUUID: () => string;
-let _uuidCounter = 0;
+import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 import { AuditLedger } from "../../../src/audit/ledger";
 import { AuditRingBuffer } from "../../../src/audit/ring-buffer";
 import { SQLiteAuditStore } from "../../../src/audit/sqlite-store";
@@ -16,7 +14,7 @@ import { createAuditEvent, AUDIT_EVENT_TYPES, AUDIT_EVENT_RESULTS } from "../../
 function percentile(values: number[], p: number): number {
   values.sort((a, b) => a - b);
   const index = Math.ceil((p / 100) * values.length) - 1;
-  return values[Math.max(0, index)];
+  return values[Math.max(0, index)]!;
 }
 
 describe("Audit Search Performance", { timeout: 60000 }, () => {
@@ -49,7 +47,7 @@ describe("Audit Search Performance", { timeout: 60000 }, () => {
           AUDIT_EVENT_TYPES.POLICY_EVALUATION,
           AUDIT_EVENT_TYPES.APPROVAL_RESOLVED,
           AUDIT_EVENT_TYPES.TERMINAL_OUTPUT,
-        ][i % EVENT_TYPES],
+        ][i % EVENT_TYPES]!,
         actor: `actor-${i % ACTORS}`,
         action: "test",
         target: `target-${i}`,
@@ -75,8 +73,8 @@ describe("Audit Search Performance", { timeout: 60000 }, () => {
     const latencies: number[] = [];
 
     for (let i = 0; i < 20; i++) {
-      const _startTime = Date.now();
-      const _results = ledger.search({ workspaceId: "ws-0", limit: 100 });
+      const startTime = Date.now();
+      const results = ledger.search({ workspaceId: "ws-0", limit: 100 });
       const endTime = Date.now();
 
       latencies.push(endTime - startTime);
@@ -122,7 +120,7 @@ describe("Audit Search Performance", { timeout: 60000 }, () => {
     const now2 = now;
 
     for (let i = 0; i < 20; i++) {
-      const _startTime = Date.now();
+      const startTime = Date.now();
       const _results = ledger.search({
         timeRange: { from: oneHourAgo, to: now2 },
         limit: 100,
@@ -163,7 +161,7 @@ describe("Audit Search Performance", { timeout: 60000 }, () => {
     const latencies: number[] = [];
 
     for (let i = 0; i < 20; i++) {
-      const _startTime = Date.now();
+      const startTime = Date.now();
       const _results = ledger.search({
         workspaceId: "ws-0",
         actor: "actor-0",
@@ -211,7 +209,7 @@ describe("Audit Search Performance", { timeout: 60000 }, () => {
     const latencies: number[] = [];
 
     for (let i = 0; i < CHAIN_COUNT; i++) {
-      const _startTime = Date.now();
+      const startTime = Date.now();
       const chain = ledger.getCorrelationChain(`chain-${i}`);
       const endTime = Date.now();
 

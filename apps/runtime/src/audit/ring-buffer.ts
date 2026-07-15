@@ -8,7 +8,7 @@ export interface AuditFilter {
   laneId?: string;
   sessionId?: string;
   actor?: string;
-  eventType?: string;
+  eventType?: string | string[];
   correlationId?: string;
   startTime?: Date;
   endTime?: Date;
@@ -183,8 +183,11 @@ export class AuditRingBuffer {
       return false;
     }
 
-    if (filter.eventType && event.eventType !== filter.eventType) {
-      return false;
+    if (filter.eventType) {
+      const eventTypes = Array.isArray(filter.eventType) ? filter.eventType : [filter.eventType];
+      if (!eventTypes.includes(event.eventType)) {
+        return false;
+      }
     }
 
     if (filter.startTime) {

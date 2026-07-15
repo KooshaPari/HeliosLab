@@ -62,6 +62,33 @@ describe("SQLiteAuditStore", () => {
       // Should complete in < 1 second for 1000 events
       expect(endTime - startTime).toBeLessThan(1000);
     });
+
+    it("is append-only when the same event ID is persisted again", () => {
+      const original = createAuditEvent({
+        eventType: AUDIT_EVENT_TYPES.COMMAND_EXECUTED,
+        actor: "agent-1",
+        action: "execute",
+        target: "cmd",
+        result: AUDIT_EVENT_RESULTS.SUCCESS,
+        workspaceId: "ws-1",
+        correlationId: "append-proof",
+        metadata: { revision: 1 },
+      });
+      store.persist([original]);
+
+      store.persist([
+        {
+          ...original,
+          actor: "tampered",
+          metadata: { revision: 2 },
+        },
+      ]);
+
+      const records = store.query({ correlationId: "append-proof" });
+      expect(records).toHaveLength(1);
+      expect(records[0]!.actor).toBe("agent-1");
+      expect(records[0]!.metadata).toEqual({ revision: 1 });
+    });
   });
 
   describe("query", () => {
@@ -102,6 +129,22 @@ describe("SQLiteAuditStore", () => {
       });
       expect(results.length).toBeGreaterThan(0);
       expect(results.every(e => e.eventType === AUDIT_EVENT_TYPES.COMMAND_EXECUTED)).toBe(true);
+    });
+
+    it("should query by correlation ID", () => {
+      const results = store.query({ correlationId: "corr-75" });
+      expect(results).toHaveLength(1);
+      expect(results[0]!.correlationId).toBe("corr-75");
+    });
+
+    it("should query by multiple event types", () => {
+      const accepted: string[] = [
+        AUDIT_EVENT_TYPES.COMMAND_EXECUTED,
+        AUDIT_EVENT_TYPES.SESSION_CREATED,
+      ];
+      const results = store.query({ eventType: accepted });
+      expect(results.length).toBeGreaterThan(0);
+      expect(results.every(event => accepted.includes(event.eventType))).toBe(true);
     });
 
     it("should query with pagination", () => {

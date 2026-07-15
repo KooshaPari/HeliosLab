@@ -73,6 +73,32 @@ describe("AuditLedger", () => {
       expect(results.every(e => e.eventType === AUDIT_EVENT_TYPES.COMMAND_EXECUTED)).toBe(true);
     });
 
+    it("should cover lane, session, actor, time, type, and correlation filters together", () => {
+      const target = ringBuffer.getByCorrelationId("corr-7")[0]!;
+      const timestamp = new Date(target.timestamp).getTime();
+      const results = ledger.search({
+        workspaceId: target.workspaceId,
+        laneId: target.laneId!,
+        sessionId: target.sessionId!,
+        actor: target.actor,
+        eventType: target.eventType,
+        correlationId: target.correlationId,
+        timeRange: {
+          from: new Date(timestamp - 1),
+          to: new Date(timestamp + 1),
+        },
+      });
+
+      expect(results).toHaveLength(1);
+      expect(results[0]!.id).toBe(target.id);
+    });
+
+    it("should apply correlation filtering to historical SQLite records", () => {
+      const results = ledger.search({ correlationId: "corr-75" });
+      expect(results).toHaveLength(1);
+      expect(results[0]!.correlationId).toBe("corr-75");
+    });
+
     it("should merge results from ring buffer and store", () => {
       const results = ledger.search({ workspaceId: "ws-1", limit: 100 });
       expect(results.length).toBeGreaterThan(0);
