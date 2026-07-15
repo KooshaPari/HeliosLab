@@ -26,7 +26,7 @@ describe("ChatTab", () => {
       };
 
       await tab.onContextChange(context);
-      const _el = tab.render();
+      const el = tab.render();
       expect(el).toBeDefined();
     });
 
@@ -39,7 +39,7 @@ describe("ChatTab", () => {
 
       await tab.onContextChange(context);
       await tab.onContextChange(null);
-      const _el = tab.render();
+      tab.render();
 
       const state = tab.getState();
       expect(state.messageCount).toBe(0);
@@ -68,7 +68,7 @@ describe("ChatTab", () => {
       };
 
       await tab.onContextChange(context);
-      const _el = tab.render();
+      const el = tab.render();
 
       expect(el.textContent).toContain("Agent");
     });
@@ -81,7 +81,7 @@ describe("ChatTab", () => {
       };
 
       await tab.onContextChange(context);
-      const _el = tab.render();
+      const el = tab.render();
 
       expect(el.textContent?.toLowerCase()).toContain("you");
     });
@@ -90,14 +90,14 @@ describe("ChatTab", () => {
   describe("Empty State", () => {
     it("should show empty state when no history", async () => {
       await tab.onContextChange(null);
-      const _el = tab.render();
+      const el = tab.render();
 
       expect(el.textContent).toContain("No chat history");
     });
 
     it("should show input prompt in empty state", async () => {
       await tab.onContextChange(null);
-      const _el = tab.render();
+      const el = tab.render();
       const textarea = el.querySelector("textarea");
 
       expect(textarea).toBeDefined();
@@ -113,7 +113,7 @@ describe("ChatTab", () => {
       };
 
       await tab.onContextChange(context);
-      const _el = tab.render();
+      const el = tab.render();
       const input = el.querySelector("textarea");
 
       expect(input).toBeDefined();
@@ -128,7 +128,7 @@ describe("ChatTab", () => {
       };
 
       await tab.onContextChange(context);
-      const _el = tab.render();
+      const el = tab.render();
       const button = el.querySelector("button");
 
       expect(button?.textContent).toContain("Send");

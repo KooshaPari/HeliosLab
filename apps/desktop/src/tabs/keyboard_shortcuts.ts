@@ -87,7 +87,7 @@ export class KeyboardShortcuts {
       await fs.mkdir(dir, { recursive: true });
       const data = JSON.stringify(this.shortcuts, null, 2);
       await fs.writeFile(this.configPath, data, "utf-8");
-    } catch {
+    } catch (error) {
       console.error("Failed to save keyboard shortcuts:", error);
     }
   }

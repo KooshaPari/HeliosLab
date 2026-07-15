@@ -33,21 +33,6 @@ function makeRecord(overrides?: Partial<PtyRecord>): PtyRecord {
   };
 }
 
-function spawnShellProcess(): number {
-  const proc = Bun.spawn(["/bin/sh"], {
-    stdout: "pipe",
-    stderr: "pipe",
-  }) as { pid?: number };
-
-  if (proc.pid === undefined) {
-    throw new Error("Bun.spawn did not return a process ID");
-  }
-
-  return proc.pid;
-}
-
-const pidsToCleanup: number[] = [];
-
 describe("SignalHistory", () => {
   it("stores and retrieves envelopes", () => {
     const h = new SignalHistory(3);
@@ -99,17 +84,13 @@ describe("SignalHistory", () => {
 
 describe("resize", () => {
   it("updates dimensions and emits events", () => {
-    // Spawn a real child so SIGWINCH delivery succeeds.
-    const pid = spawnShellProcess();
-    pidsToCleanup.push(pid);
-
     const registry = new PtyRegistry();
-    const record = makeRecord({ pid });
+    const record = makeRecord();
     registry.register(record);
     const historyMap: SignalHistoryMap = new Map();
     const bus = new InMemoryBusPublisher();
 
-    resize(record, 120, 40, registry, historyMap, bus);
+    resize(record, 120, 40, registry, historyMap, bus, () => {});
 
     expect(registry.get(record.ptyId)?.dimensions).toEqual({
       cols: 120,
@@ -177,11 +158,8 @@ describe("resize", () => {
 
 describe("terminate", () => {
   it("terminates with SIGTERM and cleans up", async () => {
-    const pid = spawnShellProcess() as number;
-    pidsToCleanup.push(pid);
-
     const registry = new PtyRegistry();
-    const record = makeRecord({ pid });
+    const record = makeRecord();
     registry.register(record);
     const lifecycle = new PtyLifecycle(record.ptyId, "active");
     const historyMap: SignalHistoryMap = new Map();
@@ -197,7 +175,8 @@ describe("terminate", () => {
       bus,
       { gracePeriodMs: 50 },
       mockIsAlive,
-      mockWait
+      mockWait,
+      () => {}
     );
 
     expect(registry.get(record.ptyId)).toBeUndefined();
@@ -246,14 +225,10 @@ describe("terminate", () => {
 
 describe("sendSighup", () => {
   it("records successful delivery", () => {
-    // Spawn a real child so SIGHUP has a valid target (not the test runner).
-    const pid = spawnShellProcess();
-    pidsToCleanup.push(pid);
-
-    const record = makeRecord({ pid });
+    const record = makeRecord();
     const historyMap: SignalHistoryMap = new Map();
     const bus = new InMemoryBusPublisher();
-    const envelope = sendSighup(record, historyMap, bus);
+    const envelope = sendSighup(record, historyMap, bus, () => {});
     expect(envelope.outcome).toBe("delivered");
     expect(envelope.signal).toBe("SIGHUP");
     expect(historyMap.get(record.ptyId)?.length).toBe(1);

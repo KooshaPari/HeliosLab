@@ -1770,6 +1770,195 @@
 			"code": ["apps/runtime/src/integrations/sharing/share-session.ts", "apps/runtime/src/audit/audit-sink.ts"],
 			"tests": ["apps/runtime/src/integrations/sharing/__tests__/share-session.test.ts"],
 			"evidence": ["docs/specs/026-share-session-workflows/spec.md", "docs/reference/FR_TRACEABILITY_GAPS.md"]
+		},
+		{
+			"id": "FR-MVP-001",
+			"status": "[ ]",
+			"code": ["apps/desktop/src/tabs/chat_tab.ts", "apps/runtime/src/integrations/persistence/conversations.ts"],
+			"tests": ["apps/desktop/tests/unit/tabs/chat_tab.test.ts"],
+			"evidence": ["FUNCTIONAL_REQUIREMENTS.md", "docs/specs/030-helios-mvp-agent-ide/spec.md"]
+		},
+		{
+			"id": "FR-MVP-002",
+			"status": "[ ]",
+			"code": ["apps/desktop/src/tabs/chat_tab.ts", "apps/runtime/src/protocol/bus.ts"],
+			"tests": ["apps/runtime/tests/unit/protocol/bus.test.ts", "apps/desktop/tests/unit/ui-shell.test.ts"],
+			"evidence": ["FUNCTIONAL_REQUIREMENTS.md", "docs/specs/030-helios-mvp-agent-ide/spec.md"]
+		},
+		{
+			"id": "FR-MVP-003",
+			"status": "[ ]",
+			"code": ["apps/desktop/src/tabs/chat_tab.ts", "apps/runtime/src/audit/ledger.ts"],
+			"tests": ["apps/runtime/tests/unit/audit/ledger.test.ts", "apps/desktop/tests/unit/ui-shell.test.ts"],
+			"evidence": ["FUNCTIONAL_REQUIREMENTS.md", "docs/specs/030-helios-mvp-agent-ide/spec.md"]
+		},
+		{
+			"id": "FR-MVP-004",
+			"status": "[ ]",
+			"code": ["apps/desktop/src/tabs/chat_tab.ts", "apps/runtime/src/types/conversation.ts"],
+			"tests": ["apps/desktop/tests/unit/tabs/chat_tab.test.ts", "apps/runtime/tests/unit/protocol/envelope.test.ts"],
+			"evidence": ["FUNCTIONAL_REQUIREMENTS.md", "docs/specs/030-helios-mvp-agent-ide/spec.md"]
+		},
+		{
+			"id": "FR-MVP-005",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/lanes/par.ts", "apps/runtime/src/providers/acp-client.ts"],
+			"tests": ["apps/runtime/tests/lanes/par.test.ts", "apps/desktop/tests/unit/ui-shell.test.ts"],
+			"evidence": ["FUNCTIONAL_REQUIREMENTS.md", "docs/specs/030-helios-mvp-agent-ide/spec.md"]
+		},
+		{
+			"id": "FR-MVP-006",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/pty/spawn.ts", "apps/runtime/src/pty/index.ts"],
+			"tests": ["apps/runtime/src/pty/__tests__/spawn.test.ts", "apps/runtime/tests/integration/pty/portable_spawn.test.ts"],
+			"evidence": ["FUNCTIONAL_REQUIREMENTS.md", "docs/specs/030-helios-mvp-agent-ide/spec.md"]
+		},
+		{
+			"id": "FR-MVP-007",
+			"status": "[ ]",
+			"code": ["apps/desktop/src/tabs/terminal_tab.ts", "apps/runtime/src/renderer/registry.ts"],
+			"tests": ["apps/runtime/tests/unit/renderer/registry.test.ts", "apps/desktop/tests/unit/ui-shell.test.ts"],
+			"evidence": ["FUNCTIONAL_REQUIREMENTS.md", "docs/specs/030-helios-mvp-agent-ide/spec.md"]
+		},
+		{
+			"id": "FR-MVP-008",
+			"status": "[x]",
+			"code": ["apps/runtime/src/pty/registry.ts", "apps/runtime/src/sessions/terminal_registry.ts"],
+			"tests": ["apps/runtime/tests/unit/pty/registry.test.ts", "apps/runtime/tests/unit/sessions/test_terminal_registry.test.ts"],
+			"evidence": ["FUNCTIONAL_REQUIREMENTS.md", "docs/specs/030-helios-mvp-agent-ide/spec.md"]
+		},
+		{
+			"id": "FR-MVP-009",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/integrations/muxer/dispatch.ts", "apps/runtime/src/lanes/par.ts"],
+			"tests": ["apps/runtime/tests/lanes/par.test.ts", "apps/runtime/tests/integration/protocol/boundary_dispatch.test.ts"],
+			"evidence": ["FUNCTIONAL_REQUIREMENTS.md", "docs/specs/030-helios-mvp-agent-ide/spec.md"]
+		},
+		{
+			"id": "FR-MVP-010",
+			"status": "[x]",
+			"code": ["apps/runtime/src/pty/signals.ts", "apps/runtime/src/pty/registry.ts"],
+			"tests": ["apps/runtime/tests/unit/pty/signals.test.ts", "apps/runtime/src/pty/__tests__/signals.test.ts"],
+			"evidence": ["FUNCTIONAL_REQUIREMENTS.md", "docs/specs/030-helios-mvp-agent-ide/spec.md"]
+		},
+		{
+			"id": "FR-MVP-011",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/integrations/persistence/conversations.ts", "apps/runtime/src/workspace/store.ts"],
+			"tests": ["apps/runtime/tests/unit/workspace/store.test.ts", "apps/runtime/tests/integration/workspace/persistence.test.ts"],
+			"evidence": ["FUNCTIONAL_REQUIREMENTS.md", "docs/specs/030-helios-mvp-agent-ide/spec.md"]
+		},
+		{
+			"id": "FR-MVP-012",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/config/settings.ts", "apps/runtime/src/config/schema.ts", "apps/desktop/src/tabs/keyboard_shortcuts.ts"],
+			"tests": ["apps/runtime/tests/unit/config/settings.test.ts", "apps/desktop/tests/unit/tabs/keyboard_shortcuts.test.ts"],
+			"evidence": ["FUNCTIONAL_REQUIREMENTS.md", "docs/specs/030-helios-mvp-agent-ide/spec.md"]
+		},
+		{
+			"id": "FR-MVP-013",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/workspace/store.ts", "apps/runtime/src/lanes/registry.ts", "apps/runtime/src/sessions/registry.ts"],
+			"tests": ["apps/runtime/tests/integration/registry/lane_session_integration.test.ts", "apps/runtime/tests/unit/workspace/store.test.ts"],
+			"evidence": ["FUNCTIONAL_REQUIREMENTS.md", "docs/specs/030-helios-mvp-agent-ide/spec.md"]
+		},
+		{
+			"id": "FR-MVP-014",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/integrations/inference/anthropic-adapter.ts", "apps/runtime/src/integrations/inference/registry.ts"],
+			"tests": ["apps/runtime/src/providers/__tests__/adapter.test.ts"],
+			"evidence": ["FUNCTIONAL_REQUIREMENTS.md", "docs/specs/030-helios-mvp-agent-ide/spec.md"]
+		},
+		{
+			"id": "FR-MVP-015",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/integrations/inference/mlx-adapter.ts", "apps/runtime/src/integrations/inference/hardware.ts"],
+			"tests": ["apps/runtime/tests/unit/renderer/capabilities.test.ts"],
+			"evidence": ["FUNCTIONAL_REQUIREMENTS.md", "docs/specs/030-helios-mvp-agent-ide/spec.md"]
+		},
+		{
+			"id": "FR-MVP-016",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/integrations/inference/llamacpp-adapter.ts", "apps/runtime/src/integrations/inference/hardware.ts"],
+			"tests": ["apps/runtime/tests/unit/renderer/capabilities.test.ts"],
+			"evidence": ["FUNCTIONAL_REQUIREMENTS.md", "docs/specs/030-helios-mvp-agent-ide/spec.md"]
+		},
+		{
+			"id": "FR-MVP-017",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/integrations/inference/hardware.ts", "apps/runtime/src/renderer/capabilities.ts"],
+			"tests": ["apps/runtime/tests/unit/renderer/capabilities.test.ts", "apps/runtime/tests/unit/renderer/ghostty/capabilities.test.ts"],
+			"evidence": ["FUNCTIONAL_REQUIREMENTS.md", "docs/specs/030-helios-mvp-agent-ide/spec.md"]
+		},
+		{
+			"id": "FR-MVP-018",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/integrations/inference/registry.ts", "apps/runtime/src/providers/registry.ts"],
+			"tests": ["apps/runtime/src/providers/__tests__/registry.test.ts"],
+			"evidence": ["FUNCTIONAL_REQUIREMENTS.md", "docs/specs/030-helios-mvp-agent-ide/spec.md"]
+		},
+		{
+			"id": "FR-MVP-019",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/providers/health-monitor.ts", "apps/runtime/src/providers/a2a-router.ts"],
+			"tests": ["apps/runtime/src/providers/__tests__/a2a-router.test.ts", "apps/runtime/src/providers/__tests__/mcp-bridge-error-handling.test.ts"],
+			"evidence": ["FUNCTIONAL_REQUIREMENTS.md", "docs/specs/030-helios-mvp-agent-ide/spec.md"]
+		},
+		{
+			"id": "FR-MVP-020",
+			"status": "[x]",
+			"code": ["apps/runtime/src/lanes/index.ts", "apps/runtime/src/lanes/worktree.ts", "apps/runtime/src/lanes/registry.ts"],
+			"tests": ["apps/runtime/tests/lanes/lane_manager.test.ts", "apps/runtime/tests/lanes/worktree.test.ts"],
+			"evidence": ["FUNCTIONAL_REQUIREMENTS.md", "docs/specs/030-helios-mvp-agent-ide/spec.md"]
+		},
+		{
+			"id": "FR-MVP-021",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/integrations/sharing/adapters.ts", "apps/runtime/src/integrations/sharing/share-session.ts"],
+			"tests": ["apps/runtime/src/integrations/sharing/__tests__/share-session.test.ts"],
+			"evidence": ["FUNCTIONAL_REQUIREMENTS.md", "docs/specs/030-helios-mvp-agent-ide/spec.md", "docs/reference/FR_TRACEABILITY_GAPS.md"]
+		},
+		{
+			"id": "FR-MVP-022",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/integrations/muxer/dispatch.ts", "apps/runtime/src/integrations/zellij/adapter.ts"],
+			"tests": ["apps/runtime/tests/integration/protocol/boundary_dispatch.test.ts"],
+			"evidence": ["FUNCTIONAL_REQUIREMENTS.md", "docs/specs/030-helios-mvp-agent-ide/spec.md"]
+		},
+		{
+			"id": "FR-MVP-023",
+			"status": "[ ]",
+			"code": ["apps/desktop/src/index.tsx", "apps/desktop/src/panels/lane_panel.ts"],
+			"tests": ["apps/desktop/tests/unit/ui-shell.test.ts"],
+			"evidence": ["FUNCTIONAL_REQUIREMENTS.md", "docs/specs/030-helios-mvp-agent-ide/spec.md"]
+		},
+		{
+			"id": "FR-MVP-024",
+			"status": "[ ]",
+			"code": ["apps/desktop/src/index.tsx", "apps/desktop/src/tabs/chat_tab.ts"],
+			"tests": ["apps/desktop/tests/unit/ui-shell.test.ts", "apps/desktop/tests/unit/tabs/chat_tab.test.ts"],
+			"evidence": ["FUNCTIONAL_REQUIREMENTS.md", "docs/specs/030-helios-mvp-agent-ide/spec.md"]
+		},
+		{
+			"id": "FR-MVP-025",
+			"status": "[ ]",
+			"code": ["apps/desktop/src/tabs/chat_tab.ts", "apps/desktop/src/components/chat/ModelSelector.tsx"],
+			"tests": ["apps/desktop/tests/unit/ui-shell.test.ts", "apps/desktop/tests/unit/tabs/chat_tab.test.ts"],
+			"evidence": ["FUNCTIONAL_REQUIREMENTS.md", "docs/specs/030-helios-mvp-agent-ide/spec.md"]
+		},
+		{
+			"id": "FR-MVP-026",
+			"status": "[ ]",
+			"code": ["apps/desktop/src/tabs/terminal_tab.ts", "apps/desktop/src/index.tsx"],
+			"tests": ["apps/desktop/tests/unit/ui-shell.test.ts", "apps/desktop/tests/unit/tabs/terminal_tab.test.ts"],
+			"evidence": ["FUNCTIONAL_REQUIREMENTS.md", "docs/specs/030-helios-mvp-agent-ide/spec.md"]
+		},
+		{
+			"id": "FR-MVP-027",
+			"status": "[ ]",
+			"code": ["apps/desktop/src/tabs/keyboard_shortcuts.ts", "apps/desktop/src/index.tsx"],
+			"tests": ["apps/desktop/tests/unit/tabs/keyboard_shortcuts.test.ts", "apps/desktop/tests/unit/ui-shell.test.ts"],
+			"evidence": ["FUNCTIONAL_REQUIREMENTS.md", "docs/specs/030-helios-mvp-agent-ide/spec.md"]
 		}
 	]
 }
