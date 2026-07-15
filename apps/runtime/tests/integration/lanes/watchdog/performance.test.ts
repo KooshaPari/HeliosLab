@@ -48,9 +48,9 @@ describe("Performance", () => {
     }
 
     // Measure suggestion generation time
-    const _startTime = Date.now();
+    const startTime = Date.now();
     const suggestions = await engine.generateSuggestions(orphans);
-    const _duration = Date.now() - startTime;
+    const duration = Date.now() - startTime;
 
     // Should complete quickly (under 500ms)
     expect(duration).toBeLessThan(500);
@@ -72,9 +72,9 @@ describe("Performance", () => {
       });
     }
 
-    const _startTime = Date.now();
+    const startTime = Date.now();
     const suggestions = await engine.generateSuggestions(orphans);
-    const _duration = Date.now() - startTime;
+    const duration = Date.now() - startTime;
 
     expect(duration).toBeLessThan(500);
     expect(suggestions.length).toBe(50);
@@ -92,7 +92,7 @@ describe("Performance", () => {
       },
     ];
 
-    const _startTime = Date.now();
+    const startTime = Date.now();
 
     // Run 100 detection cycles
     for (let i = 0; i < 100; i++) {
@@ -138,9 +138,9 @@ describe("Performance", () => {
       });
     }
 
-    const _startTime = Date.now();
+    const startTime = Date.now();
     const suggestions = await engine.generateSuggestions(orphans);
-    const _duration = Date.now() - startTime;
+    const duration = Date.now() - startTime;
 
     // Should still complete quickly even with recovery checks
     expect(duration).toBeLessThan(500);
@@ -166,7 +166,7 @@ describe("Performance", () => {
     expect(suggestions.length).toBe(1);
 
     // Decline it (triggers cooldown save)
-    const _startTime = Date.now();
+    const startTime = Date.now();
     engine.declineCleanup(suggestions[0].id);
     const declineTime = Date.now() - startTime;
 
