@@ -75,7 +75,7 @@ export async function executeRollback(
   failureReason: string,
   eventBus?: RendererEventBus
 ): Promise<RollbackResult> {
-  const _startTime = Date.now();
+  const startTime = Date.now();
   const terminalStatuses: RollbackTerminalStatus[] = [];
 
   try {
@@ -106,7 +106,7 @@ export async function executeRollback(
           restored: true,
           degraded: false,
         });
-      } catch {
+      } catch (error) {
         terminalStatuses.push({
           ptyId,
           restored: false,
@@ -147,7 +147,7 @@ export async function executeRollback(
       terminalStatuses,
       failureReason,
     };
-  } catch {
+  } catch (error) {
     const rollbackError = error instanceof RollbackError ? error : new RollbackError(String(error));
 
     return {

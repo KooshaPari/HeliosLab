@@ -137,7 +137,7 @@ describe("Rollback integration", () => {
       });
     }
 
-    const _startTime = Date.now();
+    const startTime = Date.now();
     const result = await executeRollback(original, failed, terminals, buffer, "test failure");
 
     const elapsed = Date.now() - startTime;

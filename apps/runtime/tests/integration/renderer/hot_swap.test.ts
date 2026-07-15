@@ -146,7 +146,7 @@ describe("Hot-swap integration", () => {
     );
 
     expect(result.success).toBe(true);
-    const _context = result.preservedContexts[0]!;
+    const context = result.preservedContexts[0]!;
     expect(context.scrollback.length).toBe(3);
   });
 
@@ -180,7 +180,7 @@ describe("Hot-swap integration", () => {
     );
 
     expect(result.success).toBe(true);
-    const _context = result.preservedContexts[0]!;
+    const context = result.preservedContexts[0]!;
     expect(context.cursorX).toBe(42);
     expect(context.cursorY).toBe(17);
   });
@@ -224,7 +224,7 @@ describe("Hot-swap integration", () => {
     );
 
     expect(result.success).toBe(true);
-    const _context = result.preservedContexts[0]!;
+    const context = result.preservedContexts[0]!;
     expect(context.env).toEqual(env);
     expect(context.cwd).toBe(cwd);
   });
@@ -246,7 +246,7 @@ describe("Hot-swap integration", () => {
       });
     }
 
-    const _startTime = Date.now();
+    const startTime = Date.now();
     const result = await executeHotSwap(
       source,
       target,

@@ -12,12 +12,13 @@ import {
   MockGhosttyAdapter,
   MockRioAdapter,
   TEST_CONFIG,
+  TEST_SURFACE,
 } from "../../helpers/mock_adapter.js";
 
 function freshSetup() {
-  const _registry = new RendererRegistry();
+  const registry = new RendererRegistry();
   const sm = new RendererStateMachine();
-  const _ghostty = new MockGhosttyAdapter();
+  const ghostty = new MockGhosttyAdapter();
   const rio = new MockRioAdapter();
   registry.register(ghostty);
   registry.register(rio);
@@ -86,14 +87,14 @@ describe("Switch stress tests", () => {
 
     expect(buf.getBufferedBytes()).toBe(100 * 10 * 1024);
 
-    const _renderer = new MockGhosttyAdapter();
+    const renderer = new MockGhosttyAdapter();
     buf.stopBuffering(renderer);
     expect(renderer.boundStreams.has("pty-1")).toBe(true);
     expect(buf.getBufferedBytes()).toBe(0);
   });
 
   it("(c) switch with multiple PTYs bound (10 PTYs): all streams rebound", async () => {
-    const { registry, sm, bus, _ghostty, rio } = freshSetup();
+    const { registry, sm, bus, rio } = freshSetup();
     const boundStreams = new Map<string, ReadableStream<Uint8Array>>();
 
     for (let i = 0; i < 10; i++) {
@@ -157,7 +158,7 @@ describe("Switch stress tests", () => {
 
   it("(e) double failure: new renderer fails, rollback fails -> errored state", async () => {
     const { registry, sm, events, bus } = freshSetup();
-    const _ghostty = registry.get("ghostty") as MockGhosttyAdapter;
+    const ghostty = registry.get("ghostty") as MockGhosttyAdapter;
     const rio = registry.get("rio") as MockRioAdapter;
 
     rio.setOptions({ startFail: true }); // switch fails

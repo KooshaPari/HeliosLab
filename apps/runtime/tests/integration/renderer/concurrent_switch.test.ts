@@ -65,8 +65,7 @@ describe("Concurrent switch rejection", () => {
         surface: TEST_SURFACE,
       });
       expect.unreachable("Should have thrown ConcurrentSwitchError");
-    // eslint-disable-next-line no-unused-vars
-    } catch (_err) {
+    } catch (error) {
       expect(error).toBeInstanceOf(ConcurrentSwitchError);
       if (error instanceof ConcurrentSwitchError) {
         expect(error.message).toContain("already active");
@@ -119,8 +118,7 @@ describe("Concurrent switch rejection", () => {
         surface: TEST_SURFACE,
       });
       expect.unreachable("Should have thrown ConcurrentSwitchError");
-    // eslint-disable-next-line no-unused-vars
-    } catch (_err) {
+    } catch (error) {
       if (error instanceof ConcurrentSwitchError) {
         const activeTransaction = orchestrator.getActiveTransaction();
         expect(activeTransaction).toBeDefined();
@@ -133,7 +131,7 @@ describe("Concurrent switch rejection", () => {
 
   it("allows sequential switches after completion", async () => {
     const orchestrator = createSwitchOrchestrator();
-    const _ghostty = new MockGhosttyAdapter();
+    const ghostty = new MockGhosttyAdapter();
     const rio = new MockRioAdapter();
     const buffer = new SwitchBuffer();
 

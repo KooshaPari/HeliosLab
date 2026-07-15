@@ -881,6 +881,62 @@
 			"code": ["apps/runtime/src/renderer/ghostty/process.ts", "apps/runtime/src/renderer/ghostty/backend.ts"],
 			"tests": ["apps/runtime/src/renderer/ghostty/__tests__/process.test.ts", "apps/runtime/src/renderer/ghostty/__tests__/backend.test.ts", "apps/runtime/tests/unit/renderer/ghostty/process.test.ts"],
 			"evidence": ["docs/specs/011-ghostty-renderer-backend/spec.md"]
+		},
+		{
+			"id": "FR-TXN-001",
+			"status": "[x]",
+			"code": ["apps/runtime/src/renderer/switch.ts", "apps/runtime/src/renderer/switch_transaction.ts", "apps/runtime/src/renderer/state_machine.ts"],
+			"tests": ["apps/runtime/src/renderer/__tests__/switch.test.ts", "apps/runtime/tests/unit/renderer/switch.test.ts", "apps/runtime/tests/integration/renderer/switch_stress.test.ts"],
+			"evidence": ["docs/specs/013-renderer-switch-transaction/spec.md"]
+		},
+		{
+			"id": "FR-TXN-002",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/renderer/switch_transaction.ts", "apps/runtime/src/renderer/hot_swap.ts"],
+			"tests": ["apps/runtime/tests/integration/renderer/hot_swap.test.ts"],
+			"evidence": ["docs/specs/013-renderer-switch-transaction/spec.md"]
+		},
+		{
+			"id": "FR-TXN-003",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/renderer/restart_restore.ts", "apps/runtime/src/renderer/switch_transaction.ts"],
+			"tests": ["apps/runtime/tests/integration/renderer/fault_injection.test.ts", "apps/runtime/tests/integration/renderer/slo_validation.test.ts"],
+			"evidence": ["docs/specs/013-renderer-switch-transaction/spec.md"]
+		},
+		{
+			"id": "FR-TXN-004",
+			"status": "[x]",
+			"code": ["apps/runtime/src/renderer/switch.ts", "apps/runtime/src/renderer/rollback.ts", "apps/runtime/src/renderer/switch_transaction.ts"],
+			"tests": ["apps/runtime/tests/unit/renderer/switch.test.ts", "apps/runtime/tests/integration/renderer/rollback.test.ts", "apps/runtime/tests/integration/renderer/fault_injection.test.ts"],
+			"evidence": ["docs/specs/013-renderer-switch-transaction/spec.md"]
+		},
+		{
+			"id": "FR-TXN-005",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/renderer/stream_binding.ts", "apps/runtime/src/renderer/hot_swap.ts", "apps/runtime/src/renderer/switch.ts"],
+			"tests": ["apps/runtime/tests/unit/renderer/stream_binding.test.ts", "apps/runtime/tests/integration/renderer/switch_stress.test.ts"],
+			"evidence": ["docs/specs/013-renderer-switch-transaction/spec.md"]
+		},
+		{
+			"id": "FR-TXN-006",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/renderer/hot_swap.ts", "apps/runtime/src/renderer/restart_restore.ts", "apps/runtime/src/renderer/rollback.ts"],
+			"tests": ["apps/runtime/tests/integration/renderer/hot_swap.test.ts", "apps/runtime/tests/integration/renderer/rollback.test.ts"],
+			"evidence": ["docs/specs/013-renderer-switch-transaction/spec.md"]
+		},
+		{
+			"id": "FR-TXN-007",
+			"status": "[x]",
+			"code": ["apps/runtime/src/renderer/switch_transaction.ts"],
+			"tests": ["apps/runtime/tests/integration/renderer/concurrent_switch.test.ts"],
+			"evidence": ["docs/specs/013-renderer-switch-transaction/spec.md"]
+		},
+		{
+			"id": "FR-TXN-008",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/renderer/switch.ts", "apps/runtime/src/renderer/switch_transaction.ts", "apps/runtime/src/renderer/index.ts"],
+			"tests": ["apps/runtime/tests/unit/renderer/switch.test.ts", "apps/runtime/tests/integration/renderer/rollback.test.ts"],
+			"evidence": ["docs/specs/013-renderer-switch-transaction/spec.md"]
 		}
 	]
 }

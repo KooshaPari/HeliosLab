@@ -53,7 +53,7 @@ describe("SLO validation - hot-swap", () => {
         ],
       ]);
 
-      const _startTime = Date.now();
+      const startTime = Date.now();
       await executeHotSwap(
         source,
         target,
@@ -91,7 +91,7 @@ describe("SLO validation - hot-swap", () => {
         });
       }
 
-      const _startTime = Date.now();
+      const startTime = Date.now();
       await executeHotSwap(
         source,
         target,
@@ -133,7 +133,7 @@ describe("SLO validation - restart-with-restore", () => {
         ],
       ]);
 
-      const _startTime = Date.now();
+      const startTime = Date.now();
       await executeRestartWithRestore(
         source,
         target,
@@ -171,7 +171,7 @@ describe("SLO validation - restart-with-restore", () => {
         });
       }
 
-      const _startTime = Date.now();
+      const startTime = Date.now();
       await executeRestartWithRestore(
         source,
         target,
@@ -213,7 +213,7 @@ describe("SLO validation - rollback", () => {
         ],
       ]);
 
-      const _startTime = Date.now();
+      const startTime = Date.now();
       await executeRollback(original, failed, terminals, buffer, "test failure");
       durations.push(Date.now() - startTime);
     }
@@ -243,7 +243,7 @@ describe("SLO validation - rollback", () => {
         });
       }
 
-      const _startTime = Date.now();
+      const startTime = Date.now();
       await executeRollback(original, failed, terminals, buffer, "test failure");
       durations.push(Date.now() - startTime);
     }
