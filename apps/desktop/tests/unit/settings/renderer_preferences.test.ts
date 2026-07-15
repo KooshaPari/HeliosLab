@@ -1,5 +1,8 @@
 import { RendererPreferencesManager } from "../../../src/settings/renderer_preferences";
 
+import { afterEach, beforeEach, describe, expect, it } from "bun:test";
+import { unlinkSync, writeFileSync } from "fs";
+import { tmpdir } from "os";
 import { resolve } from "path";
 
 describe("RendererPreferencesManager", () => {
@@ -7,7 +10,12 @@ describe("RendererPreferencesManager", () => {
   let manager: RendererPreferencesManager;
 
   beforeEach(() => {
-    tempPath = resolve("/tmp/test-renderer-prefs.json");
+    tempPath = resolve(tmpdir(), `test-renderer-prefs-${process.pid}.json`);
+    try {
+      unlinkSync(tempPath);
+    } catch {
+      // File might not exist
+    }
     manager = new RendererPreferencesManager(tempPath);
   });
 

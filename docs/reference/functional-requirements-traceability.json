@@ -664,6 +664,62 @@
 			"code": ["deps-changelog.json", "scripts/deps-changelog-util.ts", "scripts/deps-canary.ts", "scripts/deps-rollback.ts"],
 			"tests": ["scripts/tests/deps-changelog.test.ts", "scripts/tests/deps-canary.test.ts", "scripts/tests/deps-rollback.test.ts"],
 			"evidence": ["docs/specs/020-prerelease-dependency-registry/tasks/WP02-rollback-and-canary-process.md"]
+		},
+		{
+			"id": "FR-ENG-001",
+			"status": "[x]",
+			"code": ["apps/desktop/src/settings/renderer_settings.ts"],
+			"tests": ["apps/desktop/tests/unit/settings/renderer_settings.test.ts"],
+			"evidence": ["docs/specs/018-renderer-engine-settings-control/tasks/WP01-settings-panel-and-capability-display.md"]
+		},
+		{
+			"id": "FR-ENG-002",
+			"status": "[ ]",
+			"code": ["apps/desktop/src/settings/renderer_settings.ts", "apps/desktop/src/settings/capability_display.ts"],
+			"tests": ["apps/desktop/tests/unit/settings/renderer_settings.test.ts", "apps/desktop/tests/unit/settings/capability_display.test.ts"],
+			"evidence": ["docs/specs/018-renderer-engine-settings-control/tasks/WP01-settings-panel-and-capability-display.md"]
+		},
+		{
+			"id": "FR-ENG-003",
+			"status": "[ ]",
+			"code": ["apps/desktop/src/settings/renderer_settings.ts", "apps/desktop/src/settings/switch_confirmation.ts"],
+			"tests": ["apps/desktop/tests/unit/settings/renderer_settings.test.ts", "apps/desktop/tests/unit/settings/switch_confirmation.test.ts"],
+			"evidence": ["docs/specs/018-renderer-engine-settings-control/tasks/WP01-settings-panel-and-capability-display.md"]
+		},
+		{
+			"id": "FR-ENG-004",
+			"status": "[ ]",
+			"code": ["apps/desktop/src/settings.ts", "apps/desktop/src/index.ts", "apps/desktop/src/settings/switch_confirmation.ts"],
+			"tests": ["apps/desktop/tests/unit/settings.test.ts", "apps/desktop/tests/unit/settings/switch_confirmation.test.ts"],
+			"evidence": ["docs/specs/018-renderer-engine-settings-control/tasks/WP01-settings-panel-and-capability-display.md"]
+		},
+		{
+			"id": "FR-ENG-005",
+			"status": "[ ]",
+			"code": ["apps/desktop/src/settings/switch_status.ts", "apps/desktop/src/context_store.ts"],
+			"tests": ["apps/desktop/tests/unit/settings/switch_status.test.ts"],
+			"evidence": ["docs/specs/018-renderer-engine-settings-control/tasks/WP02-hotswap-toggle-and-status-indicators.md"]
+		},
+		{
+			"id": "FR-ENG-006",
+			"status": "[x]",
+			"code": ["apps/desktop/src/settings/hotswap_toggle.ts"],
+			"tests": ["apps/desktop/tests/unit/settings/hotswap_toggle.test.ts"],
+			"evidence": ["docs/specs/018-renderer-engine-settings-control/tasks/WP02-hotswap-toggle-and-status-indicators.md"]
+		},
+		{
+			"id": "FR-ENG-007",
+			"status": "[x]",
+			"code": ["apps/desktop/src/settings/renderer_preferences.ts"],
+			"tests": ["apps/desktop/tests/unit/settings/renderer_preferences.test.ts"],
+			"evidence": ["docs/specs/018-renderer-engine-settings-control/tasks/WP02-hotswap-toggle-and-status-indicators.md"]
+		},
+		{
+			"id": "FR-ENG-008",
+			"status": "[ ]",
+			"code": ["apps/desktop/src/settings/settings_lock.ts", "apps/desktop/src/context_store.ts"],
+			"tests": ["apps/desktop/tests/unit/settings/settings_lock.test.ts"],
+			"evidence": ["docs/specs/018-renderer-engine-settings-control/tasks/WP02-hotswap-toggle-and-status-indicators.md"]
 		}
 	]
 }

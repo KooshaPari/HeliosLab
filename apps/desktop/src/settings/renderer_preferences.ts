@@ -32,7 +32,7 @@ export class RendererPreferencesManager {
   }
 
   load(): RendererPreferences {
-    const _startTime = performance.now();
+    const startTime = performance.now();
 
     try {
       if (this.doesFileExist()) {
@@ -50,7 +50,7 @@ export class RendererPreferencesManager {
           return { ...DEFAULT_PREFERENCES };
         }
       }
-    } catch {
+    } catch (error: unknown) {
       console.warn("Failed to load renderer preferences, using defaults", error);
     }
 
@@ -68,7 +68,7 @@ export class RendererPreferencesManager {
 
       this.isDirty = false;
       console.log("Renderer preferences saved");
-    } catch {
+    } catch (error: unknown) {
       console.error("Failed to save renderer preferences", error);
     }
   }
@@ -120,7 +120,7 @@ export class RendererPreferencesManager {
     const dir = dirname(this.preferencesPath);
     try {
       mkdirSync(dir, { recursive: true });
-    } catch {
+    } catch (error: unknown) {
       console.error("Failed to create preferences directory", error);
     }
   }
