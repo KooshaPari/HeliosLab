@@ -1959,6 +1959,90 @@
 			"code": ["apps/desktop/src/tabs/keyboard_shortcuts.ts", "apps/desktop/src/index.tsx"],
 			"tests": ["apps/desktop/tests/unit/tabs/keyboard_shortcuts.test.ts", "apps/desktop/tests/unit/ui-shell.test.ts"],
 			"evidence": ["FUNCTIONAL_REQUIREMENTS.md", "docs/specs/030-helios-mvp-agent-ide/spec.md"]
+		},
+		{
+			"id": "FR-PVD-001",
+			"status": "[x]",
+			"code": ["apps/runtime/src/providers/adapter.ts"],
+			"tests": ["apps/runtime/src/providers/__tests__/adapter.test.ts"],
+			"evidence": ["FUNCTIONAL_REQUIREMENTS.md", "docs/specs/025-provider-adapter-interface-and-lifecycle/spec.md"]
+		},
+		{
+			"id": "FR-PVD-002",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/providers/registry.ts", "apps/runtime/src/providers/adapter.ts"],
+			"tests": ["apps/runtime/src/providers/__tests__/registry.test.ts"],
+			"evidence": ["FUNCTIONAL_REQUIREMENTS.md", "docs/specs/025-provider-adapter-interface-and-lifecycle/spec.md"]
+		},
+		{
+			"id": "FR-PVD-003",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/providers/acp-client.ts"],
+			"tests": ["apps/runtime/src/providers/__tests__/acp-client.test.ts", "apps/runtime/tests/integration/sessions/harness-routing.test.ts"],
+			"evidence": ["FUNCTIONAL_REQUIREMENTS.md", "docs/specs/025-provider-adapter-interface-and-lifecycle/spec.md"]
+		},
+		{
+			"id": "FR-PVD-004",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/providers/mcp-bridge.ts", "apps/runtime/src/providers/mcp-bridge-support.ts"],
+			"tests": ["apps/runtime/src/providers/__tests__/mcp-bridge.test.ts", "apps/runtime/tests/integration/protocol/boundary_dispatch.test.ts"],
+			"evidence": ["FUNCTIONAL_REQUIREMENTS.md", "docs/specs/025-provider-adapter-interface-and-lifecycle/spec.md"]
+		},
+		{
+			"id": "FR-PVD-005",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/providers/a2a-router.ts"],
+			"tests": ["apps/runtime/src/providers/__tests__/a2a-router.test.ts", "apps/runtime/tests/integration/protocol/boundary_dispatch.test.ts"],
+			"evidence": ["FUNCTIONAL_REQUIREMENTS.md", "docs/specs/025-provider-adapter-interface-and-lifecycle/spec.md"]
+		},
+		{
+			"id": "FR-PVD-006",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/providers/registry.ts", "apps/runtime/src/providers/adapter.ts"],
+			"tests": ["apps/runtime/src/providers/__tests__/registry.test.ts"],
+			"evidence": ["FUNCTIONAL_REQUIREMENTS.md", "docs/specs/025-provider-adapter-interface-and-lifecycle/spec.md"]
+		},
+		{
+			"id": "FR-PVD-007",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/providers/mcp-bridge.ts", "apps/runtime/src/providers/acp-client.ts", "apps/runtime/src/providers/a2a-router.ts"],
+			"tests": ["apps/runtime/src/providers/__tests__/isolation.test.ts", "apps/runtime/src/providers/__tests__/mcp-bridge-isolation.test.ts"],
+			"evidence": ["FUNCTIONAL_REQUIREMENTS.md", "docs/specs/025-provider-adapter-interface-and-lifecycle/spec.md"]
+		},
+		{
+			"id": "FR-PVD-008",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/providers/registry.ts"],
+			"tests": ["apps/runtime/src/providers/__tests__/registry-lane-binding.test.ts", "apps/runtime/src/providers/__tests__/isolation.test.ts"],
+			"evidence": ["FUNCTIONAL_REQUIREMENTS.md", "docs/specs/025-provider-adapter-interface-and-lifecycle/spec.md"]
+		},
+		{
+			"id": "FR-PVD-009",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/providers/health-monitor.ts", "apps/runtime/src/providers/registry.ts"],
+			"tests": ["apps/runtime/src/providers/__tests__/a2a-router.test.ts", "apps/runtime/src/providers/__tests__/registry.test.ts"],
+			"evidence": ["FUNCTIONAL_REQUIREMENTS.md", "docs/specs/025-provider-adapter-interface-and-lifecycle/spec.md"]
+		},
+		{
+			"id": "FR-PVD-010",
+			"status": "[x]",
+			"code": ["apps/runtime/src/providers/a2a-router.ts", "apps/runtime/src/providers/health-monitor.ts"],
+			"tests": ["apps/runtime/src/providers/__tests__/a2a-router.test.ts"],
+			"evidence": ["FUNCTIONAL_REQUIREMENTS.md", "docs/specs/025-provider-adapter-interface-and-lifecycle/spec.md"]
+		},
+		{
+			"id": "FR-PVD-011",
+			"status": "[x]",
+			"code": ["apps/runtime/src/providers/errors.ts"],
+			"tests": ["apps/runtime/src/providers/__tests__/errors.test.ts"],
+			"evidence": ["FUNCTIONAL_REQUIREMENTS.md", "docs/specs/025-provider-adapter-interface-and-lifecycle/spec.md"]
+		},
+		{
+			"id": "FR-PVD-012",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/providers/acp-client.ts", "apps/runtime/src/policy/engine.ts"],
+			"tests": ["apps/runtime/src/providers/__tests__/acp-client.test.ts", "apps/runtime/tests/unit/policy/engine.test.ts"],
+			"evidence": ["FUNCTIONAL_REQUIREMENTS.md", "docs/specs/025-provider-adapter-interface-and-lifecycle/spec.md", "docs/specs/023-command-execution-and-approval-policy/spec.md"]
 		}
 	]
 }

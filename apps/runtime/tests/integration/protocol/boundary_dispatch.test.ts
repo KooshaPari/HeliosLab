@@ -3,7 +3,7 @@
  * Verifies: FR-PVD-004 (MCP integration), FR-PVD-005 (A2A integration)
  */
 import { describe, expect, it } from "bun:test";
-import { createRuntime } from "../../../src/index";
+import { createRuntime } from "../../../src/index.ts";
 
 function jsonRequest(url: string, body: Record<string, unknown>): Request {
   return new Request(url, {

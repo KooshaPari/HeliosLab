@@ -82,7 +82,7 @@ describe("ACP Client Adapter", () => {
     it("should reject missing apiKeyRef", async () => {
       const config = {
         baseUrl: "http://localhost:8080/acp",
-        apiKey: "acp-key",
+        apiKey: "",
 
         model: "claude-3-sonnet",
         timeout: 30000,
@@ -278,7 +278,7 @@ describe("ACP Client Adapter", () => {
 
       try {
         await adapter.execute({ prompt: "Test" }, "corr-123");
-      } catch {
+      } catch (e) {
         // Expected - should be NormalizedProviderError with PROVIDER_POLICY_DENIED
         expect(e instanceof NormalizedProviderError).toBe(true);
         if (e instanceof NormalizedProviderError) {
@@ -427,7 +427,7 @@ describe("ACP Client Adapter", () => {
 
       try {
         await adapter.execute({ prompt: "Test" }, correlationId);
-      } catch {
+      } catch (e) {
         if (e instanceof NormalizedProviderError) {
           expect(e.correlationId).toBe(correlationId);
         }

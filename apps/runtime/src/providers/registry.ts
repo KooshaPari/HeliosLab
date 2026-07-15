@@ -11,7 +11,7 @@
 
 import type { LocalBus } from "../protocol/bus.js";
 import type { ProviderAdapter, ProviderRegistration, ProviderHealthStatus } from "./adapter.js";
-
+import { NormalizedProviderError, normalizeError } from "./errors.js";
 
 /**
  * Registered provider instance with metadata.
@@ -96,7 +96,7 @@ export class ProviderRegistry {
         type: registration.type,
         workspaceId: registration.workspaceId,
       });
-    } catch {
+    } catch (error) {
       // Normalize error and emit failure event
       const normalized = normalizeError(error, "internal");
 
@@ -153,7 +153,7 @@ export class ProviderRegistry {
         type: provider.type,
         workspaceId: provider.registration.workspaceId,
       });
-    } catch {
+    } catch (error) {
       const normalized = normalizeError(error, "internal");
 
       // Log error but still remove from registry (force cleanup)
@@ -427,7 +427,7 @@ export class ProviderRegistry {
         topic,
         payload,
       });
-    } catch {
+    } catch (error) {
       // Log error but don't throw (event publishing is best-effort)
       console.warn(`Failed to publish provider event ${topic}:`, error);
     }

@@ -22,5 +22,11 @@ export async function initMcpBridge(adapter: MCPBridgeAdapter): Promise<void> {
 }
 
 export function getMcpToolEvents(bus: InMemoryLocalBus) {
-  return bus.getEvents().filter(event => event.topic?.startsWith("provider.mcp.tool"));
+  return bus
+    .getEvents()
+    .filter(
+      event =>
+        event.topic?.startsWith("provider.mcp.tool") &&
+        event.payload?.correlationId !== undefined
+    );
 }

@@ -131,7 +131,7 @@ export class A2ARouterAdapter implements ProviderAdapter<
       for (const endpoint of this.endpoints) {
         try {
           await this.probeEndpoint(endpoint);
-        } catch {
+        } catch (error) {
           endpoint.healthStatus = {
             state: "unavailable",
             lastCheck: new Date(),
@@ -150,7 +150,7 @@ export class A2ARouterAdapter implements ProviderAdapter<
       await this.publishEvent("provider.a2a.initialized", {
         endpointCount: this.endpoints.length,
       });
-    } catch {
+    } catch (error) {
       const normalized = normalizeError(error, "a2a");
 
       throw new NormalizedProviderError(
@@ -169,6 +169,9 @@ export class A2ARouterAdapter implements ProviderAdapter<
    */
   async health(): Promise<ProviderHealthStatus> {
     if (!this.config) {
+      if (this.healthStatus.message === "Terminated") {
+        return { ...this.healthStatus };
+      }
       return {
         state: "unavailable",
         lastCheck: new Date(),
@@ -197,7 +200,7 @@ export class A2ARouterAdapter implements ProviderAdapter<
           message: "No healthy endpoints available",
         };
       }
-    } catch {
+    } catch (error) {
       this.healthStatus.failureCount++;
       this.healthStatus = {
         state: "unavailable",
@@ -228,7 +231,7 @@ export class A2ARouterAdapter implements ProviderAdapter<
     if (!this.config || this.endpoints.length === 0) {
       throw new NormalizedProviderError(
         "PROVIDER_UNAVAILABLE",
-        "A2A router not initialized or no endpoints configured",
+        "Provider unavailable: A2A router not initialized or no endpoints configured",
         "a2a"
       );
     }
@@ -250,7 +253,7 @@ export class A2ARouterAdapter implements ProviderAdapter<
       this.inFlightDelegations.set(correlationId, abortController);
 
       try {
-        const _startTime = Date.now();
+        const startTime = Date.now();
 
         // Send delegation request
         const result = await this.sendDelegation(
@@ -260,7 +263,7 @@ export class A2ARouterAdapter implements ProviderAdapter<
           abortController.signal
         );
 
-        const _duration = Date.now() - startTime;
+        const duration = Date.now() - startTime;
 
         // Publish success event
         await this.publishEvent("provider.a2a.delegation.completed", {
@@ -279,7 +282,7 @@ export class A2ARouterAdapter implements ProviderAdapter<
         clearTimeout(timeoutHandle);
         this.inFlightDelegations.delete(correlationId);
       }
-    } catch {
+    } catch (error) {
       // Handle timeout
       if (error instanceof Error && error.name === "AbortError") {
         const normalized = new NormalizedProviderError(
@@ -335,7 +338,7 @@ export class A2ARouterAdapter implements ProviderAdapter<
       };
 
       await this.publishEvent("provider.a2a.terminated", {});
-    } catch {
+    } catch (error) {
       const normalized = normalizeError(error, "a2a");
 
       throw new NormalizedProviderError(

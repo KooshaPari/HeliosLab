@@ -7,9 +7,8 @@
  */
 
 import { describe, it, expect } from "bun:test";
-
-
-import type { ACPConfig, ACPExecuteInput, ACPExecuteOutput } from "../adapter.js";
+import type { ProviderAdapter, ACPConfig, ACPExecuteInput, ACPExecuteOutput } from "../adapter.js";
+import { normalizeError } from "../errors.js";
 
 /**
  * Mock isolated provider for testing lane isolation behavior.
@@ -204,7 +203,7 @@ describe("Process-Level Isolation", () => {
       }
 
       // Execute in all lanes
-      const _results = await Promise.all(
+      const results = await Promise.all(
         providers.map(p => p.execute({ prompt: "test" }, "corr-123"))
       );
 
@@ -230,7 +229,7 @@ describe("Process-Level Isolation", () => {
       providers[3].setCrash(true);
 
       // Execute in all lanes and track results
-      const _results = await Promise.allSettled(
+      const results = await Promise.allSettled(
         providers.map((p, i) => p.execute({ prompt: `test-${i}` }, `corr-${i}`))
       );
 
@@ -295,7 +294,7 @@ describe("Process-Level Isolation", () => {
       await provider.init({ apiKey: "test", model: "claude-3-sonnet" });
 
       // Execute some operations
-      const _result = await provider.execute({ prompt: "test" }, "corr-123");
+      const result = await provider.execute({ prompt: "test" }, "corr-123");
       expect(result).toBeDefined();
 
       // Terminate should cleanup

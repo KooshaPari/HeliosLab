@@ -17,7 +17,7 @@ import type {
   ACPExecuteInput,
   ACPExecuteOutput,
 } from "./adapter.js";
-
+import { NormalizedProviderError, normalizeError } from "./errors.js";
 
 /**
  * Policy gate interface for access control.
@@ -111,7 +111,7 @@ export class ACPClientAdapter implements ProviderAdapter<
    * @throws NormalizedProviderError if init fails
    */
   async init(config: ACPConfig): Promise<void> {
-    const _startTime = Date.now();
+    const startTime = Date.now();
 
     try {
       // Validate config
@@ -163,7 +163,7 @@ export class ACPClientAdapter implements ProviderAdapter<
         endpoint: config.baseUrl,
         model: config.model,
       });
-    } catch {
+    } catch (error) {
       const normalized = normalizeError(error, "acp");
 
       throw new NormalizedProviderError(
@@ -184,6 +184,9 @@ export class ACPClientAdapter implements ProviderAdapter<
    */
   async health(): Promise<ProviderHealthStatus> {
     if (!this.config) {
+      if (this.healthStatus.message === "Terminated") {
+        return { ...this.healthStatus };
+      }
       return {
         state: "unavailable",
         lastCheck: new Date(),
@@ -221,7 +224,7 @@ export class ACPClientAdapter implements ProviderAdapter<
 
         return { ...this.healthStatus };
       }
-    } catch {
+    } catch (error) {
       // Increment failure count
       this.healthStatus.failureCount++;
 
@@ -270,7 +273,7 @@ export class ACPClientAdapter implements ProviderAdapter<
     if (!this.config) {
       throw new NormalizedProviderError(
         "PROVIDER_UNAVAILABLE",
-        "ACP client not initialized",
+        "Provider unavailable: ACP client not initialized",
         "acp"
       );
     }
@@ -292,7 +295,7 @@ export class ACPClientAdapter implements ProviderAdapter<
 
         throw new NormalizedProviderError(
           "PROVIDER_POLICY_DENIED",
-          `ACP execution denied by policy: ${reason}`,
+          `Policy denied: ${reason}`,
           "acp",
           false,
           correlationId
@@ -306,7 +309,7 @@ export class ACPClientAdapter implements ProviderAdapter<
       this.inFlightTasks.set(correlationId, abortController);
 
       try {
-        const _startTime = Date.now();
+        const startTime = Date.now();
 
         // Construct ACP request
         const acpRequest: ACPRequest = {
@@ -325,7 +328,7 @@ export class ACPClientAdapter implements ProviderAdapter<
         // Execute task (mock implementation)
         const result = await this.sendACPRequest(acpRequest, abortController.signal);
 
-        const _duration = Date.now() - startTime;
+        const duration = Date.now() - startTime;
 
         // Publish success event
         await this.publishEvent("provider.acp.execute.completed", {
@@ -344,7 +347,7 @@ export class ACPClientAdapter implements ProviderAdapter<
         clearTimeout(timeoutHandle);
         this.inFlightTasks.delete(correlationId);
       }
-    } catch {
+    } catch (error) {
       // Handle timeout
       if (error instanceof Error && error.name === "AbortError") {
         const normalized = new NormalizedProviderError(
@@ -389,7 +392,7 @@ export class ACPClientAdapter implements ProviderAdapter<
     if (!this.config) {
       throw new NormalizedProviderError(
         "PROVIDER_UNAVAILABLE",
-        "ACP client not initialized",
+        "Provider unavailable: ACP client not initialized",
         "acp"
       );
     }
@@ -407,7 +410,7 @@ export class ACPClientAdapter implements ProviderAdapter<
       await this.publishEvent("provider.acp.execute.cancelled", {
         taskId,
       });
-    } catch {
+    } catch (error) {
       const normalized = normalizeError(error, "acp");
 
       throw new NormalizedProviderError(
@@ -442,7 +445,7 @@ export class ACPClientAdapter implements ProviderAdapter<
       };
 
       await this.publishEvent("provider.acp.terminated", {});
-    } catch {
+    } catch (error) {
       const normalized = normalizeError(error, "acp");
 
       throw new NormalizedProviderError(
@@ -524,7 +527,7 @@ export class ACPClientAdapter implements ProviderAdapter<
         topic,
         payload,
       });
-    } catch {
+    } catch (error) {
       // Log but don't throw (event publishing is best-effort)
       console.warn(`Failed to publish ACP event ${topic}:`, error);
     }

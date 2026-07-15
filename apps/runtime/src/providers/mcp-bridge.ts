@@ -104,7 +104,7 @@ export class MCPBridgeAdapter implements ProviderAdapter<
         serverPath: config.serverPath,
         toolCount: this.toolCatalog.size,
       });
-    } catch {
+    } catch (error) {
       const normalized = normalizeError(error, "mcp");
 
       throw new NormalizedProviderError(
@@ -123,6 +123,9 @@ export class MCPBridgeAdapter implements ProviderAdapter<
    */
   async health(): Promise<ProviderHealthStatus> {
     if (!this.config) {
+      if (this.healthStatus.message === "Terminated") {
+        return { ...this.healthStatus };
+      }
       return {
         state: "unavailable",
         lastCheck: new Date(),
@@ -154,7 +157,7 @@ export class MCPBridgeAdapter implements ProviderAdapter<
           message: "MCP server disconnected",
         };
       }
-    } catch {
+    } catch (error) {
       this.healthStatus.failureCount++;
       this.healthStatus = {
         state: "unavailable",
@@ -181,7 +184,7 @@ export class MCPBridgeAdapter implements ProviderAdapter<
     if (!this.config || !this.connection.connected) {
       throw new NormalizedProviderError(
         "PROVIDER_UNAVAILABLE",
-        "MCP bridge not initialized or disconnected",
+        "Provider unavailable: MCP bridge not initialized or disconnected",
         "mcp"
       );
     }
@@ -200,7 +203,7 @@ export class MCPBridgeAdapter implements ProviderAdapter<
       this.inFlightTools.set(correlationId, abortController);
 
       try {
-        const _startTime = Date.now();
+        const startTime = Date.now();
 
         // Execute tool (mock implementation)
         const result = await this.invokeTool(
@@ -209,7 +212,7 @@ export class MCPBridgeAdapter implements ProviderAdapter<
           abortController.signal
         );
 
-        const _duration = Date.now() - startTime;
+        const duration = Date.now() - startTime;
 
         // Publish success event
         await this.publishEvent("provider.mcp.tool.executed", {
@@ -226,7 +229,7 @@ export class MCPBridgeAdapter implements ProviderAdapter<
         clearTimeout(timeoutHandle);
         this.inFlightTools.delete(correlationId);
       }
-    } catch {
+    } catch (error) {
       // Handle timeout
       if (error instanceof Error && error.name === "AbortError") {
         const normalized = new NormalizedProviderError(
@@ -310,7 +313,7 @@ export class MCPBridgeAdapter implements ProviderAdapter<
       };
 
       await this.publishEvent("provider.mcp.terminated", {});
-    } catch {
+    } catch (error) {
       const normalized = normalizeError(error, "mcp");
 
       throw new NormalizedProviderError(
@@ -361,7 +364,7 @@ export class MCPBridgeAdapter implements ProviderAdapter<
       }
 
       this.connection.connected = true;
-    } catch {
+    } catch (error) {
       this.connection.lastConnectionAttempt = new Date();
       this.connection.reconnectAttempts++;
       throw error;
@@ -385,7 +388,7 @@ export class MCPBridgeAdapter implements ProviderAdapter<
 
     try {
       await this.connectToServer();
-    } catch {
+    } catch (error) {
       // Exponential backoff: 1s, 2s, 4s, 8s, etc. (max 30s)
       this.connection.reconnectBackoffMs = Math.min(this.connection.reconnectBackoffMs * 2, 30000);
       throw error;
@@ -468,19 +471,31 @@ export class MCPBridgeAdapter implements ProviderAdapter<
     toolArguments: Record<string, unknown>,
     signal: AbortSignal
   ): Promise<unknown> {
-    // Check for abort
-    if (signal.aborted) {
-      throw new Error("Tool invocation cancelled");
-    }
+    return new Promise((resolve, reject) => {
+      if (signal.aborted) {
+        reject(new DOMException("Tool invocation cancelled", "AbortError"));
+        return;
+      }
 
-    // Mock implementation: return simulated results
-    const results: Record<string, unknown> = {
-      read_file: { content: "File contents go here" },
-      write_file: { success: true, bytesWritten: 100 },
-      list_directory: { entries: ["file1.txt", "file2.txt", "subdir/"] },
-    };
+      const results: Record<string, unknown> = {
+        read_file: { content: "File contents go here" },
+        write_file: { success: true, bytesWritten: 100 },
+        list_directory: { entries: ["file1.txt", "file2.txt", "subdir/"] },
+      };
 
-    return results[toolName] || { message: `Mock result for ${toolName}` };
+      const timeout = setTimeout(() => {
+        resolve(results[toolName] || { message: `Mock result for ${toolName}` });
+      }, 10);
+
+      signal.addEventListener(
+        "abort",
+        () => {
+          clearTimeout(timeout);
+          reject(new DOMException("Tool invocation cancelled", "AbortError"));
+        },
+        { once: true }
+      );
+    });
   }
 
   /**
@@ -502,7 +517,7 @@ export class MCPBridgeAdapter implements ProviderAdapter<
         topic,
         payload,
       });
-    } catch {
+    } catch (error) {
       console.warn(`Failed to publish MCP event ${topic}:`, error);
     }
   }
