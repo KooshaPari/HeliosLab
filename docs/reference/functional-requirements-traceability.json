@@ -296,16 +296,16 @@
 		},
 		{
 			"id": "FR-LAN-005",
-			"status": "[ ]",
+			"status": "[x]",
 			"code": ["apps/runtime/src/lanes/index.ts", "apps/runtime/src/lanes/worktree.ts", "apps/runtime/src/lanes/par.ts"],
-			"tests": ["apps/runtime/tests/lanes/worktree.test.ts", "apps/runtime/tests/lanes/par.test.ts"],
+			"tests": ["apps/runtime/tests/integration/lanes/lifecycle.test.ts", "apps/runtime/tests/lanes/worktree.test.ts", "apps/runtime/tests/lanes/par.test.ts"],
 			"evidence": ["TEST_COVERAGE_MATRIX.md"]
 		},
 		{
 			"id": "FR-LAN-006",
-			"status": "[ ]",
+			"status": "[x]",
 			"code": ["apps/runtime/src/lanes/index.ts"],
-			"tests": ["apps/runtime/tests/integration/lanes/lifecycle.test.ts", "apps/runtime/tests/integration/registry/lane_session_integration.test.ts"],
+			"tests": ["apps/runtime/tests/integration/lanes/lifecycle.test.ts", "apps/runtime/tests/lanes/worktree.test.ts", "apps/runtime/tests/integration/registry/lane_session_integration.test.ts"],
 			"evidence": ["TEST_COVERAGE_MATRIX.md"]
 		},
 		{

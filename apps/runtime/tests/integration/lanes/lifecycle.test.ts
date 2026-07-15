@@ -6,7 +6,13 @@
 
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { _resetIdCounter, LaneManager } from "../../../src/lanes/index.js";
+import {
+  _resetIdCounter,
+  LaneManager,
+  ParManager,
+  type PtyManager,
+  type SpawnFn,
+} from "../../../src/lanes/index.js";
 import { computeBranchName } from "../../../src/lanes/worktree.js";
 
 import { InMemoryLocalBus } from "../../../src/protocol/bus.js";
@@ -129,6 +135,74 @@ describe("Lane Lifecycle Integration (FR-008-001, FR-008-002)", () => {
     // Lane record is closed
     const closed = mgr.getRegistry().get(lane.laneId);
     expect(closed!.state).toBe("closed");
+  });
+
+  test("cleanup terminates the par task and PTYs before deleting the worktree", async () => {
+    let worktreePath = "";
+    let parManager: ParManager | undefined;
+    let resolveExit: ((code: number) => void) | undefined;
+    const cleanupOrder: string[] = [];
+    const kills: number[] = [];
+    const exited = new Promise<number>(resolve => {
+      resolveExit = resolve;
+    });
+    const spawnFn: SpawnFn = () => ({
+      pid: 4242,
+      stdout: null,
+      stderr: null,
+      exited,
+      kill(signal?: number) {
+        expect(fs.existsSync(worktreePath)).toBe(true);
+        kills.push(signal ?? 15);
+        cleanupOrder.push("par-terminated");
+        resolveExit?.(0);
+      },
+    });
+    const ptyManager: PtyManager = {
+      getByLane: laneId => [{ ptyId: "pty-cleanup", laneId }],
+      terminate: async () => {
+        expect(fs.existsSync(worktreePath)).toBe(true);
+        cleanupOrder.push("pty-terminated");
+      },
+    };
+
+    mgr = new LaneManager({
+      bus,
+      ptyManager,
+      ptyTerminationTimeoutMs: 100,
+      parTerminationTimeoutMs: 100,
+      parTaskManagerFactory: registry => {
+        parManager = new ParManager({ registry, bus, spawnFn, forceKillTimeoutMs: 50 });
+        return parManager;
+      },
+    });
+    const lane = await mgr.create("ws-int", "main");
+    const provisioned = await mgr.provision(lane.laneId, repoDir);
+    worktreePath = provisioned.worktreePath!;
+    await parManager!.bindParTask(lane.laneId, worktreePath);
+
+    await mgr.cleanup(lane.laneId);
+
+    expect(cleanupOrder).toEqual(["par-terminated", "pty-terminated"]);
+    expect(fs.existsSync(worktreePath)).toBe(false);
+    expect(kills).toEqual([15]);
+    expect(parManager!.getBinding(lane.laneId)).toBeUndefined();
+    expect(mgr.getRegistry().get(lane.laneId)?.parTaskPid).toBeNull();
+
+    // Closing an already closed lane is a true no-op and cannot re-signal resources.
+    await mgr.cleanup(lane.laneId);
+    expect(kills).toEqual([15]);
+
+    const topics = bus.getEvents().map(event => event.topic);
+    expect(topics).toContain("lane.par_task.terminated");
+    expect(topics).toContain("lane.ptys_terminated");
+    expect(topics).toContain("lane.worktree.removed");
+    expect(topics.indexOf("lane.par_task.terminated")).toBeLessThan(
+      topics.indexOf("lane.ptys_terminated")
+    );
+    expect(topics.indexOf("lane.ptys_terminated")).toBeLessThan(
+      topics.indexOf("lane.worktree.removed")
+    );
   });
 
   test("sharing: two agents can attach and detach", async () => {

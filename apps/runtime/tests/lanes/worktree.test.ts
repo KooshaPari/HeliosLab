@@ -15,7 +15,12 @@ import {
   resetMetrics,
   lastMetrics,
 } from "../../src/lanes/worktree.js";
-import { LaneManager, _resetIdCounter } from "../../src/lanes/index.js";
+import {
+  LaneManager,
+  _resetIdCounter,
+  type ParTaskManager,
+  type PtyManager,
+} from "../../src/lanes/index.js";
 
 import { InMemoryLocalBus } from "../../src/protocol/bus.js";
 
@@ -223,7 +228,7 @@ describe("T008 - PTY termination during cleanup", () => {
     expect(updated?.state).toBe("closed");
   });
 
-  test("cleanup proceeds when ptyManager.getByLane throws", async () => {
+  test("cleanup preserves cleaning state when pty discovery fails", async () => {
     _resetIdCounter();
     const mockPtyManager: PtyManager = {
       getByLane: () => {
@@ -238,7 +243,74 @@ describe("T008 - PTY termination during cleanup", () => {
 
     await mgr.cleanup(lane.laneId);
     const updated = mgr.getRegistry().get(lane.laneId);
-    expect(updated?.state).toBe("closed");
+    expect(updated?.state).toBe("cleaning");
+  });
+
+  test("cleanup is bounded and tolerates partial termination failures", async () => {
+    _resetIdCounter();
+    const terminated: string[] = [];
+    let parCalls = 0;
+    const parTaskManager: ParTaskManager = {
+      terminateParTask: async () => {
+        parCalls++;
+        throw new Error("par manager unavailable");
+      },
+    };
+    const ptyManager: PtyManager = {
+      getByLane: laneId => [
+        { ptyId: "pty-fails", laneId },
+        { ptyId: "pty-hangs", laneId },
+      ],
+      terminate: async ptyId => {
+        terminated.push(ptyId);
+        if (ptyId === "pty-fails") throw new Error("PTY already exited");
+        await new Promise<void>(() => {});
+      },
+    };
+    const mgr = new LaneManager({
+      bus: null,
+      ptyManager,
+      ptyTerminationTimeoutMs: 10,
+      parTerminationTimeoutMs: 10,
+      parTaskManagerFactory: () => parTaskManager,
+    });
+    const lane = await mgr.create("ws-1", "main");
+    mgr.getRegistry().update(lane.laneId, { state: "ready", parTaskPid: 4242 });
+
+    const startedAt = Date.now();
+    await mgr.cleanup(lane.laneId);
+
+    expect(Date.now() - startedAt).toBeLessThan(500);
+    expect(parCalls).toBe(1);
+    expect(terminated).toEqual(["pty-fails", "pty-hangs"]);
+    expect(mgr.getRegistry().get(lane.laneId)?.state).toBe("cleaning");
+    expect(mgr.getRegistry().get(lane.laneId)?.parTaskPid).toBe(4242);
+  });
+
+  test("cleanup retry from cleaning state resumes resource termination", async () => {
+    _resetIdCounter();
+    const calls: string[] = [];
+    const mgr = new LaneManager({
+      bus: null,
+      ptyManager: {
+        getByLane: laneId => [{ ptyId: "pty-retry", laneId }],
+        terminate: async () => {
+          calls.push("pty");
+        },
+      },
+      parTaskManagerFactory: () => ({
+        terminateParTask: async () => {
+          calls.push("par");
+        },
+      }),
+    });
+    const lane = await mgr.create("ws-1", "main");
+    mgr.getRegistry().update(lane.laneId, { state: "cleaning" });
+
+    await mgr.cleanup(lane.laneId);
+
+    expect(calls).toEqual(["par", "pty"]);
+    expect(mgr.getRegistry().get(lane.laneId)?.state).toBe("closed");
   });
 });
 

@@ -61,6 +61,10 @@ export interface PtyManager {
   terminate(ptyId: string): Promise<void>;
 }
 
+export interface ParTaskManager {
+  terminateParTask(laneId: string): Promise<void>;
+}
+
 // ── Event Types ──────────────────────────────────────────────────────────────
 
 // T015: Comprehensive lane lifecycle event catalog
@@ -99,6 +103,8 @@ export interface LaneManagerOptions {
   capacityLimit?: number;
   ptyManager?: PtyManager | null;
   ptyTerminationTimeoutMs?: number;
+  parTaskManagerFactory?: ((registry: LaneRegistry) => ParTaskManager) | null;
+  parTerminationTimeoutMs?: number;
 }
 
 export class LaneManager {
@@ -106,12 +112,16 @@ export class LaneManager {
   private readonly bus: LocalBus | null;
   private readonly ptyManager: PtyManager | null;
   private readonly ptyTerminationTimeoutMs: number;
+  private readonly parTaskManager: ParTaskManager | null;
+  private readonly parTerminationTimeoutMs: number;
 
   constructor(options: LaneManagerOptions = {}) {
     this.registry = new LaneRegistry(options.capacityLimit ?? 50);
     this.bus = options.bus ?? null;
     this.ptyManager = options.ptyManager ?? null;
     this.ptyTerminationTimeoutMs = options.ptyTerminationTimeoutMs ?? 5000;
+    this.parTaskManager = options.parTaskManagerFactory?.(this.registry) ?? null;
+    this.parTerminationTimeoutMs = options.parTerminationTimeoutMs ?? 15_000;
   }
 
   /** Expose registry for testing / sharing module integration. */
@@ -266,16 +276,6 @@ export class LaneManager {
         return;
       }
 
-      // Already cleaning: idempotent
-      if (lane.state === "cleaning") {
-        // Still complete the cleanup
-        const closedState = transition("cleaning", "cleanup_complete", laneId);
-        recordTransition(laneId, "cleaning", "cleanup_complete", closedState);
-        this.registry.update(laneId, { state: closedState });
-        await this.emitEvent("lane.closed", laneId, lane.workspaceId, "cleaning", closedState);
-        return;
-      }
-
       // Shared lane with active agents
       if (lane.state === "shared" && lane.attachedAgents.length > 0) {
         if (force) {
@@ -297,7 +297,7 @@ export class LaneManager {
         } else {
           throw new SharedLaneCleanupError(laneId, lane.attachedAgents.length);
         }
-      } else {
+      } else if (lane.state !== "cleaning") {
         // Normal cleanup transition
         const fromState = lane.state;
         const toState = transition(fromState, "request_cleanup", laneId);
@@ -306,8 +306,15 @@ export class LaneManager {
         await this.emitEvent("lane.cleaning", laneId, lane.workspaceId, fromState, toState);
       }
 
+      // T012: Terminate the bound par task before deleting its working directory.
+      const parTaskTerminated = await this.terminateLaneParTask(laneId);
+
       // T008: Terminate PTYs before worktree removal
-      await this.terminateLanePtys(laneId, lane.workspaceId);
+      const ptysTerminated = await this.terminateLanePtys(laneId, lane.workspaceId);
+
+      // Never delete a working directory while a resource may still be using it.
+      // A later idempotent cleanup call resumes from the `cleaning` state.
+      if (!parTaskTerminated || !ptysTerminated) return;
 
       // T007: Remove worktree if one was provisioned
       const currentLane = this.registry.get(laneId)!;
@@ -343,35 +350,64 @@ export class LaneManager {
 
   // ── T008: Graceful PTY termination before worktree removal ───────────────
 
-  private async terminateLanePtys(laneId: string, workspaceId: string): Promise<void> {
-    if (!this.ptyManager) return;
+  private async terminateLaneParTask(laneId: string): Promise<boolean> {
+    if (!this.parTaskManager) {
+      return this.registry.get(laneId)?.parTaskPid === null;
+    }
+
+    let timeout: ReturnType<typeof setTimeout> | undefined;
+    try {
+      const timedOut = new Promise<false>(resolve => {
+        timeout = setTimeout(() => resolve(false), this.parTerminationTimeoutMs);
+      });
+      const settled = await Promise.race([
+        this.parTaskManager
+          .terminateParTask(laneId)
+          .then(() => true as const)
+          .catch(() => false as const),
+        timedOut,
+      ]);
+      return settled && this.registry.get(laneId)?.parTaskPid === null;
+    } finally {
+      if (timeout !== undefined) clearTimeout(timeout);
+    }
+  }
+
+  private async terminateLanePtys(laneId: string, workspaceId: string): Promise<boolean> {
+    if (!this.ptyManager) return true;
 
     let ptys: PtyHandle[];
     try {
       ptys = this.ptyManager.getByLane(laneId);
     } catch {
-      // PTY manager unavailable - proceed with best effort
-      return;
+      // Preserve the worktree until the PTY manager can verify termination.
+      return false;
     }
 
-    if (ptys.length === 0) return;
+    if (ptys.length === 0) return true;
 
     const terminationPromises = ptys.map(async pty => {
+      let timeout: ReturnType<typeof setTimeout> | undefined;
       try {
-        const timeout = new Promise<"timeout">(resolve =>
-          setTimeout(() => resolve("timeout"), this.ptyTerminationTimeoutMs)
-        );
+        const timedOut = new Promise<"timeout">(resolve => {
+          timeout = setTimeout(() => resolve("timeout"), this.ptyTerminationTimeoutMs);
+        });
         const termination = this.ptyManager!.terminate(pty.ptyId).then(() => "done" as const);
-        // A timeout is best-effort: the PTY manager owns any forced termination policy.
-        await Promise.race([termination, timeout]);
+        // A timeout preserves the worktree for a later cleanup retry.
+        return await Promise.race([termination, timedOut]);
       } catch {
-        // Individual PTY failures do not block cleanup of the remaining lane resources.
+        // Cleanup is retriable; preserve the worktree when termination is uncertain.
+        return "timeout" as const;
+      } finally {
+        if (timeout !== undefined) clearTimeout(timeout);
       }
     });
 
-    await Promise.all(terminationPromises);
+    const results = await Promise.all(terminationPromises);
+    if (results.some(result => result !== "done")) return false;
 
     await this.emitEvent("lane.ptys_terminated", laneId, workspaceId, "cleaning", "cleaning");
+    return true;
   }
 
   // ── T016: Full orphaned lane reconciliation on startup ─────────────────
