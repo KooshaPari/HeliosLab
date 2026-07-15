@@ -78,6 +78,31 @@ describe("PolicyRuleSet", () => {
     expect(result.deniedByDefault).toBe(true);
   });
 
+  test("ignores rules from a different workspace", () => {
+    const ruleSet = new PolicyRuleSet();
+    ruleSet.addRule({
+      id: "other-workspace-safe",
+      pattern: "git *",
+      patternType: PolicyPatternType.Glob,
+      classification: PolicyClassification.Safe,
+      scope: "other-workspace",
+      priority: 10,
+      description: "Allow git in another workspace",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    });
+
+    const result = ruleSet.evaluate("git status", {
+      workspaceId: "test",
+      agentId: "agent1",
+      isDirect: false,
+    });
+
+    expect(result.classification).toBe(PolicyClassification.Blocked);
+    expect(result.deniedByDefault).toBe(true);
+    expect(result.matchedRules).toHaveLength(0);
+  });
+
   test("denylist-wins: blocked rule overrides safe rule", () => {
     const ruleSet = new PolicyRuleSet();
     ruleSet.addRule({

@@ -7,6 +7,7 @@ import { promises as fs } from "fs";
 import * as path from "path";
 
 import { PolicyRuleSet } from "./rules";
+import type { PolicyRule } from "./types";
 
 export type RulesChangedCallback = (workspaceId: string, rules: PolicyRule[]) => void;
 
@@ -64,7 +65,7 @@ export class PolicyStorage {
       this.validateRules(rules);
 
       return rules;
-    } catch {
+    } catch (error) {
       if ((error as NodeJS.ErrnoException).code === "ENOENT") {
         // File doesn't exist: return empty (deny-by-default)
         return [];
@@ -104,7 +105,7 @@ export class PolicyStorage {
 
       // Notify callbacks (debounced)
       this.notifyChangedDebounced(workspaceId, rules);
-    } catch {
+    } catch (error) {
       // Clean up temp file
       try {
         await fs.unlink(tempPath);
@@ -143,7 +144,7 @@ export class PolicyStorage {
             }
             this.cache.set(workspaceId, ruleSet);
             this.notifyChangedDebounced(workspaceId, rules);
-          } catch {
+          } catch (error) {
             console.error(`Failed to reload policy rules for ${workspaceId}:`, error);
             // Keep previous rules on error
           }

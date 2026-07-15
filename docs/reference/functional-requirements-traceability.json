@@ -1392,6 +1392,83 @@
 			"code": ["docs/reference/constitution.md", ".github/workflows/pr-governance-gate.yml"],
 			"tests": [],
 			"evidence": ["docs/specs/022-code-review-and-governance-process/spec.md"]
+		},
+		{
+			"id": "FR-APR-001",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/policy/engine.ts", "apps/runtime/src/protocol/bus/command-bus.ts"],
+			"tests": ["apps/runtime/tests/unit/policy/engine.test.ts"],
+			"evidence": ["docs/specs/023-command-policy-engine-and-approval-workflows/spec.md"]
+		},
+		{
+			"id": "FR-APR-002",
+			"status": "[x]",
+			"code": ["apps/runtime/src/policy/types.ts", "apps/runtime/src/policy/rules.ts", "apps/runtime/src/policy/engine.ts"],
+			"tests": ["apps/runtime/tests/unit/policy/rules.test.ts", "apps/runtime/tests/unit/policy/engine.test.ts"],
+			"evidence": ["docs/specs/023-command-policy-engine-and-approval-workflows/spec.md"]
+		},
+		{
+			"id": "FR-APR-003",
+			"status": "[x]",
+			"code": ["apps/runtime/src/policy/rules.ts", "apps/runtime/src/policy/engine.ts", "apps/runtime/src/policy/storage.ts"],
+			"tests": ["apps/runtime/tests/unit/policy/rules.test.ts", "apps/runtime/tests/unit/policy/engine.test.ts"],
+			"evidence": ["docs/specs/023-command-policy-engine-and-approval-workflows/spec.md"]
+		},
+		{
+			"id": "FR-APR-004",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/policy/approval-queue.ts", "apps/desktop/src/types/approval.ts"],
+			"tests": ["apps/runtime/tests/unit/policy/approval-queue.test.ts"],
+			"evidence": ["docs/specs/023-command-policy-engine-and-approval-workflows/spec.md"]
+		},
+		{
+			"id": "FR-APR-005",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/policy/approval-queue.ts", "apps/desktop/src/components/approval/ApprovalPanel.tsx"],
+			"tests": ["apps/runtime/tests/unit/policy/approval-queue.test.ts"],
+			"evidence": ["docs/specs/023-command-policy-engine-and-approval-workflows/spec.md"]
+		},
+		{
+			"id": "FR-APR-006",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/policy/approval-queue.ts"],
+			"tests": ["apps/runtime/tests/unit/policy/approval-queue.test.ts"],
+			"evidence": ["docs/specs/023-command-policy-engine-and-approval-workflows/spec.md"]
+		},
+		{
+			"id": "FR-APR-007",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/policy/approval-queue.ts", "apps/runtime/src/policy/storage.ts"],
+			"tests": ["apps/runtime/tests/unit/policy/approval-queue.test.ts"],
+			"evidence": ["docs/specs/023-command-policy-engine-and-approval-workflows/spec.md"]
+		},
+		{
+			"id": "FR-APR-008",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/policy/rules.ts", "apps/runtime/src/secrets/protected-paths.ts"],
+			"tests": ["apps/runtime/tests/unit/policy/rules.test.ts"],
+			"evidence": ["docs/specs/023-command-policy-engine-and-approval-workflows/spec.md"]
+		},
+		{
+			"id": "FR-APR-009",
+			"status": "[ ]",
+			"code": ["apps/desktop/src/components/approval/ApprovalPanel.tsx", "apps/desktop/src/pages/ApprovalWorkflow.tsx", "apps/desktop/src/types/approval.ts"],
+			"tests": [],
+			"evidence": ["docs/specs/023-command-policy-engine-and-approval-workflows/spec.md"]
+		},
+		{
+			"id": "FR-APR-010",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/policy/engine.ts", "apps/runtime/src/audit/bus-subscriber.ts"],
+			"tests": ["apps/runtime/tests/unit/audit/bus-subscriber.test.ts"],
+			"evidence": ["docs/specs/023-command-policy-engine-and-approval-workflows/spec.md"]
+		},
+		{
+			"id": "FR-APR-011",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/policy/engine.ts", "apps/runtime/src/integrations/par/command.ts", "apps/runtime/src/protocol/bus/command-bus.ts"],
+			"tests": ["apps/runtime/tests/unit/policy/engine.test.ts"],
+			"evidence": ["docs/specs/023-command-policy-engine-and-approval-workflows/spec.md"]
 		}
 	]
 }

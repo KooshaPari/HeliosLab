@@ -93,13 +93,17 @@ export class PolicyRuleSet {
    * 3. If no rules match, returns "blocked" (deny-by-default).
    */
   evaluate(command: string, context: CommandContext): PolicyEvaluationResult {
-    const _startTime = performance.now();
+    const startTime = performance.now();
     const matchedRules: PolicyRule[] = [];
     let hasBlockedRule = false;
     let hasApprovalRule = false;
 
     // Iterate rules in priority order
     for (const rule of this.rules) {
+      if (rule.scope !== context.workspaceId) {
+        continue;
+      }
+
       // Check if pattern matches
       const patternMatches = this.patternMatcher.matches(command, rule.pattern, rule.patternType);
 
