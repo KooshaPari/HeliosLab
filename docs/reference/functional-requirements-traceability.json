@@ -986,6 +986,69 @@
 			"code": ["apps/desktop/src/panels/lane_panel.ts", "apps/desktop/src/panels/keyboard_nav.ts", "apps/desktop/src/panels/lane_list_item.ts"],
 			"tests": ["apps/desktop/tests/unit/panels/lane_panel.test.ts", "apps/desktop/tests/unit/panels/keyboard_nav.test.ts", "apps/desktop/tests/unit/panels/lane_list_item.test.ts"],
 			"evidence": ["docs/specs/017-lane-list-and-status-display/spec.md"]
+		},
+		{
+			"id": "FR-DIAG-001",
+			"status": "[x]",
+			"code": ["apps/runtime/src/diagnostics/types.ts"],
+			"tests": ["apps/runtime/tests/unit/diagnostics/metrics.test.ts"],
+			"evidence": ["FUNCTIONAL_REQUIREMENTS.md"]
+		},
+		{
+			"id": "FR-DIAG-002",
+			"status": "[x]",
+			"code": ["apps/runtime/src/diagnostics/types.ts"],
+			"tests": ["apps/runtime/tests/unit/diagnostics/metrics.test.ts", "apps/runtime/tests/bench/diagnostics/memory-bench.test.ts"],
+			"evidence": ["FUNCTIONAL_REQUIREMENTS.md"]
+		},
+		{
+			"id": "FR-DIAG-003",
+			"status": "[x]",
+			"code": ["apps/runtime/src/diagnostics/types.ts"],
+			"tests": ["apps/runtime/tests/unit/diagnostics/percentiles.test.ts"],
+			"evidence": ["FUNCTIONAL_REQUIREMENTS.md"]
+		},
+		{
+			"id": "FR-DIAG-004",
+			"status": "[x]",
+			"code": ["apps/runtime/src/diagnostics/types.ts", "apps/runtime/src/diagnostics/slo.ts"],
+			"tests": ["apps/runtime/tests/unit/diagnostics/slo.test.ts", "apps/runtime/tests/integration/diagnostics/slo.test.ts"],
+			"evidence": ["FUNCTIONAL_REQUIREMENTS.md"]
+		},
+		{
+			"id": "FR-DIAG-005",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/diagnostics/types.ts", "apps/runtime/src/diagnostics/slo.ts", "apps/runtime/src/diagnostics/metrics.ts"],
+			"tests": ["apps/runtime/tests/integration/diagnostics/slo.test.ts"],
+			"evidence": ["FUNCTIONAL_REQUIREMENTS.md"]
+		},
+		{
+			"id": "FR-DIAG-006",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/diagnostics/samplers.ts", "apps/runtime/src/diagnostics/metrics.ts"],
+			"tests": ["apps/runtime/tests/unit/diagnostics/samplers.test.ts", "apps/runtime/tests/unit/diagnostics/metrics.test.ts"],
+			"evidence": ["FUNCTIONAL_REQUIREMENTS.md"]
+		},
+		{
+			"id": "FR-DIAG-007",
+			"status": "[x]",
+			"code": ["apps/runtime/src/diagnostics/percentiles.ts"],
+			"tests": ["apps/runtime/tests/unit/diagnostics/percentiles.test.ts"],
+			"evidence": ["FUNCTIONAL_REQUIREMENTS.md"]
+		},
+		{
+			"id": "FR-DIAG-008",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/diagnostics/query.ts"],
+			"tests": ["apps/runtime/tests/unit/diagnostics/query.test.ts"],
+			"evidence": ["FUNCTIONAL_REQUIREMENTS.md"]
+		},
+		{
+			"id": "FR-DIAG-009",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/diagnostics/slo.ts", "apps/runtime/src/diagnostics/metrics.ts"],
+			"tests": ["apps/runtime/tests/unit/diagnostics/slo.test.ts", "apps/runtime/tests/integration/diagnostics/slo.test.ts"],
+			"evidence": ["FUNCTIONAL_REQUIREMENTS.md"]
 		}
 	]
 }

@@ -4,6 +4,7 @@
  */
 import { describe, it, expect } from "bun:test";
 import { createInstrumentationHooks } from "../../../src/diagnostics/hooks.js";
+import { MetricsRegistry } from "../../../src/diagnostics/metrics.js";
 
 import { computePercentiles } from "../../../src/diagnostics/percentiles.js";
 import { SLOMonitor } from "../../../src/diagnostics/slo.js";
@@ -55,7 +56,7 @@ describe("Instrumentation Overhead Benchmarks", () => {
   });
 
   it("record() call overhead < 0.05ms p99", () => {
-    const _registry = new MetricsRegistry();
+    const registry = new MetricsRegistry();
     registry.register({
       name: "bench-record",
       type: "latency",
@@ -87,7 +88,7 @@ describe("Instrumentation Overhead Benchmarks", () => {
   });
 
   it("checkAll with 10 SLO definitions < 5ms p99", () => {
-    const _registry = new MetricsRegistry();
+    const registry = new MetricsRegistry();
     const defs: SLODefinition[] = [];
 
     for (let i = 0; i < 10; i++) {
@@ -104,7 +105,7 @@ describe("Instrumentation Overhead Benchmarks", () => {
       defs.push({ metric: name, percentile: "p95", threshold: 50, unit: "ms" });
     }
 
-    const monitor = new SLOMonitor(registry, defs);
+    const monitor = new SLOMonitor(registry, defs, () => {});
 
     const result = benchmarkLoop(1_000, WARMUP, () => {
       monitor.resetRateLimiter(); // allow re-check each iteration

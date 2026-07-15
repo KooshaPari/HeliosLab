@@ -68,14 +68,14 @@ describe("markStart / markEnd (global)", () => {
 
   it("markEnd computes a non-negative duration", () => {
     const handle = markStart("test_metric");
-    const _duration = markEnd("test_metric", handle);
+    const duration = markEnd("test_metric", handle);
     expect(duration).toBeGreaterThanOrEqual(0);
   });
 
   it("markEnd with real delay produces plausible duration", async () => {
     const handle = markStart("test_metric");
     await new Promise(resolve => setTimeout(resolve, 10));
-    const _duration = markEnd("test_metric", handle);
+    const duration = markEnd("test_metric", handle);
     // Allow 5-200ms range for CI variability under heavy parallel load.
     expect(duration).toBeGreaterThan(5);
     expect(duration).toBeLessThan(200);
@@ -106,7 +106,7 @@ describe("createInstrumentationHooks", () => {
 
     const handle = hooks.markStart("latency");
     clock.advance(42.5);
-    const _duration = hooks.markEnd("latency", handle);
+    const duration = hooks.markEnd("latency", handle);
 
     expect(duration).toBe(42.5);
   });

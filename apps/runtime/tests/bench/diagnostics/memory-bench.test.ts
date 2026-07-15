@@ -14,7 +14,7 @@ describe("Memory Overhead", () => {
 
     const heapBefore = process.memoryUsage().heapUsed;
 
-    const _registry = new MetricsRegistry();
+    const registry = new MetricsRegistry();
     const METRIC_COUNT = 20;
     const BUFFER_SIZE = 10_000;
 
@@ -67,7 +67,7 @@ describe("Memory Overhead", () => {
 
     const heapBefore = process.memoryUsage().heapUsed;
 
-    const _registry = new MetricsRegistry();
+    const registry = new MetricsRegistry();
     for (let i = 0; i < 20; i++) {
       registry.register({
         name: `empty-metric-${i}`,

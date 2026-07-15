@@ -13,7 +13,7 @@ const sloDefinitions: SLODefinition[] = [
 ];
 
 function createSetup(busFn?: (topic: string, payload: unknown) => void) {
-  const _registry = new MetricsRegistry();
+  const registry = new MetricsRegistry();
   registry.register({
     name: METRIC_NAME,
     type: "latency",
@@ -53,7 +53,7 @@ describe("SLO Violation Detection", () => {
 
   // FR-004: no violation when metric has no samples
   it("does not emit violation when metric has no samples", () => {
-    const { _registry, monitor } = createSetup();
+    const { monitor } = createSetup();
     const violations = monitor.checkAll();
     expect(violations.length).toBe(0);
   });
@@ -112,7 +112,7 @@ describe("Rate Limiting", () => {
 
   // FR-010: independent rate limiting per metric
   it("rate limits each metric independently", () => {
-    const _registry = new MetricsRegistry();
+    const registry = new MetricsRegistry();
     registry.register({
       name: "metric-a",
       type: "latency",
@@ -218,7 +218,7 @@ describe("Periodic Check Loop", () => {
     };
     const setup = createSetup(busFn);
     monitor = setup.monitor;
-    const _registry = setup.registry;
+    const registry = setup.registry;
 
     for (let i = 0; i < 100; i++) {
       registry.record(METRIC_NAME, 100, i);
@@ -239,7 +239,7 @@ describe("Periodic Check Loop", () => {
     };
     const setup = createSetup(busFn);
     monitor = setup.monitor;
-    const _registry = setup.registry;
+    const registry = setup.registry;
 
     for (let i = 0; i < 100; i++) {
       registry.record(METRIC_NAME, 100, i);
@@ -262,7 +262,7 @@ describe("Periodic Check Loop", () => {
     };
     const setup = createSetup(busFn);
     monitor = setup.monitor;
-    const _registry = setup.registry;
+    const registry = setup.registry;
 
     for (let i = 0; i < 100; i++) {
       registry.record(METRIC_NAME, 100, i);
@@ -280,7 +280,7 @@ describe("Periodic Check Loop", () => {
 
   // FR-010: multiple metrics violating simultaneously
   it("handles multiple simultaneous violations", () => {
-    const _registry = new MetricsRegistry();
+    const registry = new MetricsRegistry();
     registry.register({
       name: "m1",
       type: "latency",
