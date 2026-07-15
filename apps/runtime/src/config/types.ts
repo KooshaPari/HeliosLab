@@ -24,6 +24,8 @@ export interface SettingChangeEvent {
   oldValue: unknown;
   newValue: unknown;
   reloadPolicy: ReloadPolicy;
+  /** Explicit signal for consumers that must surface a restart indicator. */
+  restartRequired: boolean;
 }
 
 /** Backend-agnostic persistence interface. */

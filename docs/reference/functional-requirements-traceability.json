@@ -240,8 +240,8 @@
 		},
 		{
 			"id": "FR-CFG-007",
-			"status": "[ ]",
-			"code": ["apps/runtime/src/config/settings.ts"],
+			"status": "[x]",
+			"code": ["apps/runtime/src/config/settings.ts", "apps/runtime/src/config/types.ts"],
 			"tests": ["apps/runtime/tests/unit/config/settings.test.ts"],
 			"evidence": ["TEST_COVERAGE_MATRIX.md"]
 		},

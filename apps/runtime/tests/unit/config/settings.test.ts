@@ -10,7 +10,7 @@ import { join } from "node:path";
 import { JsonSettingsStore } from "../../../src/config/store.js";
 import { SETTINGS_SCHEMA } from "../../../src/config/schema.js";
 import { SettingsManager } from "../../../src/config/settings.js";
-import type { SettingChangeEvent } from "../../../src/config/types.js";
+import type { SettingChangeEvent, SettingsStore } from "../../../src/config/types.js";
 
 let tempDir: string;
 let filePath: string;
@@ -123,21 +123,95 @@ describe("SettingsManager — reset", () => {
 // FR-003: Hot-reload propagation
 describe("SettingsManager — hot-reload", () => {
   it("publishes bus event for hot-reloadable setting", async () => {
+    const topics: string[] = [];
     const events: SettingChangeEvent[] = [];
-    const mgr = createManager((_topic, evt) => events.push(evt));
+    const mgr = createManager((topic, evt) => {
+      topics.push(topic);
+      events.push(evt);
+    });
     await mgr.init();
     await mgr.set("theme", "dark");
+    expect(topics).toEqual(["settings.changed"]);
     expect(events).toHaveLength(1);
-    expect(events[0]!.key).toBe("theme");
+    expect(events[0]).toEqual({
+      key: "theme",
+      oldValue: "system",
+      newValue: "dark",
+      reloadPolicy: "hot",
+      restartRequired: false,
+    });
     mgr.dispose();
   });
 
-  it("does NOT publish bus event for restart-required setting", async () => {
+  it("publishes restart-required changes with explicit metadata", async () => {
     const events: SettingChangeEvent[] = [];
     const mgr = createManager((_topic, evt) => events.push(evt));
     await mgr.init();
     await mgr.set("renderer_engine", "rio");
+    expect(events).toEqual([
+      {
+        key: "renderer_engine",
+        oldValue: "ghostty",
+        newValue: "rio",
+        reloadPolicy: "restart",
+        restartRequired: true,
+      },
+    ]);
+    expect(mgr.isRestartRequired()).toBe(true);
+    mgr.dispose();
+  });
+
+  it("persists before publishing and notifies subscribers after the bus", async () => {
+    const order: string[] = [];
+    const store: SettingsStore = {
+      load: async () => ({}),
+      save: async () => {
+        order.push("persist");
+      },
+      watch: () => () => {},
+    };
+    const mgr = new SettingsManager(SETTINGS_SCHEMA, store, () => order.push("bus"));
+    await mgr.init();
+    mgr.onSettingChanged(() => order.push("listener"));
+
+    await mgr.set("theme", "dark");
+
+    expect(order).toEqual(["persist", "bus", "listener"]);
+    mgr.dispose();
+  });
+
+  it("isolates bus failures after persistence and still notifies subscribers", async () => {
+    const directEvents: SettingChangeEvent[] = [];
+    const mgr = createManager(() => {
+      throw new Error("bus unavailable");
+    });
+    await mgr.init();
+    mgr.onSettingChanged(event => directEvents.push(event));
+
+    const event = await mgr.set("renderer_engine", "rio");
+
+    expect(event.restartRequired).toBe(true);
+    expect(directEvents).toEqual([event]);
+    expect(mgr.get("renderer_engine")).toBe("rio");
+    mgr.dispose();
+  });
+
+  it("does not publish or mutate the cache when persistence fails", async () => {
+    const events: SettingChangeEvent[] = [];
+    const store: SettingsStore = {
+      load: async () => ({}),
+      save: async () => {
+        throw new Error("disk full");
+      },
+      watch: () => () => {},
+    };
+    const mgr = new SettingsManager(SETTINGS_SCHEMA, store, (_topic, event) => events.push(event));
+    await mgr.init();
+
+    await expect(mgr.set("theme", "dark")).rejects.toThrow("disk full");
+
     expect(events).toHaveLength(0);
+    expect(mgr.get("theme")).toBe("system");
     mgr.dispose();
   });
 

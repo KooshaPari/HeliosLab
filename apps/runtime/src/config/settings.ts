@@ -59,14 +59,18 @@ export class SettingsManager {
     }
 
     const oldValue: unknown = this.cache[key];
-    this.cache[key] = value;
-    await this.store.save(this.cache);
+    const nextCache = { ...this.cache, [key]: value };
+    await this.store.save(nextCache);
+    this.cache = nextCache;
+
+    const reloadPolicy = def?.reloadPolicy ?? "hot";
 
     const event: SettingChangeEvent = {
       key,
       oldValue,
       newValue: value,
-      reloadPolicy: def?.reloadPolicy ?? "hot",
+      reloadPolicy,
+      restartRequired: reloadPolicy === "restart",
     };
 
     this.emitChange(event);
@@ -115,14 +119,14 @@ export class SettingsManager {
 
     if (def?.reloadPolicy === "restart") {
       this.changedRestartKeys.add(event.key);
-      // No bus event for restart-required settings.
-    } else {
-      // Hot-reloadable → publish on bus if available.
-      try {
-        this.busPublish?.("settings.changed", event);
-      } catch {
-        console.warn("[settings] Bus publish failed, skipping event emission.");
-      }
+    }
+
+    // Every persisted modification is observable, including values whose
+    // application is deferred until restart.
+    try {
+      this.busPublish?.("settings.changed", event);
+    } catch {
+      console.warn("[settings] Bus publish failed, skipping event emission.");
     }
 
     // Always notify direct subscribers regardless of reload policy.
@@ -147,6 +151,7 @@ export class SettingsManager {
           oldValue,
           newValue,
           reloadPolicy: def?.reloadPolicy ?? "hot",
+          restartRequired: def?.reloadPolicy === "restart",
         };
         this.emitChange(event);
       }
