@@ -61,7 +61,7 @@ export class MuxRegistry {
    * Remove a binding by session name. No-op if not found.
    */
   unbind(sessionName: string): void {
-    const _binding = this.bySession.get(sessionName);
+    const binding = this.bySession.get(sessionName);
     if (!binding) return;
 
     this.bySession.delete(sessionName);

@@ -720,6 +720,62 @@
 			"code": ["apps/desktop/src/settings/settings_lock.ts", "apps/desktop/src/context_store.ts"],
 			"tests": ["apps/desktop/tests/unit/settings/settings_lock.test.ts"],
 			"evidence": ["docs/specs/018-renderer-engine-settings-control/tasks/WP02-hotswap-toggle-and-status-indicators.md"]
+		},
+		{
+			"id": "FR-ZMX-001",
+			"status": "[x]",
+			"code": ["apps/runtime/src/integrations/zellij/session.ts", "apps/runtime/src/integrations/zellij/cli.ts"],
+			"tests": ["apps/runtime/src/integrations/zellij/__tests__/session.test.ts", "apps/runtime/tests/integration/integrations/zellij/lifecycle.test.ts"],
+			"evidence": ["docs/specs/009-zellij-mux-session-adapter/spec.md"]
+		},
+		{
+			"id": "FR-ZMX-002",
+			"status": "[x]",
+			"code": ["apps/runtime/src/integrations/zellij/registry.ts", "apps/runtime/src/integrations/zellij/session.ts"],
+			"tests": ["apps/runtime/src/integrations/zellij/__tests__/registry.test.ts", "apps/runtime/tests/integration/integrations/zellij/lifecycle.test.ts"],
+			"evidence": ["docs/specs/009-zellij-mux-session-adapter/spec.md"]
+		},
+		{
+			"id": "FR-ZMX-003",
+			"status": "[x]",
+			"code": ["apps/runtime/src/integrations/zellij/panes.ts", "apps/runtime/src/integrations/zellij/topology.ts"],
+			"tests": ["apps/runtime/src/integrations/zellij/__tests__/panes.test.ts", "apps/runtime/tests/integration/integrations/zellij/lifecycle.test.ts"],
+			"evidence": ["docs/specs/009-zellij-mux-session-adapter/spec.md"]
+		},
+		{
+			"id": "FR-ZMX-004",
+			"status": "[x]",
+			"code": ["apps/runtime/src/integrations/zellij/tabs.ts", "apps/runtime/src/integrations/zellij/topology.ts"],
+			"tests": ["apps/runtime/src/integrations/zellij/__tests__/tabs.test.ts", "apps/runtime/tests/integration/integrations/zellij/lifecycle.test.ts"],
+			"evidence": ["docs/specs/009-zellij-mux-session-adapter/spec.md"]
+		},
+		{
+			"id": "FR-ZMX-005",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/integrations/zellij/events.ts", "apps/runtime/src/integrations/zellij/session.ts", "apps/runtime/src/integrations/zellij/panes.ts", "apps/runtime/src/integrations/zellij/tabs.ts"],
+			"tests": ["apps/runtime/src/integrations/zellij/__tests__/events.test.ts", "apps/runtime/tests/integration/integrations/zellij/lifecycle.test.ts"],
+			"evidence": ["docs/specs/009-zellij-mux-session-adapter/spec.md"]
+		},
+		{
+			"id": "FR-ZMX-006",
+			"status": "[x]",
+			"code": ["apps/runtime/src/integrations/zellij/session.ts", "apps/runtime/src/integrations/zellij/topology.ts"],
+			"tests": ["apps/runtime/src/integrations/zellij/__tests__/session.test.ts", "apps/runtime/tests/integration/integrations/zellij/lifecycle.test.ts"],
+			"evidence": ["docs/specs/009-zellij-mux-session-adapter/spec.md"]
+		},
+		{
+			"id": "FR-ZMX-007",
+			"status": "[x]",
+			"code": ["apps/runtime/src/integrations/zellij/panes.ts"],
+			"tests": ["apps/runtime/src/integrations/zellij/__tests__/panes.test.ts"],
+			"evidence": ["docs/specs/009-zellij-mux-session-adapter/spec.md"]
+		},
+		{
+			"id": "FR-ZMX-008",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/integrations/zellij/reconciliation.ts", "apps/runtime/src/integrations/zellij/registry.ts"],
+			"tests": ["apps/runtime/src/integrations/zellij/__tests__/reconciliation.test.ts", "apps/runtime/tests/integration/integrations/zellij/lifecycle.test.ts"],
+			"evidence": ["docs/specs/009-zellij-mux-session-adapter/spec.md"]
 		}
 	]
 }

@@ -52,7 +52,7 @@ describe("ZellijTabManager", () => {
   describe("createTab", () => {
     it("creates a tab with a name and returns a record", async () => {
       topology.initializeTopology("test-session");
-      const _record = await tabManager.createTab("test-session", "my-tab");
+      const record = await tabManager.createTab("test-session", "my-tab");
 
       expect(record.index).toBeGreaterThan(0);
       expect(record.name).toBe("my-tab");
@@ -62,7 +62,7 @@ describe("ZellijTabManager", () => {
 
     it("creates a tab with a default name", async () => {
       topology.initializeTopology("test-session");
-      const _record = await tabManager.createTab("test-session");
+      const record = await tabManager.createTab("test-session");
 
       expect(record.name).toMatch(/Tab #\d+/);
     });
@@ -80,7 +80,7 @@ describe("ZellijTabManager", () => {
 
     it("updates topology with new tab", async () => {
       topology.initializeTopology("test-session");
-      const _record = await tabManager.createTab("test-session", "new-tab");
+      const record = await tabManager.createTab("test-session", "new-tab");
 
       const topo = topology.getTopology("test-session");
       expect(topo?.tabs).toHaveLength(2); // initial + new
@@ -91,7 +91,7 @@ describe("ZellijTabManager", () => {
   describe("closeTab", () => {
     it("closes a tab and terminates PTYs", async () => {
       topology.initializeTopology("test-session");
-      const _record = await tabManager.createTab("test-session", "to-close");
+      const record = await tabManager.createTab("test-session", "to-close");
 
       // Bind a PTY to the default pane in the new tab
       const topo = topology.getTopology("test-session")!;
@@ -121,7 +121,7 @@ describe("ZellijTabManager", () => {
   describe("switchTab", () => {
     it("switches to a valid tab", async () => {
       topology.initializeTopology("test-session");
-      const _record = await tabManager.createTab("test-session", "second");
+      const record = await tabManager.createTab("test-session", "second");
 
       await tabManager.switchTab("test-session", record.index);
 
@@ -141,7 +141,7 @@ describe("ZellijTabManager", () => {
       topology.initializeTopology("test-session");
       expect(tabManager.getActiveTab("test-session")).toBe(0);
 
-      const _record = await tabManager.createTab("test-session", "new");
+      const record = await tabManager.createTab("test-session", "new");
       expect(tabManager.getActiveTab("test-session")).toBe(record.index);
     });
 

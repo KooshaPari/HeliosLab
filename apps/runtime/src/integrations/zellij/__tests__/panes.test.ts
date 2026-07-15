@@ -49,7 +49,7 @@ describe("ZellijPaneManager", () => {
   describe("createPane", () => {
     it("creates a pane and returns a record with PTY binding", async () => {
       topology.initializeTopology("test-session");
-      const _record = await paneManager.createPane("test-session", "lane-1");
+      const record = await paneManager.createPane("test-session", "lane-1");
 
       expect(record.id).toBeGreaterThan(0);
       expect(record.ptyId).toBeDefined();
@@ -61,7 +61,7 @@ describe("ZellijPaneManager", () => {
     it("creates a pane without PTY manager", async () => {
       const noPtyManager = new ZellijPaneManager({ cli, topology });
       topology.initializeTopology("test-session");
-      const _record = await noPtyManager.createPane("test-session", "lane-1");
+      const record = await noPtyManager.createPane("test-session", "lane-1");
 
       expect(record.id).toBeGreaterThan(0);
       expect(record.ptyId).toBeUndefined();
@@ -104,7 +104,7 @@ describe("ZellijPaneManager", () => {
   describe("closePane", () => {
     it("terminates PTY before closing pane", async () => {
       topology.initializeTopology("test-session");
-      const _record = await paneManager.createPane("test-session", "lane-1");
+      const record = await paneManager.createPane("test-session", "lane-1");
 
       await paneManager.closePane("test-session", record.id);
 
@@ -125,7 +125,7 @@ describe("ZellijPaneManager", () => {
         ptyManager: failTerminate,
       });
       topology.initializeTopology("test-session");
-      const _record = await mgr.createPane("test-session", "lane-1");
+      const record = await mgr.createPane("test-session", "lane-1");
 
       // Should not throw
       await mgr.closePane("test-session", record.id);
@@ -135,7 +135,7 @@ describe("ZellijPaneManager", () => {
   describe("resizePane", () => {
     it("executes resize CLI command and relays to PTY", async () => {
       topology.initializeTopology("test-session");
-      const _record = await paneManager.createPane("test-session", "lane-1");
+      const record = await paneManager.createPane("test-session", "lane-1");
 
       await paneManager.resizePane("test-session", record.id, "right", 5);
 

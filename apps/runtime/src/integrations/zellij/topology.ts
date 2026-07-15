@@ -215,7 +215,7 @@ export class TopologyTracker {
     // Restore PTY bindings
     for (const tab of topology.tabs) {
       for (const pane of tab.panes) {
-        const _ptyId = ptyBindings.get(pane.paneId);
+        const ptyId = ptyBindings.get(pane.paneId);
         if (ptyId) {
           pane.ptyId = ptyId;
         }

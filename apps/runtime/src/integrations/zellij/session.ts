@@ -162,7 +162,7 @@ export class ZellijSessionManager {
               });
               this.topology.bindPty(sessionName, paneTopo.paneId, ptyResult.ptyId);
               record.ptyId = ptyResult.ptyId;
-            } catch {
+            } catch (err: unknown) {
               console.warn(`[zellij-session] PTY re-bind failed for pane ${paneTopo.paneId}:`, err);
             }
           }
