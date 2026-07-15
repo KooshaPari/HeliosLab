@@ -196,14 +196,14 @@ export class CommandBusImpl implements LocalBus {
       (event as unknown as Record<string, unknown>)["correlation_id"] = this.activeCorrelationId;
     }
 
-    const _topic = event.topic;
+    const topic = event.topic;
 
     // Assign per-topic sequence number
-    const currentSeq = this.topicSequenceCounters.get(_topic) ?? 0;
+    const currentSeq = this.topicSequenceCounters.get(topic) ?? 0;
     const nextSeq = currentSeq + 1;
-    this.topicSequenceCounters.set(_topic, nextSeq);
+    this.topicSequenceCounters.set(topic, nextSeq);
     (event as unknown as Record<string, unknown>)["sequence"] = nextSeq;
-    const list = this.subscribers.get(_topic);
+    const list = this.subscribers.get(topic);
     if (!list) {
       return;
     }
@@ -215,7 +215,7 @@ export class CommandBusImpl implements LocalBus {
       try {
         await handler(event);
       } catch {
-        // FR-009: subscriber isolation — errors are silently swallowed
+        // FR-BUS-010: subscriber isolation — errors are silently swallowed
       }
     }
   }

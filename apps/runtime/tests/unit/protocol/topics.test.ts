@@ -1,6 +1,6 @@
 /**
  * FR-HELIOS-103: Local Bus Event Fan-out and Topic Tests
- * Verifies: FR-BUS-004 (Event fan-out), FR-BUS-009 (Subscriber isolation)
+ * Verifies: FR-BUS-004 (Event fan-out), FR-BUS-010 (Subscriber isolation)
  * Traces to: FR-BUS-005 (monotonic sequence numbers), FR-BUS-009 (deterministic delivery order)
  */
 import { describe, expect, it, beforeEach } from "bun:test";
@@ -36,7 +36,7 @@ describe("LocalBus — event fan-out", () => {
     expect(received).toEqual([1, 2, 3]);
   });
 
-  // FR-009: subscriber isolation — throwing subscriber doesn't block others
+  // FR-BUS-010: subscriber isolation — throwing subscriber doesn't block others
   it("isolates subscriber errors: sub 2 throws, subs 1 and 3 still receive", async () => {
     const received: number[] = [];
 
@@ -54,6 +54,22 @@ describe("LocalBus — event fan-out", () => {
     await bus.publish(evt);
 
     expect(received).toEqual([1, 3]);
+  });
+
+  it("isolates rejected async subscribers and continues in registration order", async () => {
+    const received: number[] = [];
+
+    bus.subscribe("isolation.async", async () => {
+      received.push(1);
+      await Promise.reject(new Error("async subscriber failed"));
+    });
+    bus.subscribe("isolation.async", () => {
+      received.push(2);
+    });
+
+    await bus.publish(createEvent("isolation.async", undefined) as LocalBusEnvelope);
+
+    expect(received).toEqual([1, 2]);
   });
 
   // FR-004: no subscribers — no error

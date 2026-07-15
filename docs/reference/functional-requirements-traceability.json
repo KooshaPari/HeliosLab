@@ -489,6 +489,20 @@
 			"code": ["apps/runtime/src/renderer/registry.ts", "apps/runtime/src/renderer/switch.ts"],
 			"tests": ["apps/runtime/tests/unit/renderer/registry.test.ts", "apps/runtime/tests/unit/renderer/switch.test.ts"],
 			"evidence": ["TEST_COVERAGE_MATRIX.md"]
+		},
+		{
+			"id": "FR-BUS-002",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/protocol/envelope.ts"],
+			"tests": ["apps/runtime/tests/unit/protocol/envelope.test.ts"],
+			"evidence": ["TEST_COVERAGE_MATRIX.md"]
+		},
+		{
+			"id": "FR-BUS-010",
+			"status": "[x]",
+			"code": ["apps/runtime/src/protocol/bus/command-bus.ts"],
+			"tests": ["apps/runtime/tests/unit/protocol/topics.test.ts"],
+			"evidence": ["TEST_COVERAGE_MATRIX.md"]
 		}
 	]
 }
