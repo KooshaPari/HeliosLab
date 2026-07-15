@@ -49,7 +49,7 @@ describe("retention policy", () => {
     expect(records).toHaveLength(2);
     const proof = records.find(record => {
       const envelope = record.envelope as Record<string, unknown>;
-      return envelope.topic === "audit.retention.deleted";
+      return envelope["topic"] === "audit.retention.deleted";
     });
     expect(proof).toBeDefined();
   });

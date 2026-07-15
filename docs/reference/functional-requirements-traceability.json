@@ -177,9 +177,9 @@
 		},
 		{
 			"id": "FR-AUD-009",
-			"status": "[ ]",
-			"code": ["apps/runtime/src/audit/sink.ts", "apps/runtime/src/config/retention.ts"],
-			"tests": ["apps/runtime/tests/unit/audit/retention_policy.test.ts"],
+			"status": "[x]",
+			"code": ["apps/runtime/src/audit/retention.ts", "apps/runtime/src/audit/sink.ts", "apps/runtime/src/config/retention.ts"],
+			"tests": ["apps/runtime/tests/unit/audit/retention.test.ts", "apps/runtime/tests/unit/audit/retention_policy.test.ts", "apps/runtime/tests/integration/recovery/retention_enforcement.test.ts"],
 			"evidence": ["TEST_COVERAGE_MATRIX.md"]
 		},
 		{
@@ -191,8 +191,8 @@
 		},
 		{
 			"id": "FR-AUD-011",
-			"status": "[ ]",
-			"code": ["apps/runtime/src/audit/retention.ts", "apps/runtime/src/audit/sink-helpers.ts"],
+			"status": "[x]",
+			"code": ["apps/runtime/src/audit/retention.ts"],
 			"tests": ["apps/runtime/tests/unit/audit/retention.test.ts", "apps/runtime/tests/unit/audit/retention_policy.test.ts"],
 			"evidence": ["TEST_COVERAGE_MATRIX.md"]
 		},
