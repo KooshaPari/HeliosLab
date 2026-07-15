@@ -387,9 +387,9 @@
 		},
 		{
 			"id": "FR-BND-002",
-			"status": "[ ]",
+			"status": "[x]",
 			"code": ["apps/runtime/src/registry/binding_triple.ts", "apps/runtime/src/registry/terminal_registry.ts"],
-			"tests": ["apps/runtime/tests/unit/registry/binding_triple.test.ts"],
+			"tests": ["apps/runtime/tests/unit/registry/binding_triple.test.ts", "apps/runtime/tests/unit/registry/binding_completion.test.ts"],
 			"evidence": ["TEST_COVERAGE_MATRIX.md"]
 		},
 		{
@@ -401,16 +401,16 @@
 		},
 		{
 			"id": "FR-BND-004",
-			"status": "[ ]",
+			"status": "[x]",
 			"code": ["apps/runtime/src/registry/terminal_registry.ts"],
-			"tests": ["apps/runtime/tests/integration/registry/lane_session_integration.test.ts"],
+			"tests": ["apps/runtime/tests/unit/registry/binding_completion.test.ts", "apps/runtime/tests/integration/registry/lane_session_integration.test.ts"],
 			"evidence": ["TEST_COVERAGE_MATRIX.md"]
 		},
 		{
 			"id": "FR-BND-005",
-			"status": "[ ]",
-			"code": ["apps/runtime/src/registry/binding_events.ts"],
-			"tests": ["apps/runtime/tests/integration/registry/binding_lifecycle.test.ts"],
+			"status": "[x]",
+			"code": ["apps/runtime/src/registry/binding_events.ts", "apps/runtime/src/registry/terminal_registry.ts"],
+			"tests": ["apps/runtime/tests/unit/registry/binding_completion.test.ts", "apps/runtime/tests/integration/registry/binding_lifecycle.test.ts"],
 			"evidence": ["TEST_COVERAGE_MATRIX.md"]
 		},
 		{

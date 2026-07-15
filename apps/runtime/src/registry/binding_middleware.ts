@@ -9,6 +9,7 @@ import {
   BindingState,
   type RegistryQueryInterface,
   type TerminalBinding,
+  validateBindingTriple,
 } from "./binding_triple.js";
 
 import type { TerminalRegistry } from "./terminal_registry.js";
@@ -84,14 +85,14 @@ export class BindingMiddleware {
     const boundLane = this.registry.getByLane(binding.binding.laneId);
     const boundSession = this.registry.getBySession(binding.binding.sessionId);
     const isStale =
+      !validateBindingTriple(binding.binding, this.registry).valid ||
       !boundWorkspace.some(b => b.terminalId === terminalId) ||
       !boundLane.some(b => b.terminalId === terminalId) ||
       !boundSession.some(b => b.terminalId === terminalId);
 
     if (isStale) {
       // Mark binding as validation failed
-      binding.state = BindingState.validation_failed;
-      binding.updatedAt = Date.now();
+      this.registry.markValidationFailed(binding, "binding context is stale or unavailable");
 
       return {
         valid: false,

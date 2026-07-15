@@ -7,6 +7,21 @@
 
 import type { BindingTriple, RegistryQueryInterface, TerminalBinding } from "./binding_triple.js";
 import { BindingState, createBinding, validateBindingTriple } from "./binding_triple.js";
+import type { LocalBus } from "../protocol/bus.js";
+import { BindingEventEmitter } from "./binding_events.js";
+
+export interface TerminalRegistryOptions {
+  queryInterface?: RegistryQueryInterface;
+  bus?: LocalBus;
+}
+
+const COMPATIBILITY_QUERY: RegistryQueryInterface = {
+  workspaceExists: () => true,
+  laneExists: () => true,
+  sessionExists: () => true,
+  laneInWorkspace: () => true,
+  sessionInLane: () => true,
+};
 
 export class RegistryError extends Error {
   constructor(
@@ -56,6 +71,24 @@ export class TerminalRegistry implements RegistryQueryInterface {
   private sessionIndex = new Map<string, Set<string>>();
   private workspaceIndex = new Map<string, Set<string>>();
   private sessionPerLaneIndex = new Map<string, Map<string, Set<string>>>();
+  private readonly queryInterface: RegistryQueryInterface;
+  private readonly eventEmitter: BindingEventEmitter | null;
+  private readonly unsubscribeLifecycle: Array<() => void> = [];
+
+  constructor(options: TerminalRegistryOptions = {}) {
+    this.queryInterface = options.queryInterface ?? COMPATIBILITY_QUERY;
+    this.eventEmitter = options.bus ? new BindingEventEmitter(options.bus) : null;
+    if (options.bus) {
+      this.unsubscribeLifecycle.push(
+        options.bus.subscribe("lane.closed", event => {
+          if (event.lane_id) this.unregisterByLane(event.lane_id);
+        }),
+        options.bus.subscribe("session.terminated", event => {
+          if (event.session_id) this.unregisterBySession(event.session_id);
+        })
+      );
+    }
+  }
 
   /**
    * Register a new terminal with a binding triple.
@@ -101,6 +134,8 @@ export class TerminalRegistry implements RegistryQueryInterface {
       .get(binding.binding.laneId)!
       .get(binding.binding.sessionId)!
       .add(terminalId);
+
+    void this.eventEmitter?.emitBound(binding);
 
     return binding;
   }
@@ -152,6 +187,8 @@ export class TerminalRegistry implements RegistryQueryInterface {
     }
     newLaneMap.get(newTriple.sessionId)!.add(terminalId);
 
+    void this.eventEmitter?.emitRebound(binding, oldTriple);
+
     return binding;
   }
 
@@ -187,6 +224,7 @@ export class TerminalRegistry implements RegistryQueryInterface {
 
     // Remove from primary store
     this.primaryStore.delete(terminalId);
+    void this.eventEmitter?.emitUnbound(binding);
   }
 
   /**
@@ -236,24 +274,42 @@ export class TerminalRegistry implements RegistryQueryInterface {
   /**
    * Implement RegistryQueryInterface for validation callbacks.
    */
-  workspaceExists(_workspaceId: string): boolean {
-    return true; // External validation; assume exists if referenced
+  workspaceExists(workspaceId: string): boolean {
+    return this.queryInterface.workspaceExists(workspaceId);
   }
 
-  laneExists(_laneId: string): boolean {
-    return true; // External validation
+  laneExists(laneId: string): boolean {
+    return this.queryInterface.laneExists(laneId);
   }
 
-  sessionExists(_sessionId: string): boolean {
-    return true; // External validation
+  sessionExists(sessionId: string): boolean {
+    return this.queryInterface.sessionExists(sessionId);
   }
 
-  laneInWorkspace(_laneId: string, _workspaceId: string): boolean {
-    return true; // External validation
+  laneInWorkspace(laneId: string, workspaceId: string): boolean {
+    return this.queryInterface.laneInWorkspace(laneId, workspaceId);
   }
 
-  sessionInLane(_sessionId: string, _laneId: string): boolean {
-    return true; // External validation
+  sessionInLane(sessionId: string, laneId: string): boolean {
+    return this.queryInterface.sessionInLane(sessionId, laneId);
+  }
+
+  markValidationFailed(binding: TerminalBinding, reason: string): void {
+    binding.state = BindingState.validation_failed;
+    binding.updatedAt = Date.now();
+    void this.eventEmitter?.emitValidationFailed(binding, reason);
+  }
+
+  unregisterByLane(laneId: string): void {
+    for (const binding of this.getByLane(laneId)) this.unregister(binding.terminalId);
+  }
+
+  unregisterBySession(sessionId: string): void {
+    for (const binding of this.getBySession(sessionId)) this.unregister(binding.terminalId);
+  }
+
+  dispose(): void {
+    for (const unsubscribe of this.unsubscribeLifecycle.splice(0)) unsubscribe();
   }
 
   /**
