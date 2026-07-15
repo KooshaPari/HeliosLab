@@ -13,11 +13,6 @@ import { resolve } from "node:path";
 
 const ROOT = resolve(import.meta.dir, "../../../..");
 
-function _readJson(relativePath: string): unknown {
-  const fullPath = resolve(ROOT, relativePath);
-  return JSON.parse(Bun.file(fullPath).text() as unknown as string);
-}
-
 /**
  * Strip JSONC comments (block and line) without breaking strings.
  * Walks character-by-character to respect quoted regions.
@@ -88,6 +83,15 @@ describe("workspace configuration", () => {
   test("bun.lock exists (deterministic lockfile)", () => {
     expect(existsSync(resolve(ROOT, "bun.lock"))).toBe(true);
   });
+
+  test("root package is private and declares its Bun toolchain", async () => {
+    const pkg = await readJsonAsync("package.json");
+    const engines = pkg["engines"] as Record<string, string>;
+
+    expect(pkg["private"]).toBe(true);
+    expect(engines["bun"]).toMatch(/^>=\d+\.\d+\.\d+$/);
+    expect(pkg["packageManager"]).toMatch(/^bun@\d+\.\d+\.\d+$/);
+  });
 });
 
 describe("tsconfig strict mode", () => {
@@ -128,6 +132,15 @@ describe("workspace tsconfig inheritance", () => {
     const dOpts = desktop["compilerOptions"] as Record<string, unknown>;
     expect(rOpts["composite"]).toBe(true);
     expect(dOpts["composite"]).toBe(true);
+  });
+});
+
+describe("typecheck gate", () => {
+  test("root typecheck runs TypeScript without emitting artifacts", async () => {
+    const pkg = await readJsonAsync("package.json");
+    const scripts = pkg["scripts"] as Record<string, string>;
+
+    expect(scripts["typecheck"]).toBe("tsc --noEmit");
   });
 });
 

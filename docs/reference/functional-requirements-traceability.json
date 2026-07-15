@@ -552,6 +552,62 @@
 			"code": ["apps/desktop/src/tabs/tab_bar.ts", "apps/desktop/src/tabs/tab_persistence.ts"],
 			"tests": ["apps/desktop/tests/unit/tabs/tab_bar.test.ts", "apps/desktop/tests/unit/tabs/tab_persistence.test.ts"],
 			"evidence": ["TEST_COVERAGE_MATRIX.md"]
+		},
+		{
+			"id": "FR-RUN-001",
+			"status": "[x]",
+			"code": ["package.json", "bunfig.toml", "apps/desktop/package.json", "apps/runtime/package.json"],
+			"tests": ["apps/runtime/tests/unit/build-infra.test.ts"],
+			"evidence": ["docs/specs/019-ts7-and-bun-runtime-setup/tasks/WP01-monorepo-structure-and-tsconfig.md"]
+		},
+		{
+			"id": "FR-RUN-002",
+			"status": "[ ]",
+			"code": ["package.json"],
+			"tests": ["apps/runtime/tests/unit/build-infra.test.ts"],
+			"evidence": ["docs/specs/019-ts7-and-bun-runtime-setup/tasks/WP01-monorepo-structure-and-tsconfig.md"]
+		},
+		{
+			"id": "FR-RUN-003",
+			"status": "[ ]",
+			"code": ["apps/desktop/package.json", "apps/desktop/src/index.ts", "electrobun.config.ts"],
+			"tests": ["apps/runtime/tests/unit/build-infra.test.ts"],
+			"evidence": ["docs/specs/019-ts7-and-bun-runtime-setup/tasks/WP02-build-dev-typecheck-scripts.md"]
+		},
+		{
+			"id": "FR-RUN-004",
+			"status": "[ ]",
+			"code": ["package.json", "scripts/solid-dev-server.ts"],
+			"tests": ["apps/runtime/tests/unit/build-infra.test.ts"],
+			"evidence": ["docs/specs/019-ts7-and-bun-runtime-setup/tasks/WP02-build-dev-typecheck-scripts.md"]
+		},
+		{
+			"id": "FR-RUN-005",
+			"status": "[x]",
+			"code": ["package.json", "tsconfig.json", "tsconfig.base.json"],
+			"tests": ["apps/runtime/tests/unit/build-infra.test.ts"],
+			"evidence": ["docs/specs/019-ts7-and-bun-runtime-setup/tasks/WP02-build-dev-typecheck-scripts.md"]
+		},
+		{
+			"id": "FR-RUN-006",
+			"status": "[ ]",
+			"code": ["package.json", "apps/desktop/package.json", "electrobun.config.ts"],
+			"tests": ["apps/runtime/tests/unit/alias-resolution.test.ts"],
+			"evidence": ["docs/specs/019-ts7-and-bun-runtime-setup/tasks/WP02-build-dev-typecheck-scripts.md"]
+		},
+		{
+			"id": "FR-RUN-007",
+			"status": "[ ]",
+			"code": ["tsconfig.base.json", "apps/desktop/tsconfig.json", "apps/runtime/tsconfig.json"],
+			"tests": ["apps/runtime/tests/unit/build-infra.test.ts"],
+			"evidence": ["docs/specs/019-ts7-and-bun-runtime-setup/tasks/WP01-monorepo-structure-and-tsconfig.md"]
+		},
+		{
+			"id": "FR-RUN-008",
+			"status": "[x]",
+			"code": ["tsconfig.base.json", "tsconfig.json", "apps/desktop/src/index.ts"],
+			"tests": ["apps/runtime/tests/unit/alias-resolution.test.ts"],
+			"evidence": ["docs/specs/019-ts7-and-bun-runtime-setup/tasks/WP02-build-dev-typecheck-scripts.md"]
 		}
 	]
 }

@@ -7,6 +7,9 @@
  * Traces to: FR-RUN-007 (tsconfig strict mode), FR-RUN-008 (path alias resolution)
  */
 import { describe, expect, test } from "bun:test";
+import { resolve } from "node:path";
+
+const ROOT = resolve(import.meta.dir, "../../../..");
 
 describe("path alias resolution", () => {
   test("@helios/runtime resolves and exports VERSION", async () => {
@@ -37,5 +40,21 @@ describe("path alias resolution", () => {
     // Verify the shape matches HealthCheckResult interface
     const keys = Object.keys(result).sort();
     expect(keys).toEqual(["ok", "timestamp", "uptimeMs"]);
+  });
+
+  test("Bun build resolves the desktop cross-workspace alias", async () => {
+    const result = await Bun.build({
+      entrypoints: [resolve(ROOT, "apps/desktop/src/index.ts")],
+      target: "bun",
+      minify: true,
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.logs).toHaveLength(0);
+    expect(result.outputs).toHaveLength(1);
+
+    const bundle = await result.outputs[0]?.text();
+    expect(bundle).toBeDefined();
+    expect(bundle).not.toContain('from"@helios/runtime"');
   });
 });
