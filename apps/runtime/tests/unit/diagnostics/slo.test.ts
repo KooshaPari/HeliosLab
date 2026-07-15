@@ -12,7 +12,10 @@ function makeBucket(overrides: Partial<PercentileBucket> = {}): PercentileBucket
 describe("SLO_DEFINITIONS", () => {
   // FR-003
   it("contains all constitution SLOs", () => {
-    expect(SLO_DEFINITIONS.length).toBe(7);
+    expect(SLO_DEFINITIONS.length).toBe(10);
+    expect(getSLOsForMetric("input-to-echo").map(slo => slo.threshold)).toEqual([30, 60]);
+    expect(getSLOsForMetric("input-to-render").map(slo => slo.threshold)).toEqual([60, 150]);
+    expect(getSLOsForMetric("startup-to-interactive")[0]?.threshold).toBe(2_000);
   });
 
   it("is frozen / immutable", () => {

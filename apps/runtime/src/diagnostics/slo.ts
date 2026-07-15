@@ -18,7 +18,19 @@ export const SLO_DEFINITIONS: readonly SLODefinition[] = Object.freeze([
   {
     metric: "input-to-echo",
     percentile: "p95" as const,
-    threshold: 100,
+    threshold: 60,
+    unit: "ms",
+  },
+  {
+    metric: "input-to-render",
+    percentile: "p50" as const,
+    threshold: 60,
+    unit: "ms",
+  },
+  {
+    metric: "input-to-render",
+    percentile: "p95" as const,
+    threshold: 150,
     unit: "ms",
   },
   {
@@ -35,6 +47,12 @@ export const SLO_DEFINITIONS: readonly SLODefinition[] = Object.freeze([
   },
   { metric: "fps", percentile: "p50" as const, threshold: 60, unit: "fps" },
   { metric: "memory", percentile: "p95" as const, threshold: 500, unit: "MB" },
+  {
+    metric: "startup-to-interactive",
+    percentile: "p95" as const,
+    threshold: 2_000,
+    unit: "ms",
+  },
   {
     metric: "bus-dispatch",
     percentile: "p95" as const,
@@ -91,7 +109,7 @@ export class SLOMonitor {
   private readonly definitions: SLODefinition[];
   private readonly busPublish: BusPublishFn | undefined;
 
-  /** Map<metric:percentile, lastEmissionTimestamp> for rate limiting. */
+  /** Map<metric, lastEmissionTimestamp> for per-metric rate limiting. */
   private readonly rateLimitMap = new Map<string, number>();
   private rateLimitWindowMs = 10_000;
 
@@ -136,7 +154,7 @@ export class SLOMonitor {
       }
 
       // Rate limit check.
-      const key = `${def.metric}:${def.percentile}`;
+      const key = def.metric;
       const lastEmission = this.rateLimitMap.get(key);
       if (lastEmission !== undefined && now - lastEmission < this.rateLimitWindowMs) {
         continue;

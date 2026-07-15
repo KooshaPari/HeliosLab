@@ -145,6 +145,25 @@ describe("Rate Limiting", () => {
     expect(second.length).toBe(0);
   });
 
+  it("emits at most one event per metric when multiple percentiles breach", () => {
+    const registry = new MetricsRegistry();
+    registry.register({
+      name: "metric-a",
+      type: "latency",
+      unit: "ms",
+      description: "A",
+    });
+    const monitor = new SLOMonitor(registry, [
+      { metric: "metric-a", percentile: "p50", threshold: 40, unit: "ms" },
+      { metric: "metric-a", percentile: "p95", threshold: 50, unit: "ms" },
+    ]);
+    for (let i = 0; i < 100; i++) {
+      registry.record("metric-a", 100, i);
+    }
+
+    expect(monitor.checkAll()).toHaveLength(1);
+  });
+
   // FR-010: resetRateLimiter allows re-emission
   it("resetRateLimiter clears suppression", () => {
     const { registry, monitor } = createSetup();
