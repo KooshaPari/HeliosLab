@@ -266,7 +266,7 @@ describe("Integration Tests (T015)", () => {
             "apiKey"
           );
           // Should never reach here
-        } catch {
+        } catch (err) {
           if (err instanceof CredentialAccessDeniedError) {
             denialCount++;
           }

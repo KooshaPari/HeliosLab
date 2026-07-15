@@ -129,7 +129,7 @@ export class AuditSink {
    */
   wrapBus(bus: LocalBus): LocalBus {
     return {
-      async publish(event: LocalBusEnvelope): Promise<void> {
+      publish: async (event: LocalBusEnvelope): Promise<void> => {
         await this.ingest(event);
         await bus.publish(event);
       },

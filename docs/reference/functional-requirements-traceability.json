@@ -1469,6 +1469,83 @@
 			"code": ["apps/runtime/src/policy/engine.ts", "apps/runtime/src/integrations/par/command.ts", "apps/runtime/src/protocol/bus/command-bus.ts"],
 			"tests": ["apps/runtime/tests/unit/policy/engine.test.ts"],
 			"evidence": ["docs/specs/023-command-policy-engine-and-approval-workflows/spec.md"]
+		},
+		{
+			"id": "FR-SEC-001",
+			"status": "[x]",
+			"code": ["apps/runtime/src/secrets/encryption.ts", "apps/runtime/src/secrets/credential-store.ts"],
+			"tests": ["apps/runtime/src/secrets/__tests__/encryption.test.ts", "apps/runtime/src/secrets/__tests__/credential-store.test.ts"],
+			"evidence": ["docs/specs/028-secrets-management-and-redaction/spec.md"]
+		},
+		{
+			"id": "FR-SEC-002",
+			"status": "[x]",
+			"code": ["apps/runtime/src/secrets/encryption.ts", "apps/runtime/src/secrets/credential-store.ts"],
+			"tests": ["apps/runtime/src/secrets/__tests__/credential-isolation.test.ts", "apps/runtime/src/secrets/__tests__/credential-store.test.ts", "apps/runtime/src/secrets/__tests__/integration.test.ts"],
+			"evidence": ["docs/specs/028-secrets-management-and-redaction/spec.md"]
+		},
+		{
+			"id": "FR-SEC-003",
+			"status": "[x]",
+			"code": ["apps/runtime/src/secrets/credential-store.ts"],
+			"tests": ["apps/runtime/src/secrets/__tests__/credential-lifecycle.test.ts", "apps/runtime/src/secrets/__tests__/integration.test.ts"],
+			"evidence": ["docs/specs/028-secrets-management-and-redaction/spec.md"]
+		},
+		{
+			"id": "FR-SEC-004",
+			"status": "[x]",
+			"code": ["apps/runtime/src/secrets/redaction-engine.ts", "apps/runtime/src/secrets/redaction-rules.ts"],
+			"tests": ["apps/runtime/src/secrets/__tests__/redaction-engine.test.ts", "apps/runtime/src/secrets/__tests__/redaction-rules.test.ts"],
+			"evidence": ["docs/specs/028-secrets-management-and-redaction/spec.md"]
+		},
+		{
+			"id": "FR-SEC-005",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/audit/audit-sink.ts", "apps/runtime/src/runtime/ops.ts", "apps/runtime/src/index.ts"],
+			"tests": ["apps/runtime/src/secrets/__tests__/integration.test.ts", "apps/runtime/tests/unit/audit/sink.test.ts", "apps/runtime/tests/unit/audit/export_compliance.test.ts"],
+			"evidence": ["docs/specs/028-secrets-management-and-redaction/spec.md"]
+		},
+		{
+			"id": "FR-SEC-006",
+			"status": "[x]",
+			"code": ["apps/runtime/src/secrets/redaction-rules.ts", "apps/runtime/src/secrets/redaction-engine.ts"],
+			"tests": ["apps/runtime/src/secrets/__tests__/redaction-rules.test.ts"],
+			"evidence": ["docs/specs/028-secrets-management-and-redaction/spec.md"]
+		},
+		{
+			"id": "FR-SEC-007",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/secrets/protected-paths-detector.ts", "apps/runtime/src/secrets/protected-paths-matching.ts"],
+			"tests": ["apps/runtime/src/secrets/__tests__/integration.test.ts"],
+			"evidence": ["docs/specs/028-secrets-management-and-redaction/spec.md"]
+		},
+		{
+			"id": "FR-SEC-008",
+			"status": "[x]",
+			"code": ["apps/runtime/src/secrets/protected-paths-config.ts", "apps/runtime/src/secrets/protected-paths-matching.ts"],
+			"tests": ["apps/runtime/src/secrets/__tests__/integration.test.ts"],
+			"evidence": ["docs/specs/028-secrets-management-and-redaction/spec.md"]
+		},
+		{
+			"id": "FR-SEC-009",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/secrets/credential-store.ts", "apps/runtime/src/audit/audit-sink.ts"],
+			"tests": ["apps/runtime/src/secrets/__tests__/credential-lifecycle.test.ts", "apps/runtime/src/secrets/__tests__/integration.test.ts"],
+			"evidence": ["docs/specs/028-secrets-management-and-redaction/spec.md"]
+		},
+		{
+			"id": "FR-SEC-010",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/secrets/audit-trail.ts", "apps/runtime/src/audit/audit-sink.ts"],
+			"tests": ["apps/runtime/src/secrets/__tests__/redaction-audit.test.ts", "apps/runtime/src/secrets/__tests__/integration.test.ts"],
+			"evidence": ["docs/specs/028-secrets-management-and-redaction/spec.md"]
+		},
+		{
+			"id": "FR-SEC-011",
+			"status": "[x]",
+			"code": ["apps/runtime/src/secrets/redaction-engine.ts", "apps/runtime/src/secrets/redaction-rules.ts", ".github/workflows/ci.yml"],
+			"tests": ["apps/runtime/src/secrets/__tests__/ci-redaction-verification.test.ts"],
+			"evidence": ["docs/specs/028-secrets-management-and-redaction/spec.md"]
 		}
 	]
 }
