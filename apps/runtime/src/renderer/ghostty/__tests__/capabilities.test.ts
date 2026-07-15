@@ -41,13 +41,13 @@ describe("Ghostty Capabilities", () => {
   });
 
   test("detectCapabilities returns cached on second call", async () => {
-    const _caps1 = await detectCapabilities();
+    const caps1 = await detectCapabilities();
     const caps2 = await detectCapabilities();
     expect(caps1).toBe(caps2); // Same reference (cached)
   });
 
   test("forceRefresh bypasses cache", async () => {
-    const _caps1 = await detectCapabilities();
+    const caps1 = await detectCapabilities();
     const caps2 = await detectCapabilities(true);
     // May or may not be same reference depending on timing, but should have same shape
     expect(caps2.colorDepth).toBe(caps1.colorDepth);

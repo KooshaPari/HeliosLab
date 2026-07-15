@@ -93,7 +93,7 @@ describe("Ghostty integration - lifecycle (T013)", () => {
   });
 
   test("register ghostty with renderer registry", () => {
-    const _registry = new RendererRegistry();
+    const registry = new RendererRegistry();
     backend = new GhosttyBackend("0.0.0-test");
     registry.register(backend);
     expect(registry.get("ghostty")).toBe(backend);

@@ -832,6 +832,55 @@
 			"code": ["apps/runtime/src/renderer/rio/index.ts", "apps/runtime/src/renderer/rio/backend.ts"],
 			"tests": ["apps/runtime/tests/unit/renderer/rio/feature_flag.test.ts", "apps/runtime/tests/integration/renderer/rio/zero_cost.test.ts"],
 			"evidence": ["docs/specs/012-rio-renderer-backend/spec.md"]
+		},
+		{
+			"id": "FR-GHT-001",
+			"status": "[x]",
+			"code": ["apps/runtime/src/renderer/ghostty/backend.ts", "apps/runtime/src/renderer/adapter.ts"],
+			"tests": ["apps/runtime/src/renderer/ghostty/__tests__/backend.test.ts", "apps/runtime/tests/integration/renderer/ghostty/lifecycle.test.ts"],
+			"evidence": ["docs/specs/011-ghostty-renderer-backend/spec.md"]
+		},
+		{
+			"id": "FR-GHT-002",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/renderer/ghostty/process.ts", "apps/runtime/src/renderer/ghostty/surface.ts", "apps/runtime/src/renderer/ghostty/backend.ts"],
+			"tests": ["apps/runtime/src/renderer/ghostty/__tests__/process.test.ts", "apps/runtime/src/renderer/ghostty/__tests__/surface.test.ts", "apps/runtime/tests/integration/renderer/ghostty/lifecycle.test.ts"],
+			"evidence": ["docs/specs/011-ghostty-renderer-backend/spec.md"]
+		},
+		{
+			"id": "FR-GHT-003",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/renderer/ghostty/backend.ts", "apps/runtime/src/renderer/ghostty/input.ts"],
+			"tests": ["apps/runtime/src/renderer/ghostty/__tests__/input.test.ts", "apps/runtime/tests/unit/renderer/ghostty/input.test.ts"],
+			"evidence": ["docs/specs/011-ghostty-renderer-backend/spec.md"]
+		},
+		{
+			"id": "FR-GHT-004",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/renderer/ghostty/surface.ts", "apps/runtime/src/renderer/ghostty/backend.ts"],
+			"tests": ["apps/runtime/src/renderer/ghostty/__tests__/surface.test.ts", "apps/runtime/tests/integration/renderer/ghostty/lifecycle.test.ts"],
+			"evidence": ["docs/specs/011-ghostty-renderer-backend/spec.md"]
+		},
+		{
+			"id": "FR-GHT-005",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/renderer/ghostty/metrics.ts", "apps/runtime/src/renderer/ghostty/backend.ts"],
+			"tests": ["apps/runtime/src/renderer/ghostty/__tests__/metrics.test.ts", "apps/runtime/tests/unit/renderer/ghostty/metrics.test.ts"],
+			"evidence": ["docs/specs/011-ghostty-renderer-backend/spec.md"]
+		},
+		{
+			"id": "FR-GHT-006",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/renderer/ghostty/capabilities.ts", "apps/runtime/src/renderer/ghostty/backend.ts"],
+			"tests": ["apps/runtime/src/renderer/ghostty/__tests__/capabilities.test.ts", "apps/runtime/tests/unit/renderer/ghostty/capabilities.test.ts"],
+			"evidence": ["docs/specs/011-ghostty-renderer-backend/spec.md"]
+		},
+		{
+			"id": "FR-GHT-007",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/renderer/ghostty/process.ts", "apps/runtime/src/renderer/ghostty/backend.ts"],
+			"tests": ["apps/runtime/src/renderer/ghostty/__tests__/process.test.ts", "apps/runtime/src/renderer/ghostty/__tests__/backend.test.ts", "apps/runtime/tests/unit/renderer/ghostty/process.test.ts"],
+			"evidence": ["docs/specs/011-ghostty-renderer-backend/spec.md"]
 		}
 	]
 }

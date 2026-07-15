@@ -52,7 +52,7 @@ describe("Capability detection", () => {
   });
 
   test("detectCapabilities caches result", async () => {
-    const _caps1 = await detectCapabilities();
+    const caps1 = await detectCapabilities();
     const caps2 = await detectCapabilities();
     // Same reference from cache
     expect(caps1).toBe(caps2);

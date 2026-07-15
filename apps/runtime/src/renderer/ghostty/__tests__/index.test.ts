@@ -19,7 +19,7 @@ describe("Ghostty Module Exports", () => {
   });
 
   test("manual registration works", () => {
-    const _registry = new RendererRegistry();
+    const registry = new RendererRegistry();
     const backend = new GhosttyBackend("1.0.0-test");
     registry.register(backend);
 

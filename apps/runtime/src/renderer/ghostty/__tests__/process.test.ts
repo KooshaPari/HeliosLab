@@ -71,19 +71,17 @@ describe("GhosttyProcess", () => {
   });
 
   test("crash handler fires on unexpected exit", async () => {
-    let crashError: Error | undefined;
-    proc.onCrash(err => {
-      crashError = err;
+    const crashPromise = new Promise<Error>(resolve => {
+      proc.onCrash(resolve);
     });
 
     // Start a process that exits immediately (simulates crash)
     await proc.start({ binaryPath: "true" });
 
-    // Wait for the exit handler to fire
-    await new Promise(r => setTimeout(r, 100));
+    const crashError = await crashPromise;
 
     expect(crashError).toBeDefined();
-    expect(crashError!.message).toContain("unexpectedly");
+    expect(crashError.message).toContain("unexpectedly");
   });
 
   test("restart cycles cleanly", async () => {
