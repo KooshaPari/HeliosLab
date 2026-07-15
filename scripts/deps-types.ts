@@ -72,7 +72,7 @@ export interface ChangelogEntry {
 	/** Per-gate pass/fail results (keys are gate names, values are boolean) */
 	gateResults: Record<string, boolean>;
 	/** Overall outcome of the upgrade attempt */
-	outcome: "success" | "failure" | "rollback";
+	outcome: "success" | "failure" | "rollback" | "skipped";
 	/** Actor that initiated the upgrade: 'user' | 'ci' | 'canary' */
 	actor: "user" | "ci" | "canary";
 	/** Optional branch reference for canary or experimental runs */

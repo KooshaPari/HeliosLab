@@ -608,6 +608,62 @@
 			"code": ["tsconfig.base.json", "tsconfig.json", "apps/desktop/src/index.ts"],
 			"tests": ["apps/runtime/tests/unit/alias-resolution.test.ts"],
 			"evidence": ["docs/specs/019-ts7-and-bun-runtime-setup/tasks/WP02-build-dev-typecheck-scripts.md"]
+		},
+		{
+			"id": "FR-DEP-001",
+			"status": "[ ]",
+			"code": ["deps-registry.json", "scripts/deps-types.ts"],
+			"tests": ["scripts/tests/deps-manifest.test.ts"],
+			"evidence": ["docs/specs/020-prerelease-dependency-registry/tasks/WP01-registry-manifest-and-status-command.md"]
+		},
+		{
+			"id": "FR-DEP-002",
+			"status": "[ ]",
+			"code": ["package.json", "scripts/deps-status.ts"],
+			"tests": ["scripts/tests/deps-status.test.ts"],
+			"evidence": ["docs/specs/020-prerelease-dependency-registry/tasks/WP01-registry-manifest-and-status-command.md"]
+		},
+		{
+			"id": "FR-DEP-003",
+			"status": "[ ]",
+			"code": ["bun.lock", "deps-registry.json"],
+			"tests": ["scripts/tests/deps-manifest.test.ts"],
+			"evidence": ["docs/specs/020-prerelease-dependency-registry/tasks/WP01-registry-manifest-and-status-command.md"]
+		},
+		{
+			"id": "FR-DEP-004",
+			"status": "[ ]",
+			"code": ["package.json", "scripts/deps-rollback.ts"],
+			"tests": ["scripts/tests/deps-rollback.test.ts"],
+			"evidence": ["docs/specs/020-prerelease-dependency-registry/tasks/WP02-rollback-and-canary-process.md"]
+		},
+		{
+			"id": "FR-DEP-005",
+			"status": "[ ]",
+			"code": ["scripts/deps-rollback.ts", "scripts/deps-changelog-util.ts"],
+			"tests": ["scripts/tests/deps-rollback.test.ts", "scripts/tests/deps-changelog.test.ts"],
+			"evidence": ["docs/specs/020-prerelease-dependency-registry/tasks/WP02-rollback-and-canary-process.md"]
+		},
+		{
+			"id": "FR-DEP-006",
+			"status": "[ ]",
+			"code": ["package.json", "scripts/deps-canary.ts"],
+			"tests": ["scripts/tests/deps-canary.test.ts"],
+			"evidence": ["docs/specs/020-prerelease-dependency-registry/tasks/WP02-rollback-and-canary-process.md"]
+		},
+		{
+			"id": "FR-DEP-007",
+			"status": "[ ]",
+			"code": ["scripts/deps-canary.ts"],
+			"tests": ["scripts/tests/deps-canary.test.ts"],
+			"evidence": ["docs/specs/020-prerelease-dependency-registry/tasks/WP02-rollback-and-canary-process.md"]
+		},
+		{
+			"id": "FR-DEP-008",
+			"status": "[ ]",
+			"code": ["deps-changelog.json", "scripts/deps-changelog-util.ts", "scripts/deps-canary.ts", "scripts/deps-rollback.ts"],
+			"tests": ["scripts/tests/deps-changelog.test.ts", "scripts/tests/deps-canary.test.ts", "scripts/tests/deps-rollback.test.ts"],
+			"evidence": ["docs/specs/020-prerelease-dependency-registry/tasks/WP02-rollback-and-canary-process.md"]
 		}
 	]
 }

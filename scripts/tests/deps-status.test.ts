@@ -1,6 +1,7 @@
-import { expect, test, describe, beforeEach, afterEach, mock } from "bun:test";
-import { rmSync, writeFileSync, mkdirSync } from "fs";
+import { expect, test, describe, beforeEach, afterEach } from "bun:test";
+import { readFileSync, rmSync, writeFileSync, mkdirSync } from "fs";
 import { join } from "path";
+import type { DepsRegistry } from "../deps-types";
 
 const REPO_ROOT = process.cwd();
 const CACHE_DIR = join(REPO_ROOT, ".cache");
@@ -12,7 +13,7 @@ describe("Dependency Status Command", () => {
 		// Clean up cache before each test
 		try {
 			rmSync(CACHE_DIR, { recursive: true, force: true });
-		} catch (e) {
+		} catch {
 			// Ignore
 		}
 	});
@@ -21,7 +22,7 @@ describe("Dependency Status Command", () => {
 		// Clean up cache after each test
 		try {
 			rmSync(CACHE_DIR, { recursive: true, force: true });
-		} catch (e) {
+		} catch {
 			// Ignore
 		}
 	});
@@ -34,13 +35,50 @@ describe("Dependency Status Command", () => {
 		expect(stat.isFile()).toBe(true);
 	});
 
+	test("status command reports every tracked dependency", async () => {
+		const registry: DepsRegistry = JSON.parse(
+			readFileSync(join(REPO_ROOT, "deps-registry.json"), "utf-8"),
+		);
+		mkdirSync(CACHE_DIR, { recursive: true });
+		writeFileSync(
+			CACHE_FILE,
+			JSON.stringify(
+				registry.dependencies.map((dependency) => ({
+					package: dependency.name,
+					latest: dependency.currentPin,
+					cachedAt: new Date().toISOString(),
+				})),
+			),
+		);
+
+		const child = Bun.spawn(
+			[process.execPath, "scripts/deps-status.ts", "--json"],
+			{
+				cwd: REPO_ROOT,
+				stdout: "pipe",
+				stderr: "pipe",
+			},
+		);
+		const [exitCode, stdout, stderr] = await Promise.all([
+			child.exited,
+			new Response(child.stdout).text(),
+			new Response(child.stderr).text(),
+		]);
+
+		expect(exitCode, stderr).toBe(0);
+		const report = JSON.parse(stdout) as Array<{ package: string }>;
+		expect(report.map((entry) => entry.package)).toEqual(
+			registry.dependencies.map((dependency) => dependency.name),
+		);
+	});
+
 	test("cache file is created on first run", () => {
 		// After running deps-status, cache should be created
 		// This is verified by checking that cache directory can be created
 		try {
 			mkdirSync(CACHE_DIR, { recursive: true });
 			expect(true).toBe(true);
-		} catch (e) {
+		} catch {
 			expect(false).toBe(true);
 		}
 	});

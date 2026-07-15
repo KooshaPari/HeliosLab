@@ -1,5 +1,5 @@
 import { expect, test, describe, beforeEach, afterEach } from "bun:test";
-import { rmSync, existsSync, readFileSync, writeFileSync } from "fs";
+import { rmSync, existsSync, writeFileSync } from "fs";
 import { join } from "path";
 import {
 	validateChangelogEntry,
@@ -23,7 +23,7 @@ describe("Dependency Changelog Utility", () => {
 		// Clean up test changelog
 		try {
 			rmSync(CHANGELOG_PATH, { force: true });
-		} catch (e) {
+		} catch {
 			// Ignore
 		}
 	});
@@ -305,10 +305,11 @@ describe("Dependency Changelog Utility", () => {
 	});
 
 	test("validateChangelogEntry accepts all valid outcome values", () => {
-		const outcomes: Array<"success" | "failure" | "rollback"> = [
+		const outcomes: ChangelogEntry["outcome"][] = [
 			"success",
 			"failure",
 			"rollback",
+			"skipped",
 		];
 
 		outcomes.forEach((outcome) => {

@@ -34,7 +34,7 @@ export function validateChangelogEntry(entry: ChangelogEntry): void {
 	if (typeof entry.gateResults !== "object" || entry.gateResults === null) {
 		throw new Error("Invalid or missing gateResults field");
 	}
-	if (!["success", "failure", "rollback"].includes(entry.outcome)) {
+	if (!["success", "failure", "rollback", "skipped"].includes(entry.outcome)) {
 		throw new Error(`Invalid outcome: ${entry.outcome}`);
 	}
 	if (!["user", "ci", "canary"].includes(entry.actor)) {
@@ -89,7 +89,7 @@ export function appendChangelogEntry(entry: ChangelogEntry): void {
 		if (existsSync(tempFile)) {
 			try {
 				require("fs").unlinkSync(tempFile);
-			} catch (unlinkErr) {
+			} catch {
 				// Ignore cleanup errors
 			}
 		}

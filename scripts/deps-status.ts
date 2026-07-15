@@ -83,7 +83,7 @@ function loadCache(maxAge: number): Map<string, string> {
 		(data as CachedVersion[]).forEach((entry) => {
 			map.set(entry.package, entry.latest);
 		});
-	} catch (e) {
+	} catch {
 		// Ignore cache read errors
 	}
 	return map;
@@ -105,7 +105,7 @@ function saveCache(cached: Map<string, string>): void {
 			}),
 		);
 		writeFileSync(CACHE_FILE, JSON.stringify(data, null, 2));
-	} catch (e) {
+	} catch {
 		// Ignore cache write errors
 	}
 }
@@ -121,7 +121,7 @@ async function queryNpmRegistry(pkg: string): Promise<string | null> {
 			"dist-tags"?: { latest: string };
 		};
 		return data["dist-tags"]?.latest || null;
-	} catch (e) {
+	} catch {
 		return null;
 	}
 }
@@ -139,7 +139,7 @@ async function queryGitHubReleases(apiUrl: string): Promise<string | null> {
 		// Get tag_name and remove 'v' prefix if present
 		const tag = releases[0].tag_name || "";
 		return tag.replace(/^v/, "");
-	} catch (e) {
+	} catch {
 		return null;
 	}
 }
@@ -196,7 +196,7 @@ async function generateReport(jsonFormat: boolean): Promise<void> {
 			}
 		}
 
-		const daysSince = daysSince(dep.lastUpdated);
+		const daysOld = daysSince(dep.lastUpdated);
 		let status: "up-to-date" | "upgrade-available" | "stale" | "error";
 
 		if (latest === null) {
@@ -207,7 +207,7 @@ async function generateReport(jsonFormat: boolean): Promise<void> {
 			status = "upgrade-available";
 		}
 
-		if (daysSince > 30) {
+		if (daysOld > 30) {
 			status = "stale";
 		}
 
@@ -216,7 +216,7 @@ async function generateReport(jsonFormat: boolean): Promise<void> {
 			currentPin: dep.currentPin,
 			latestAvailable: latest,
 			channel: dep.channel,
-			daysSinceUpdate: daysSince,
+			daysSinceUpdate: daysOld,
 			status,
 		});
 	}
