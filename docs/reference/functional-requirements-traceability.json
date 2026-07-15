@@ -1616,6 +1616,83 @@
 			"code": ["apps/desktop/src/index.tsx", "apps/desktop/src/context_store.ts", "apps/desktop/src/tabs/tab_surface.ts"],
 			"tests": ["apps/desktop/tests/e2e/wp04-editorless-control-plane.spec.ts", "apps/desktop/tests/unit/context_store.test.ts"],
 			"evidence": ["docs/specs/001-colab-agent-terminal-control-plane/spec.md"]
+		},
+		{
+			"id": "FR-CI-001",
+			"status": "[ ]",
+			"code": [".github/workflows/quality-gates.yml", ".github/workflows/ci.yml", "scripts/gates.ts"],
+			"tests": ["scripts/tests/gates-integration.test.ts"],
+			"evidence": ["docs/specs/021-continuous-integration-and-quality-gates/spec.md"]
+		},
+		{
+			"id": "FR-CI-002",
+			"status": "[x]",
+			"code": ["tsconfig.base.json", "package.json", ".github/workflows/quality-gates.yml"],
+			"tests": ["apps/runtime/tests/unit/build-infra.test.ts"],
+			"evidence": ["docs/specs/021-continuous-integration-and-quality-gates/spec.md"]
+		},
+		{
+			"id": "FR-CI-003",
+			"status": "[ ]",
+			"code": ["package.json", ".github/workflows/quality-gates.yml", "scripts/gate-lint.ts"],
+			"tests": ["scripts/tests/gates-integration.test.ts"],
+			"evidence": ["docs/specs/021-continuous-integration-and-quality-gates/spec.md"]
+		},
+		{
+			"id": "FR-CI-004",
+			"status": "[ ]",
+			"code": ["package.json", ".github/workflows/quality-gates.yml", "scripts/gate-test.ts", "scripts/gate-bypass-detect.ts"],
+			"tests": ["scripts/tests/gate-bypass-detect.test.ts", "scripts/tests/gates-integration.test.ts"],
+			"evidence": ["docs/specs/021-continuous-integration-and-quality-gates/spec.md"]
+		},
+		{
+			"id": "FR-CI-005",
+			"status": "[ ]",
+			"code": [".github/workflows/quality-gates.yml", "playwright.config.ts", "scripts/gate-e2e.ts"],
+			"tests": ["apps/desktop/tests/e2e/wp04-editorless-control-plane.spec.ts"],
+			"evidence": ["docs/specs/021-continuous-integration-and-quality-gates/spec.md"]
+		},
+		{
+			"id": "FR-CI-006",
+			"status": "[ ]",
+			"code": ["scripts/gate-coverage.ts", ".github/workflows/coverage.yml", ".github/workflows/quality-gates.yml"],
+			"tests": ["scripts/tests/gates-integration.test.ts"],
+			"evidence": ["docs/specs/021-continuous-integration-and-quality-gates/spec.md"]
+		},
+		{
+			"id": "FR-CI-007",
+			"status": "[ ]",
+			"code": ["scripts/gate-security.ts", ".github/workflows/ci.yml", ".github/workflows/security-guard.yml"],
+			"tests": ["scripts/tests/gates-integration.test.ts"],
+			"evidence": ["docs/specs/021-continuous-integration-and-quality-gates/spec.md"]
+		},
+		{
+			"id": "FR-CI-008",
+			"status": "[ ]",
+			"code": ["scripts/gate-static-analysis.ts", ".github/workflows/quality-gates.yml"],
+			"tests": ["scripts/tests/gates-integration.test.ts"],
+			"evidence": ["docs/specs/021-continuous-integration-and-quality-gates/spec.md"]
+		},
+		{
+			"id": "FR-CI-009",
+			"status": "[ ]",
+			"code": ["scripts/gate-bypass-detect.ts", ".github/workflows/quality-gates.yml"],
+			"tests": ["scripts/tests/gate-bypass-detect.test.ts"],
+			"evidence": ["docs/specs/021-continuous-integration-and-quality-gates/spec.md"]
+		},
+		{
+			"id": "FR-CI-010",
+			"status": "[ ]",
+			"code": ["package.json", "scripts/gates.ts", ".github/workflows/quality-gates.yml", ".github/workflows/ci.yml"],
+			"tests": ["scripts/tests/gates-integration.test.ts"],
+			"evidence": ["docs/specs/021-continuous-integration-and-quality-gates/spec.md"]
+		},
+		{
+			"id": "FR-CI-011",
+			"status": "[ ]",
+			"code": ["scripts/gate-report.ts", "scripts/gate-aggregate.ts", ".github/workflows/quality-gates.yml"],
+			"tests": ["scripts/tests/gate-report.test.ts", "scripts/tests/gates-integration.test.ts"],
+			"evidence": ["docs/specs/021-continuous-integration-and-quality-gates/spec.md"]
 		}
 	]
 }

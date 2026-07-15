@@ -4,8 +4,8 @@
  * Detects and reports all forms of quality gate suppression directives
  */
 
-import { readdirSync, readFileSync, existsSync } from "fs";
-import { join } from "path";
+import { readdirSync, readFileSync } from "fs";
+import { join, relative } from "path";
 import {
 	createGateReport,
 	writeGateReport,
@@ -59,7 +59,16 @@ export function scanBypassDirectives(
 	];
 
 	function shouldExclude(filePath: string): boolean {
-		return exclude.some((pattern) => filePath.includes(pattern));
+		const relativePath = relative(root, filePath).replaceAll("\\", "/");
+		return exclude.some((rawPattern) => {
+			const pattern = rawPattern.replaceAll("\\", "/").replace(/^\.\//, "");
+			return (
+				relativePath === pattern ||
+				relativePath.startsWith(`${pattern}/`) ||
+				relativePath.includes(`/${pattern}/`) ||
+				relativePath.endsWith(`/${pattern}`)
+			);
+		});
 	}
 
 	function scanDir(dir: string) {
@@ -74,31 +83,37 @@ export function scanBypassDirectives(
 				if (stat.isDirectory()) {
 					scanDir(fullPath);
 				} else if (/\.(ts|tsx|js|jsx)$/.test(file)) {
-					scanFile(fullPath, file);
+					scanFile(fullPath);
 				}
 			});
-		} catch (e) {
+		} catch {
 			// Silently skip unreadable directories
 		}
 	}
 
-	function scanFile(filePath: string, fileName: string) {
+	function scanFile(filePath: string) {
 		if (shouldExclude(filePath)) return;
 		const content = readFileSync(filePath, "utf-8");
 		const lines = content.split("\n");
-		const relativePath = filePath.replace(process.cwd(), "");
+		const relativePath = relative(root, filePath).replaceAll("\\", "/");
 
 		lines.forEach((line, index) => {
 			const lineNum = index + 1;
-
-			// Skip lines that are entirely within comments (lazy check)
-			if (line.trim().startsWith("//") || line.trim().startsWith("*")) {
-				return;
-			}
+			const trimmed = line.trimStart();
+			const commentIndexes = [line.indexOf("//"), line.indexOf("/*")].filter(
+				(position) => position >= 0,
+			);
+			const commentIndex = commentIndexes.length > 0 ? Math.min(...commentIndexes) : -1;
+			const commentText = trimmed.startsWith("*")
+				? trimmed
+				: commentIndex >= 0
+					? line.slice(commentIndex)
+					: "";
+			const codeText = commentIndex >= 0 ? line.slice(0, commentIndex) : line;
 
 			// Check TypeScript and other suppression patterns
 			SUPPRESSION_PATTERNS.forEach((pattern) => {
-				if (pattern.regex.test(line)) {
+				if (pattern.regex.test(commentText)) {
 					findings.push({
 						file: relativePath,
 						line: lineNum,
@@ -106,6 +121,19 @@ export function scanBypassDirectives(
 						severity: "error",
 						rule: "no-suppression-directive",
 						remediation: `Remove ${pattern.name} and fix the underlying issue`,
+					});
+				}
+			});
+
+			TEST_MARKERS.forEach((marker) => {
+				if (marker.regex.test(codeText)) {
+					findings.push({
+						file: relativePath,
+						line: lineNum,
+						message: `Restricted test marker found: ${marker.name}`,
+						severity: "error",
+						rule: "no-restricted-test-marker",
+						remediation: `Remove ${marker.name} and implement or enable the test`,
 					});
 				}
 			});

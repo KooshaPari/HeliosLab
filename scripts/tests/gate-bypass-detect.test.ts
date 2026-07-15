@@ -1,21 +1,60 @@
-import { expect, test, describe } from "bun:test";
+import { afterEach, describe, expect, test } from "bun:test";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { scanBypassDirectives } from "../gate-bypass-detect";
 
+const tempDirs: string[] = [];
+
+afterEach(async () => {
+	await Promise.all(tempDirs.splice(0).map((dir) => rm(dir, { recursive: true, force: true })));
+});
+
 describe("Bypass Detection Scanner", () => {
-	test("detects @ts-ignore directive", () => {
-		// In production, would create a fixture file
-		// For now, test that the scanner is defined and callable
-		expect(typeof scanBypassDirectives).toBe("function");
+	test("detects suppression comments and restricted test markers", async () => {
+		const root = await mkdtemp(join(tmpdir(), "helios-bypass-"));
+		tempDirs.push(root);
+		await writeFile(
+			join(root, "blocked.test.ts"),
+			[
+				"// " + "@ts-ignore",
+				"const value = unsafeCall(); // eslint" + "-disable-line",
+				'test.todo("implement me", () => {});',
+			].join("\n"),
+		);
+
+		const findings = scanBypassDirectives({ root });
+		expect(findings.map((finding) => finding.rule)).toEqual([
+			"no-suppression-directive",
+			"no-suppression-directive",
+			"no-restricted-test-marker",
+		]);
+		expect(findings.every((finding) => finding.line !== undefined)).toBe(true);
+		expect(findings.every((finding) => finding.remediation)).toBe(true);
+	});
+
+	test("does not treat directive-like strings as suppression comments", async () => {
+		const root = await mkdtemp(join(tmpdir(), "helios-bypass-"));
+		tempDirs.push(root);
+		await writeFile(
+			join(root, "clean.ts"),
+			'const guidance = "' + "@ts-ignore" + ' is forbidden";\n',
+		);
+
+		expect(scanBypassDirectives({ root })).toEqual([]);
+	});
+
+	test("scans a repository whose parent directory is named .worktrees", async () => {
+		const parent = join(tmpdir(), `.worktrees-${Date.now()}`);
+		await mkdir(parent, { recursive: true });
+		tempDirs.push(parent);
+		const root = await mkdtemp(join(parent, "helios-"));
+		await writeFile(join(root, "blocked.ts"), "// " + "@ts-ignore" + "\n");
+
+		expect(scanBypassDirectives({ root })).toHaveLength(1);
 	});
 
 	test("detects @ts-expect-error directive", () => {
-		// Test detection logic
-		const patterns = [
-			{ regex: new RegExp("@" + "ts-ignore"), name: "@ts-ignore" },
-			{ regex: new RegExp("@" + "ts-expect-error"), name: "@ts-expect-error" },
-			{ regex: new RegExp("@" + "ts-nocheck"), name: "@ts-nocheck" },
-		];
-
 		expect(new RegExp("@" + "ts-ignore").test("// @ts-ignore")).toBe(true);
 		expect(
 			new RegExp("@" + "ts-expect-error").test("// @ts-expect-error"),
