@@ -5,56 +5,29 @@
 
 import { promises as fs } from "fs";
 import * as path from "path";
+import { fileURLToPath } from "node:url";
 import type {
 	GovernanceLogEntry,
 	ValidationResult,
 	GovernanceLogQueryResult,
 } from "./governance-types";
 
-const GOVERNANCE_LOG_PATH = path.join(
-	path.dirname(path.dirname(import.meta.url)).replace("file://", ""),
-	"governance-log.jsonl",
+const GOVERNANCE_LOG_PATH = fileURLToPath(
+	new URL("../governance-log.jsonl", import.meta.url),
 );
 
 /**
  * Append a governance entry to the log.
  * Validates the entry against the schema before appending.
- * Uses atomic write (temp file + rename) to prevent corruption.
+ * Appends one JSON line without rewriting prior records.
  */
 export async function appendGovernanceEntry(
 	entry: GovernanceLogEntry,
+	logPath: string = GOVERNANCE_LOG_PATH,
 ): Promise<void> {
-	// Validate entry
 	validateEntry(entry);
-
-	const jsonLine = JSON.stringify(entry);
-	const tempFile = `${GOVERNANCE_LOG_PATH}.tmp`;
-
-	try {
-		// Read existing log
-		let content = "";
-		try {
-			content = await fs.readFile(GOVERNANCE_LOG_PATH, "utf-8");
-		} catch {
-			// File doesn't exist yet, that's ok
-			content = "";
-		}
-
-		// Append new entry
-		const newContent = content ? `${content}\n${jsonLine}\n` : `${jsonLine}\n`;
-
-		// Write to temp file
-		await fs.writeFile(tempFile, newContent, "utf-8");
-
-		// Atomic rename
-		await fs.rename(tempFile, GOVERNANCE_LOG_PATH);
-	} catch (error) {
-		// Clean up temp file
-		try {
-			await fs.unlink(tempFile);
-		} catch {}
-		throw error;
-	}
+	await fs.mkdir(path.dirname(logPath), { recursive: true });
+	await fs.appendFile(logPath, `${JSON.stringify(entry)}\n`, "utf-8");
 }
 
 /**
@@ -170,9 +143,11 @@ export async function getEntriesInRange(
  * Validate the entire governance log.
  * Checks that all entries conform to the schema.
  */
-export async function validateGovernanceLog(): Promise<ValidationResult> {
+export async function validateGovernanceLog(
+	logPath: string = GOVERNANCE_LOG_PATH,
+): Promise<ValidationResult> {
 	try {
-		const content = await fs.readFile(GOVERNANCE_LOG_PATH, "utf-8");
+		const content = await fs.readFile(logPath, "utf-8");
 		const lines = content
 			.trim()
 			.split("\n")

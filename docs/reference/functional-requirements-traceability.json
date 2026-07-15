@@ -1322,6 +1322,76 @@
 			"code": ["apps/runtime/src/workspace/workspace.ts", "packages/ids/src/index.ts"],
 			"tests": ["apps/runtime/tests/unit/workspace/workspace.test.ts", "packages/ids/tests/generate.test.ts"],
 			"evidence": ["docs/specs/003-workspace-and-project-metadata-persistence/spec.md"]
+		},
+		{
+			"id": "FR-REV-001",
+			"status": "[ ]",
+			"code": [".github/branch-protection.md", ".github/workflows/self-merge-gate.yml"],
+			"tests": ["scripts/tests/gates-integration.test.ts"],
+			"evidence": ["docs/specs/022-code-review-and-governance-process/spec.md"]
+		},
+		{
+			"id": "FR-REV-002",
+			"status": "[ ]",
+			"code": [".github/workflows/gca.yml", ".github/gca.yml", ".coderabbit.yaml", ".github/workflows/self-merge-gate.yml"],
+			"tests": ["scripts/tests/gates-integration.test.ts"],
+			"evidence": ["docs/specs/022-code-review-and-governance-process/spec.md"]
+		},
+		{
+			"id": "FR-REV-003",
+			"status": "[ ]",
+			"code": [".github/workflows/gca.yml", ".github/gca.yml"],
+			"tests": [],
+			"evidence": ["docs/specs/022-code-review-and-governance-process/spec.md"]
+		},
+		{
+			"id": "FR-REV-004",
+			"status": "[ ]",
+			"code": [".github/workflows/self-merge-gate.yml", ".github/branch-protection.md"],
+			"tests": ["scripts/tests/gates-integration.test.ts"],
+			"evidence": ["docs/specs/022-code-review-and-governance-process/spec.md"]
+		},
+		{
+			"id": "FR-REV-005",
+			"status": "[ ]",
+			"code": ["scripts/compliance-checker.ts", ".github/workflows/compliance-check.yml"],
+			"tests": ["scripts/tests/compliance-checker.test.ts"],
+			"evidence": ["docs/specs/022-code-review-and-governance-process/spec.md"]
+		},
+		{
+			"id": "FR-REV-006",
+			"status": "[x]",
+			"code": ["scripts/compliance-checker.ts", "docs/reference/constitution.md"],
+			"tests": ["scripts/tests/compliance-checker.test.ts"],
+			"evidence": ["docs/specs/022-code-review-and-governance-process/spec.md"]
+		},
+		{
+			"id": "FR-REV-007",
+			"status": "[ ]",
+			"code": ["docs/adrs/TEMPLATE.md", ".github/workflows/pr-governance-gate.yml"],
+			"tests": ["scripts/tests/adr-workflow.test.ts"],
+			"evidence": ["docs/specs/022-code-review-and-governance-process/spec.md"]
+		},
+		{
+			"id": "FR-REV-008",
+			"status": "[ ]",
+			"code": ["scripts/governance-log.ts", "scripts/governance-types.ts", ".github/workflows/governance.yml"],
+			"tests": ["scripts/tests/governance-log.test.ts"],
+			"evidence": ["docs/specs/022-code-review-and-governance-process/spec.md"]
+		},
+		{
+			"id": "FR-REV-009",
+			"status": "[x]",
+			"code": ["scripts/governance-log.ts", "governance-log.jsonl"],
+			"tests": ["scripts/tests/governance-log.test.ts"],
+			"evidence": ["docs/specs/022-code-review-and-governance-process/spec.md"]
+		},
+		{
+			"id": "FR-REV-010",
+			"status": "[ ]",
+			"code": ["docs/reference/constitution.md", ".github/workflows/pr-governance-gate.yml"],
+			"tests": [],
+			"evidence": ["docs/specs/022-code-review-and-governance-process/spec.md"]
 		}
 	]
 }

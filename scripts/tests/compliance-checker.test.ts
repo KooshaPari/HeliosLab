@@ -5,7 +5,6 @@
 
 import { test, expect, describe, beforeAll, afterAll } from "bun:test";
 import { promises as fs } from "fs";
-import * as path from "path";
 import { runComplianceChecks } from "../compliance-checker";
 
 // Fixture directory for test files
@@ -41,7 +40,8 @@ describe("Compliance Checker", () => {
 		expect(result.findings.length).toBeGreaterThan(0);
 		expect(result.findings[0].check).toBe("File Size Limit");
 		expect(result.findings[0].filePath).toBe(filePath);
-		expect(result.findings[0].constitutionSection).toBeTruthy();
+		expect(result.findings[0].constitutionSection).toBe("Team Conventions");
+		expect(result.findings[0].constitutionLine).toBeGreaterThan(0);
 	});
 
 	// Traces to: FR-GOVERNANCE-COMPLIANCE
@@ -73,7 +73,8 @@ export function test(value: any): void {
 			(f) => f.check === "Type Safety",
 		);
 		expect(anyTypeFinding).toBeTruthy();
-		expect(anyTypeFinding?.constitutionSection).toBeTruthy();
+		expect(anyTypeFinding?.constitutionSection).toBe("Code Review Checklist");
+		expect(anyTypeFinding?.constitutionLine).toBeGreaterThan(0);
 	});
 
 	// Traces to: FR-GOVERNANCE-SECURITY
@@ -90,6 +91,21 @@ export const token = API_KEY;`;
 		const securityFinding = result.findings.find((f) => f.check === "Security");
 		expect(securityFinding).toBeTruthy();
 		expect(securityFinding?.description).toContain("secret");
+		expect(securityFinding?.constitutionSection).toBe("Code Review Checklist");
+		expect(securityFinding?.constitutionLine).toBeGreaterThan(0);
+	});
+
+	test("references the testing section for missing test coverage", async () => {
+		const filePath = "./scripts/tests/unpaired-governance-source.ts";
+		await fs.writeFile(filePath, "export const value = 1;\n");
+		try {
+			const result = await runComplianceChecks([filePath]);
+			const finding = result.findings.find(f => f.check === "Test Coverage");
+			expect(finding?.constitutionSection).toBe("Testing Requirements");
+			expect(finding?.constitutionLine).toBeGreaterThan(0);
+		} finally {
+			await fs.rm(filePath, { force: true });
+		}
 	});
 
 	// Traces to: FR-GOVERNANCE-COMPLIANCE

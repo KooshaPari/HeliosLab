@@ -5,6 +5,7 @@
 
 import { promises as fs } from "node:fs";
 import * as path from "node:path";
+import { fileURLToPath } from "node:url";
 
 interface Finding {
   check: string;
@@ -16,24 +17,10 @@ interface Finding {
   remediationHint: string;
 }
 
-interface ChangedFile {
-  filePath: string;
-  status: string;
-}
-
-function parseChangedFile(input: string): ChangedFile {
-  const markerIndex = input.lastIndexOf("::");
-  if (markerIndex === -1) {
-    return { filePath: input, status: "added" };
-  }
-
-  const filePath = input.slice(0, markerIndex);
-  const status = input.slice(markerIndex + 2) || "added";
-  return { filePath, status };
-}
-
-function normalizeChangedFiles(files: string[]): ChangedFile[] {
-  return files.map(parseChangedFile);
+interface CheckResult {
+  passed: boolean;
+  findings: Finding[];
+  timestamp: string;
 }
 
 /**
@@ -88,9 +75,8 @@ const LINE_LIMIT_EXEMPT_PATTERNS = [
   ".archive/",
 ];
 
-const CONSTITUTION_PATH = path.join(
-  path.dirname(path.dirname(import.meta.url)).replace("file://", ""),
-  "docs/reference/constitution.md"
+const CONSTITUTION_PATH = fileURLToPath(
+  new URL("../docs/reference/constitution.md", import.meta.url)
 );
 
 /**
@@ -99,7 +85,7 @@ const CONSTITUTION_PATH = path.join(
 async function loadConstitution(): Promise<string> {
   try {
     return await fs.readFile(CONSTITUTION_PATH, "utf-8");
-  } catch (_error) {
+  } catch {
     return "";
   }
 }
@@ -112,9 +98,9 @@ function extractSections(constitution: string): Map<string, number> {
   const lines = constitution.split("\n");
 
   lines.forEach((line, index) => {
-    if (line.startsWith("## ")) {
-      const sectionName = line.substring(3).trim();
-      sections.set(sectionName, index + 1);
+    const heading = line.match(/^#{2,6}\s+(.+)$/);
+    if (heading?.[1]) {
+      sections.set(heading[1].trim(), index + 1);
     }
   });
 
@@ -161,7 +147,7 @@ function isLineLimitExempt(filePath: string): boolean {
 async function checkFileSizes(files: string[]): Promise<Finding[]> {
   const findings: Finding[] = [];
   const sections = await loadConstitution().then(extractSections);
-  const section = "Code Structure and Maintainability";
+  const section = "Team Conventions";
   const sectionLine = sections.get(section) || 0;
   const _lockfileNames = new Set(["bun.lock", "package-lock.json", "pnpm-lock.yaml", "yarn.lock"]);
 
@@ -289,7 +275,7 @@ async function findTestsImportingSource(
 async function checkTestCoverage(files: string[]): Promise<Finding[]> {
   const findings: Finding[] = [];
   const sections = await loadConstitution().then(extractSections);
-  const section = "Test Coverage";
+  const section = "Testing Requirements";
   const sectionLine = sections.get(section) || 0;
 
   for (const filePath of files) {
@@ -373,7 +359,7 @@ async function checkUnsafePatterns(files: string[]): Promise<Finding[]> {
           /(?::\s*any\b|<any>|as\s+any\b)/.test(line) &&
           !/\/\//.test(line.split(/:\s*any\b/)[0])
         ) {
-          const section = "Type Safety";
+          const section = "Code Review Checklist";
           findings.push({
             check: "Type Safety",
             filePath,
@@ -387,7 +373,7 @@ async function checkUnsafePatterns(files: string[]): Promise<Finding[]> {
 
         // Check for hardcoded secrets
         if (/(?:API_KEY|SECRET|PASSWORD|TOKEN)\s*=\s*["']/.test(line)) {
-          const section = "Security";
+          const section = "Code Review Checklist";
           findings.push({
             check: "Security",
             filePath,
