@@ -1693,6 +1693,83 @@
 			"code": ["scripts/gate-report.ts", "scripts/gate-aggregate.ts", ".github/workflows/quality-gates.yml"],
 			"tests": ["scripts/tests/gate-report.test.ts", "scripts/tests/gates-integration.test.ts"],
 			"evidence": ["docs/specs/021-continuous-integration-and-quality-gates/spec.md"]
+		},
+		{
+			"id": "FR-SHR-001",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/integrations/sharing/adapters.ts", "apps/runtime/src/integrations/sharing/share-session.ts"],
+			"tests": ["apps/runtime/src/integrations/sharing/__tests__/share-session.test.ts"],
+			"evidence": ["docs/specs/026-share-session-workflows/spec.md", "docs/reference/FR_TRACEABILITY_GAPS.md"]
+		},
+		{
+			"id": "FR-SHR-002",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/integrations/sharing/share-session.ts"],
+			"tests": ["apps/runtime/src/integrations/sharing/__tests__/share-session.test.ts"],
+			"evidence": ["docs/specs/026-share-session-workflows/spec.md", "docs/reference/FR_TRACEABILITY_GAPS.md"]
+		},
+		{
+			"id": "FR-SHR-003",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/integrations/sharing/share-session.ts"],
+			"tests": ["apps/runtime/src/integrations/sharing/__tests__/share-session.test.ts"],
+			"evidence": ["docs/specs/026-share-session-workflows/spec.md", "docs/reference/FR_TRACEABILITY_GAPS.md"]
+		},
+		{
+			"id": "FR-SHR-004",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/integrations/sharing/share-session.ts"],
+			"tests": ["apps/runtime/src/integrations/sharing/__tests__/share-session.test.ts"],
+			"evidence": ["docs/specs/026-share-session-workflows/spec.md", "docs/reference/FR_TRACEABILITY_GAPS.md"]
+		},
+		{
+			"id": "FR-SHR-005",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/integrations/sharing/share-session.ts"],
+			"tests": ["apps/runtime/src/integrations/sharing/__tests__/share-session.test.ts"],
+			"evidence": ["docs/specs/026-share-session-workflows/spec.md", "docs/reference/FR_TRACEABILITY_GAPS.md"]
+		},
+		{
+			"id": "FR-SHR-006",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/integrations/sharing/share-session.ts"],
+			"tests": ["apps/runtime/src/integrations/sharing/__tests__/share-session.test.ts"],
+			"evidence": ["docs/specs/026-share-session-workflows/spec.md", "docs/reference/FR_TRACEABILITY_GAPS.md"]
+		},
+		{
+			"id": "FR-SHR-007",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/integrations/sharing/adapters.ts", "apps/runtime/src/integrations/sharing/share-session.ts"],
+			"tests": ["apps/runtime/src/integrations/sharing/__tests__/share-session.test.ts"],
+			"evidence": ["docs/specs/026-share-session-workflows/spec.md", "docs/reference/FR_TRACEABILITY_GAPS.md"]
+		},
+		{
+			"id": "FR-SHR-008",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/lanes/sharing.ts", "apps/runtime/src/integrations/sharing/share-session.ts"],
+			"tests": ["apps/runtime/tests/unit/lanes/sharing.test.ts"],
+			"evidence": ["docs/specs/026-share-session-workflows/spec.md", "docs/reference/FR_TRACEABILITY_GAPS.md"]
+		},
+		{
+			"id": "FR-SHR-009",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/integrations/sharing/share-session.ts"],
+			"tests": ["apps/runtime/src/integrations/sharing/__tests__/share-session.test.ts"],
+			"evidence": ["docs/specs/026-share-session-workflows/spec.md", "docs/reference/FR_TRACEABILITY_GAPS.md"]
+		},
+		{
+			"id": "FR-SHR-010",
+			"status": "[ ]",
+			"code": ["apps/desktop/src/panels/status_badge.ts", "apps/desktop/src/panels/lane_panel.ts"],
+			"tests": ["apps/desktop/tests/unit/panels/status_badge.test.ts", "apps/desktop/tests/unit/panels/lane_panel.test.ts"],
+			"evidence": ["docs/specs/026-share-session-workflows/spec.md", "docs/reference/FR_TRACEABILITY_GAPS.md"]
+		},
+		{
+			"id": "FR-SHR-011",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/integrations/sharing/share-session.ts", "apps/runtime/src/audit/audit-sink.ts"],
+			"tests": ["apps/runtime/src/integrations/sharing/__tests__/share-session.test.ts"],
+			"evidence": ["docs/specs/026-share-session-workflows/spec.md", "docs/reference/FR_TRACEABILITY_GAPS.md"]
 		}
 	]
 }

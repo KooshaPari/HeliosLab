@@ -10,6 +10,7 @@
 import { describe, it, expect, beforeEach } from "bun:test";
 
 import { UptermAdapter, TmateAdapter, getBackendAdapter } from "../adapters.js";
+import { ShareSessionManager, type PolicyGate } from "../share-session.js";
 import { InMemoryLocalBus } from "../../../protocol/bus.js";
 
 /**
@@ -53,7 +54,7 @@ describe("Share Session Management", () => {
 
   describe("Share Session Creation", () => {
     it("should create a share session with upterm backend", async () => {
-      const _session = await manager.create("terminal-123", "upterm", 60000, "corr-001");
+      const session = await manager.create("terminal-123", "upterm", 60000, "corr-001");
 
       expect(session.id).toBeTruthy();
       expect(session.terminalId).toBe("terminal-123");
@@ -64,7 +65,7 @@ describe("Share Session Management", () => {
     });
 
     it("should create a share session with tmate backend", async () => {
-      const _session = await manager.create("terminal-456", "tmate", 60000, "corr-002");
+      const session = await manager.create("terminal-456", "tmate", 60000, "corr-002");
 
       expect(session.id).toBeTruthy();
       expect(session.backend).toBe("tmate");
@@ -75,7 +76,7 @@ describe("Share Session Management", () => {
     it("should include correlation ID in session", async () => {
       const correlationId = "unique-trace-id";
 
-      const _session = await manager.create("terminal-123", "upterm", 60000, correlationId);
+      const session = await manager.create("terminal-123", "upterm", 60000, correlationId);
 
       expect(session.correlationId).toBe(correlationId);
     });
@@ -84,7 +85,7 @@ describe("Share Session Management", () => {
       const ttlMs = 3600000; // 1 hour
       const beforeCreate = Date.now();
 
-      const _session = await manager.create("terminal-123", "upterm", ttlMs, "corr-001");
+      const session = await manager.create("terminal-123", "upterm", ttlMs, "corr-001");
 
       const afterCreate = Date.now();
 
@@ -159,7 +160,7 @@ describe("Share Session Management", () => {
     it("should allow share creation when policy approves", async () => {
       policyGate.setShouldDeny(false);
 
-      const _session = await manager.create("terminal-123", "upterm", 60000, "corr-001");
+      const session = await manager.create("terminal-123", "upterm", 60000, "corr-001");
 
       expect(session.state).toBe("active");
       expect(session.shareLink).toBeTruthy();
@@ -168,7 +169,7 @@ describe("Share Session Management", () => {
 
   describe("Share Session Termination", () => {
     it("should terminate a share session", async () => {
-      const _session = await manager.create("terminal-123", "upterm", 60000, "corr-001");
+      const session = await manager.create("terminal-123", "upterm", 60000, "corr-001");
       const sessionId = session.id;
 
       await manager.terminate(sessionId);
@@ -178,7 +179,7 @@ describe("Share Session Management", () => {
     });
 
     it("should emit termination event", async () => {
-      const _session = await manager.create("terminal-123", "upterm", 60000, "corr-001");
+      const session = await manager.create("terminal-123", "upterm", 60000, "corr-001");
       bus.getEvents(); // Clear events
 
       await manager.terminate(session.id);
@@ -193,7 +194,7 @@ describe("Share Session Management", () => {
     });
 
     it("should cleanup worker on termination", async () => {
-      const _session = await manager.create("terminal-123", "upterm", 60000, "corr-001");
+      const session = await manager.create("terminal-123", "upterm", 60000, "corr-001");
       const pidBefore = session.workerPid;
 
       expect(pidBefore).toBeGreaterThan(0);
@@ -223,8 +224,8 @@ describe("Share Session Management", () => {
     it("should list sessions by terminal", async () => {
       const terminalId = "terminal-123";
 
-      const _session1 = await manager.create(terminalId, "upterm", 60000, "corr-001");
-      const _session2 = await manager.create(terminalId, "tmate", 60000, "corr-002");
+      const session1 = await manager.create(terminalId, "upterm", 60000, "corr-001");
+      const session2 = await manager.create(terminalId, "tmate", 60000, "corr-002");
 
       const sessions = manager.listByTerminal(terminalId);
 
@@ -255,21 +256,21 @@ describe("Share Session Management", () => {
 
   describe("Share Session Lifecycle", () => {
     it("should start in pending state before worker spawn", async () => {
-      const _session = await manager.create("terminal-123", "upterm", 60000, "corr-001");
+      const session = await manager.create("terminal-123", "upterm", 60000, "corr-001");
 
       // After create, should be active (worker spawned successfully)
       expect(session.state).toBe("active");
     });
 
     it("should transition to active after worker spawn", async () => {
-      const _session = await manager.create("terminal-123", "upterm", 60000, "corr-001");
+      const session = await manager.create("terminal-123", "upterm", 60000, "corr-001");
 
       expect(session.state).toBe("active");
       expect(session.shareLink).toBeTruthy();
     });
 
     it("should transition to revoked on terminate", async () => {
-      const _session = await manager.create("terminal-123", "upterm", 60000, "corr-001");
+      const session = await manager.create("terminal-123", "upterm", 60000, "corr-001");
 
       await manager.terminate(session.id);
 
@@ -281,7 +282,7 @@ describe("Share Session Management", () => {
     it("should fail if worker spawn fails", async () => {
       // In mock implementation, spawn always succeeds
       // In real implementation, we would test error handling
-      const _session = await manager.create("terminal-123", "upterm", 60000, "corr-001");
+      const session = await manager.create("terminal-123", "upterm", 60000, "corr-001");
       expect(session.state).toBe("active");
     });
   });
@@ -298,6 +299,7 @@ describe("Share Session Management", () => {
       const sessions = await Promise.all(promises);
 
       expect(sessions).toHaveLength(3);
+      expect(new Set(sessions.map(session => session.id)).size).toBe(3);
       const listResult = manager.listByTerminal(terminalId);
       expect(listResult).toHaveLength(3);
     });
@@ -331,7 +333,7 @@ describe("Upterm Backend Adapter", () => {
   });
 
   it("should start share with upterm command", async () => {
-    const _result = await adapter.startShare("terminal-123", "main-session");
+    const result = await adapter.startShare("terminal-123", "main-session");
 
     expect(result.link).toBeTruthy();
     expect(result.link).toContain("upterm.io");
@@ -345,7 +347,7 @@ describe("Upterm Backend Adapter", () => {
   });
 
   it("should stop share gracefully", async () => {
-    const _result = await adapter.startShare("terminal-123", "main-session");
+    const result = await adapter.startShare("terminal-123", "main-session");
 
     // Should not throw
     await adapter.stopShare(result.process);
@@ -356,7 +358,7 @@ describe("Upterm Backend Adapter", () => {
       server: "custom.upterm.io",
     });
 
-    const _result = await customAdapter.startShare("terminal-123", "main-session");
+    const result = await customAdapter.startShare("terminal-123", "main-session");
 
     expect(result.link).toBeTruthy();
   });
@@ -376,7 +378,7 @@ describe("Tmate Backend Adapter", () => {
   });
 
   it("should start share with tmate command", async () => {
-    const _result = await adapter.startShare("terminal-123", "main-session");
+    const result = await adapter.startShare("terminal-123", "main-session");
 
     expect(result.link).toBeTruthy();
     expect(result.link).toContain("tmate.io");
@@ -388,7 +390,7 @@ describe("Tmate Backend Adapter", () => {
   });
 
   it("should stop share gracefully", async () => {
-    const _result = await adapter.startShare("terminal-123", "main-session");
+    const result = await adapter.startShare("terminal-123", "main-session");
 
     // Should not throw
     await adapter.stopShare(result.process);

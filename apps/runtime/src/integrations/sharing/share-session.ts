@@ -140,6 +140,7 @@ class DefaultPolicyGate implements PolicyGate {
 export class ShareSessionManager {
   private sessions = new Map<string, ShareSession>();
   private sessionsByTerminal = new Map<string, Set<string>>();
+  private sessionSequence = 0;
   private bus: LocalBus | null = null;
   private policyGate: PolicyGate;
 
@@ -176,7 +177,7 @@ export class ShareSessionManager {
 
     if (!policyDecision.allowed) {
       const session: ShareSession = {
-        id: `share-${Date.now()}`,
+        id: this.createSessionId(),
         terminalId,
         backend,
         shareLink: null,
@@ -199,7 +200,7 @@ export class ShareSessionManager {
 
     // Create session in pending state
     const session: ShareSession = {
-      id: `share-${Date.now()}`,
+      id: this.createSessionId(),
       terminalId,
       backend,
       shareLink: null,
@@ -317,6 +318,11 @@ export class ShareSessionManager {
     return Array.from(sessionIds)
       .map(id => this.sessions.get(id))
       .filter((s): s is ShareSession => s !== undefined);
+  }
+
+  private createSessionId(): string {
+    this.sessionSequence += 1;
+    return `share-${Date.now()}-${this.sessionSequence}`;
   }
 
   /**
