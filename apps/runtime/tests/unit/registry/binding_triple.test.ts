@@ -65,7 +65,7 @@ describe("binding_triple", () => {
         sessionId: "session-1",
       };
 
-      const _binding = createBinding("terminal-1", triple);
+      const binding = createBinding("terminal-1", triple);
 
       expect(binding.terminalId).toBe("terminal-1");
       expect(binding.binding).toEqual(triple);
@@ -81,8 +81,8 @@ describe("binding_triple", () => {
         sessionId: "session-1",
       };
 
-      const _before = Date.now();
-      const _binding = createBinding("terminal-1", triple);
+      const before = Date.now();
+      const binding = createBinding("terminal-1", triple);
       const after = Date.now();
 
       expect(binding.createdAt).toBeGreaterThanOrEqual(before);

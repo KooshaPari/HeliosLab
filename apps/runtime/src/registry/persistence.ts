@@ -71,7 +71,7 @@ export class JsonFilePersistence implements PersistenceStore {
         await this.doWrite(bindings);
         this.writeTimeoutId = null;
         this.pendingBindings = null;
-      } catch {
+      } catch (error) {
         console.error("Failed to persist bindings:", error);
       }
     }, this.writeDebounceMs);
@@ -102,7 +102,7 @@ export class JsonFilePersistence implements PersistenceStore {
       }
 
       return data.bindings;
-    } catch {
+    } catch (error) {
       if ((error as any).code === "ENOENT") {
         // File doesn't exist; expected on first run
         return [];
@@ -135,7 +135,7 @@ export class JsonFilePersistence implements PersistenceStore {
   async clear(): Promise<void> {
     try {
       await fs.unlink(this.storePath);
-    } catch {
+    } catch (error) {
       if ((error as any).code !== "ENOENT") {
         console.error("Failed to clear persistence:", error);
       }
@@ -164,7 +164,7 @@ export class JsonFilePersistence implements PersistenceStore {
     try {
       await fs.writeFile(tempPath, JSON.stringify(data, null, 2), "utf-8");
       await fs.rename(tempPath, this.storePath);
-    } catch {
+    } catch (error) {
       // Clean up temp file on error
       try {
         await fs.unlink(tempPath);

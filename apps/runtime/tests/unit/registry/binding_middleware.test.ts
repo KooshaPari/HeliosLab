@@ -52,7 +52,7 @@ describe("BindingMiddleware", () => {
         sessionId: "session-1",
       };
 
-      const _binding = registry.register("terminal-1", triple);
+      const binding = registry.register("terminal-1", triple);
       binding.state = BindingState.unbound;
 
       const result = middleware.validateBeforeOperation("terminal-1", "write");
@@ -69,7 +69,7 @@ describe("BindingMiddleware", () => {
         sessionId: "session-1",
       };
 
-      const _binding = registry.register("terminal-1", triple);
+      const binding = registry.register("terminal-1", triple);
       binding.state = BindingState.validation_failed;
 
       const result = middleware.validateBeforeOperation("terminal-1", "write");
@@ -86,7 +86,7 @@ describe("BindingMiddleware", () => {
         sessionId: "session-1",
       };
 
-      const _binding = registry.register("terminal-1", triple);
+      const binding = registry.register("terminal-1", triple);
       binding.state = BindingState.rebound;
 
       const result = middleware.validateBeforeOperation("terminal-1", "write");
@@ -103,7 +103,7 @@ describe("BindingMiddleware", () => {
       };
 
       // Bypass validation to create binding with invalid triple
-      const _binding = registry.register("terminal-1", {
+      const binding = registry.register("terminal-1", {
         workspaceId: "ws-1",
         laneId: "lane-1",
         sessionId: "session-1",
@@ -238,7 +238,7 @@ describe("BindingMiddleware", () => {
         sessionId: "session-1",
       };
 
-      const _binding = registry.register("terminal-1", triple);
+      const binding = registry.register("terminal-1", triple);
       expect(binding.state).toBe(BindingState.bound);
 
       registry.rebind("terminal-1", {
@@ -258,7 +258,7 @@ describe("BindingMiddleware", () => {
         sessionId: "session-1",
       };
 
-      const _binding = registry.register("terminal-1", triple);
+      const binding = registry.register("terminal-1", triple);
 
       // Corrupt the binding
       binding.binding = {
