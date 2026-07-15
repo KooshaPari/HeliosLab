@@ -282,7 +282,7 @@
 		},
 		{
 			"id": "FR-LAN-003",
-			"status": "[ ]",
+			"status": "[x]",
 			"code": ["apps/runtime/src/lanes/par.ts", "apps/runtime/src/lanes/par-types.ts"],
 			"tests": ["apps/runtime/tests/lanes/par.test.ts"],
 			"evidence": ["TEST_COVERAGE_MATRIX.md"]

@@ -65,7 +65,7 @@ export class OrphanWatchdog {
     this.isRunning = true;
 
     // Load checkpoint for crash recovery
-    const _checkpoint = await this.checkpointManager.load();
+    const checkpoint = await this.checkpointManager.load();
     if (checkpoint) {
       this.cycleNumber = checkpoint.cycleNumber;
       console.log(
@@ -115,11 +115,11 @@ export class OrphanWatchdog {
   private async processOrphans(): Promise<void> {
     if (!this.isRunning) return;
 
-    const _startTime = Date.now();
+    const startTime = Date.now();
 
     try {
       // Run all three detectors in parallel (allSettled tolerates individual failures)
-      const _results = await Promise.allSettled([
+      const results = await Promise.allSettled([
         this.worktreeDetector.detect(),
         this.zellijDetector.detect(),
         this.ptyDetector.detect(),
@@ -220,7 +220,7 @@ export class OrphanWatchdog {
       console.log(
         `[Watchdog] Cycle ${this.cycleNumber} completed: ${this.lastDetectionDuration}ms, ${this.lastClassifiedOrphans.length} orphans found`
       );
-    } catch {
+    } catch (error) {
       // biome-ignore lint/suspicious/noConsole: Checkpoint save failures are intentionally emitted for operational visibility.
       console.error("Orphan watchdog detection cycle failed", error);
     }

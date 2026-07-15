@@ -28,7 +28,7 @@ function createTempGitRepo(): string {
   tmpDirs.push(dir);
 
   // Initialize a git repo with an initial commit
-  Bun.spawnSync(["git", "init"], { cwd: dir });
+  Bun.spawnSync(["git", "init", "-b", "main"], { cwd: dir });
   Bun.spawnSync(["git", "config", "user.email", "test@test.com"], { cwd: dir });
   Bun.spawnSync(["git", "config", "user.name", "Test"], { cwd: dir });
   fs.writeFileSync(path.join(dir, "README.md"), "# test repo\n");
@@ -61,7 +61,9 @@ function cleanup(): void {
 
 describe("Worktree helpers", () => {
   test("computeWorktreePath joins correctly", () => {
-    expect(computeWorktreePath("/repo", "lane_1")).toBe("/repo/.helios-worktrees/lane_1");
+    expect(computeWorktreePath("/repo", "lane_1")).toBe(
+      path.join("/repo", ".helios-worktrees", "lane_1")
+    );
   });
 
   test("computeBranchName prefixes correctly", () => {

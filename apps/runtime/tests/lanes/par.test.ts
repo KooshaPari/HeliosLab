@@ -119,7 +119,7 @@ describe("ParManager - T011: Par task binding", () => {
     const { spawnFn } = createMockSpawn({ pid: 42, exitDelay: 60000 });
     const mgr = new ParManager({ registry, bus, spawnFn });
 
-    const _binding = await mgr.bindParTask("test-lane-1", "/tmp/worktree");
+    const binding = await mgr.bindParTask("test-lane-1", "/tmp/worktree");
 
     expect(binding.laneId).toBe("test-lane-1");
     expect(binding.pid).toBe(42);
@@ -485,7 +485,7 @@ describe("ParManager - T014: Stale detection", () => {
     await mgr.runHealthCheck();
 
     // Binding should still be active
-    const _binding = mgr.getBinding("test-lane-1");
+    const binding = mgr.getBinding("test-lane-1");
     expect(binding).toBeDefined();
     expect(binding!.status).toBe("active");
   });
@@ -554,7 +554,7 @@ describe("ParManager - T015: Event completeness", () => {
     const mgr = new ParManager({ registry, bus: failBus as any, spawnFn });
 
     // Should not throw
-    const _binding = await mgr.bindParTask("test-lane-1", "/tmp/worktree");
+    const binding = await mgr.bindParTask("test-lane-1", "/tmp/worktree");
     expect(binding.pid).toBe(42);
   });
 });

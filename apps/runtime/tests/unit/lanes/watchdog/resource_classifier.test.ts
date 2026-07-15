@@ -10,7 +10,7 @@ import {
 
 describe("ResourceClassifier", () => {
   it("should classify resource with low risk (recent, known owner)", () => {
-    const _classifier = new ResourceClassifier();
+    const classifier = new ResourceClassifier();
     const now = new Date();
     const thirtyMinutesAgo = new Date(now.getTime() - 30 * 60 * 1000);
 
@@ -28,7 +28,7 @@ describe("ResourceClassifier", () => {
   });
 
   it("should classify resource with medium risk (1-24 hours, known owner)", () => {
-    const _classifier = new ResourceClassifier();
+    const classifier = new ResourceClassifier();
     const now = new Date();
     const twelveHoursAgo = new Date(now.getTime() - 12 * 60 * 60 * 1000);
 
@@ -45,7 +45,7 @@ describe("ResourceClassifier", () => {
   });
 
   it("should classify resource with high risk (>24 hours, known owner)", () => {
-    const _classifier = new ResourceClassifier();
+    const classifier = new ResourceClassifier();
     const now = new Date();
     const twoDaysAgo = new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000);
 
@@ -61,7 +61,7 @@ describe("ResourceClassifier", () => {
   });
 
   it("should classify resource with high risk (unknown owner)", () => {
-    const _classifier = new ResourceClassifier();
+    const classifier = new ResourceClassifier();
     const now = new Date();
     const thirtyMinutesAgo = new Date(now.getTime() - 30 * 60 * 1000);
 
@@ -78,7 +78,7 @@ describe("ResourceClassifier", () => {
   });
 
   it("should sort classified resources by risk level", () => {
-    const _classifier = new ResourceClassifier();
+    const classifier = new ResourceClassifier();
     const now = new Date();
 
     const resources: OrphanedResource[] = [
@@ -111,7 +111,7 @@ describe("ResourceClassifier", () => {
   });
 
   it("should preserve resource metadata during classification", () => {
-    const _classifier = new ResourceClassifier();
+    const classifier = new ResourceClassifier();
     const now = new Date();
 
     const resource: OrphanedResource = {

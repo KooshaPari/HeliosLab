@@ -92,7 +92,7 @@ export class PtyDetector {
         }
 
         // Parse etime (elapsed time) to estimate start time
-        const _startTime = this.parseElapsedTime(parts[2]);
+        const startTime = this.parseElapsedTime(parts[2]);
 
         processes.push({
           pid,
