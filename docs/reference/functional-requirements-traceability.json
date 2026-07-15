@@ -29,6 +29,13 @@
 			"evidence": ["TEST_COVERAGE_MATRIX.md"]
 		},
 		{
+			"id": "FR-ID-005",
+			"status": "[ ]",
+			"code": ["packages/ids/package.json", "packages/ids/src/index.ts"],
+			"tests": ["packages/ids/tests/package-export.test.ts"],
+			"evidence": ["TEST_COVERAGE_MATRIX.md"]
+		},
+		{
 			"id": "FR-ID-006",
 			"status": "[x]",
 			"code": ["packages/ids/src/validate.ts"],
@@ -54,6 +61,62 @@
 			"status": "[x]",
 			"code": ["packages/ids/src/ulid.ts"],
 			"tests": ["packages/ids/tests/ulid.test.ts"],
+			"evidence": ["TEST_COVERAGE_MATRIX.md"]
+		},
+		{
+			"id": "FR-BUS-001",
+			"status": "[x]",
+			"code": ["apps/runtime/src/protocol/envelope.ts"],
+			"tests": ["apps/runtime/tests/unit/protocol/envelope.test.ts", "apps/runtime/tests/unit/protocol/schema-parity.test.ts"],
+			"evidence": ["TEST_COVERAGE_MATRIX.md"]
+		},
+		{
+			"id": "FR-BUS-003",
+			"status": "[x]",
+			"code": ["apps/runtime/src/protocol/bus.ts"],
+			"tests": ["apps/runtime/tests/unit/protocol/bus.test.ts"],
+			"evidence": ["TEST_COVERAGE_MATRIX.md"]
+		},
+		{
+			"id": "FR-BUS-004",
+			"status": "[x]",
+			"code": ["apps/runtime/src/protocol/bus.ts"],
+			"tests": ["apps/runtime/tests/unit/protocol/topics.test.ts"],
+			"evidence": ["TEST_COVERAGE_MATRIX.md"]
+		},
+		{
+			"id": "FR-BUS-005",
+			"status": "[x]",
+			"code": ["apps/runtime/src/protocol/bus.ts"],
+			"tests": ["apps/runtime/tests/unit/protocol/topics.test.ts", "apps/runtime/tests/integration/protocol/ordering.test.ts"],
+			"evidence": ["TEST_COVERAGE_MATRIX.md"]
+		},
+		{
+			"id": "FR-BUS-006",
+			"status": "[x]",
+			"code": ["apps/runtime/src/protocol/envelope.ts", "apps/runtime/src/protocol/bus.ts"],
+			"tests": ["apps/runtime/tests/unit/protocol/envelope.test.ts", "apps/runtime/tests/unit/protocol/bus.test.ts"],
+			"evidence": ["TEST_COVERAGE_MATRIX.md"]
+		},
+		{
+			"id": "FR-BUS-007",
+			"status": "[x]",
+			"code": ["apps/runtime/src/protocol/errors.ts"],
+			"tests": ["apps/runtime/tests/unit/protocol/errors.test.ts"],
+			"evidence": ["TEST_COVERAGE_MATRIX.md"]
+		},
+		{
+			"id": "FR-BUS-008",
+			"status": "[x]",
+			"code": ["apps/runtime/src/protocol/bus.ts", "apps/runtime/src/protocol/envelope.ts"],
+			"tests": ["apps/runtime/tests/integration/protocol/ordering.test.ts", "apps/runtime/tests/unit/protocol/bus.test.ts"],
+			"evidence": ["TEST_COVERAGE_MATRIX.md"]
+		},
+		{
+			"id": "FR-BUS-009",
+			"status": "[x]",
+			"code": ["apps/runtime/src/protocol/bus.ts"],
+			"tests": ["apps/runtime/tests/unit/protocol/topics.test.ts"],
 			"evidence": ["TEST_COVERAGE_MATRIX.md"]
 		}
 	]

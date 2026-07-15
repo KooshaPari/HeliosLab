@@ -47,9 +47,17 @@ gate verification.
 - [x] FR-ID-001 through FR-ID-004: typed prefixed ULIDs, canonical prefixes, ULID
   generation, and collision resistance are implemented and tested.
 - [ ] FR-ID-005: the package is exportable, but use by every named external repository
-  has not been proven here.
+  has not been proven here. `packages/ids/tests/package-export.test.ts` proves only
+  that consumers can resolve and use the package's named public export; this mapping
+  intentionally remains unchecked until all named repositories provide evidence.
 - [x] FR-ID-006 through FR-ID-009: validation, parsing, safe serialization, and
   monotonic ordering are implemented and tested.
+- [x] FR-BUS-001 and FR-BUS-003 through FR-BUS-009: the envelope contract, method
+  and topic registries, per-topic ordering, fail-closed validation, error taxonomy,
+  correlation propagation, and deterministic subscriber delivery are implemented
+  and covered by focused unit and integration tests.
+- [ ] FR-BUS-002 remains unchecked because the current protocol envelope ID prefixes
+  have not yet been brought into parity with the spec 005 ID package.
 - [x] `bun test packages/ids/tests` passes, including the 10-million-ID collision test.
 - [x] `node --test tools/gates/requirement-traceability.test.mjs` proves fail-closed
   behavior for missing, unknown, duplicate, malformed, unchecked, and missing-artifact
