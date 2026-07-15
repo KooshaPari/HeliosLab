@@ -42,7 +42,7 @@ export class TabPersistence {
    * Must complete within 100ms.
    */
   async load(): Promise<TabPersistedState | null> {
-    const _startTime = Date.now();
+    const startTime = Date.now();
 
     try {
       const data = await fs.readFile(this.storagePath, "utf-8");
@@ -61,7 +61,7 @@ export class TabPersistence {
       }
 
       return state;
-    } catch {
+    } catch (error: unknown) {
       if (error instanceof Error && "code" in error) {
         const nodeError = error as NodeJS.ErrnoException;
         if (nodeError.code === "ENOENT") {
@@ -105,7 +105,7 @@ export class TabPersistence {
           // Write state to file
           const data = JSON.stringify(stateToWrite, null, 2);
           await fs.writeFile(this.storagePath, data, "utf-8");
-        } catch {
+        } catch (error: unknown) {
           console.error("Failed to save tab state:", error);
         }
 
@@ -135,7 +135,7 @@ export class TabPersistence {
       await fs.mkdir(this.storageDir, { recursive: true });
       const data = JSON.stringify(stateToWrite, null, 2);
       await fs.writeFile(this.storagePath, data, "utf-8");
-    } catch {
+    } catch (error: unknown) {
       console.error("Failed to flush tab state:", error);
     }
   }
@@ -197,15 +197,15 @@ export class TabPersistence {
     const s = state as Record<string, unknown>;
 
     return (
-      typeof s.version === "number" &&
-      (s.selectedTabId === null || typeof s.selectedTabId === "string") &&
-      Array.isArray(s.tabOrder) &&
-      s.tabOrder.every(id => typeof id === "string") &&
-      Array.isArray(s.pinnedTabIds) &&
-      s.pinnedTabIds.every(id => typeof id === "string") &&
-      typeof s.perTabState === "object" &&
-      s.perTabState !== null &&
-      typeof s.savedAt === "string"
+      typeof s["version"] === "number" &&
+      (s["selectedTabId"] === null || typeof s["selectedTabId"] === "string") &&
+      Array.isArray(s["tabOrder"]) &&
+      s["tabOrder"].every(id => typeof id === "string") &&
+      Array.isArray(s["pinnedTabIds"]) &&
+      s["pinnedTabIds"].every(id => typeof id === "string") &&
+      typeof s["perTabState"] === "object" &&
+      s["perTabState"] !== null &&
+      typeof s["savedAt"] === "string"
     );
   }
 
@@ -215,7 +215,7 @@ export class TabPersistence {
   async delete(): Promise<void> {
     try {
       await fs.unlink(this.storagePath);
-    } catch {
+    } catch (error: unknown) {
       if (error instanceof Error && "code" in error) {
         const nodeError = error as NodeJS.ErrnoException;
         if (nodeError.code !== "ENOENT") {

@@ -503,6 +503,55 @@
 			"code": ["apps/runtime/src/protocol/bus/command-bus.ts"],
 			"tests": ["apps/runtime/tests/unit/protocol/topics.test.ts"],
 			"evidence": ["TEST_COVERAGE_MATRIX.md"]
+		},
+		{
+			"id": "FR-TAB-001",
+			"status": "[ ]",
+			"code": ["apps/desktop/src/tabs/terminal_tab.ts", "apps/desktop/src/tabs/agent_tab.ts", "apps/desktop/src/tabs/session_tab.ts", "apps/desktop/src/tabs/chat_tab.ts", "apps/desktop/src/tabs/project_tab.ts"],
+			"tests": ["apps/desktop/tests/unit/tabs/terminal_tab.test.ts", "apps/desktop/tests/unit/tabs/agent_tab.test.ts", "apps/desktop/tests/unit/tabs/session_tab.test.ts", "apps/desktop/tests/unit/tabs/chat_tab.test.ts", "apps/desktop/tests/unit/tabs/project_tab.test.ts"],
+			"evidence": ["TEST_COVERAGE_MATRIX.md"]
+		},
+		{
+			"id": "FR-TAB-002",
+			"status": "[ ]",
+			"code": ["apps/desktop/src/tabs/tab_surface.ts", "apps/desktop/src/tabs/context_switch.ts"],
+			"tests": ["apps/desktop/tests/unit/tabs/context_switch.test.ts", "apps/desktop/tests/unit/tabs/context_propagation.test.ts"],
+			"evidence": ["TEST_COVERAGE_MATRIX.md"]
+		},
+		{
+			"id": "FR-TAB-003",
+			"status": "[ ]",
+			"code": ["apps/desktop/src/tabs/context_switch_propagation.ts"],
+			"tests": ["apps/desktop/tests/unit/tabs/context_propagation.test.ts", "apps/desktop/tests/e2e/tabs/context_switch.test.ts"],
+			"evidence": ["TEST_COVERAGE_MATRIX.md"]
+		},
+		{
+			"id": "FR-TAB-004",
+			"status": "[x]",
+			"code": ["apps/desktop/src/tabs/keyboard_shortcuts.ts"],
+			"tests": ["apps/desktop/tests/unit/tabs/keyboard_shortcuts.test.ts"],
+			"evidence": ["TEST_COVERAGE_MATRIX.md"]
+		},
+		{
+			"id": "FR-TAB-005",
+			"status": "[ ]",
+			"code": ["apps/desktop/src/tabs/tab_surface.ts", "apps/desktop/src/tabs/tab_bar.ts"],
+			"tests": ["apps/desktop/tests/unit/tabs/tab_bar.test.ts", "apps/desktop/tests/unit/tabs/context_propagation.test.ts"],
+			"evidence": ["TEST_COVERAGE_MATRIX.md"]
+		},
+		{
+			"id": "FR-TAB-006",
+			"status": "[x]",
+			"code": ["apps/desktop/src/tabs/tab_persistence.ts"],
+			"tests": ["apps/desktop/tests/unit/tabs/tab_persistence.test.ts"],
+			"evidence": ["TEST_COVERAGE_MATRIX.md"]
+		},
+		{
+			"id": "FR-TAB-007",
+			"status": "[x]",
+			"code": ["apps/desktop/src/tabs/tab_bar.ts", "apps/desktop/src/tabs/tab_persistence.ts"],
+			"tests": ["apps/desktop/tests/unit/tabs/tab_bar.test.ts", "apps/desktop/tests/unit/tabs/tab_persistence.test.ts"],
+			"evidence": ["TEST_COVERAGE_MATRIX.md"]
 		}
 	]
 }
