@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
-import { createRuntime } from "../../../runtime/src";
-import { bootDesktop, renderControlPlaneSnapshot } from "../../src";
+import { createRuntime } from "../../../runtime/src/index.js";
+import { bootDesktop, renderControlPlaneSnapshot } from "../../src/index.js";
 
 test("lane/session context remains cohesive across all tabs", async ({ page }) => {
   const runtime = createRuntime();

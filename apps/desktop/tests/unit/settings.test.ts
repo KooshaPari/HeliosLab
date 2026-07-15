@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { createRuntime } from "../../../runtime/src";
-import { bootDesktop } from "../../src";
+import { createRuntime } from "../../../runtime/src/index.js";
+import { bootDesktop } from "../../src/index.js";
 
 // Traces to: FR-TXN-001 (atomic transactions), FR-TXN-004 (rollback on failure), FR-TXN-006 (context preservation)
 describe("renderer switch transaction", () => {

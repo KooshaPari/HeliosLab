@@ -1546,6 +1546,76 @@
 			"code": ["apps/runtime/src/secrets/redaction-engine.ts", "apps/runtime/src/secrets/redaction-rules.ts", ".github/workflows/ci.yml"],
 			"tests": ["apps/runtime/src/secrets/__tests__/ci-redaction-verification.test.ts"],
 			"evidence": ["docs/specs/028-secrets-management-and-redaction/spec.md"]
+		},
+		{
+			"id": "FR-SHL-001",
+			"status": "[ ]",
+			"code": ["apps/desktop/src/index.ts", "apps/desktop/src/index.tsx"],
+			"tests": ["apps/desktop/tests/e2e/wp04-editorless-control-plane.spec.ts", "apps/desktop/tests/unit/ui-shell.test.ts"],
+			"evidence": ["docs/specs/001-colab-agent-terminal-control-plane/spec.md"]
+		},
+		{
+			"id": "FR-SHL-002",
+			"status": "[ ]",
+			"code": ["apps/desktop/src/index.ts", "apps/desktop/src/init.ts"],
+			"tests": ["apps/desktop/tests/unit/startup_latency.test.ts"],
+			"evidence": ["docs/specs/001-colab-agent-terminal-control-plane/spec.md"]
+		},
+		{
+			"id": "FR-SHL-003",
+			"status": "[ ]",
+			"code": ["apps/desktop/src/index.tsx", "apps/desktop/src/panels/lane_panel.ts", "apps/desktop/src/tabs/tab_bar.ts"],
+			"tests": ["apps/desktop/tests/unit/ui-shell.test.ts", "apps/desktop/tests/e2e/wp04-editorless-control-plane.spec.ts"],
+			"evidence": ["docs/specs/001-colab-agent-terminal-control-plane/spec.md"]
+		},
+		{
+			"id": "FR-SHL-004",
+			"status": "[ ]",
+			"code": ["apps/desktop/src/tabs/keyboard_shortcuts.ts", "apps/desktop/src/index.tsx"],
+			"tests": ["apps/desktop/tests/unit/ui-shell.test.ts", "apps/desktop/tests/unit/tabs/keyboard_shortcuts.test.ts"],
+			"evidence": ["docs/specs/001-colab-agent-terminal-control-plane/spec.md"]
+		},
+		{
+			"id": "FR-SHL-005",
+			"status": "[ ]",
+			"code": ["apps/desktop/src/index.ts", "apps/desktop/src/stores/persistence.store.ts"],
+			"tests": [],
+			"evidence": ["docs/specs/001-colab-agent-terminal-control-plane/spec.md"]
+		},
+		{
+			"id": "FR-SHL-006",
+			"status": "[ ]",
+			"code": ["apps/desktop/src/index.ts", "apps/desktop/src/context_store.ts"],
+			"tests": ["apps/desktop/tests/unit/context_store.test.ts", "apps/desktop/tests/unit/control_plane.test.ts"],
+			"evidence": ["docs/specs/001-colab-agent-terminal-control-plane/spec.md"]
+		},
+		{
+			"id": "FR-SHL-007",
+			"status": "[ ]",
+			"code": ["apps/desktop/src/tabs.ts", "apps/desktop/src/tabs/tab_bar.ts", "apps/desktop/src/context_store.ts"],
+			"tests": ["apps/desktop/tests/unit/ui-shell.test.ts", "apps/desktop/tests/unit/tabs/tab_bar.test.ts"],
+			"evidence": ["docs/specs/001-colab-agent-terminal-control-plane/spec.md"]
+		},
+		{
+			"id": "FR-SHL-008",
+			"status": "[ ]",
+			"code": ["apps/desktop/src/runtime_client.ts", "apps/desktop/src/settings/capability_display.ts"],
+			"tests": ["apps/desktop/tests/unit/settings/capability_display.test.ts"],
+			"evidence": ["docs/specs/001-colab-agent-terminal-control-plane/spec.md"]
+		},
+		{
+			"id": "FR-SHL-009",
+			"status": "[ ]",
+			"code": ["apps/runtime/src/index.ts", "apps/desktop/src/index.ts"],
+			"tests": ["apps/desktop/tests/e2e/wp04-editorless-control-plane.spec.ts", "apps/desktop/tests/unit/control_plane.test.ts"],
+			"evidence": ["docs/specs/001-colab-agent-terminal-control-plane/spec.md"]
+		},
+		{
+			"id": "FR-SHL-010",
+			"status": "[ ]",
+			"code": ["apps/desktop/src/index.tsx", "apps/desktop/src/context_store.ts", "apps/desktop/src/tabs/tab_surface.ts"],
+			"tests": ["apps/desktop/tests/e2e/wp04-editorless-control-plane.spec.ts", "apps/desktop/tests/unit/context_store.test.ts"],
+			"evidence": ["docs/specs/001-colab-agent-terminal-control-plane/spec.md"]
 		}
 	]
 }

@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
-import { createRuntime } from "../../../runtime/src";
-import { bootDesktop } from "../../src";
+import { createRuntime } from "../../../runtime/src/index.js";
+import { bootDesktop } from "../../src/index.js";
 
 const ITERATIONS = 25;
 const STARTUP_P95_MS = 2_000;
