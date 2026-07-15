@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "bun:test";
-import { ReplayEngine } from "../../../src/audit/replay";
+import { ReplayController, ReplayEngine } from "../../../src/audit/replay";
 import type { ReplayStream } from "../../../src/audit/replay";
 import { createAuditEvent, AUDIT_EVENT_TYPES, AUDIT_EVENT_RESULTS } from "../../../src/audit/event";
 import type { SessionSnapshot } from "../../../src/audit/snapshot";
@@ -69,6 +69,72 @@ describe("ReplayEngine", () => {
       // Cache should have the entry
       engine.clearCache();
     });
+
+    it("reconstructs terminal output after the nearest snapshot", () => {
+      const outputEvent = createAuditEvent({
+        eventType: AUDIT_EVENT_TYPES.TERMINAL_OUTPUT,
+        actor: "agent-1",
+        action: "output",
+        target: "terminal-1",
+        result: AUDIT_EVENT_RESULTS.SUCCESS,
+        workspaceId: "ws-1",
+        sessionId: "session-1",
+        correlationId: "corr-output",
+        metadata: { data: "\nhello", cursorPosition: { row: 1, col: 5 } },
+      });
+      outputEvent.timestamp = "2026-03-01T10:10:00.000Z";
+      mockStream.events = [outputEvent];
+
+      const state = engine.getStateAtTime(mockStream, new Date("2026-03-01T10:20:00.000Z"));
+
+      expect(state.terminalBuffer).toBe("Initial terminal state\nhello");
+      expect(state.cursorPosition).toEqual({ row: 1, col: 5 });
+    });
+  });
+
+  describe("loadSession", () => {
+    it("loads, filters, and orders real snapshot/event sources", async () => {
+      const otherSnapshot = { ...mockStream.snapshots[0]!, sessionId: "other" };
+      const event = { ...mockStream.events[0]!, timestamp: "2026-03-01T10:30:00.000Z" };
+      const stream = await engine.loadSession("session-1", {
+        getSnapshots: () => [otherSnapshot, mockStream.snapshots[0]!],
+        getEvents: () => [{ ...event, sessionId: "other" }, event],
+      });
+
+      expect(stream.snapshots).toHaveLength(1);
+      expect(stream.events).toHaveLength(1);
+      expect(stream.startTime.toISOString()).toBe("2026-03-01T10:00:00.000Z");
+      expect(stream.endTime.toISOString()).toBe("2026-03-01T10:30:00.000Z");
+      expect(stream.duration).toBe(30 * 60 * 1000);
+    });
+  });
+
+  describe("ReplayController", () => {
+    it("supports scrubbing, play/pause, and bounded speed controls", () => {
+      const controller = new ReplayController(engine, mockStream);
+
+      controller.seek(10_000);
+      expect(controller.getPosition()).toBe(10_000);
+      controller.setSpeed(2);
+      controller.play();
+      controller.advance(5_000);
+      expect(controller.getPosition()).toBe(20_000);
+      expect(controller.isPlaying()).toBe(true);
+      controller.pause();
+      controller.advance(5_000);
+      expect(controller.getPosition()).toBe(20_000);
+      expect(controller.getSpeed()).toBe(2);
+      expect(() => controller.setSpeed(5)).toThrow(RangeError);
+    });
+
+    it("clamps seeks and pauses automatically at the end", () => {
+      const controller = new ReplayController(engine, mockStream);
+      controller.play();
+      controller.advance(mockStream.duration + 1);
+
+      expect(controller.getPosition()).toBe(mockStream.duration);
+      expect(controller.isPlaying()).toBe(false);
+    });
   });
 
   describe("getTimeline", () => {
@@ -76,7 +142,7 @@ describe("ReplayEngine", () => {
       const timeline = engine.getTimeline(mockStream);
 
       expect(timeline.length).toBeGreaterThan(0);
-      expect(timeline[0].eventType).toBe(AUDIT_EVENT_TYPES.COMMAND_EXECUTED);
+      expect(timeline[0]!.eventType).toBe(AUDIT_EVENT_TYPES.COMMAND_EXECUTED);
     });
   });
 

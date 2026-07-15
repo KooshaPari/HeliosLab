@@ -22,6 +22,11 @@ export interface ReplayStream {
   duration: number;
 }
 
+export interface ReplayStore {
+  getSnapshots(sessionId: string): Promise<SessionSnapshot[]> | SessionSnapshot[];
+  getEvents(sessionId: string): Promise<AuditEvent[]> | AuditEvent[];
+}
+
 /**
  * Session replay engine for historical terminal reconstruction.
  */
@@ -35,16 +40,24 @@ export class ReplayEngine {
    * @param store - Audit store for queries
    * @returns ReplayStream with snapshots and events
    */
-  async loadSession(sessionId: string, _store: any): Promise<ReplayStream> {
-    // TODO: Integrate with actual store queries
-    // For now, return empty replay stream
-    const startTime = new Date();
-    const endTime = new Date();
+  async loadSession(sessionId: string, store: ReplayStore): Promise<ReplayStream> {
+    const snapshots = (await store.getSnapshots(sessionId))
+      .filter(snapshot => snapshot.sessionId === sessionId)
+      .sort((a, b) => Date.parse(a.timestamp) - Date.parse(b.timestamp));
+    const events = (await store.getEvents(sessionId))
+      .filter(event => event.sessionId === sessionId)
+      .sort((a, b) => Date.parse(a.timestamp) - Date.parse(b.timestamp));
+    const timestamps = [
+      ...snapshots.map(snapshot => Date.parse(snapshot.timestamp)),
+      ...events.map(event => Date.parse(event.timestamp)),
+    ].filter(Number.isFinite);
+    const startTime = new Date(timestamps.length > 0 ? Math.min(...timestamps) : Date.now());
+    const endTime = new Date(timestamps.length > 0 ? Math.max(...timestamps) : startTime.getTime());
 
     return {
       sessionId,
-      snapshots: [],
-      events: [],
+      snapshots,
+      events,
       startTime,
       endTime,
       duration: endTime.getTime() - startTime.getTime(),
@@ -59,7 +72,7 @@ export class ReplayEngine {
    * @returns Session snapshot representing state at timestamp
    */
   getStateAtTime(stream: ReplayStream, timestamp: Date): SessionSnapshot {
-    const cacheKey = timestamp.toISOString();
+    const cacheKey = `${stream.sessionId}:${timestamp.toISOString()}`;
 
     if (this.stateCache.has(cacheKey)) {
       return this.stateCache.get(cacheKey)!;
@@ -79,12 +92,16 @@ export class ReplayEngine {
 
     // If no snapshot found, use first snapshot or create empty
     if (!baseSnapshot && stream.snapshots.length > 0) {
-      baseSnapshot = stream.snapshots[0];
+      baseSnapshot = stream.snapshots[0]!;
     }
 
     // Create a copy of the base snapshot
     const state: SessionSnapshot = baseSnapshot
-      ? { ...baseSnapshot }
+      ? {
+          ...baseSnapshot,
+          cursorPosition: { ...baseSnapshot.cursorPosition },
+          dimensions: { ...baseSnapshot.dimensions },
+        }
       : {
           id: "virtual",
           sessionId: stream.sessionId,
@@ -101,9 +118,28 @@ export class ReplayEngine {
       if (eventTime > timestamp) {
         break;
       }
+      if (baseSnapshot !== null && eventTime <= new Date(baseSnapshot.timestamp)) {
+        continue;
+      }
 
-      // TODO: Apply event to state reconstruction
-      // For now, just update timestamp
+      if (event.eventType === "terminal.output") {
+        const output = event.metadata["data"];
+        if (typeof output === "string") {
+          state.terminalBuffer += output;
+        }
+      }
+      const cursor = event.metadata["cursorPosition"];
+      if (
+        typeof cursor === "object" &&
+        cursor !== null &&
+        typeof (cursor as Record<string, unknown>)["row"] === "number" &&
+        typeof (cursor as Record<string, unknown>)["col"] === "number"
+      ) {
+        state.cursorPosition = {
+          row: (cursor as Record<string, number>)["row"]!,
+          col: (cursor as Record<string, number>)["col"]!,
+        };
+      }
       state.timestamp = event.timestamp;
     }
 
@@ -144,5 +180,66 @@ export class ReplayEngine {
    */
   clearCache(): void {
     this.stateCache.clear();
+  }
+}
+
+/** UI-facing deterministic playback adapter; the view supplies animation-frame deltas. */
+export class ReplayController {
+  private positionMs = 0;
+  private playing = false;
+  private speed = 1;
+
+  constructor(
+    private readonly engine: ReplayEngine,
+    private readonly stream: ReplayStream
+  ) {}
+
+  play(): void {
+    this.playing = true;
+  }
+
+  pause(): void {
+    this.playing = false;
+  }
+
+  isPlaying(): boolean {
+    return this.playing;
+  }
+
+  setSpeed(speed: number): void {
+    if (!Number.isFinite(speed) || speed < 0.25 || speed > 4) {
+      throw new RangeError("Replay speed must be between 0.25x and 4x");
+    }
+    this.speed = speed;
+  }
+
+  getSpeed(): number {
+    return this.speed;
+  }
+
+  seek(positionMs: number): SessionSnapshot {
+    this.positionMs = Math.max(0, Math.min(positionMs, this.stream.duration));
+    return this.currentState();
+  }
+
+  advance(elapsedMs: number): SessionSnapshot {
+    if (this.playing) {
+      this.seek(this.positionMs + Math.max(0, elapsedMs) * this.speed);
+      if (this.positionMs >= this.stream.duration) {
+        this.pause();
+      }
+    }
+    return this.currentState();
+  }
+
+  getPosition(): number {
+    return this.positionMs;
+  }
+
+  currentState(): SessionSnapshot {
+    return this.engine.getStateAtTime(
+      this.stream,
+      new Date(this.stream.startTime.getTime() + this.positionMs)
+    );
   }
 }

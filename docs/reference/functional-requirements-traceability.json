@@ -156,14 +156,14 @@
 		},
 		{
 			"id": "FR-AUD-006",
-			"status": "[ ]",
+			"status": "[x]",
 			"code": ["apps/runtime/src/audit/snapshot.ts"],
-			"tests": ["apps/runtime/tests/unit/audit/replay.test.ts"],
+			"tests": ["apps/runtime/tests/unit/audit/snapshot.test.ts", "apps/runtime/tests/unit/audit/replay.test.ts"],
 			"evidence": ["TEST_COVERAGE_MATRIX.md"]
 		},
 		{
 			"id": "FR-AUD-007",
-			"status": "[ ]",
+			"status": "[x]",
 			"code": ["apps/runtime/src/audit/replay.ts"],
 			"tests": ["apps/runtime/tests/unit/audit/replay.test.ts"],
 			"evidence": ["TEST_COVERAGE_MATRIX.md"]

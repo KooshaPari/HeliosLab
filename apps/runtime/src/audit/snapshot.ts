@@ -11,12 +11,21 @@ export interface SessionSnapshot {
   scrollbackPosition: number;
 }
 
+export type TerminalSnapshotState = Omit<SessionSnapshot, "id" | "sessionId" | "timestamp">;
+
+/** Supplies the current terminal state from the owning session runtime. */
+export interface TerminalSnapshotSource {
+  readTerminalState(sessionId: string): TerminalSnapshotState;
+}
+
 /**
  * Captures periodic snapshots of session terminal state for replay.
  */
 export class SnapshotCapture {
   private timer: number | null = null;
   private isRunning = false;
+
+  constructor(private readonly source: TerminalSnapshotSource) {}
 
   /**
    * Start capturing snapshots at configurable interval.
@@ -65,10 +74,7 @@ export class SnapshotCapture {
         id: `snap-${Date.now()}-${Math.random().toString(36).substring(7)}`,
         sessionId,
         timestamp: new Date().toISOString(),
-        terminalBuffer: this.getTerminalBuffer(sessionId),
-        cursorPosition: { row: 0, col: 0 },
-        dimensions: { rows: 24, cols: 80 },
-        scrollbackPosition: 0,
+        ...this.source.readTerminalState(sessionId),
       };
 
       onSnapshot(snapshot);
@@ -77,11 +83,4 @@ export class SnapshotCapture {
     }
   }
 
-  /**
-   * Get current terminal buffer (placeholder implementation).
-   */
-  private getTerminalBuffer(_sessionId: string): string {
-    // TODO: Integrate with actual session terminal state
-    return "";
-  }
 }
