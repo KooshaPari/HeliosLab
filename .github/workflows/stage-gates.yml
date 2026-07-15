@@ -11,6 +11,7 @@ jobs:
   detect-stage:
     name: detect-stage
     runs-on: ubuntu-24.04
+    timeout-minutes: 5
     permissions:
       contents: read
       pull-requests: read
@@ -59,6 +60,7 @@ jobs:
   format-check:
     name: format-check
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
     needs: [detect-stage]
     if: contains(needs.detect-stage.outputs.gates, 'format')
     steps:
@@ -74,6 +76,7 @@ jobs:
   lint-check:
     name: lint-check
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
     needs: [detect-stage]
     if: contains(needs.detect-stage.outputs.gates, 'lint')
     steps:
@@ -89,6 +92,7 @@ jobs:
   unit-check:
     name: unit-check
     runs-on: ubuntu-24.04
+    timeout-minutes: 30
     needs: [detect-stage]
     if: contains(needs.detect-stage.outputs.gates, 'unit')
     steps:
@@ -104,6 +108,7 @@ jobs:
   coverage-check:
     name: coverage-check
     runs-on: ubuntu-24.04
+    timeout-minutes: 30
     needs: [detect-stage]
     if: contains(needs.detect-stage.outputs.gates, 'coverage')
     steps:
@@ -119,6 +124,7 @@ jobs:
   secret-scan:
     name: stage-secret-scan
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
     needs: [detect-stage]
     if: contains(needs.detect-stage.outputs.gates, 'secrets')
     steps:
@@ -135,6 +141,7 @@ jobs:
   e2e-smoke:
     name: e2e-smoke
     runs-on: ubuntu-24.04
+    timeout-minutes: 30
     needs: [detect-stage]
     if: contains(needs.detect-stage.outputs.gates, 'e2e-smoke')
     steps:
