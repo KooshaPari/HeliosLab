@@ -51,6 +51,17 @@ export interface ReconciliationSummary {
   readonly durationMs: number;
 }
 
+export interface ReconciliationDependencies {
+  scan(shellPatterns: string[]): Promise<number[]>;
+  terminate(pid: number, gracePeriodMs: number): Promise<void>;
+}
+
+export interface ReconciliationOptions {
+  shellPatterns?: string[];
+  gracePeriodMs?: number;
+  dependencies?: Partial<ReconciliationDependencies>;
+}
+
 /**
  * In-memory registry of PTY records with O(1) lookups by PTY ID
  * and secondary indexes for lane and session.
@@ -185,10 +196,12 @@ export class PtyRegistry {
    * @param gracePeriodMs - Time to wait after SIGTERM before SIGKILL (default 5000).
    * @returns A reconciliation summary.
    */
-  async reconcileOrphans(
-    shellPatterns: string[] = ["bash", "zsh", "sh", "fish"],
-    gracePeriodMs = 5000
-  ): Promise<ReconciliationSummary> {
+  async reconcileOrphans(options: ReconciliationOptions = {}): Promise<ReconciliationSummary> {
+    const shellPatterns = options.shellPatterns ?? ["bash", "zsh", "sh", "fish"];
+    const gracePeriodMs = options.gracePeriodMs ?? 5000;
+    const scan = options.dependencies?.scan ?? (patterns => this.scanForOrphans(patterns));
+    const terminate =
+      options.dependencies?.terminate ?? ((pid, graceMs) => this.terminateOrphan(pid, graceMs));
     const start = performance.now();
     let found = 0;
     let reattached = 0;
@@ -196,7 +209,7 @@ export class PtyRegistry {
     let errors = 0;
 
     try {
-      const orphanPids = await this.scanForOrphans(shellPatterns);
+      const orphanPids = await scan(shellPatterns);
       found = orphanPids.length;
 
       for (const pid of orphanPids) {
@@ -210,7 +223,7 @@ export class PtyRegistry {
           }
 
           // Cannot reattach — terminate it
-          await this.terminateOrphan(pid, gracePeriodMs);
+          await terminate(pid, gracePeriodMs);
           terminated++;
         } catch {
           errors++;
@@ -300,11 +313,9 @@ export class PtyRegistry {
         );
 
         if (isShell) {
-          // Check if this PID is already in our registry
-          const tracked = this.list().some(r => r.pid === pid);
-          if (!tracked) {
-            orphanPids.push(pid);
-          }
+          // Reconciliation compares candidates with the registry. Returning
+          // tracked processes here keeps that ownership check authoritative.
+          orphanPids.push(pid);
         }
       }
 

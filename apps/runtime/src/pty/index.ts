@@ -20,15 +20,24 @@ export {
   type PtyRecord,
   type PtyDimensions,
   type ReconciliationSummary,
+  type ReconciliationDependencies,
+  type ReconciliationOptions,
   PtyRegistry,
   DuplicatePtyError,
   RegistryCapacityError,
 } from "./registry.js";
 
-export { type SpawnOptions, type SpawnResult, spawnPty } from "./spawn.js";
+export {
+  type SpawnOptions,
+  type SpawnResult,
+  type SpawnedPtyProcess,
+  type PtySpawnFn,
+  spawnPty,
+} from "./spawn.js";
 
 export {
   type SignalEnvelope,
+  type SignalSender,
   SignalHistory,
   type SignalHistoryMap,
   InvalidDimensionsError,
@@ -64,9 +73,16 @@ export {
 import { PtyRegistry as _PtyRegistry } from "./registry.js";
 import { PtyLifecycle as _PtyLifecycle } from "./state_machine.js";
 import { spawnPty as _spawnPty } from "./spawn.js";
-import type { SpawnOptions as _SpawnOptions } from "./spawn.js";
+import type {
+  SpawnOptions as _SpawnOptions,
+  PtySpawnFn as _PtySpawnFn,
+  SpawnedPtyProcess as _SpawnedPtyProcess,
+} from "./spawn.js";
 import type { PtyRecord as _PtyRecord } from "./registry.js";
-import type { ReconciliationSummary as _ReconciliationSummary } from "./registry.js";
+import type {
+  ReconciliationSummary as _ReconciliationSummary,
+  ReconciliationOptions as _ReconciliationOptions,
+} from "./registry.js";
 import type { BusPublisher as _BusPublisher } from "./events.js";
 import { NoOpBusPublisher as _NoOpBusPublisher, emitPtyEvent as _emitPtyEvent } from "./events.js";
 import type { SignalHistoryMap as _SignalHistoryMap } from "./signals.js";
@@ -116,6 +132,7 @@ export class PtyManager {
 
   /** Default output buffer configuration. */
   private readonly bufferConfig: _OutputBufferConfig | undefined;
+  private readonly spawnFn: _PtySpawnFn | undefined;
 
   /**
    * @param maxCapacity - Maximum number of concurrent PTYs (default 300).
@@ -126,9 +143,11 @@ export class PtyManager {
     maxCapacity = 300,
     bus?: _BusPublisher,
     idleConfig?: _IdleMonitorConfig,
-    bufferConfig?: _OutputBufferConfig
+    bufferConfig?: _OutputBufferConfig,
+    spawnFn?: _PtySpawnFn
   ) {
     this.bufferConfig = bufferConfig;
+    this.spawnFn = spawnFn;
     this.registry = new _PtyRegistry(maxCapacity);
     this.bus = bus ?? new _NoOpBusPublisher();
     this.idleMonitor = new _IdleMonitor(this.registry, this.bus, this.lifecycles, idleConfig);
@@ -141,17 +160,15 @@ export class PtyManager {
    * @returns The newly created {@link PtyRecord}.
    */
   async spawn(options: _SpawnOptions): Promise<_PtyRecord> {
-    const result = await _spawnPty(options, this.registry);
+    const result = await _spawnPty(options, this.registry, this.spawnFn);
     const record = result.record;
 
     // Track lifecycle and process handle.
     const lifecycle = new _PtyLifecycle(record.ptyId, "active");
     this.lifecycles.set(record.ptyId, lifecycle);
 
-    // Store process handle for I/O.
-    // Note: We need to re-spawn to get the handle. In practice the spawn
-    // function should return the subprocess. For now, store a stub.
-    // The real process is tracked via the record's pid.
+    // Store the real process handle for input and lifecycle cleanup.
+    this.processes.set(record.ptyId, result.process);
 
     const correlation = {
       ptyId: record.ptyId,
@@ -180,6 +197,8 @@ export class PtyManager {
     // Create output buffer for this PTY.
     const outputBuffer = new _OutputBuffer(this.bus, correlation, this.bufferConfig);
     this.outputBuffers.set(record.ptyId, outputBuffer);
+    void this.captureOutput(record, result.process, "stdout");
+    void this.captureOutput(record, result.process, "stderr");
 
     return record;
   }
@@ -296,6 +315,68 @@ export class PtyManager {
     this.idleMonitor.recordOutput(ptyId);
   }
 
+  /** Read and consume buffered process output. */
+  readOutput(ptyId: string, maxBytes?: number): Uint8Array {
+    const buffer = this.outputBuffers.get(ptyId);
+    if (!buffer) throw new Error(`PTY '${ptyId}' not found`);
+    return buffer.consume(maxBytes);
+  }
+
+  private async captureOutput(
+    record: _PtyRecord,
+    processHandle: _SpawnedPtyProcess,
+    streamName: "stdout" | "stderr"
+  ): Promise<void> {
+    const stream = processHandle[streamName];
+    if (!stream) return;
+
+    const reader = stream.getReader();
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) return;
+        if (!value || value.byteLength === 0) continue;
+
+        const buffer = this.outputBuffers.get(record.ptyId);
+        if (!buffer) return;
+        const result = buffer.write(value);
+        this.idleMonitor.recordOutput(record.ptyId);
+        _emitPtyEvent(
+          this.bus,
+          "pty.output",
+          {
+            ptyId: record.ptyId,
+            laneId: record.laneId,
+            sessionId: record.sessionId,
+            terminalId: record.terminalId,
+            correlationId: record.ptyId,
+          },
+          {
+            stream: streamName,
+            data: new TextDecoder().decode(value.subarray(0, result.written)),
+            bytesWritten: result.written,
+            bytesDropped: result.dropped,
+          }
+        );
+      }
+    } catch (error) {
+      _emitPtyEvent(
+        this.bus,
+        "pty.error",
+        {
+          ptyId: record.ptyId,
+          laneId: record.laneId,
+          sessionId: record.sessionId,
+          terminalId: record.terminalId,
+          correlationId: record.ptyId,
+        },
+        { reason: "output_read_failed", error: String(error) }
+      );
+    } finally {
+      reader.releaseLock();
+    }
+  }
+
   /**
    * Start the idle monitor.
    */
@@ -335,7 +416,7 @@ export class PtyManager {
    *
    * @returns A reconciliation summary.
    */
-  async reconcileOrphans(): Promise<_ReconciliationSummary> {
-    return this.registry.reconcileOrphans();
+  async reconcileOrphans(options?: _ReconciliationOptions): Promise<_ReconciliationSummary> {
+    return this.registry.reconcileOrphans(options);
   }
 }

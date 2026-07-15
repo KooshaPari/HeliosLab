@@ -29,10 +29,31 @@ export interface SpawnOptions {
   terminalId: string;
 }
 
+export interface SpawnedPtyProcess {
+  readonly pid: number;
+  readonly stdin: { write(data: Uint8Array | string): number };
+  readonly stdout: ReadableStream<Uint8Array> | null;
+  readonly stderr: ReadableStream<Uint8Array> | null;
+  readonly exited: Promise<number>;
+  kill(signal?: number): void;
+}
+
+export type PtySpawnFn = (
+  command: string[],
+  options: {
+    cwd: string;
+    env: Record<string, string>;
+    stdin: "pipe";
+    stdout: "pipe";
+    stderr: "pipe";
+  }
+) => SpawnedPtyProcess;
+
 /** Result of a spawn operation, including timing data. */
 export interface SpawnResult {
   readonly record: PtyRecord;
   readonly spawnLatencyMs: number;
+  readonly process: SpawnedPtyProcess;
 }
 
 /**
@@ -53,12 +74,19 @@ function generatePtyId(): string {
  * @returns The spawn result including the PTY record and latency.
  * @throws If the shell binary is not found or spawn fails.
  */
-export async function spawnPty(options: SpawnOptions, registry: PtyRegistry): Promise<SpawnResult> {
+export async function spawnPty(
+  options: SpawnOptions,
+  registry: PtyRegistry,
+  spawnFn: PtySpawnFn = (command, spawnOptions) =>
+    Bun.spawn(command, spawnOptions) as SpawnedPtyProcess
+): Promise<SpawnResult> {
   const startTime = performance.now();
   const ptyId = generatePtyId();
   const lifecycle = new PtyLifecycle(ptyId);
 
-  const shell = options.shell ?? "/bin/bash";
+  const shell =
+    options.shell ??
+    (process.platform === "win32" ? (process.env.ComSpec ?? "cmd.exe") : (process.env.SHELL ?? "/bin/bash"));
   const cwd = options.cwd ?? process.cwd();
   const env = options.env ?? {};
   const cols = options.cols ?? 80;
@@ -68,7 +96,7 @@ export async function spawnPty(options: SpawnOptions, registry: PtyRegistry): Pr
   lifecycle.apply("spawn_requested");
 
   try {
-    const proc = Bun.spawn([shell], {
+    const proc = spawnFn([shell], {
       cwd,
       env: {
         ...env,
@@ -110,7 +138,7 @@ export async function spawnPty(options: SpawnOptions, registry: PtyRegistry): Pr
     registry.register(record);
 
     const spawnLatencyMs = performance.now() - startTime;
-    return { record, spawnLatencyMs };
+    return { record, spawnLatencyMs, process: proc };
   } catch (error) {
     // If still in spawning state, transition to errored
     if (lifecycle.state === "spawning") {

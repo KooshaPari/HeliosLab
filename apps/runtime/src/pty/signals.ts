@@ -52,6 +52,7 @@ export class SignalHistory {
 
 /** Map from ptyId to signal history. */
 export type SignalHistoryMap = Map<string, SignalHistory>;
+export type SignalSender = (pid: number, signal: NodeJS.Signals | 0) => void;
 
 /**
  * Record a signal delivery and publish it to the bus.
@@ -86,11 +87,14 @@ function deliverSignal(
   ptyId: string,
   historyMap: SignalHistoryMap,
   bus: BusPublisher,
-  correlation: PtyEventCorrelation
+  correlation: PtyEventCorrelation,
+  sendSignal: SignalSender = (targetPid, targetSignal) => {
+    process.kill(targetPid, targetSignal);
+  }
 ): SignalEnvelope {
   const timestamp = Date.now();
   try {
-    process.kill(pid, signal);
+    sendSignal(pid, signal as NodeJS.Signals);
     const envelope: SignalEnvelope = {
       ptyId,
       signal,
@@ -142,7 +146,8 @@ export function resize(
   rows: number,
   registry: PtyRegistry,
   historyMap: SignalHistoryMap,
-  bus: BusPublisher
+  bus: BusPublisher,
+  sendSignal?: SignalSender
 ): void {
   // Reject resize on errored/stopped PTYs.
   if (record.state === "errored" || record.state === "stopped") {
@@ -171,7 +176,7 @@ export function resize(
   };
 
   // Deliver SIGWINCH to child process.
-  deliverSignal(record.pid, "SIGWINCH", record.ptyId, historyMap, bus, correlation);
+  deliverSignal(record.pid, "SIGWINCH", record.ptyId, historyMap, bus, correlation, sendSignal);
 
   // Publish resize event.
   emitPtyEvent(bus, "pty.resized", correlation, {
@@ -217,7 +222,8 @@ export async function terminate(
   bus: BusPublisher,
   options?: TerminateOptions,
   isAlive?: (pid: number) => boolean,
-  waitForExit?: (pid: number, timeoutMs: number) => Promise<boolean>
+  waitForExit?: (pid: number, timeoutMs: number) => Promise<boolean>,
+  sendSignal?: SignalSender
 ): Promise<void> {
   const gracePeriodMs = options?.gracePeriodMs ?? 5000;
 
@@ -238,7 +244,7 @@ export async function terminate(
     isAlive ??
     ((pid: number): boolean => {
       try {
-        process.kill(pid, 0);
+        (sendSignal ?? process.kill)(pid, 0);
         return true;
       } catch {
         return false;
@@ -270,7 +276,8 @@ export async function terminate(
     record.ptyId,
     historyMap,
     bus,
-    correlation
+    correlation,
+    sendSignal
   );
 
   // Step 2: Wait for exit within grace period.
@@ -287,7 +294,15 @@ export async function terminate(
     };
     recordSignal(killEnvelope, historyMap, bus, correlation);
 
-    deliverSignal(record.pid, "SIGKILL", record.ptyId, historyMap, bus, correlation);
+    deliverSignal(
+      record.pid,
+      "SIGKILL",
+      record.ptyId,
+      historyMap,
+      bus,
+      correlation,
+      sendSignal
+    );
 
     emitPtyEvent(bus, "pty.force_killed", correlation, {
       reason: "grace_period_expired",
@@ -333,7 +348,8 @@ export async function terminate(
 export function sendSighup(
   record: PtyRecord,
   historyMap: SignalHistoryMap,
-  bus: BusPublisher
+  bus: BusPublisher,
+  sendSignal?: SignalSender
 ): SignalEnvelope {
   const correlation: PtyEventCorrelation = {
     ptyId: record.ptyId,
@@ -343,5 +359,13 @@ export function sendSighup(
     correlationId: crypto.randomUUID(),
   };
 
-  return deliverSignal(record.pid, "SIGHUP", record.ptyId, historyMap, bus, correlation);
+  return deliverSignal(
+    record.pid,
+    "SIGHUP",
+    record.ptyId,
+    historyMap,
+    bus,
+    correlation,
+    sendSignal
+  );
 }

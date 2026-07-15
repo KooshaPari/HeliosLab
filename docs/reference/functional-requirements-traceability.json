@@ -338,16 +338,16 @@
 		},
 		{
 			"id": "FR-PTY-003",
-			"status": "[ ]",
+			"status": "[x]",
 			"code": ["apps/runtime/src/pty/index.ts", "apps/runtime/src/pty/spawn.ts", "apps/runtime/src/pty/io.ts"],
-			"tests": ["apps/runtime/tests/integration/pty/lifecycle.test.ts"],
+			"tests": ["apps/runtime/tests/unit/pty/completion.test.ts", "apps/runtime/tests/integration/pty/portable_spawn.test.ts"],
 			"evidence": ["TEST_COVERAGE_MATRIX.md"]
 		},
 		{
 			"id": "FR-PTY-004",
-			"status": "[ ]",
+			"status": "[x]",
 			"code": ["apps/runtime/src/pty/signals.ts"],
-			"tests": ["apps/runtime/tests/unit/pty/signals.test.ts"],
+			"tests": ["apps/runtime/tests/unit/pty/completion.test.ts", "apps/runtime/tests/unit/pty/signals.test.ts"],
 			"evidence": ["TEST_COVERAGE_MATRIX.md"]
 		},
 		{
@@ -359,9 +359,9 @@
 		},
 		{
 			"id": "FR-PTY-006",
-			"status": "[ ]",
+			"status": "[x]",
 			"code": ["apps/runtime/src/pty/events.ts", "apps/runtime/src/pty/index.ts", "apps/runtime/src/pty/io.ts", "apps/runtime/src/pty/signals.ts"],
-			"tests": ["apps/runtime/src/pty/__tests__/events.test.ts", "apps/runtime/src/pty/__tests__/index.test.ts"],
+			"tests": ["apps/runtime/tests/unit/pty/completion.test.ts", "apps/runtime/tests/integration/pty/portable_spawn.test.ts", "apps/runtime/src/pty/__tests__/events.test.ts"],
 			"evidence": ["TEST_COVERAGE_MATRIX.md"]
 		},
 		{
@@ -373,9 +373,9 @@
 		},
 		{
 			"id": "FR-PTY-008",
-			"status": "[ ]",
+			"status": "[x]",
 			"code": ["apps/runtime/src/pty/registry.ts", "apps/runtime/src/pty/index.ts"],
-			"tests": ["apps/runtime/src/pty/__tests__/index.test.ts", "apps/runtime/tests/unit/lanes/watchdog/pty_detector.test.ts"],
+			"tests": ["apps/runtime/tests/unit/pty/completion.test.ts", "apps/runtime/tests/unit/lanes/watchdog/pty_detector.test.ts"],
 			"evidence": ["TEST_COVERAGE_MATRIX.md"]
 		}
 	]
