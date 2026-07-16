@@ -13,43 +13,53 @@ import {
 } from "./gate-report";
 
 const REPORT_OUTPUT = ".gate-reports/gate-e2e.json";
+const LOG_PATH = "/tmp/e2e.log";
+
+export type E2EResult = {
+	evidenceFound: boolean;
+	exitCode: number | null;
+	output: string;
+};
 
 /**
- * Parse Playwright test output for failures.
+ * Evaluate Playwright evidence without relying on unstable output wording.
  */
-function parseE2ELog(): GateFinding[] {
-	const findings: GateFinding[] = [];
-	const logPath = "/tmp/e2e.log";
-
-	if (!existsSync(logPath)) {
-		return findings;
+export function evaluateE2EResult(result: E2EResult): GateFinding[] {
+	if (!result.evidenceFound) {
+		return [
+			{
+				file: "playwright",
+				message: "Playwright execution evidence is missing",
+				severity: "error",
+				rule: "e2e-evidence-missing",
+				remediation: "Run the Playwright suite and preserve its complete output log",
+			},
+		];
+	}
+	if (result.exitCode === null) {
+		return [
+			{
+				file: "playwright",
+				message: "Playwright exit status is missing",
+				severity: "error",
+				rule: "e2e-exit-missing",
+				remediation: "Pass E2E_EXIT_CODE from the Playwright process to the report generator",
+			},
+		];
+	}
+	if (result.exitCode !== 0) {
+		return [
+			{
+				file: "playwright",
+				message: `Playwright exited with status ${result.exitCode}`,
+				severity: "error",
+				rule: "e2e-exit",
+				remediation: "Review the preserved Playwright log and fix the failing E2E suite",
+			},
+		];
 	}
 
-	const output = readFileSync(logPath, "utf-8");
-
-	// Detect test failures
-	if (output.includes("failed") || output.includes("FAILED")) {
-		findings.push({
-			file: "playwright",
-			message: "E2E test failures detected",
-			severity: "error",
-			rule: "e2e-failure",
-			remediation: "Review Playwright test failures and fix failing tests",
-		});
-	}
-
-	// Detect timeout issues
-	if (output.includes("timeout") || output.includes("Timeout")) {
-		findings.push({
-			file: "playwright",
-			message: "E2E test timeout detected",
-			severity: "error",
-			rule: "e2e-timeout",
-			remediation: "Increase timeout or optimize test performance",
-		});
-	}
-
-	return findings;
+	return [];
 }
 
 /**
@@ -57,7 +67,12 @@ function parseE2ELog(): GateFinding[] {
  */
 async function main(): Promise<void> {
 	const startTime = Date.now();
-	const findings = parseE2ELog();
+	const evidenceFound = existsSync(LOG_PATH);
+	const output = evidenceFound ? readFileSync(LOG_PATH, "utf-8") : "";
+	const rawExitCode = process.env.E2E_EXIT_CODE;
+	const parsedExitCode = rawExitCode === undefined ? Number.NaN : Number(rawExitCode);
+	const exitCode = Number.isInteger(parsedExitCode) ? parsedExitCode : null;
+	const findings = evaluateE2EResult({ evidenceFound, exitCode, output });
 	const duration = Date.now() - startTime;
 
 	const report = createGateReport("e2e", findings, duration);
@@ -67,7 +82,9 @@ async function main(): Promise<void> {
 	process.exit(report.status === "pass" ? 0 : 1);
 }
 
-main().catch((e) => {
-	console.error(`Error: ${e}`);
-	process.exit(2);
-});
+if (import.meta.main) {
+	main().catch((e) => {
+		console.error(`Error: ${e}`);
+		process.exit(2);
+	});
+}

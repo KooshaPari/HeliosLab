@@ -91,13 +91,17 @@ jobs:
       - name: Gate 4 - E2E Tests
         id: gate-e2e
         run: |
-          if ls apps/desktop/tests/e2e/*.spec.ts 1>/dev/null 2>&1; then
-            bun run test:e2e
-          else
-            echo "No e2e spec files found -- skipping"
+          set +e
+          bun run test:e2e | tee /tmp/e2e.log
+          E2E_EXIT=${PIPESTATUS[0]}
+          E2E_EXIT_CODE=$E2E_EXIT bun run scripts/gate-e2e.ts
+          REPORT_EXIT=$?
+          set -e
+          if [ "$E2E_EXIT" -ne 0 ] || [ "$REPORT_EXIT" -ne 0 ]; then
+            exit 1
           fi
         timeout-minutes: 5
-        continue-on-error: true
+        continue-on-error: false
 
       - name: Gate 5 - Coverage
         id: gate-coverage
