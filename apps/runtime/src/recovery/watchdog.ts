@@ -2,6 +2,7 @@ import type { LocalBus } from "../protocol/bus.js";
 import { promises as fs } from "fs";
 import path from "path";
 import { randomUUID } from "crypto";
+import { CrashLoopProtection } from "./safe-mode.js";
 
 export enum CrashReason {
   HEARTBEAT_TIMEOUT = "HEARTBEAT_TIMEOUT",
@@ -35,10 +36,12 @@ export class Watchdog {
   private crashDataDir: string;
   private bus?: LocalBus;
   private pending = new Set<Promise<void>>();
+  private crashLoopProtection: CrashLoopProtection;
 
   constructor(crashDataDir: string, bus?: LocalBus) {
     this.crashDataDir = crashDataDir;
     this.bus = bus;
+    this.crashLoopProtection = new CrashLoopProtection(crashDataDir, bus);
   }
 
   registerProcess(name: string, pid: number, heartbeatIntervalMs: number = 2000): void {
@@ -80,6 +83,7 @@ export class Watchdog {
 
   async flush(): Promise<void> {
     await Promise.all(this.pending);
+    await this.crashLoopProtection.flush();
   }
 
   async dispose(): Promise<void> {
@@ -87,6 +91,14 @@ export class Watchdog {
       this.unregister(name);
     }
     await this.flush();
+  }
+
+  isSafeModeActive(): boolean {
+    return this.crashLoopProtection.isActive();
+  }
+
+  async exitSafeMode(): Promise<void> {
+    await this.crashLoopProtection.exit();
   }
 
   private startHeartbeatTimer(monitor: ProcessMonitor): void {
@@ -173,6 +185,8 @@ export class Watchdog {
         },
       });
     }
+
+    await this.crashLoopProtection.recordCrash(event.timestamp);
 
     // Invoke crash handlers
     for (const handler of this.crashHandlers) {

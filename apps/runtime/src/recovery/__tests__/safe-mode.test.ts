@@ -1,4 +1,6 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from "bun:test";
 import { SafeMode, CrashLoopDetector, type SafeModeConfig } from "../safe-mode.js";
+import { Watchdog } from "../watchdog.js";
 import { InMemoryLocalBus } from "../../protocol/bus.js";
 import { promises as fs } from "fs";
 import path from "path";
@@ -182,5 +184,61 @@ describe("SafeMode", () => {
     await safeModeNoBus.exit();
 
     expect(states).toEqual([true, false]);
+  });
+});
+
+describe("Watchdog crash-loop protection (FR-CRH-009)", () => {
+  let tempDir: string;
+  let bus: InMemoryLocalBus;
+
+  beforeEach(async () => {
+    vi.useFakeTimers();
+    tempDir = path.join(os.tmpdir(), `watchdog-safe-mode-test-${crypto.randomUUID()}`);
+    await fs.mkdir(tempDir, { recursive: true });
+    bus = new InMemoryLocalBus();
+  });
+
+  afterEach(async () => {
+    vi.restoreAllMocks();
+    vi.useRealTimers();
+    await fs.rm(tempDir, { recursive: true, force: true }).catch(() => {});
+  });
+
+  it("enters safe mode on the third abnormal exit within 60 seconds", async () => {
+    const watchdog = new Watchdog(tempDir, bus);
+
+    await watchdog.handleProcessExit("runtime-1", 1001, 1);
+    vi.advanceTimersByTime(20_000);
+    await watchdog.handleProcessExit("runtime-2", 1002, 1);
+
+    expect(watchdog.isSafeModeActive()).toBe(false);
+
+    vi.advanceTimersByTime(39_000);
+    const thirdCrashAt = performance.now();
+    await watchdog.handleProcessExit("runtime-3", 1003, 1);
+
+    expect(watchdog.isSafeModeActive()).toBe(true);
+    expect(performance.now() - thirdCrashAt).toBeLessThanOrEqual(5_000);
+    expect(bus.getEvents().some(event => event.topic === "recovery.safemode.entered")).toBe(true);
+    await watchdog.exitSafeMode();
+    expect(watchdog.isSafeModeActive()).toBe(false);
+    expect(bus.getEvents().some(event => event.topic === "recovery.safemode.exited")).toBe(true);
+    await watchdog.dispose();
+  });
+
+  it("restores flushed crash history and enters safe mode after restart", async () => {
+    const firstWatchdog = new Watchdog(tempDir, bus);
+    await firstWatchdog.handleProcessExit("runtime-1", 2001, 1);
+    await firstWatchdog.handleProcessExit("runtime-2", 2002, 1);
+    await firstWatchdog.flush();
+
+    expect(firstWatchdog.isSafeModeActive()).toBe(false);
+    await firstWatchdog.dispose();
+
+    const restartedWatchdog = new Watchdog(tempDir, bus);
+    await restartedWatchdog.handleProcessExit("runtime-3", 2003, 1);
+
+    expect(restartedWatchdog.isSafeModeActive()).toBe(true);
+    await restartedWatchdog.dispose();
   });
 });

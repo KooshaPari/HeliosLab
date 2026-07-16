@@ -1108,7 +1108,7 @@
 		},
 		{
 			"id": "FR-CRH-009",
-			"status": "[ ]",
+			"status": "[x]",
 			"code": ["apps/runtime/src/recovery/safe-mode.ts", "apps/runtime/src/recovery/watchdog.ts"],
 			"tests": ["apps/runtime/src/recovery/__tests__/safe-mode.test.ts", "apps/runtime/src/recovery/__tests__/chaos.test.ts"],
 			"evidence": ["docs/specs/027-crash-recovery-and-restoration/spec.md"]

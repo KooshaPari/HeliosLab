@@ -171,3 +171,42 @@ export class SafeMode {
     return !this.active || !this.config.disableBackgroundCheckpoints;
   }
 }
+
+export class CrashLoopProtection {
+  private detector: CrashLoopDetector;
+  private safeMode: SafeMode;
+  private ready: Promise<void>;
+
+  constructor(
+    crashDataDir: string,
+    bus?: LocalBus,
+    thresholdCount: number = 3,
+    windowMs: number = 60_000
+  ) {
+    this.detector = new CrashLoopDetector(crashDataDir, thresholdCount, windowMs);
+    this.safeMode = new SafeMode(bus);
+    this.ready = this.detector.initialize();
+  }
+
+  async recordCrash(timestamp: number): Promise<void> {
+    await this.ready;
+    this.detector.recordCrash(timestamp);
+    await this.detector.flush();
+    if (this.detector.isLooping()) {
+      await this.safeMode.enter();
+    }
+  }
+
+  async flush(): Promise<void> {
+    await this.ready;
+    await this.detector.flush();
+  }
+
+  isActive(): boolean {
+    return this.safeMode.isActive();
+  }
+
+  async exit(): Promise<void> {
+    await this.safeMode.exit();
+  }
+}
