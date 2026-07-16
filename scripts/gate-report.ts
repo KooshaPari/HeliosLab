@@ -63,6 +63,61 @@ export interface PipelineSummary {
 	failedGates: string[];
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+	return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+/**
+ * Validate untrusted JSON before it enters pipeline aggregation.
+ */
+export function parseGateReport(value: unknown, source = "gate report"): GateReport {
+	if (!isRecord(value)) {
+		throw new Error(`${source} must be a JSON object`);
+	}
+	if (typeof value.gateName !== "string" || !value.gateName.trim()) {
+		throw new Error(`${source} has no gate name`);
+	}
+	if (value.status !== "pass" && value.status !== "fail") {
+		throw new Error(`${source} has an invalid status`);
+	}
+	if (!Number.isFinite(value.duration) || Number(value.duration) < 0) {
+		throw new Error(`${source} has an invalid duration`);
+	}
+	if (typeof value.timestamp !== "string" || !Number.isFinite(Date.parse(value.timestamp))) {
+		throw new Error(`${source} has an invalid timestamp`);
+	}
+	if (!Array.isArray(value.findings)) {
+		throw new Error(`${source} has no findings array`);
+	}
+
+	for (const finding of value.findings) {
+		if (
+			!isRecord(finding) ||
+			typeof finding.file !== "string" ||
+			!finding.file.trim() ||
+			typeof finding.message !== "string" ||
+			!finding.message.trim() ||
+			!(["error", "warning", "info"] as unknown[]).includes(finding.severity)
+		) {
+			throw new Error(`${source} contains an invalid finding`);
+		}
+		if (
+			finding.severity === "error" &&
+			(typeof finding.remediation !== "string" || !finding.remediation.trim())
+		) {
+			throw new Error(`${source} contains an error without remediation`);
+		}
+	}
+
+	const report = value as unknown as GateReport;
+	const errorCount = report.findings.filter((finding) => finding.severity === "error").length;
+	if ((report.status === "fail") !== (errorCount > 0)) {
+		throw new Error(`${source} status does not match its findings`);
+	}
+
+	return report;
+}
+
 /**
  * Create a gate report with the given parameters.
  */
@@ -138,7 +193,7 @@ export function aggregateGateReports(reports: GateReport[]): PipelineSummary {
 export function readGateReport(filePath: string): GateReport {
 	const fs = require("fs");
 	const data = JSON.parse(fs.readFileSync(filePath, "utf-8"));
-	return data as GateReport;
+	return parseGateReport(data, filePath);
 }
 
 /**

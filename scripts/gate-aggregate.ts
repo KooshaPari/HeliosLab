@@ -3,11 +3,12 @@
  * Aggregate gate reports into a pipeline summary.
  */
 
-import { readFileSync, existsSync, readdirSync, writeFileSync } from "fs";
+import { existsSync, readdirSync } from "fs";
 import { join } from "path";
 import {
 	aggregateGateReports,
 	formatPipelineSummary,
+	readGateReport,
 	writeGateReport,
 	type GateReport,
 } from "./gate-report";
@@ -18,26 +19,28 @@ const SUMMARY_OUTPUT = join(REPORT_DIR, "pipeline-summary.json");
 /**
  * Read all gate reports from disk.
  */
-function loadGateReports(): GateReport[] {
+export function loadGateReports(reportDirectory = REPORT_DIR): GateReport[] {
 	const reports: GateReport[] = [];
 
-	if (!existsSync(REPORT_DIR)) {
-		return reports;
+	if (!existsSync(reportDirectory)) {
+		throw new Error(`Gate report directory is missing: ${reportDirectory}`);
 	}
 
-	const files = readdirSync(REPORT_DIR);
-	files
-		.filter((f) => f.startsWith("gate-") && f.endsWith(".json"))
-		.sort()
-		.forEach((file) => {
-			try {
-				const path = join(REPORT_DIR, file);
-				const data = JSON.parse(readFileSync(path, "utf-8"));
-				reports.push(data as GateReport);
-			} catch (e) {
-				console.warn(`Failed to read report ${file}: ${e}`);
-			}
-		});
+	const files = readdirSync(reportDirectory)
+		.filter((file) => file.startsWith("gate-") && file.endsWith(".json"))
+		.sort();
+	if (files.length === 0) {
+		throw new Error(`No gate reports found in ${reportDirectory}`);
+	}
+
+	for (const file of files) {
+		const path = join(reportDirectory, file);
+		try {
+			reports.push(readGateReport(path));
+		} catch (error) {
+			throw new Error(`Failed to read report ${file}: ${error}`);
+		}
+	}
 
 	return reports;
 }
@@ -47,11 +50,6 @@ function loadGateReports(): GateReport[] {
  */
 async function main(): Promise<void> {
 	const reports = loadGateReports();
-
-	if (reports.length === 0) {
-		console.log("No gate reports found.");
-		return;
-	}
 
 	const summary = aggregateGateReports(reports);
 	writeGateReport(summary as unknown as GateReport, SUMMARY_OUTPUT);
@@ -72,7 +70,9 @@ async function main(): Promise<void> {
 	process.exit(0);
 }
 
-main().catch((e) => {
-	console.error(`Error: ${e}`);
-	process.exit(2);
-});
+if (import.meta.main) {
+	main().catch((e) => {
+		console.error(`Error: ${e}`);
+		process.exit(2);
+	});
+}
