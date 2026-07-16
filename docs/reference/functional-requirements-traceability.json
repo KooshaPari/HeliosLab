@@ -1453,7 +1453,7 @@
 			"id": "FR-APR-009",
 			"status": "[ ]",
 			"code": ["apps/desktop/src/components/approval/ApprovalPanel.tsx", "apps/desktop/src/pages/ApprovalWorkflow.tsx", "apps/desktop/src/types/approval.ts"],
-			"tests": [],
+			"tests": ["scripts/tests/approval-queue-ui-contract.test.ts"],
 			"evidence": ["docs/specs/023-command-policy-engine-and-approval-workflows/spec.md"]
 		},
 		{
