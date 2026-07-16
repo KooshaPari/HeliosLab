@@ -1535,7 +1535,7 @@
 		},
 		{
 			"id": "FR-SEC-010",
-			"status": "[ ]",
+			"status": "[x]",
 			"code": ["apps/runtime/src/secrets/audit-trail.ts", "apps/runtime/src/audit/audit-sink.ts"],
 			"tests": ["apps/runtime/src/secrets/__tests__/redaction-audit.test.ts", "apps/runtime/src/secrets/__tests__/integration.test.ts"],
 			"evidence": ["docs/specs/028-secrets-management-and-redaction/spec.md"]

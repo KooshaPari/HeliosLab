@@ -1,4 +1,4 @@
-import { randomBytes } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 import type { LocalBus } from "../protocol/bus.js";
 import type { LocalBusEnvelope } from "../protocol/types.js";
 
@@ -12,6 +12,15 @@ export interface AuditRecord {
   topic: string;
   payload: Record<string, unknown>;
   correlationId: string;
+  redactionProof: RedactionAuditProof;
+}
+
+export interface RedactionAuditProof {
+  appliedAt: string;
+  algorithm: "sha256";
+  inputBytes: number;
+  contentChanged: boolean;
+  outputSha256: string;
 }
 
 export interface AuditExportBundle {
@@ -100,6 +109,13 @@ export class AuditSink {
       topic,
       payload: parsedPayload,
       correlationId,
+      redactionProof: {
+        appliedAt: new Date().toISOString(),
+        algorithm: "sha256",
+        inputBytes: Buffer.byteLength(rawPayload, "utf8"),
+        contentChanged: rawPayload !== redactedPayload,
+        outputSha256: createHash("sha256").update(redactedPayload).digest("hex"),
+      },
     };
 
     await this._persistRecord(record);

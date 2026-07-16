@@ -331,6 +331,49 @@ describe("Integration Tests (T015)", () => {
   // -------------------------------------------------------------------------
 
   describe("Audit completeness [SC-028-005]", () => {
+    it("persists redaction proof with every audit artifact", async () => {
+      const engine = makeEngine();
+      const sink = new AuditSink({ redactFn: makeRedactFn(engine) });
+
+      await sink.processEvent({
+        id: "evt-redaction-proof",
+        type: "event",
+        ts: new Date().toISOString(),
+        topic: "secrets.credential.created",
+        payload: {
+          correlationId: "corr-redaction-proof",
+          api_key: "AKIAIOSFODNN7EXAMPLE",
+        },
+      });
+      await sink.processEvent({
+        id: "evt-redaction-proof-safe",
+        type: "event",
+        ts: new Date().toISOString(),
+        topic: "secrets.credential.accessed",
+        payload: {
+          correlationId: "corr-redaction-proof",
+          name: "safe-name",
+        },
+      });
+
+      const records = sink.query({ correlationId: "corr-redaction-proof" });
+      expect(records).toHaveLength(2);
+      for (const record of records) {
+        expect(record.redactionProof.algorithm).toBe("sha256");
+        expect(record.redactionProof.appliedAt).toBeTruthy();
+        expect(record.redactionProof.inputBytes).toBeGreaterThan(0);
+        expect(record.redactionProof.outputSha256).toHaveLength(64);
+      }
+      expect(records[0]?.redactionProof.contentChanged).toBe(true);
+      expect(records[1]?.redactionProof.contentChanged).toBe(false);
+
+      const exported = sink.export().records;
+      expect(exported.map(record => record.redactionProof)).toEqual(
+        records.map(record => record.redactionProof)
+      );
+      expect(JSON.stringify(exported)).not.toContain("AKIAIOSFODNN7EXAMPLE");
+    });
+
     it("persists an audit record for direct credential reads", async () => {
       const bus = new InMemoryLocalBus();
       const engine = makeEngine();
