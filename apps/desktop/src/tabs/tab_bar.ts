@@ -26,6 +26,7 @@ export class TabBar {
   private draggedTabId: string | null = null;
   private config: Required<TabBarConfig>;
   private container: HTMLElement | null = null;
+  private staleContextUnsubscribers: Array<() => void> = [];
 
   constructor(tabs: TabSurface[], config: TabBarConfig = {}) {
     this.tabs = tabs;
@@ -36,6 +37,7 @@ export class TabBar {
       onTabReordered: config.onTabReordered ?? (() => {}),
       onTabPinned: config.onTabPinned ?? (() => {}),
     };
+    this.bindStaleContextListeners();
   }
 
   /**
@@ -190,17 +192,18 @@ export class TabBar {
     labelEl.textContent = tab.getLabel();
     headerEl.appendChild(labelEl);
 
-    // Stale context indicator
-    if (hasStaleContext) {
-      const indicatorEl = document.createElement("span");
-      indicatorEl.style.width = "8px";
-      indicatorEl.style.height = "8px";
-      indicatorEl.style.borderRadius = "50%";
-      indicatorEl.style.backgroundColor = "#ff9800";
-      indicatorEl.style.display = "inline-block";
-      indicatorEl.title = "This tab may be showing stale data";
-      headerEl.appendChild(indicatorEl);
-    }
+    // Stale context indicator remains in the accessibility tree only while active.
+    const indicatorEl = document.createElement("span");
+    indicatorEl.className = "stale-context-indicator";
+    indicatorEl.style.width = "8px";
+    indicatorEl.style.height = "8px";
+    indicatorEl.style.borderRadius = "50%";
+    indicatorEl.style.backgroundColor = "#ff9800";
+    indicatorEl.style.display = "inline-block";
+    indicatorEl.title = "This tab failed to update and may be showing stale context";
+    indicatorEl.setAttribute("aria-label", indicatorEl.title);
+    indicatorEl.hidden = !hasStaleContext;
+    headerEl.appendChild(indicatorEl);
 
     // Pin indicator
     if (this.pinnedTabIds.has(tab.getTabId())) {
@@ -338,6 +341,7 @@ export class TabBar {
    */
   updateTabs(tabs: TabSurface[]): void {
     this.tabs = tabs;
+    this.bindStaleContextListeners();
     // Preserve order where possible, add new tabs at the end
     const existingIds = new Set(this.tabOrder);
     const newIds = tabs.map(t => t.getTabId());
@@ -349,5 +353,28 @@ export class TabBar {
     if (this.selectedTabId && !newIds.includes(this.selectedTabId)) {
       this.selectTab(newIds[0] || "");
     }
+  }
+
+  destroy(): void {
+    this.clearStaleContextListeners();
+    this.container = null;
+  }
+
+  private bindStaleContextListeners(): void {
+    this.clearStaleContextListeners();
+    this.staleContextUnsubscribers = this.tabs.map(tab =>
+      tab.onStaleContextChange(stale => this.updateStaleIndicator(tab.getTabId(), stale))
+    );
+  }
+
+  private clearStaleContextListeners(): void {
+    for (const unsubscribe of this.staleContextUnsubscribers) unsubscribe();
+    this.staleContextUnsubscribers = [];
+  }
+
+  private updateStaleIndicator(tabId: string, stale: boolean): void {
+    const trigger = this.container?.querySelector(`[data-tab-id="${tabId}"]`);
+    const indicator = trigger?.querySelector(".stale-context-indicator") as HTMLElement | null;
+    if (indicator) indicator.hidden = !stale;
   }
 }

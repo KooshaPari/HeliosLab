@@ -1,6 +1,10 @@
-import { describe, it, expect, beforeEach } from "bun:test";
+import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 import { TabBar } from "../../../src/tabs/tab_bar";
 import { createMockTabSurface } from "../../../src/tabs/tab_surface";
+import {
+  getActiveContextStore,
+  resetActiveContextStore,
+} from "../../../src/tabs/context_switch";
 
 // Traces to: FR-TAB-001, FR-TAB-002, FR-TAB-004
 describe("TabBar", () => {
@@ -8,6 +12,7 @@ describe("TabBar", () => {
   let mockTabs: ReturnType<typeof createMockTabSurface>[] = [];
 
   beforeEach(() => {
+    resetActiveContextStore();
     mockTabs = [
       createMockTabSurface("tab1", "terminal", "Terminal"),
       createMockTabSurface("tab2", "agent", "Agent"),
@@ -17,6 +22,11 @@ describe("TabBar", () => {
     ];
 
     tabBar = new TabBar(mockTabs);
+  });
+
+  afterEach(() => {
+    for (const tab of mockTabs) tab.destroy();
+    resetActiveContextStore();
   });
 
   describe("Tab Selection", () => {
@@ -39,7 +49,7 @@ describe("TabBar", () => {
       let tab2Active = false;
 
       tab1.onActivate = () => {
-        tab1Active = true;
+        _tab1Active = true;
       };
       tab1.onDeactivate = () => {
         tab1Deactivated = true;
@@ -200,6 +210,46 @@ describe("TabBar", () => {
 
       // Look for the orange indicator (would need to check span with style)
       expect(indicatorEl).toBeDefined();
+    });
+
+    it("shows a stale indicator after a tab fails a context switch (FR-TAB-005)", async () => {
+      let shouldFail = true;
+      mockTabs[0].onContextChange = async () => {
+        if (shouldFail) throw new Error("context refresh failed");
+      };
+      const element = tabBar.render();
+      document.body.appendChild(element);
+
+      await getActiveContextStore().setContext({
+        workspaceId: "ws1",
+        laneId: "lane2",
+        sessionId: "session1",
+      });
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      const indicator = element.querySelector(
+        '[data-tab-id="tab1"] .stale-context-indicator'
+      ) as HTMLElement | null;
+      const unaffectedIndicator = element.querySelector(
+        '[data-tab-id="tab2"] .stale-context-indicator'
+      ) as HTMLElement | null;
+      expect(mockTabs[0].hasStaleContext()).toBe(true);
+      expect(indicator).not.toBeNull();
+      expect(indicator?.hidden).toBe(false);
+      expect(indicator?.title).toContain("failed to update");
+      expect(unaffectedIndicator).not.toBeNull();
+      expect(unaffectedIndicator?.hidden).toBe(true);
+
+      shouldFail = false;
+      await getActiveContextStore().setContext({
+        workspaceId: "ws1",
+        laneId: "lane3",
+        sessionId: "session1",
+      });
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      expect(mockTabs[0].hasStaleContext()).toBe(false);
+      expect(indicator?.hidden).toBe(true);
     });
 
     it("should show pin indicator for pinned tabs", () => {

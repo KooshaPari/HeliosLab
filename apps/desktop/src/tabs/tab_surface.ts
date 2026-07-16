@@ -36,6 +36,7 @@ export abstract class TabSurface {
   protected lastContext: ActiveContext | null = null;
   protected errorMessage: string | null = null;
   protected unsubscribeContext: (() => void) | null = null;
+  private staleContextListeners = new Set<(stale: boolean) => void>();
 
   constructor(tabId: string, tabType: TabType, label: string) {
     this.tabId = tabId;
@@ -46,14 +47,14 @@ export abstract class TabSurface {
     const store = getActiveContextStore();
     this.unsubscribeContext = store.onContextChange(async event => {
       try {
-        this.staleContext = false;
+        this.setStaleContext(false);
         this.errorMessage = null;
         await this.onContextChange(event.current);
         this.lastContext = event.current;
-      } catch {
-        this.staleContext = true;
+      } catch (error) {
         const errorMsg = error instanceof Error ? error.message : String(error);
         this.errorMessage = errorMsg;
+        this.setStaleContext(true);
         console.error(`[${this.tabType}] Context change failed:`, errorMsg);
 
         // Emit error event
@@ -100,6 +101,14 @@ export abstract class TabSurface {
    */
   hasStaleContext(): boolean {
     return this.staleContext;
+  }
+
+  /** Subscribe to stale-state changes so an already-rendered tab can update its indicator. */
+  onStaleContextChange(callback: (stale: boolean) => void): () => void {
+    this.staleContextListeners.add(callback);
+    return () => {
+      this.staleContextListeners.delete(callback);
+    };
   }
 
   /**
@@ -162,6 +171,13 @@ export abstract class TabSurface {
       this.unsubscribeContext();
       this.unsubscribeContext = null;
     }
+    this.staleContextListeners.clear();
+  }
+
+  private setStaleContext(stale: boolean): void {
+    if (this.staleContext === stale) return;
+    this.staleContext = stale;
+    for (const listener of this.staleContextListeners) listener(stale);
   }
 
   /**
@@ -170,7 +186,7 @@ export abstract class TabSurface {
   renderWithErrorBoundary(): HTMLElement {
     try {
       return this.render();
-    } catch {
+    } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
       this.errorMessage = errorMsg;
       console.error(`[${this.tabType}] Render error:`, errorMsg);
@@ -211,7 +227,7 @@ export function createMockTabSurface(tabId: string, tabType: TabType, label: str
     }
 
     render(): HTMLElement {
-      const _el = document.createElement("div");
+      const el = document.createElement("div");
       el.textContent = `${this.label} (${this.tabType})`;
       return el;
     }

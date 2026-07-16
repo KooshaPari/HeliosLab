@@ -50,7 +50,7 @@ export class ContextPropagator {
 
     this.propagationAbortController = new AbortController();
 
-    const _startTime = Date.now();
+    const startTime = Date.now();
     const result: PropagationResult = {
       successful: [],
       failed: [],

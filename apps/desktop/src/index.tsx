@@ -59,6 +59,7 @@ export const App: Component = () => {
     selectSurface(tabBar.getSelectedTabId() ?? surfaces[0]!.getTabId());
 
     onCleanup(() => {
+      tabBar.destroy();
       for (const surface of surfaces) surface.destroy();
     });
   });
