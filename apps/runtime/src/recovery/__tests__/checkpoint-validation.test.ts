@@ -1,17 +1,19 @@
-import { describe, it, expect } from "bun:test";
+import { describe, expect, it } from "bun:test";
 import {
-  validateCheckpoint,
   CHECKPOINT_VERSION,
   type Checkpoint,
   type CheckpointSession,
+  calculateCheckpointChecksum,
+  validateCheckpoint,
 } from "../checkpoint.js";
+import { RestorationPipeline } from "../restoration.js";
 
 describe("Checkpoint Validation", () => {
   const createValidCheckpoint = (overrides?: Partial<Checkpoint>): Checkpoint => {
-    return {
+    const checkpoint = {
       version: CHECKPOINT_VERSION,
       timestamp: Date.now(),
-      checksum: "abc123",
+      checksum: "",
       sessions: [
         {
           sessionId: "sess-1",
@@ -26,6 +28,11 @@ describe("Checkpoint Validation", () => {
       ],
       ...overrides,
     };
+
+    return {
+      ...checkpoint,
+      checksum: overrides?.checksum ?? calculateCheckpointChecksum(checkpoint.sessions),
+    };
   };
 
   describe("valid checkpoint", () => {
@@ -35,6 +42,32 @@ describe("Checkpoint Validation", () => {
 
       expect(result.valid).toBe(true);
       expect(result.errors.length).toBe(0);
+    });
+  });
+
+  describe("restoration boundary", () => {
+    it("should reject a tampered checkpoint before restoring sessions (FR-CRH-004)", async () => {
+      const checkpoint = createValidCheckpoint({
+        checksum: "tampered",
+        sessions: [
+          {
+            sessionId: "sess-tampered",
+            terminalId: "term-tampered",
+            laneId: "lane-tampered",
+            workingDirectory: process.cwd(),
+            environmentVariables: {},
+            scrollbackSnapshot: "altered",
+            zelijjSessionName: "tampered",
+            shellCommand: "bash",
+          },
+        ],
+      });
+
+      const result = await new RestorationPipeline().restore(checkpoint);
+
+      expect(result.restored).toHaveLength(0);
+      expect(result.failed).toHaveLength(1);
+      expect(result.failed[0]?.reason).toContain("Checkpoint integrity validation failed");
     });
   });
 

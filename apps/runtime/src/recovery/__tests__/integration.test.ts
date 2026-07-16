@@ -1,12 +1,15 @@
-
-import { RecoveryStateMachine, RecoveryStage } from "../state-machine.js";
-import { RestorationPipeline } from "../restoration.js";
-import type { Checkpoint, CheckpointSession } from "../checkpoint.js";
+import { promises as fs } from "fs";
+import os from "os";
+import path from "path";
 
 import { InMemoryLocalBus } from "../../protocol/bus.js";
-import { promises as fs } from "fs";
-import path from "path";
-import os from "os";
+import {
+  type Checkpoint,
+  type CheckpointSession,
+  calculateCheckpointChecksum,
+} from "../checkpoint.js";
+import { RestorationPipeline } from "../restoration.js";
+import { RecoveryStage, RecoveryStateMachine } from "../state-machine.js";
 
 describe("Integration Tests - Crash to Live Recovery", () => {
   let tempDir: string;
@@ -25,12 +28,19 @@ describe("Integration Tests - Crash to Live Recovery", () => {
     shellCommand: "bash",
   });
 
-  const createMockCheckpoint = (sessionCount: number): Checkpoint => ({
-    version: 1,
-    timestamp: Date.now(),
-    checksum: "",
-    sessions: Array.from({ length: sessionCount }, (_, i) => createMockSession(i)),
-  });
+  const createMockCheckpoint = (sessionCount: number): Checkpoint => {
+    const sessions = Array.from({ length: sessionCount }, (_, i) => createMockSession(i));
+    return {
+      version: 1,
+      timestamp: Date.now(),
+      checksum: calculateCheckpointChecksum(sessions),
+      sessions,
+    };
+  };
+
+  const refreshCheckpointChecksum = (checkpoint: Checkpoint): void => {
+    checkpoint.checksum = calculateCheckpointChecksum(checkpoint.sessions);
+  };
 
   beforeEach(async () => {
     tempDir = path.join(os.tmpdir(), `integration-test-${Date.now()}`);
@@ -87,8 +97,9 @@ describe("Integration Tests - Crash to Live Recovery", () => {
   describe("Partial recovery (SC-027-003)", () => {
     it("should report failed sessions with reasons", async () => {
       const checkpoint = createMockCheckpoint(5);
-      // Simulate corrupted checkpoint for session 2
+      // Simulate a missing working directory for session 2.
       checkpoint.sessions[2].workingDirectory = "/nonexistent/path";
+      refreshCheckpointChecksum(checkpoint);
 
       const result = await pipeline.restore(checkpoint);
 
@@ -101,6 +112,7 @@ describe("Integration Tests - Crash to Live Recovery", () => {
     it("should include suggestions for failed sessions", async () => {
       const checkpoint = createMockCheckpoint(3);
       checkpoint.sessions[1].workingDirectory = path.join(tempDir, "missing-directory");
+      refreshCheckpointChecksum(checkpoint);
 
       const result = await pipeline.restore(checkpoint);
 
@@ -175,6 +187,7 @@ describe("Integration Tests - Crash to Live Recovery", () => {
     it("should mark session as failed when working directory missing", async () => {
       const checkpoint = createMockCheckpoint(1);
       checkpoint.sessions[0].workingDirectory = "/nonexistent/directory/path";
+      refreshCheckpointChecksum(checkpoint);
 
       const result = await pipeline.restore(checkpoint);
 
@@ -198,6 +211,7 @@ describe("Integration Tests - Crash to Live Recovery", () => {
     it("should publish session failed events", async () => {
       const checkpoint = createMockCheckpoint(1);
       checkpoint.sessions[0].workingDirectory = path.join(tempDir, "missing-directory");
+      refreshCheckpointChecksum(checkpoint);
 
       await pipeline.restore(checkpoint);
 

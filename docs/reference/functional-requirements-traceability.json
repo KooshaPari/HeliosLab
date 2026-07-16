@@ -1073,7 +1073,7 @@
 		},
 		{
 			"id": "FR-CRH-004",
-			"status": "[ ]",
+			"status": "[x]",
 			"code": ["apps/runtime/src/recovery/checkpoint.ts", "apps/runtime/src/recovery/restoration.ts"],
 			"tests": ["apps/runtime/src/recovery/__tests__/checkpoint-validation.test.ts", "apps/runtime/src/recovery/__tests__/integration.test.ts"],
 			"evidence": ["docs/specs/027-crash-recovery-and-restoration/spec.md"]

@@ -1,7 +1,7 @@
-import type { LocalBus } from "../protocol/bus.js";
-import type { Checkpoint, CheckpointSession } from "./checkpoint.js";
 import { randomUUID } from "crypto";
 import { promises as fs } from "fs";
+import type { LocalBus } from "../protocol/bus.js";
+import { type Checkpoint, type CheckpointSession, validateCheckpoint } from "./checkpoint.js";
 
 export interface RestoredSession {
   sessionId: string;
@@ -37,6 +37,24 @@ export class RestorationPipeline {
     const startTime = Date.now();
     const restored: RestoredSession[] = [];
     const failed: FailedSession[] = [];
+
+    const validation = validateCheckpoint(checkpoint);
+    if (!validation.valid) {
+      const reason = `Checkpoint integrity validation failed: ${validation.errors
+        .map(error => `${error.field}: ${error.reason}`)
+        .join("; ")}`;
+
+      return {
+        restored,
+        failed: checkpoint.sessions.map(session => ({
+          sessionId: session.sessionId,
+          terminalId: session.terminalId,
+          laneId: session.laneId,
+          reason,
+        })),
+        duration: Date.now() - startTime,
+      };
+    }
 
     try {
       // Stage 1: Zellij session reattach

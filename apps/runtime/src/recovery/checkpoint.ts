@@ -1,6 +1,6 @@
+import { createHash } from "crypto";
 import { promises as fs } from "fs";
 import path from "path";
-import { createHash } from "crypto";
 
 export const CHECKPOINT_VERSION = 1;
 export const MAX_SCROLLBACK_SIZE = 10240; // 10 KB per session
@@ -37,6 +37,10 @@ export interface ValidationResult {
   errors: ValidationError[];
 }
 
+export function calculateCheckpointChecksum(sessions: CheckpointSession[]): string {
+  return createHash("sha256").update(JSON.stringify(sessions)).digest("hex");
+}
+
 export class CheckpointWriter {
   private checkpointDataDir: string;
 
@@ -55,8 +59,7 @@ export class CheckpointWriter {
       await this.cleanStaleTempFiles(checkpointPath);
 
       // Serialize and calculate checksum
-      const serialized = JSON.stringify(checkpoint.sessions);
-      const checksum = this.calculateChecksum(serialized);
+      const checksum = calculateCheckpointChecksum(checkpoint.sessions);
 
       const checkpointWithChecksum: Checkpoint = {
         ...checkpoint,
@@ -110,10 +113,6 @@ export class CheckpointWriter {
     }
   }
 
-  private calculateChecksum(content: string): string {
-    return createHash("sha256").update(content).digest("hex");
-  }
-
   getCheckpointPath(): string {
     return path.join(this.checkpointDataDir, "recovery", "checkpoint.json");
   }
@@ -165,9 +164,7 @@ export class CheckpointReader {
   }
 
   private verifyChecksum(checkpoint: Checkpoint): boolean {
-    const serialized = JSON.stringify(checkpoint.sessions);
-    const calculated = createHash("sha256").update(serialized).digest("hex");
-    return calculated === checkpoint.checksum;
+    return calculateCheckpointChecksum(checkpoint.sessions) === checkpoint.checksum;
   }
 
   private getCheckpointPath(): string {
@@ -177,6 +174,13 @@ export class CheckpointReader {
 
 export function validateCheckpoint(checkpoint: Checkpoint): ValidationResult {
   const errors: ValidationError[] = [];
+
+  if (calculateCheckpointChecksum(checkpoint.sessions) !== checkpoint.checksum) {
+    errors.push({
+      field: "checksum",
+      reason: "Checkpoint checksum mismatch",
+    });
+  }
 
   // Verify version
   if (checkpoint.version > CHECKPOINT_VERSION) {
