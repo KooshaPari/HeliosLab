@@ -41,6 +41,29 @@ describe("Gate Report Generator", () => {
 		expect(report.summary?.errors).toBe(1);
 	});
 
+	test("generated error findings include fallback remediation (FR-CI-011)", () => {
+		const report = createGateReport(
+			"typecheck",
+			[
+				{
+					file: "app.ts",
+					line: 10,
+					message: "Type error",
+					severity: "error",
+					rule: "TS7006",
+				},
+			],
+			200,
+		);
+
+		expect(report.findings[0]?.remediation).toBe(
+			"Resolve TS7006 in app.ts and rerun the typecheck gate.",
+		);
+		expect(formatGateReport(report)).toContain(
+			"Fix: Resolve TS7006 in app.ts and rerun the typecheck gate.",
+		);
+	});
+
 	// Traces to: FR-GOVERNANCE-GATES
 	test("count findings by severity", () => {
 		const findings: GateFinding[] = [

@@ -71,14 +71,25 @@ export function createGateReport(
 	findings: GateFinding[],
 	durationMs: number,
 ): GateReport {
-	const errors = findings.filter((f) => f.severity === "error").length;
-	const warnings = findings.filter((f) => f.severity === "warning").length;
-	const infos = findings.filter((f) => f.severity === "info").length;
+	const structuredFindings = findings.map((finding) => {
+		if (finding.severity !== "error" || finding.remediation?.trim()) {
+			return finding;
+		}
+
+		const failure = finding.rule?.trim() || "reported error";
+		return {
+			...finding,
+			remediation: `Resolve ${failure} in ${finding.file} and rerun the ${gateName} gate.`,
+		};
+	});
+	const errors = structuredFindings.filter((f) => f.severity === "error").length;
+	const warnings = structuredFindings.filter((f) => f.severity === "warning").length;
+	const infos = structuredFindings.filter((f) => f.severity === "info").length;
 
 	return {
 		gateName,
 		status: errors > 0 ? "fail" : "pass",
-		findings,
+		findings: structuredFindings,
 		duration: durationMs,
 		timestamp: new Date().toISOString(),
 		summary: {
