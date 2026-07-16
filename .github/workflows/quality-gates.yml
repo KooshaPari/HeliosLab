@@ -74,7 +74,7 @@ jobs:
         id: gate-test
         run: |
           set +e
-          bun test apps/runtime apps/desktop/tests/unit scripts/tests/ | tee /tmp/test.log
+          bun run test | tee /tmp/test.log
           TEST_EXIT=${PIPESTATUS[0]}
           bun run scripts/gate-test.ts
           REPORT_EXIT=$?

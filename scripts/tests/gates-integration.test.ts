@@ -2,8 +2,39 @@ import { expect, test, describe } from "bun:test";
 import { createGateReport, type GateFinding } from "../gate-report";
 import { checkCoverageThresholds } from "../gate-coverage";
 import { evaluateBunAuditResult } from "../gate-security";
+import { parseTestLog, parseTestOutput } from "../gate-test";
 
 describe("Gate Integration Tests", () => {
+	describe("Unit Test Gate", () => {
+		test("missing test evidence fails closed", () => {
+			const findings = parseTestLog("missing-test-output.log");
+			expect(createGateReport("test", findings, 1).status).toBe("fail");
+			expect(findings[0]).toEqual(
+				expect.objectContaining({
+					rule: "test-evidence-missing",
+					remediation: expect.any(String),
+				})
+			);
+		});
+
+		test("Bun failure output creates a blocking finding", () => {
+			const findings = parseTestOutput(
+				"(fail) package suite > rejects invalid input\n 4 pass\n 1 fail\n"
+			);
+			expect(findings).toEqual([
+				expect.objectContaining({
+					rule: "test-failure",
+					severity: "error",
+					remediation: expect.any(String),
+				}),
+			]);
+		});
+
+		test("Bun success output remains green", () => {
+			expect(parseTestOutput("4 pass\n0 fail\n")).toEqual([]);
+		});
+	});
+
 	// Traces to: FR-CI-001, FR-CI-006
 	// Coverage Gate Tests
 	describe("Coverage Gate", () => {

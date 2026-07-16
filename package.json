@@ -35,7 +35,7 @@
     "lint:rust": "cargo clippy --workspace --exclude pheno-ffi-python --all-targets -- -D warnings",
     "lint:all": "bun run lint && bun run lint:rust && cargo fmt --all -- --check",
     "format": "biome format --write apps docs/.vitepress playwright.config.ts tsconfig.json package.json",
-    "test": "bun test apps packages scripts tests",
+    "test": "bun test apps packages scripts tests docs/tests/unit docs/tests/component tools/gates",
     "test:desktop": "bun test apps/desktop/tests/unit",
     "test:integration": "bun test --timeout 60000 apps/runtime/tests/integration",
     "test:e2e": "playwright test",

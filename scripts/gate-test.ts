@@ -17,19 +17,28 @@ const REPORT_OUTPUT = ".gate-reports/gate-test.json";
 /**
  * Parse test output for failures and skipped tests.
  */
-function parseTestLog(): GateFinding[] {
-	const findings: GateFinding[] = [];
-	const logPath = "/tmp/test.log";
-
+export function parseTestLog(logPath = "/tmp/test.log"): GateFinding[] {
 	if (!existsSync(logPath)) {
-		return findings;
+		return [
+			{
+				file: logPath,
+				message: "Unit test output is missing",
+				severity: "error",
+				rule: "test-evidence-missing",
+				remediation: "Run the complete unit test command and capture its output",
+			},
+		];
 	}
 
-	const output = readFileSync(logPath, "utf-8");
+	return parseTestOutput(readFileSync(logPath, "utf-8"));
+}
+
+export function parseTestOutput(output: string): GateFinding[] {
+	const findings: GateFinding[] = [];
 	const lines = output.split("\n");
 
 	// Detect .skip, .only, .todo markers in test output
-	lines.forEach((line) => {
+	lines.forEach((line, index) => {
 		if (
 			line.includes(".skip") ||
 			line.includes(".only") ||
@@ -37,6 +46,7 @@ function parseTestLog(): GateFinding[] {
 		) {
 			findings.push({
 				file: "test",
+				line: index + 1,
 				message: `Test uses restricted marker: ${line.trim()}`,
 				severity: "error",
 				rule: "no-test-markers",
@@ -46,12 +56,18 @@ function parseTestLog(): GateFinding[] {
 	});
 
 	// Detect test failures: look for "FAIL" or "✖" markers
-	if (output.includes("FAIL") || output.includes("✖")) {
+	if (
+		output.includes("FAIL") ||
+		output.includes("✖") ||
+		/^\(fail\)\s+/m.test(output) ||
+		/\b[1-9]\d*\s+fail(?:ed)?\b/i.test(output)
+	) {
 		findings.push({
 			file: "test-suite",
 			message: "Test failures detected in output",
 			severity: "error",
 			rule: "test-failure",
+			remediation: "Fix the failing test and rerun the complete unit test suite",
 		});
 	}
 
@@ -73,7 +89,9 @@ async function main(): Promise<void> {
 	process.exit(report.status === "pass" ? 0 : 1);
 }
 
-main().catch((e) => {
-	console.error(`Error: ${e}`);
-	process.exit(2);
-});
+if (import.meta.main) {
+	main().catch((e) => {
+		console.error(`Error: ${e}`);
+		process.exit(2);
+	});
+}

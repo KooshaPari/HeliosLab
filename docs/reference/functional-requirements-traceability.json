@@ -1640,7 +1640,7 @@
 		},
 		{
 			"id": "FR-CI-004",
-			"status": "[ ]",
+			"status": "[x]",
 			"code": ["package.json", ".github/workflows/quality-gates.yml", "scripts/gate-test.ts", "scripts/gate-bypass-detect.ts"],
 			"tests": ["scripts/tests/gate-bypass-detect.test.ts", "scripts/tests/gates-integration.test.ts"],
 			"evidence": ["docs/specs/021-continuous-integration-and-quality-gates/spec.md"]
