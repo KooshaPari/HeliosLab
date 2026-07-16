@@ -99,6 +99,7 @@ export function checkSLO(slo: SLODefinition, bucket: PercentileBucket): SLOCheck
 
 /** Function signature for publishing events to the bus. */
 export type BusPublishFn = (topic: string, payload: unknown) => void | Promise<void>;
+export type SLOViolationListener = (event: SLOViolationEvent) => void;
 
 /**
  * Monitors registered metrics against SLO definitions, emitting rate-limited
@@ -108,6 +109,8 @@ export class SLOMonitor {
   private readonly registry: MetricsRegistry;
   private readonly definitions: SLODefinition[];
   private readonly busPublish: BusPublishFn | undefined;
+  private readonly listeners = new Set<SLOViolationListener>();
+  private readonly unsubscribeFromRecords: () => void;
 
   /** Map<metric, lastEmissionTimestamp> for per-metric rate limiting. */
   private readonly rateLimitMap = new Map<string, number>();
@@ -120,6 +123,53 @@ export class SLOMonitor {
     this.registry = registry;
     this.definitions = definitions;
     this.busPublish = busPublish;
+    this.unsubscribeFromRecords = registry.onRecord(metric => {
+      this.evaluateRecordedMetric(metric);
+    });
+  }
+
+  /** Register for record-driven SLO violations. */
+  onViolation(listener: SLOViolationListener): () => void {
+    this.listeners.add(listener);
+    return () => {
+      this.listeners.delete(listener);
+    };
+  }
+
+  /** Stop monitoring and release registry/listener references. */
+  dispose(): void {
+    this.stop();
+    this.unsubscribeFromRecords();
+    this.listeners.clear();
+  }
+
+  private evaluateRecordedMetric(metricName: string): void {
+    const metric = this.registry.getMetric(metricName);
+    if (metric === undefined) return;
+
+    const stats = computePercentiles(metric.buffer.getValues());
+    if (stats === undefined) return;
+
+    for (const definition of this.definitions) {
+      if (definition.metric !== metricName) continue;
+      const result = checkSLO(definition, stats);
+      if (result.passed) continue;
+
+      const event: SLOViolationEvent = {
+        metric: definition.metric,
+        percentile: definition.percentile,
+        threshold: definition.threshold,
+        actual: result.actual,
+        timestamp: Date.now(),
+      };
+      for (const listener of this.listeners) {
+        try {
+          listener(event);
+        } catch (error) {
+          console.error("[slo] Violation listener failed:", error);
+        }
+      }
+    }
   }
 
   /**
@@ -147,8 +197,8 @@ export class SLOMonitor {
         continue;
       }
 
-      const actual = stats[def.percentile];
-      if (actual <= def.threshold) {
+      const result = checkSLO(def, stats);
+      if (result.passed) {
         // Within SLO — no violation.
         continue;
       }
@@ -164,7 +214,7 @@ export class SLOMonitor {
         metric: def.metric,
         percentile: def.percentile,
         threshold: def.threshold,
-        actual,
+        actual: result.actual,
         timestamp: now,
       };
 

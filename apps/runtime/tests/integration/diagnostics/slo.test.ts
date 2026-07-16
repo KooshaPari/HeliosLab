@@ -75,6 +75,55 @@ describe("SLO Violation Detection", () => {
   });
 });
 
+describe("Record-driven SLO listeners", () => {
+  // FR-DIAG-009: each recorded sample is evaluated and breaches reach listeners.
+  it("emits to registered listeners after every breaching sample", () => {
+    const { registry, monitor } = createSetup();
+    const events: Array<Record<string, unknown>> = [];
+    const unsubscribe = monitor.onViolation(event => {
+      events.push(event as unknown as Record<string, unknown>);
+    });
+
+    registry.record(METRIC_NAME, 100, 1);
+    registry.record(METRIC_NAME, 120, 2);
+
+    expect(events).toHaveLength(2);
+    expect(events[0]).toMatchObject({
+      metric: METRIC_NAME,
+      percentile: "p95",
+      threshold: 60,
+      actual: 100,
+    });
+    expect(events[0]?.timestamp).toBeNumber();
+
+    unsubscribe();
+    registry.record(METRIC_NAME, 140, 3);
+    expect(events).toHaveLength(2);
+    monitor.dispose();
+  });
+
+  // FR-DIAG-009: definitions are evaluated using their declared unit semantics.
+  it("detects an FPS breach immediately when a sample falls below its threshold", () => {
+    const registry = new MetricsRegistry();
+    registry.register({
+      name: "fps",
+      type: "gauge",
+      unit: "fps",
+      description: "Frames per second",
+    });
+    const monitor = new SLOMonitor(registry, [
+      { metric: "fps", percentile: "p50", threshold: 60, unit: "fps" },
+    ]);
+    const events: unknown[] = [];
+    monitor.onViolation(event => events.push(event));
+
+    registry.record("fps", 45, 1);
+
+    expect(events).toHaveLength(1);
+    monitor.dispose();
+  });
+});
+
 describe("Rate Limiting", () => {
   // FR-010: rate limiter suppresses duplicate violations within window
   it("suppresses duplicate violation within rate limit window", () => {

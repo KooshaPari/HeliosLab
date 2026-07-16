@@ -89,12 +89,15 @@ interface MetricEntry {
   buffer: RingBuffer | undefined; // lazy — created on first record
 }
 
+export type MetricRecordListener = (name: string, value: number, timestamp: number) => void;
+
 /**
  * Central registry where subsystems register metrics and record samples.
  * Buffers are lazily allocated on the first `record` call for each metric.
  */
 export class MetricsRegistry {
   private readonly metrics = new Map<string, MetricEntry>();
+  private readonly recordListeners = new Set<MetricRecordListener>();
 
   /**
    * Register a new metric.
@@ -122,7 +125,23 @@ export class MetricsRegistry {
     if (entry.buffer === undefined) {
       entry.buffer = new RingBuffer(entry.definition.bufferSize ?? DEFAULT_CAPACITY);
     }
-    entry.buffer.push(value, timestamp ?? monotonicNow());
+    const recordedAt = timestamp ?? monotonicNow();
+    entry.buffer.push(value, recordedAt);
+    for (const listener of this.recordListeners) {
+      try {
+        listener(name, value, recordedAt);
+      } catch (error) {
+        console.error("[metrics] Record listener failed:", error);
+      }
+    }
+  }
+
+  /** Observe successful sample records. Returns an idempotent unsubscribe function. */
+  onRecord(listener: MetricRecordListener): () => void {
+    this.recordListeners.add(listener);
+    return () => {
+      this.recordListeners.delete(listener);
+    };
   }
 
   /** Retrieve a metric's definition and buffer (if any samples recorded). */

@@ -1045,7 +1045,7 @@
 		},
 		{
 			"id": "FR-DIAG-009",
-			"status": "[ ]",
+			"status": "[x]",
 			"code": ["apps/runtime/src/diagnostics/slo.ts", "apps/runtime/src/diagnostics/metrics.ts"],
 			"tests": ["apps/runtime/tests/unit/diagnostics/slo.test.ts", "apps/runtime/tests/integration/diagnostics/slo.test.ts"],
 			"evidence": ["FUNCTIONAL_REQUIREMENTS.md"]
