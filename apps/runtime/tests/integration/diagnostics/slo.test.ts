@@ -5,6 +5,7 @@
 import { MetricsRegistry } from "../../../src/diagnostics/metrics.js";
 import { SLOMonitor } from "../../../src/diagnostics/slo.js";
 import type { SLODefinition } from "../../../src/diagnostics/types.js";
+import { TOPICS } from "../../../src/protocol/topics.js";
 
 const METRIC_NAME = "input-to-echo";
 
@@ -12,7 +13,7 @@ const sloDefinitions: SLODefinition[] = [
   { metric: METRIC_NAME, percentile: "p95", threshold: 60, unit: "ms" },
 ];
 
-function createSetup(busFn?: (topic: string, payload: unknown) => void) {
+function createSetup(busFn?: (topic: string, payload: unknown) => void | Promise<void>) {
   const registry = new MetricsRegistry();
   registry.register({
     name: METRIC_NAME,
@@ -121,6 +122,51 @@ describe("Record-driven SLO listeners", () => {
 
     expect(events).toHaveLength(1);
     monitor.dispose();
+  });
+
+  // FR-DIAG-005: every record-driven breach is published on the canonical topic.
+  it("publishes diagnostics.slo_violation for every breaching sample", () => {
+    const published: Array<{ topic: string; payload: unknown }> = [];
+    const { registry, monitor } = createSetup((topic, payload) => {
+      published.push({ topic, payload });
+    });
+
+    registry.record(METRIC_NAME, 100, 1);
+    registry.record(METRIC_NAME, 120, 2);
+
+    const events = published.filter(event => event.topic === "diagnostics.slo_violation");
+    expect(TOPICS).toContain("diagnostics.slo_violation");
+    expect(events).toHaveLength(2);
+    expect(events[0]!.payload).toMatchObject({
+      metric: METRIC_NAME,
+      percentile: "p95",
+      threshold: 60,
+      actual: 100,
+    });
+    expect((events[0]!.payload as Record<string, unknown>).timestamp).toBeNumber();
+    monitor.dispose();
+  });
+
+  // FR-DIAG-005: publishers cannot break the metrics record hot path.
+  it("isolates synchronous and asynchronous publication failures", async () => {
+    let syncAttempts = 0;
+    const syncSetup = createSetup(() => {
+      syncAttempts++;
+      throw new Error("sync publisher failure");
+    });
+    expect(() => syncSetup.registry.record(METRIC_NAME, 100, 1)).not.toThrow();
+    expect(syncAttempts).toBe(1);
+    syncSetup.monitor.dispose();
+
+    let asyncAttempts = 0;
+    const asyncSetup = createSetup(async () => {
+      asyncAttempts++;
+      throw new Error("async publisher failure");
+    });
+    expect(() => asyncSetup.registry.record(METRIC_NAME, 100, 1)).not.toThrow();
+    expect(asyncAttempts).toBe(1);
+    await new Promise(resolve => setTimeout(resolve, 0));
+    asyncSetup.monitor.dispose();
   });
 });
 
@@ -238,17 +284,19 @@ describe("Bus Integration", () => {
       registry.record(METRIC_NAME, 100, i);
     }
     monitor.checkAll();
-    expect(events.length).toBe(1);
-    expect(events[0]!.topic).toBe("perf.slo_violation");
-    const payload = events[0]!.payload as Record<string, unknown>;
+    const perfEvents = events.filter(event => event.topic === "perf.slo_violation");
+    expect(perfEvents.length).toBe(1);
+    const payload = perfEvents[0]!.payload as Record<string, unknown>;
     expect(payload.metric).toBe(METRIC_NAME);
     expect(payload.percentile).toBe("p95");
   });
 
   // FR-004: bus error does not crash monitor
   it("continues when bus publish throws", () => {
-    const busFn = () => {
-      throw new Error("bus down");
+    const busFn = (topic: string) => {
+      if (topic === "perf.slo_violation") {
+        throw new Error("bus down");
+      }
     };
     const { registry, monitor } = createSetup(busFn);
     for (let i = 0; i < 100; i++) {
@@ -281,8 +329,8 @@ describe("Periodic Check Loop", () => {
   // FR-004: periodic loop fires and detects violations
   it("fires periodic checks and detects violations", async () => {
     const events: unknown[] = [];
-    const busFn = (_topic: string, payload: unknown) => {
-      events.push(payload);
+    const busFn = (topic: string, payload: unknown) => {
+      if (topic === "perf.slo_violation") events.push(payload);
     };
     const setup = createSetup(busFn);
     monitor = setup.monitor;
@@ -302,8 +350,8 @@ describe("Periodic Check Loop", () => {
   // FR-004: stop halts the loop
   it("stop() halts the check loop", async () => {
     const events: unknown[] = [];
-    const busFn = (_topic: string, payload: unknown) => {
-      events.push(payload);
+    const busFn = (topic: string, payload: unknown) => {
+      if (topic === "perf.slo_violation") events.push(payload);
     };
     const setup = createSetup(busFn);
     monitor = setup.monitor;
@@ -325,8 +373,8 @@ describe("Periodic Check Loop", () => {
   // FR-004: double start does not create duplicate intervals
   it("double start() does not create duplicate intervals", async () => {
     const events: unknown[] = [];
-    const busFn = (_topic: string, payload: unknown) => {
-      events.push(payload);
+    const busFn = (topic: string, payload: unknown) => {
+      if (topic === "perf.slo_violation") events.push(payload);
     };
     const setup = createSetup(busFn);
     monitor = setup.monitor;
@@ -375,8 +423,8 @@ describe("Periodic Check Loop", () => {
     ];
 
     const events: unknown[] = [];
-    const m = new SLOMonitor(registry, defs, (_: string, p: unknown) => {
-      events.push(p);
+    const m = new SLOMonitor(registry, defs, (topic: string, payload: unknown) => {
+      if (topic === "perf.slo_violation") events.push(payload);
     });
 
     for (let i = 0; i < 100; i++) {

@@ -46,6 +46,7 @@
 		"boundary.a2a.delegated",
 		"boundary.dispatch.failed",
 		"audit.recorded",
-		"diagnostics.metric"
+		"diagnostics.metric",
+		"diagnostics.slo_violation"
 	]
 }

@@ -522,6 +522,18 @@
 			],
 			"runtime_refs": ["apps/runtime/src/protocol/topics.ts"],
 			"task_ids": ["T026", "T045"]
+		},
+		{
+			"name": "diagnostics.slo_violation",
+			"status": "implemented",
+			"contract_refs": [
+				"contracts/orchestration-envelope.schema.json#properties.topic"
+			],
+			"runtime_refs": [
+				"apps/runtime/src/diagnostics/slo.ts",
+				"apps/runtime/src/protocol/topics.ts"
+			],
+			"task_ids": ["T026", "T045"]
 		}
 	]
 }

@@ -169,6 +169,31 @@ export class SLOMonitor {
           console.error("[slo] Violation listener failed:", error);
         }
       }
+      this.publishViolation("diagnostics.slo_violation", event);
+    }
+  }
+
+  private publishViolation(
+    topic: string,
+    event: SLOViolationEvent,
+    logWhenUnavailable: boolean = false
+  ): void {
+    if (this.busPublish === undefined) {
+      if (logWhenUnavailable) {
+        console.log("[slo] Violation:", event);
+      }
+      return;
+    }
+
+    try {
+      const result = this.busPublish(topic, event);
+      if (result && typeof (result as Promise<void>).catch === "function") {
+        (result as Promise<void>).catch(error => {
+          console.error("[slo] Bus publish error:", error);
+        });
+      }
+    } catch (error) {
+      console.error("[slo] Bus publish error:", error);
     }
   }
 
@@ -224,21 +249,7 @@ export class SLOMonitor {
 
     // Publish to bus or log.
     for (const event of violations) {
-      if (this.busPublish !== undefined) {
-        try {
-          const result = this.busPublish("perf.slo_violation", event);
-          // If async, catch errors without blocking.
-          if (result && typeof (result as Promise<void>).catch === "function") {
-            (result as Promise<void>).catch(err => {
-              console.error("[slo] Bus publish error:", err);
-            });
-          }
-        } catch (err) {
-          console.error("[slo] Bus publish error:", err);
-        }
-      } else {
-        console.log("[slo] Violation:", event);
-      }
+      this.publishViolation("perf.slo_violation", event, true);
     }
 
     return violations;

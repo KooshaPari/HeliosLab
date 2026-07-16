@@ -106,6 +106,7 @@
 				"boundary.dispatch.failed",
 				"audit.recorded",
 				"diagnostics.metric",
+				"diagnostics.slo_violation",
 				null
 			]
 		},
