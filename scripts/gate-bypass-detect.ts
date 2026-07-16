@@ -22,6 +22,7 @@ const suppName2 = "@" + "ts-expect-error";
 const suppName3 = "@" + "ts-nocheck";
 const suppName4 = "eslint" + "-disable";
 const suppName5 = "biome" + "-ignore";
+const suppName6 = "lint" + "-ignore";
 
 const SUPPRESSION_PATTERNS = [
 	{ regex: new RegExp(suppName1), name: suppName1 },
@@ -29,6 +30,7 @@ const SUPPRESSION_PATTERNS = [
 	{ regex: new RegExp(suppName3), name: suppName3 },
 	{ regex: new RegExp(suppName4 + "(-line|-next-line)?"), name: suppName4 },
 	{ regex: new RegExp(suppName5), name: suppName5 },
+	{ regex: new RegExp(suppName6), name: suppName6 },
 ];
 
 const TEST_MARKERS = [
@@ -82,7 +84,7 @@ export function scanBypassDirectives(
 
 				if (stat.isDirectory()) {
 					scanDir(fullPath);
-				} else if (/\.(ts|tsx|js|jsx)$/.test(file)) {
+				} else if (/\.(?:[cm]?[jt]s|[jt]sx)$/.test(file)) {
 					scanFile(fullPath);
 				}
 			});

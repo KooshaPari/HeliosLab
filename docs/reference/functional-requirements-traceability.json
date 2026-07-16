@@ -1675,7 +1675,7 @@
 		},
 		{
 			"id": "FR-CI-009",
-			"status": "[ ]",
+			"status": "[x]",
 			"code": ["scripts/gate-bypass-detect.ts", ".github/workflows/quality-gates.yml"],
 			"tests": ["scripts/tests/gate-bypass-detect.test.ts"],
 			"evidence": ["docs/specs/021-continuous-integration-and-quality-gates/spec.md"]

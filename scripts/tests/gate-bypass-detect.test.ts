@@ -44,6 +44,23 @@ describe("Bypass Detection Scanner", () => {
 		expect(scanBypassDirectives({ root })).toEqual([]);
 	});
 
+	test("scans module source extensions and rejects lint-ignore", async () => {
+		const root = await mkdtemp(join(tmpdir(), "helios-bypass-modules-"));
+		tempDirs.push(root);
+		await Promise.all([
+			writeFile(join(root, "focused.mjs"), 'test.only("focused", () => {});\n'),
+			writeFile(join(root, "disabled.cjs"), "// eslint" + "-disable\n"),
+			writeFile(join(root, "ignored.mts"), "// " + "@ts-ignore\n"),
+			writeFile(join(root, "ignored.cts"), "// biome" + "-ignore lint\n"),
+			writeFile(join(root, "generic.mjs"), "// lint" + "-ignore unsafe rule\n"),
+		]);
+
+		const findings = scanBypassDirectives({ root });
+		expect(findings).toHaveLength(5);
+		expect(findings.every((finding) => finding.severity === "error")).toBe(true);
+		expect(findings.every((finding) => finding.line === 1)).toBe(true);
+	});
+
 	test("scans a repository whose parent directory is named .worktrees", async () => {
 		const parent = join(tmpdir(), `.worktrees-${Date.now()}`);
 		await mkdir(parent, { recursive: true });
