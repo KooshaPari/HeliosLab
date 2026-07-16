@@ -1423,7 +1423,7 @@
 		},
 		{
 			"id": "FR-APR-005",
-			"status": "[ ]",
+			"status": "[x]",
 			"code": ["apps/runtime/src/policy/approval-queue.ts", "apps/desktop/src/components/approval/ApprovalPanel.tsx"],
 			"tests": ["apps/runtime/tests/unit/policy/approval-queue.test.ts"],
 			"evidence": ["docs/specs/023-command-policy-engine-and-approval-workflows/spec.md"]

@@ -8,30 +8,33 @@ import type { ApprovalRequest } from "../../types/approval";
 
 interface ApprovalPanelProps {
   requests: ApprovalRequest[];
-  onApprove: (id: string) => void;
+  onApprove: (id: string, reason: string) => void;
   onReject: (id: string, reason: string) => void;
 }
 
 export function ApprovalPanel(props: ApprovalPanelProps) {
   const [selectedId, setSelectedId] = createSignal<string | null>(null);
-  const [rejectReason, setRejectReason] = createSignal("");
+  const [resolutionAction, setResolutionAction] = createSignal<"approve" | "reject" | null>(null);
+  const [resolutionReason, setResolutionReason] = createSignal("");
 
   const selectedRequest = () => {
     const id = selectedId();
     return id ? props.requests.find(r => r.id === id) : null;
   };
 
-  const handleApprove = (id: string) => {
-    props.onApprove(id);
-    setSelectedId(null);
-  };
-
-  const handleReject = () => {
+  const handleResolution = () => {
     const id = selectedId();
-    if (id && rejectReason()) {
-      props.onReject(id, rejectReason());
+    const action = resolutionAction();
+    const reason = resolutionReason().trim();
+    if (id && action && reason) {
+      if (action === "approve") {
+        props.onApprove(id, reason);
+      } else {
+        props.onReject(id, reason);
+      }
       setSelectedId(null);
-      setRejectReason("");
+      setResolutionAction(null);
+      setResolutionReason("");
     }
   };
 
@@ -67,39 +70,54 @@ export function ApprovalPanel(props: ApprovalPanelProps) {
         <div class="approval-details">
           <h3>Review Request</h3>
           <div class="detail-group">
-            <span aria-label="Command">Command:</span>
+            <span>Command:</span>
             <code>{selectedRequest()?.command}</code>
           </div>
           <div class="detail-group">
-            <span aria-label="Requested by">Requested by:</span>
+            <span>Requested by:</span>
             <span>{selectedRequest()?.requesterName}</span>
           </div>
           <div class="detail-group">
-            <span aria-label="Workspace">Workspace:</span>
+            <span>Workspace:</span>
             <span>{selectedRequest()?.workspaceId}</span>
           </div>
 
           <div class="approval-actions">
-            <button class="approve-btn" onclick={() => handleApprove(selectedRequest()?.id ?? "")}>
+            <button
+              type="button"
+              class="approve-btn"
+              onclick={() => setResolutionAction("approve")}
+            >
               Approve
             </button>
-            <button type="button" class="reject-btn" onclick={() => setRejectReason("focused")}>
+            <button type="button" class="reject-btn" onclick={() => setResolutionAction("reject")}>
               Reject
             </button>
           </div>
 
-          {rejectReason() === "focused" && (
+          {resolutionAction() && (
             <div class="reject-form">
               <textarea
-                placeholder="Reason for rejection..."
-                value={rejectReason()}
-                oninput={e => setRejectReason(e.currentTarget.value)}
+                aria-label={`Reason for ${resolutionAction()}`}
+                placeholder={`Reason for ${resolutionAction()}...`}
+                value={resolutionReason()}
+                oninput={e => setResolutionReason(e.currentTarget.value)}
               />
               <div class="reject-actions">
-                <button type="button" onclick={handleReject}>
-                  Confirm Reject
+                <button
+                  type="button"
+                  disabled={!resolutionReason().trim()}
+                  onclick={handleResolution}
+                >
+                  Confirm {resolutionAction() === "approve" ? "Approve" : "Reject"}
                 </button>
-                <button type="button" onclick={() => setRejectReason("")}>
+                <button
+                  type="button"
+                  onclick={() => {
+                    setResolutionAction(null);
+                    setResolutionReason("");
+                  }}
+                >
                   Cancel
                 </button>
               </div>

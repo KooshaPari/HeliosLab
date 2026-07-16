@@ -20,6 +20,7 @@ export interface ApprovalRequest {
   expiresAt: string;
   approvedBy?: string;
   approvedAt?: string;
+  approvedReason?: string;
   rejectedReason?: string;
 }
 

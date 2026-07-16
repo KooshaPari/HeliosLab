@@ -21,6 +21,7 @@ export interface ApprovalRequest {
   expiresAt: string;
   approvedBy?: string;
   approvedAt?: string;
+  approvedReason?: string;
   rejectedReason?: string;
 }
 
@@ -79,12 +80,14 @@ export class ApprovalQueue {
   /**
    * Approve a request.
    */
-  approve(id: string, approvedBy: string): void {
+  approve(id: string, approvedBy: string, reason: string): void {
     const request = this.requests.get(id);
     if (request) {
+      const approvedReason = this.requireReason(reason);
       request.status = ApprovalStatus.Approved;
       request.approvedBy = approvedBy;
       request.approvedAt = new Date().toISOString();
+      request.approvedReason = approvedReason;
       this.clearTimer(id);
     }
   }
@@ -95,8 +98,9 @@ export class ApprovalQueue {
   reject(id: string, reason: string): void {
     const request = this.requests.get(id);
     if (request) {
+      const rejectedReason = this.requireReason(reason);
       request.status = ApprovalStatus.Rejected;
-      request.rejectedReason = reason;
+      request.rejectedReason = rejectedReason;
       this.clearTimer(id);
     }
   }
@@ -145,5 +149,13 @@ export class ApprovalQueue {
       clearTimeout(timer);
       this.expireTimers.delete(id);
     }
+  }
+
+  private requireReason(reason: string): string {
+    const normalized = reason.trim();
+    if (!normalized) {
+      throw new Error("Approval resolution requires an operator-supplied reason");
+    }
+    return normalized;
   }
 }

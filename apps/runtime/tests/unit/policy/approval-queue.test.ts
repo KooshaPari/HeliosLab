@@ -1,8 +1,8 @@
 /**
- * Approval Queue Unit Tests
+ * Approval Queue Unit Tests (FR-APR-005)
  * Exercises the current in-memory request and resolution primitives.
  */
-import { test, expect, describe } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { ApprovalQueue, ApprovalStatus } from "../../../src/policy/approval-queue";
 
 describe("ApprovalQueue", () => {
@@ -15,18 +15,19 @@ describe("ApprovalQueue", () => {
     expect(request.status).toBe(ApprovalStatus.Pending);
   });
 
-  test("approves requests", () => {
+  test("approves requests with an operator-supplied reason (FR-APR-005)", () => {
     const queue = new ApprovalQueue();
     const request = queue.createRequest("git push", "workspace1", "agent1", "Test Agent");
 
-    queue.approve(request.id, "reviewer1");
+    queue.approve(request.id, "reviewer1", "Reviewed the command and affected files");
     const updated = queue.getRequest(request.id);
 
     expect(updated?.status).toBe(ApprovalStatus.Approved);
     expect(updated?.approvedBy).toBe("reviewer1");
+    expect(updated?.approvedReason).toBe("Reviewed the command and affected files");
   });
 
-  test("rejects requests", () => {
+  test("rejects requests with an operator-supplied reason (FR-APR-005)", () => {
     const queue = new ApprovalQueue();
     const request = queue.createRequest("git push", "workspace1", "agent1", "Test Agent");
 
@@ -34,13 +35,29 @@ describe("ApprovalQueue", () => {
     const updated = queue.getRequest(request.id);
 
     expect(updated?.status).toBe(ApprovalStatus.Rejected);
+    expect(updated?.rejectedReason).toBe("Dangerous operation");
+  });
+
+  test("requires a non-blank operator reason for either resolution (FR-APR-005)", () => {
+    const queue = new ApprovalQueue();
+    const approval = queue.createRequest("git push", "workspace1", "agent1", "Test Agent");
+    const rejection = queue.createRequest("rm artifact", "workspace1", "agent1", "Test Agent");
+
+    expect(() => queue.approve(approval.id, "reviewer1", "  ")).toThrow(
+      "Approval resolution requires an operator-supplied reason"
+    );
+    expect(() => queue.reject(rejection.id, "")).toThrow(
+      "Approval resolution requires an operator-supplied reason"
+    );
+    expect(queue.getRequest(approval.id)?.status).toBe(ApprovalStatus.Pending);
+    expect(queue.getRequest(rejection.id)?.status).toBe(ApprovalStatus.Pending);
   });
 
   test("filters pending requests", () => {
     const queue = new ApprovalQueue();
     queue.createRequest("cmd1", "ws1", "ag1", "User1");
     const req2 = queue.createRequest("cmd2", "ws1", "ag1", "User1");
-    queue.approve(req2.id, "reviewer");
+    queue.approve(req2.id, "reviewer", "Expected command");
 
     const pending = queue.getPending();
     expect(pending.length).toBe(1);
