@@ -4,9 +4,9 @@
  * Traces to: FR-ORF-001 (periodic watchdog), FR-ORF-003 (detect leaked PTYs), FR-ORF-006 (classify by type/age),
  * FR-ORF-008 (emit detection events), FR-ORF-009 (configurable interval)
  */
-import { describe, it, expect, beforeEach, afterEach, mock } from "bun:test";
-import os from "os";
-import path from "path";
+import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
+import os from "node:os";
+import path from "node:path";
 
 // Mock execCommand before importing OrphanWatchdog so detectors use the mock
 mock.module("../../../../src/integrations/exec.js", () => ({
@@ -43,8 +43,8 @@ describe("OrphanWatchdog", () => {
     bus = new InMemoryLocalBus();
   });
 
-  afterEach(async () => {
-    watchdog.stop();
+  afterEach(() => {
+    watchdog?.stop();
   });
 
   it("should start and stop cleanly", async () => {
@@ -179,4 +179,19 @@ describe("OrphanWatchdog", () => {
 
     watchdog.stop();
   }, 15000);
+
+  it("should reject invalid detection interval configuration (FR-ORF-009)", () => {
+    expect(
+      () =>
+        new OrphanWatchdog({
+          checkpointBaseDir: path.join(os.tmpdir(), "helios-test-watchdog-invalid"),
+          detectionInterval: 0,
+          worktreeBaseDir: "/tmp/test-worktrees",
+          sessionRegistry: createMockSessionRegistry(),
+          terminalRegistry: createMockTerminalRegistry(),
+          laneRegistry,
+          bus,
+        })
+    ).toThrow("Watchdog detection interval must be a positive finite number");
+  });
 });

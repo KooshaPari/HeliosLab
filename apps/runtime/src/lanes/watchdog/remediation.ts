@@ -1,12 +1,12 @@
 // T007-T009 - Remediation engine with confirmation gates and recovery suppression
 
-import { promises as fs } from "fs";
+import { promises as fs } from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import { execCommand } from "../../integrations/exec.js";
-import path from "path";
-import os from "os";
-import { type ClassifiedOrphan, type ResourceType } from "./resource_classifier.js";
 import type { LocalBus } from "../../protocol/bus.js";
 import type { LaneRegistry } from "../registry.js";
+import { type ClassifiedOrphan, type ResourceType } from "./resource_classifier.js";
 
 export interface RemediationSuggestion {
   id: string;
@@ -28,22 +28,33 @@ interface CooldownEntry {
   expiresAt: number; // milliseconds since epoch
 }
 
+export interface RemediationConfig {
+  cooldownDurationMs?: number;
+  cooldownFile?: string;
+}
+
 export class RemediationEngine {
   private suggestions = new Map<string, RemediationSuggestion>();
   private cooldownMap = new Map<string, CooldownEntry>();
-  private readonly cooldownDurationMs = 24 * 60 * 60 * 1000; // 24 hours
-  private readonly cooldownPath = path.join(
-    os.homedir(),
-    ".helios",
-    "data",
-    "remediation_cooldown.json"
-  );
+  private readonly cooldownDurationMs: number;
+  private readonly cooldownPath: string;
 
   constructor(
     private readonly laneRegistry: LaneRegistry,
-    private readonly bus: LocalBus
+    private readonly bus: LocalBus,
+    config: RemediationConfig = {}
   ) {
-    this.loadCooldownMap();
+    const cooldownDurationMs = config.cooldownDurationMs ?? 24 * 60 * 60 * 1000;
+    if (!Number.isFinite(cooldownDurationMs) || cooldownDurationMs <= 0) {
+      throw new Error("Remediation cooldown duration must be a positive finite number");
+    }
+    this.cooldownDurationMs = cooldownDurationMs;
+    this.cooldownPath =
+      config.cooldownFile ??
+      path.join(os.homedir(), ".helios", "data", "remediation_cooldown.json");
+    this.loadCooldownMap().catch(error => {
+      console.error("Failed to load remediation cooldown map:", error);
+    });
   }
 
   async generateSuggestions(orphans: ClassifiedOrphan[]): Promise<RemediationSuggestion[]> {

@@ -1178,7 +1178,7 @@
 		},
 		{
 			"id": "FR-ORF-009",
-			"status": "[ ]",
+			"status": "[x]",
 			"code": ["apps/runtime/src/lanes/watchdog/orphan_watchdog.ts", "apps/runtime/src/lanes/watchdog/remediation.ts"],
 			"tests": ["apps/runtime/tests/unit/lanes/watchdog/orphan_watchdog.test.ts", "apps/runtime/tests/integration/lanes/watchdog/false_positive_rate.test.ts"],
 			"evidence": ["docs/specs/015-lane-orphan-detection-and-remediation/spec.md"]

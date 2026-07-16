@@ -1,12 +1,12 @@
 // T001 - Orphan watchdog scheduler with checkpoint persistence
 
-import { CheckpointManager, type WatchdogCheckpoint } from "./checkpoint.js";
-import { ResourceClassifier, type ClassifiedOrphan } from "./resource_classifier.js";
-import { WorktreeDetector } from "./worktree_detector.js";
-import { ZellijDetector, type SessionRegistry } from "./zellij_detector.js";
-import { PtyDetector, type TerminalRegistry } from "./pty_detector.js";
 import type { LocalBus } from "../../protocol/bus.js";
 import type { LaneRegistry } from "../registry.js";
+import { CheckpointManager, type WatchdogCheckpoint } from "./checkpoint.js";
+import { PtyDetector, type TerminalRegistry } from "./pty_detector.js";
+import { type ClassifiedOrphan, ResourceClassifier } from "./resource_classifier.js";
+import { WorktreeDetector } from "./worktree_detector.js";
+import { type SessionRegistry, ZellijDetector } from "./zellij_detector.js";
 
 export interface WatchdogConfig {
   detectionInterval: number; // milliseconds
@@ -47,8 +47,11 @@ export class OrphanWatchdog {
   private lastClassifiedOrphans: ClassifiedOrphan[] = [];
 
   constructor(config: WatchdogConfig) {
+    if (!Number.isFinite(config.detectionInterval) || config.detectionInterval <= 0) {
+      throw new Error("Watchdog detection interval must be a positive finite number");
+    }
     this.checkpointManager = new CheckpointManager(config.checkpointBaseDir);
-    this.detectionInterval = config.detectionInterval || 60000;
+    this.detectionInterval = config.detectionInterval;
     this.bus = config.bus;
 
     this.worktreeDetector = new WorktreeDetector(config.worktreeBaseDir, config.laneRegistry);
@@ -138,7 +141,6 @@ export class OrphanWatchdog {
 
       // Warn if cycle took too long
       if (this.lastDetectionDuration > 2000) {
-        // biome-ignore lint/suspicious/noConsole: High-latency detection cycles are intentionally surfaced for triage.
         console.warn(
           `[Watchdog] Detection cycle took ${this.lastDetectionDuration}ms (exceeds 2s target)`
         );
@@ -221,7 +223,6 @@ export class OrphanWatchdog {
         `[Watchdog] Cycle ${this.cycleNumber} completed: ${this.lastDetectionDuration}ms, ${this.lastClassifiedOrphans.length} orphans found`
       );
     } catch (error) {
-      // biome-ignore lint/suspicious/noConsole: Checkpoint save failures are intentionally emitted for operational visibility.
       console.error("Orphan watchdog detection cycle failed", error);
     }
   }

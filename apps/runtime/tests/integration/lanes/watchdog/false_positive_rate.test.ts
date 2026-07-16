@@ -1,11 +1,11 @@
 // Integration test for false positive rate validation
 
-import { unlinkSync } from "fs";
-import { RemediationEngine } from "../../../../src/lanes/watchdog/remediation.js";
-import { InMemoryLocalBus } from "../../../../src/protocol/bus.js";
+import { unlinkSync } from "node:fs";
 import { LaneRegistry } from "../../../../src/lanes/registry.js";
-import { ResourceClassifier } from "../../../../src/lanes/watchdog/resource_classifier.js";
+import { RemediationEngine } from "../../../../src/lanes/watchdog/remediation.js";
 import type { ClassifiedOrphan } from "../../../../src/lanes/watchdog/resource_classifier.js";
+import { ResourceClassifier } from "../../../../src/lanes/watchdog/resource_classifier.js";
+import { InMemoryLocalBus } from "../../../../src/protocol/bus.js";
 
 describe("False Positive Rate", () => {
   let engine: RemediationEngine;
@@ -21,6 +21,7 @@ describe("False Positive Rate", () => {
     laneRegistry = new LaneRegistry();
     engine = new RemediationEngine(laneRegistry, bus, {
       cooldownFile: `/tmp/helios-cooldown-${testId}.json`,
+      cooldownDurationMs: 20,
     });
     _classifier = new ResourceClassifier();
   });
@@ -29,8 +30,9 @@ describe("False Positive Rate", () => {
     engine.stop();
     try {
       unlinkSync(`/tmp/helios-cooldown-${testId}.json`);
-    // eslint-disable-next-line no-unused-vars
-    } catch (_err) {}
+    } catch {
+      // The isolated cooldown file may not have been created.
+    }
   });
 
   it("should have zero false positives with healthy system", async () => {
@@ -155,5 +157,36 @@ describe("False Positive Rate", () => {
       total += suggestions.length;
     }
     expect(total).toBeGreaterThanOrEqual(0);
+  });
+
+  it("should expire declined suggestions after the configured cooldown (FR-ORF-009)", async () => {
+    const orphan: ClassifiedOrphan = {
+      type: "worktree",
+      path: `/tmp/configurable-cooldown-${testId}`,
+      age: 3000,
+      estimatedOwner: "unknown",
+      riskLevel: "low",
+      createdAt: new Date().toISOString(),
+    };
+
+    const [suggestion] = await engine.generateSuggestions([orphan]);
+    expect(suggestion).toBeDefined();
+    if (!suggestion) throw new Error("Expected an initial remediation suggestion");
+    await engine.declineCleanup(suggestion.id);
+    expect(await engine.generateSuggestions([orphan])).toHaveLength(0);
+
+    await new Promise(resolve => setTimeout(resolve, 30));
+
+    expect(await engine.generateSuggestions([orphan])).toHaveLength(1);
+  });
+
+  it("should reject invalid cooldown configuration (FR-ORF-009)", () => {
+    expect(
+      () =>
+        new RemediationEngine(laneRegistry, bus, {
+          cooldownDurationMs: 0,
+          cooldownFile: `/tmp/helios-cooldown-${testId}.json`,
+        })
+    ).toThrow("Remediation cooldown duration must be a positive finite number");
   });
 });
