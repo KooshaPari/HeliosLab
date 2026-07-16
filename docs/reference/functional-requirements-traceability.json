@@ -576,9 +576,9 @@
 		},
 		{
 			"id": "FR-RUN-004",
-			"status": "[ ]",
+			"status": "[x]",
 			"code": ["package.json", "scripts/solid-dev-server.ts"],
-			"tests": ["apps/runtime/tests/unit/build-infra.test.ts"],
+			"tests": ["apps/runtime/tests/unit/build-infra.test.ts", "apps/runtime/tests/integration/dev-server-hot-reload.test.ts"],
 			"evidence": ["docs/specs/019-ts7-and-bun-runtime-setup/tasks/WP02-build-dev-typecheck-scripts.md"]
 		},
 		{
