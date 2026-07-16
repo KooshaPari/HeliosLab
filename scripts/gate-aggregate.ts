@@ -7,6 +7,8 @@ import { existsSync, readdirSync } from "fs";
 import { join } from "path";
 import {
 	aggregateGateReports,
+	createGateReport,
+	formatGateReport,
 	formatPipelineSummary,
 	readGateReport,
 	writeGateReport,
@@ -15,6 +17,24 @@ import {
 
 const REPORT_DIR = ".gate-reports";
 const SUMMARY_OUTPUT = join(REPORT_DIR, "pipeline-summary.json");
+const AGGREGATION_ERROR_OUTPUT = join(REPORT_DIR, "aggregation-error.json");
+
+export function createAggregationFailureReport(error: unknown): GateReport {
+	const message = error instanceof Error ? error.message : String(error);
+	return createGateReport(
+		"aggregate",
+		[
+			{
+				file: REPORT_DIR,
+				message,
+				severity: "error",
+				remediation:
+					"Regenerate every gate report and correct malformed or missing report evidence.",
+			},
+		],
+		0,
+	);
+}
 
 /**
  * Read all gate reports from disk.
@@ -72,7 +92,9 @@ async function main(): Promise<void> {
 
 if (import.meta.main) {
 	main().catch((e) => {
-		console.error(`Error: ${e}`);
+		const report = createAggregationFailureReport(e);
+		writeGateReport(report, AGGREGATION_ERROR_OUTPUT);
+		console.error(formatGateReport(report));
 		process.exit(2);
 	});
 }

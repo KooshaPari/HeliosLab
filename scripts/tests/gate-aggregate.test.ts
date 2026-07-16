@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { mkdtempSync, rmSync, writeFileSync } from "fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "fs";
 import { tmpdir } from "os";
 import { join } from "path";
 
-import { loadGateReports } from "../gate-aggregate";
+import { createAggregationFailureReport, loadGateReports } from "../gate-aggregate";
 import { createGateReport } from "../gate-report";
 
 const temporaryDirectories: string[] = [];
@@ -21,6 +21,44 @@ afterEach(() => {
 });
 
 describe("Gate report aggregation", () => {
+	test("converts aggregation exceptions into structured failures (FR-CI-011)", () => {
+		const report = createAggregationFailureReport(
+			new Error("Failed to read report gate-lint.json"),
+		);
+
+		expect(report).toMatchObject({
+			gateName: "aggregate",
+			status: "fail",
+			findings: [
+				{
+					file: ".gate-reports",
+					message: "Failed to read report gate-lint.json",
+					severity: "error",
+					remediation:
+						"Regenerate every gate report and correct malformed or missing report evidence.",
+				},
+			],
+		});
+	});
+
+	test("writes a structured artifact when aggregation fails", () => {
+		const directory = createTemporaryDirectory();
+		const script = join(import.meta.dir, "..", "gate-aggregate.ts");
+		const result = Bun.spawnSync({
+			cmd: [process.execPath, script],
+			cwd: directory,
+			stderr: "pipe",
+			stdout: "pipe",
+		});
+
+		expect(result.exitCode).toBe(2);
+		const report = JSON.parse(
+			readFileSync(join(directory, ".gate-reports", "aggregation-error.json"), "utf8"),
+		);
+		expect(report).toMatchObject({ gateName: "aggregate", status: "fail" });
+		expect(report.findings[0].remediation).toBeTruthy();
+	});
+
 	test("fails closed when the report directory is missing (FR-CI-011)", () => {
 		const directory = createTemporaryDirectory();
 		rmSync(directory, { recursive: true });
