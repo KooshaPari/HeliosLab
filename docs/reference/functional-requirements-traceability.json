@@ -1654,7 +1654,7 @@
 		},
 		{
 			"id": "FR-CI-006",
-			"status": "[ ]",
+			"status": "[x]",
 			"code": ["scripts/gate-coverage.ts", ".github/workflows/coverage.yml", ".github/workflows/quality-gates.yml"],
 			"tests": ["scripts/tests/gates-integration.test.ts"],
 			"evidence": ["docs/specs/021-continuous-integration-and-quality-gates/spec.md"]

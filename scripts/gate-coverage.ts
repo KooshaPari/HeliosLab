@@ -15,7 +15,7 @@ import {
 const REPORT_OUTPUT = ".gate-reports/gate-coverage.json";
 const COVERAGE_THRESHOLD = 85;
 
-interface CoverageMetrics {
+export interface CoverageMetrics {
 	lines: number;
 	functions: number;
 	branches: number;
@@ -159,11 +159,22 @@ function parseCoverageData(): {
 /**
  * Generate findings for coverage violations.
  */
-function checkCoverageThresholds(
+export function checkCoverageThresholds(
 	packages: Map<string, CoverageMetrics>,
 	aggregate: CoverageMetrics,
 ): GateFinding[] {
 	const findings: GateFinding[] = [];
+	if (packages.size === 0) {
+		return [
+			{
+				file: "coverage/coverage-final.json",
+				message: "Coverage data is missing or unreadable",
+				severity: "error",
+				rule: "coverage-data-missing",
+				remediation: "Run the complete test suite with coverage before this gate",
+			},
+		];
+	}
 
 	packages.forEach((metrics, pkgName) => {
 		const metricsEntries = Object.entries(metrics) as Array<
@@ -181,6 +192,21 @@ function checkCoverageThresholds(
 			}
 		});
 	});
+
+	const aggregateEntries = Object.entries(aggregate) as Array<
+		[keyof CoverageMetrics, number]
+	>;
+	for (const [metricName, value] of aggregateEntries) {
+		if (value < COVERAGE_THRESHOLD) {
+			findings.push({
+				file: "monorepo",
+				message: `Aggregate coverage for ${metricName} is ${value}%, below threshold of ${COVERAGE_THRESHOLD}%`,
+				severity: "error",
+				rule: `coverage-aggregate-${metricName}`,
+				remediation: `Add tests to increase aggregate ${metricName} coverage above ${COVERAGE_THRESHOLD}%`,
+			});
+		}
+	}
 
 	return findings;
 }
@@ -213,7 +239,9 @@ async function main(): Promise<void> {
 	process.exit(report.status === "pass" ? 0 : 1);
 }
 
-main().catch((e) => {
-	console.error(`Error: ${e}`);
-	process.exit(2);
-});
+if (import.meta.main) {
+	main().catch((e) => {
+		console.error(`Error: ${e}`);
+		process.exit(2);
+	});
+}

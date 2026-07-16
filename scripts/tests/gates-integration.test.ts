@@ -1,11 +1,46 @@
 import { expect, test, describe } from "bun:test";
 import { createGateReport, type GateFinding } from "../gate-report";
+import { checkCoverageThresholds } from "../gate-coverage";
 import { evaluateBunAuditResult } from "../gate-security";
 
 describe("Gate Integration Tests", () => {
 	// Traces to: FR-CI-001, FR-CI-006
 	// Coverage Gate Tests
 	describe("Coverage Gate", () => {
+		test("missing coverage evidence fails closed", () => {
+			const findings = checkCoverageThresholds(new Map(), {
+				lines: 0,
+				functions: 0,
+				branches: 0,
+				statements: 0,
+			});
+
+			expect(createGateReport("coverage", findings, 1).status).toBe("fail");
+			expect(findings).toEqual([
+				expect.objectContaining({
+					file: "coverage/coverage-final.json",
+					rule: "coverage-data-missing",
+					remediation: expect.any(String),
+				}),
+			]);
+		});
+
+		test("aggregate coverage below threshold fails even when packages pass", () => {
+			const passing = { lines: 90, functions: 90, branches: 90, statements: 90 };
+			const findings = checkCoverageThresholds(new Map([["apps/runtime", passing]]), {
+				...passing,
+				lines: 84,
+			});
+
+			expect(findings).toEqual([
+				expect.objectContaining({
+					file: "monorepo",
+					rule: "coverage-aggregate-lines",
+					severity: "error",
+				}),
+			]);
+		});
+
 		// Traces to: FR-CI-006
 		test("coverage below threshold fails gate", () => {
 			const findings: GateFinding[] = [
