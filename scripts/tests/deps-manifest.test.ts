@@ -89,4 +89,38 @@ describe("Dependency Manifest", () => {
 		expect(depNames).toContain("ghostty");
 		expect(depNames).toContain("zellij");
 	});
+
+	test("npm current pins match exact direct resolutions in bun.lock", () => {
+		const registry: DepsRegistry = JSON.parse(
+			readFileSync(join(process.cwd(), "deps-registry.json"), "utf-8"),
+		);
+		const lock = Bun.JSONC.parse(readFileSync(join(process.cwd(), "bun.lock"), "utf-8")) as {
+			packages: Record<string, [string, ...unknown[]]>;
+		};
+		const mismatches: string[] = [];
+
+		for (const dependency of registry.dependencies) {
+			if (!dependency.upstreamSource.startsWith("https://registry.npmjs.org/")) {
+				continue;
+			}
+
+			const resolution = lock.packages[dependency.name]?.[0];
+			const prefix = `${dependency.name}@`;
+			if (!resolution?.startsWith(prefix)) {
+				mismatches.push(`${dependency.name}: missing direct lock resolution`);
+				continue;
+			}
+
+			const resolvedVersion = resolution.slice(prefix.length);
+			if (!/^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/.test(resolvedVersion)) {
+				mismatches.push(`${dependency.name}: non-exact resolution ${resolvedVersion}`);
+			} else if (dependency.currentPin !== resolvedVersion) {
+				mismatches.push(
+					`${dependency.name}: manifest=${dependency.currentPin} lock=${resolvedVersion}`,
+				);
+			}
+		}
+
+		expect(mismatches).toEqual([]);
+	});
 });
