@@ -90,29 +90,40 @@ const FILE_ARG_COMMANDS = [
   "rsync",
   "source",
   ".",
+  "type",
+  "get-content",
 ];
 
 export function matchesPattern(filePath: string, pattern: string): boolean {
-  const expandedPattern = pattern.replace(/^~\//, "");
-  const expandedPath = filePath.replace(/^~\//, "").replace(/^\/home\/[^/]+\//, "");
+  const normalizedPath = filePath.replace(/\\/g, "/");
+  const normalizedPattern = pattern.replace(/\\/g, "/");
+  const expandedPattern = normalizedPattern.replace(/^~\//, "");
+  const expandedPath = normalizedPath
+    .replace(/^~\//, "")
+    .replace(/^\/home\/[^/]+\//, "");
 
-  if (pattern === ".env") {
-    const base = filePath.split("/").pop() ?? filePath;
+  if (normalizedPattern === ".env") {
+    const base = normalizedPath.split("/").pop() ?? normalizedPath;
     return base === ".env" || base.startsWith(".env.");
   }
 
-  if (!pattern.includes("*") && !pattern.includes("?")) {
-    const base = filePath.split("/").pop() ?? filePath;
-    const patBase = pattern.split("/").pop() ?? pattern;
+  if (!normalizedPattern.includes("*") && !normalizedPattern.includes("?")) {
+    const base = normalizedPath.split("/").pop() ?? normalizedPath;
+    const patBase = normalizedPattern.split("/").pop() ?? normalizedPattern;
     if (base === patBase) return true;
-    if (filePath.endsWith(pattern) || filePath === pattern) return true;
+    if (
+      normalizedPath.endsWith(normalizedPattern) ||
+      normalizedPath === normalizedPattern
+    ) {
+      return true;
+    }
     if (expandedPath.endsWith(expandedPattern) || expandedPath === expandedPattern) return true;
     return false;
   }
 
-  const regexSource = globToRegex(pattern);
+  const regexSource = globToRegex(normalizedPattern);
   const regex = new RegExp(regexSource, "i");
-  return regex.test(filePath) || regex.test(expandedPath);
+  return regex.test(normalizedPath) || regex.test(expandedPath);
 }
 
 function globToRegex(glob: string): string {
@@ -147,7 +158,7 @@ export function extractFilePaths(command: string): string[] {
 
   if (tokens.length === 0) return paths;
 
-  const cmd = tokens[0];
+  const cmd = tokens[0].toLowerCase();
 
   if (cmd === "curl") {
     for (let i = 1; i < tokens.length; i++) {
@@ -225,7 +236,8 @@ function looksLikeFilePath(tok: string): boolean {
     tok.startsWith("./") ||
     tok.startsWith("../") ||
     tok.includes(".") ||
-    tok.includes("/")
+    tok.includes("/") ||
+    tok.includes("\\")
   );
 }
 
