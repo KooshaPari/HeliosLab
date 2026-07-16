@@ -15,6 +15,10 @@ export interface ApprovalRequest {
   workspaceId: string;
   agentId: string;
   requesterName: string;
+  affectedFiles: string[];
+  riskClassification: "safe" | "needs-approval" | "blocked";
+  agentRationale: string;
+  diffContext: string;
   status: ApprovalStatus;
   createdAt: string;
   expiresAt: string;

@@ -1,14 +1,58 @@
 /**
- * Approval Queue Unit Tests (FR-APR-005, FR-APR-006)
+ * Approval Queue Unit Tests (FR-APR-004, FR-APR-005, FR-APR-006)
  * Exercises the current in-memory request and resolution primitives.
  */
 import { describe, expect, test } from "bun:test";
+import type { ApprovalRequestInput } from "../../../src/policy/approval-queue";
 import { ApprovalQueue, ApprovalStatus } from "../../../src/policy/approval-queue";
 
+const approvalInput = (overrides: Partial<ApprovalRequestInput> = {}): ApprovalRequestInput => ({
+  command: "git push",
+  workspaceId: "workspace1",
+  agentId: "agent1",
+  requesterName: "Test Agent",
+  affectedFiles: ["src/policy.ts"],
+  riskClassification: "needs-approval",
+  agentRationale: "Publish the reviewed policy change",
+  diffContext: "+ require explicit approval",
+  ...overrides,
+});
+
 describe("ApprovalQueue", () => {
+  test("creates requests with complete review context (FR-APR-004)", () => {
+    const queue = new ApprovalQueue();
+    const request = queue.createRequest(approvalInput());
+
+    expect(request.affectedFiles).toEqual(["src/policy.ts"]);
+    expect(request.riskClassification).toBe("needs-approval");
+    expect(request.agentRationale).toBe("Publish the reviewed policy change");
+    expect(request.diffContext).toBe("+ require explicit approval");
+  });
+
+  test("rejects incomplete or invalid review context (FR-APR-004)", () => {
+    const queue = new ApprovalQueue();
+
+    expect(() => queue.createRequest(approvalInput({ agentRationale: " " }))).toThrow(
+      "Approval request agent rationale must not be blank"
+    );
+    expect(() => queue.createRequest(approvalInput({ diffContext: "" }))).toThrow(
+      "Approval request diff context must not be blank"
+    );
+    expect(() =>
+      queue.createRequest(approvalInput({ affectedFiles: ["src/file.ts", " "] }))
+    ).toThrow("Approval request affected file must not be blank");
+    expect(() =>
+      queue.createRequest(
+        approvalInput({
+          riskClassification: "critical" as ApprovalRequestInput["riskClassification"],
+        })
+      )
+    ).toThrow("Approval request has an invalid risk classification");
+  });
+
   test("creates approval requests", () => {
     const queue = new ApprovalQueue();
-    const request = queue.createRequest("git push", "workspace1", "agent1", "Test Agent");
+    const request = queue.createRequest(approvalInput());
 
     expect(request.id).toBeTruthy();
     expect(request.command).toBe("git push");
@@ -17,7 +61,7 @@ describe("ApprovalQueue", () => {
 
   test("approves requests with an operator-supplied reason (FR-APR-005)", () => {
     const queue = new ApprovalQueue();
-    const request = queue.createRequest("git push", "workspace1", "agent1", "Test Agent");
+    const request = queue.createRequest(approvalInput());
 
     queue.approve(request.id, "reviewer1", "Reviewed the command and affected files");
     const updated = queue.getRequest(request.id);
@@ -29,7 +73,7 @@ describe("ApprovalQueue", () => {
 
   test("rejects requests with an operator-supplied reason (FR-APR-005)", () => {
     const queue = new ApprovalQueue();
-    const request = queue.createRequest("git push", "workspace1", "agent1", "Test Agent");
+    const request = queue.createRequest(approvalInput());
 
     queue.reject(request.id, "Dangerous operation");
     const updated = queue.getRequest(request.id);
@@ -40,8 +84,8 @@ describe("ApprovalQueue", () => {
 
   test("requires a non-blank operator reason for either resolution (FR-APR-005)", () => {
     const queue = new ApprovalQueue();
-    const approval = queue.createRequest("git push", "workspace1", "agent1", "Test Agent");
-    const rejection = queue.createRequest("rm artifact", "workspace1", "agent1", "Test Agent");
+    const approval = queue.createRequest(approvalInput());
+    const rejection = queue.createRequest(approvalInput({ command: "rm artifact" }));
 
     expect(() => queue.approve(approval.id, "reviewer1", "  ")).toThrow(
       "Approval resolution requires an operator-supplied reason"
@@ -55,7 +99,7 @@ describe("ApprovalQueue", () => {
 
   test("applies the default deny action when a configurable timeout elapses (FR-APR-006)", async () => {
     const queue = new ApprovalQueue();
-    const request = queue.createRequest("git push", "workspace1", "agent1", "Test Agent", 10);
+    const request = queue.createRequest(approvalInput({ expiryMs: 10 }));
 
     await new Promise(resolve => setTimeout(resolve, 25));
 
@@ -67,7 +111,7 @@ describe("ApprovalQueue", () => {
 
   test("does not allow an expired request to be approved (FR-APR-006)", async () => {
     const queue = new ApprovalQueue();
-    const request = queue.createRequest("git push", "workspace1", "agent1", "Test Agent", 10);
+    const request = queue.createRequest(approvalInput({ expiryMs: 10 }));
 
     await new Promise(resolve => setTimeout(resolve, 25));
 
@@ -81,16 +125,20 @@ describe("ApprovalQueue", () => {
     const queue = new ApprovalQueue();
 
     for (const timeout of [0, -1, Number.POSITIVE_INFINITY, Number.NaN]) {
-      expect(() =>
-        queue.createRequest("git push", "workspace1", "agent1", "Test Agent", timeout)
-      ).toThrow("Approval request timeout must be a positive finite number");
+      expect(() => queue.createRequest(approvalInput({ expiryMs: timeout }))).toThrow(
+        "Approval request timeout must be a positive finite number"
+      );
     }
   });
 
   test("filters pending requests", () => {
     const queue = new ApprovalQueue();
-    queue.createRequest("cmd1", "ws1", "ag1", "User1");
-    const req2 = queue.createRequest("cmd2", "ws1", "ag1", "User1");
+    queue.createRequest(
+      approvalInput({ command: "cmd1", workspaceId: "ws1", agentId: "ag1", requesterName: "User1" })
+    );
+    const req2 = queue.createRequest(
+      approvalInput({ command: "cmd2", workspaceId: "ws1", agentId: "ag1", requesterName: "User1" })
+    );
     queue.approve(req2.id, "reviewer", "Expected command");
 
     const pending = queue.getPending();
@@ -100,8 +148,8 @@ describe("ApprovalQueue", () => {
 
   test("filters by workspace", () => {
     const queue = new ApprovalQueue();
-    queue.createRequest("cmd1", "ws1", "ag1", "User1");
-    queue.createRequest("cmd2", "ws2", "ag1", "User1");
+    queue.createRequest(approvalInput({ command: "cmd1", workspaceId: "ws1" }));
+    queue.createRequest(approvalInput({ command: "cmd2", workspaceId: "ws2" }));
 
     const ws1 = queue.getForWorkspace("ws1");
     expect(ws1.length).toBe(1);

@@ -81,6 +81,24 @@ export function ApprovalPanel(props: ApprovalPanelProps) {
             <span>Workspace:</span>
             <span>{selectedRequest()?.workspaceId}</span>
           </div>
+          <div class="detail-group">
+            <span>Risk classification:</span>
+            <span>{selectedRequest()?.riskClassification}</span>
+          </div>
+          <div class="detail-group">
+            <span>Affected files:</span>
+            <ul>
+              <For each={selectedRequest()?.affectedFiles}>{file => <li>{file}</li>}</For>
+            </ul>
+          </div>
+          <div class="detail-group">
+            <span>Agent rationale:</span>
+            <span>{selectedRequest()?.agentRationale}</span>
+          </div>
+          <div class="detail-group">
+            <span>Diff context:</span>
+            <pre>{selectedRequest()?.diffContext}</pre>
+          </div>
 
           <div class="approval-actions">
             <button

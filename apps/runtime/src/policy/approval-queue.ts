@@ -16,6 +16,10 @@ export interface ApprovalRequest {
   workspaceId: string;
   agentId: string;
   requesterName: string;
+  affectedFiles: string[];
+  riskClassification: ApprovalRiskClassification;
+  agentRationale: string;
+  diffContext: string;
   status: ApprovalStatus;
   createdAt: string;
   expiresAt: string;
@@ -23,6 +27,20 @@ export interface ApprovalRequest {
   approvedAt?: string;
   approvedReason?: string;
   rejectedReason?: string;
+}
+
+export type ApprovalRiskClassification = "safe" | "needs-approval" | "blocked";
+
+export interface ApprovalRequestInput {
+  command: string;
+  workspaceId: string;
+  agentId: string;
+  requesterName: string;
+  affectedFiles: string[];
+  riskClassification: ApprovalRiskClassification;
+  agentRationale: string;
+  diffContext: string;
+  expiryMs?: number;
 }
 
 /**
@@ -37,24 +55,26 @@ export class ApprovalQueue {
   /**
    * Create an approval request.
    */
-  createRequest(
-    command: string,
-    workspaceId: string,
-    agentId: string,
-    requesterName: string,
-    expiryMs?: number
-  ): ApprovalRequest {
-    const timeoutMs = this.resolveExpiryMs(expiryMs);
+  createRequest(input: ApprovalRequestInput): ApprovalRequest {
+    const timeoutMs = this.resolveExpiryMs(input.expiryMs);
+    const affectedFiles = this.normalizeAffectedFiles(input.affectedFiles);
+    const agentRationale = this.requireContextText(input.agentRationale, "agent rationale");
+    const diffContext = this.requireContextText(input.diffContext, "diff context");
+    this.requireRiskClassification(input.riskClassification);
     const id = `req-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const now = new Date();
     const expiresAt = new Date(now.getTime() + timeoutMs);
 
     const request: ApprovalRequest = {
       id,
-      command,
-      workspaceId,
-      agentId,
-      requesterName,
+      command: input.command,
+      workspaceId: input.workspaceId,
+      agentId: input.agentId,
+      requesterName: input.requesterName,
+      affectedFiles,
+      riskClassification: input.riskClassification,
+      agentRationale,
+      diffContext,
       status: ApprovalStatus.Pending,
       createdAt: now.toISOString(),
       expiresAt: expiresAt.toISOString(),
@@ -175,6 +195,29 @@ export class ApprovalQueue {
       throw new Error("Approval request timeout must be a positive finite number");
     }
     return timeoutMs;
+  }
+
+  private normalizeAffectedFiles(affectedFiles: string[]): string[] {
+    if (!Array.isArray(affectedFiles)) {
+      throw new Error("Approval request affected files must be an array");
+    }
+    return affectedFiles.map(file => this.requireContextText(file, "affected file"));
+  }
+
+  private requireRiskClassification(risk: string): asserts risk is ApprovalRiskClassification {
+    if (
+      !(["safe", "needs-approval", "blocked"] as const).includes(risk as ApprovalRiskClassification)
+    ) {
+      throw new Error("Approval request has an invalid risk classification");
+    }
+  }
+
+  private requireContextText(value: string, field: string): string {
+    const normalized = typeof value === "string" ? value.trim() : "";
+    if (!normalized) {
+      throw new Error(`Approval request ${field} must not be blank`);
+    }
+    return normalized;
   }
 
   private requireReason(reason: string): string {
