@@ -4,8 +4,7 @@
  */
 import { describe, expect, test } from "bun:test";
 
-import { createRuntime } from "../../../src";
-
+import { createRuntime } from "../../../src/index.ts";
 
 describe("terminal lifecycle and streaming data plane", () => {
   test("rejects lifecycle commands without correlation_id", async () => {
@@ -311,5 +310,42 @@ describe("terminal lifecycle and streaming data plane", () => {
 
     expect(response.status).toBe("error");
     expect(response.error?.code).toBe("INVALID_TERMINAL_INPUT");
+  });
+
+  test("warns when terminal input accesses a protected path (FR-SEC-007)", async () => {
+    const runtime = createRuntime();
+    const spawn = await runtime.spawnTerminal({
+      command_id: "cmd-spawn-protected-path",
+      correlation_id: "corr-spawn-protected-path",
+      workspace_id: "ws-1",
+      lane_id: "lane-1",
+      session_id: "sess-protected-path",
+    });
+    const terminalId = String(spawn.result?.terminal_id);
+
+    const response = await runtime.inputTerminal({
+      command_id: "cmd-input-protected-path",
+      correlation_id: "corr-input-protected-path",
+      workspace_id: "ws-1",
+      lane_id: "lane-1",
+      session_id: "sess-protected-path",
+      terminal_id: terminalId,
+      data: "cat .env",
+    });
+
+    expect(response.status).toBe("ok");
+    expect(response.result?.warnings).toEqual([
+      expect.stringContaining("Command accesses protected path '.env'"),
+    ]);
+    expect(
+      runtime
+        .getEvents()
+        .find(
+          event =>
+            event.topic === "secrets.protected_path.accessed" &&
+            event.payload?.correlationId === "corr-input-protected-path" &&
+            event.payload?.terminalId === terminalId
+        )
+    ).toBeDefined();
   });
 });

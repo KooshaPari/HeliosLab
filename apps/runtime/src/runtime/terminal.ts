@@ -1,7 +1,8 @@
+import type { InMemoryLocalBus } from "../protocol/bus.js";
 import { METHODS } from "../protocol/methods.js";
 import type { LocalBusEnvelope } from "../protocol/types.js";
-import type { InMemoryLocalBus } from "../protocol/bus.js";
-import { TerminalRegistry } from "../sessions/terminal_registry.js";
+import type { ProtectedPathDetector } from "../secrets/protected-paths-detector.js";
+import type { TerminalRegistry } from "../sessions/terminal_registry.js";
 import type { RuntimeAuditRecord, TerminalBuffer } from "./types.js";
 
 export type RuntimeTerminalContext = {
@@ -9,6 +10,7 @@ export type RuntimeTerminalContext = {
   terminalRegistry: TerminalRegistry;
   terminalBufferCap: number;
   terminalBuffers: Map<string, TerminalBuffer>;
+  protectedPathDetector: ProtectedPathDetector;
   appendAuditRecord(record: RuntimeAuditRecord): void;
   getTerminalBuffer(terminalId: string): TerminalBuffer;
   getTerminalState(): "active" | "throttled" | "idle";
@@ -315,6 +317,11 @@ export async function handleTerminalCommand(
       return response;
     }
 
+    const protectedPathMatches = context.protectedPathDetector.check(data, {
+      terminalId,
+      correlationId: command.correlation_id,
+    });
+
     appendTerminalOutput(context, terminalId, data, command.correlation_id);
 
     const response: LocalBusEnvelope = {
@@ -324,7 +331,10 @@ export async function handleTerminalCommand(
       correlation_id: command.correlation_id,
       method: command.method,
       status: "ok",
-      result: { output_seq: seq },
+      result: {
+        output_seq: seq,
+        warnings: protectedPathMatches.map(match => match.warningMessage),
+      },
     };
     recordResponse(context, response);
     return response;

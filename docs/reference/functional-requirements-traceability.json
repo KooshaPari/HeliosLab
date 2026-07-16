@@ -1514,9 +1514,9 @@
 		},
 		{
 			"id": "FR-SEC-007",
-			"status": "[ ]",
-			"code": ["apps/runtime/src/secrets/protected-paths-detector.ts", "apps/runtime/src/secrets/protected-paths-matching.ts"],
-			"tests": ["apps/runtime/src/secrets/__tests__/integration.test.ts"],
+			"status": "[x]",
+			"code": ["apps/runtime/src/index.ts", "apps/runtime/src/runtime/terminal.ts", "apps/runtime/src/secrets/protected-paths-detector.ts", "apps/runtime/src/secrets/protected-paths-matching.ts"],
+			"tests": ["apps/runtime/src/secrets/__tests__/integration.test.ts", "apps/runtime/tests/integration/runtime/test_terminal_lifecycle.test.ts"],
 			"evidence": ["docs/specs/028-secrets-management-and-redaction/spec.md"]
 		},
 		{

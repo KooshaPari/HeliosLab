@@ -5,27 +5,27 @@
  * the current test suite.
  */
 
-import { InMemoryLocalBus } from "./protocol/bus.js";
 import { createBoundaryDispatcher } from "./protocol/boundary_adapter.js";
+import { InMemoryLocalBus } from "./protocol/bus.js";
 import { METHODS } from "./protocol/methods.js";
 import type { LocalBusEnvelope } from "./protocol/types.js";
-import { RecoveryRegistry, InMemorySessionRegistry } from "./sessions/registry.js";
+import { handleRuntimeRequest } from "./runtime/ops.js";
+import type { TerminalBuffer } from "./runtime/types.js";
+import { ProtectedPathDetector } from "./secrets/protected-paths-detector.js";
+import { RedactionEngine } from "./secrets/redaction-engine.js";
+import { getDefaultRules } from "./secrets/redaction-rules.js";
+import { InMemorySessionRegistry, RecoveryRegistry } from "./sessions/registry.js";
 import {
   LaneLifecycleService,
-  type RuntimeState,
   type LaneRecord,
+  type RuntimeState,
 } from "./sessions/state_machine.js";
-import type { TerminalBuffer } from "./runtime/types.js";
 import { TerminalRegistry } from "./sessions/terminal_registry.js";
-import { handleRuntimeRequest } from "./runtime/ops.js";
-
 import type {
   RecoveryBootstrapResult,
   RecoveryMetadata,
   WatchdogScanResult,
 } from "./sessions/types.js";
-import { RedactionEngine } from "./secrets/redaction-engine.js";
-import { getDefaultRules } from "./secrets/redaction-rules.js";
 
 /** Semantic version of the runtime package. */
 export const VERSION = "0.0.1" as const;
@@ -146,6 +146,7 @@ export function createRuntime(options: RuntimeOptions = {}) {
   const laneService = new LaneLifecycleService(bus);
   const redactionEngine = new RedactionEngine();
   redactionEngine.loadRules(getDefaultRules());
+  const protectedPathDetector = new ProtectedPathDetector({ bus });
 
   const auditRecords: RuntimeAuditRecord[] = [];
   let bootstrapResult: RecoveryBootstrapResult | null = null;
@@ -270,6 +271,7 @@ export function createRuntime(options: RuntimeOptions = {}) {
     terminalRegistry,
     terminalBufferCap,
     terminalBuffers,
+    protectedPathDetector,
     appendAuditRecord,
     getTerminalBuffer: getTerminalBufferInternal,
     getTerminalState,
