@@ -72,11 +72,14 @@ function isCacheFresh(cacheFile: string, maxAge: number): boolean {
 }
 
 /**
- * Load cached versions if available and fresh.
+ * Load cached versions and report whether the cache is still fresh.
  */
-function loadCache(maxAge: number): Map<string, string> {
+function loadCache(maxAge: number): {
+	versions: Map<string, string>;
+	fresh: boolean;
+} {
 	const map = new Map<string, string>();
-	if (!isCacheFresh(CACHE_FILE, maxAge)) return map;
+	if (!existsSync(CACHE_FILE)) return { versions: map, fresh: false };
 
 	try {
 		const data = JSON.parse(readFileSync(CACHE_FILE, "utf-8"));
@@ -86,7 +89,7 @@ function loadCache(maxAge: number): Map<string, string> {
 	} catch {
 		// Ignore cache read errors
 	}
-	return map;
+	return { versions: map, fresh: isCacheFresh(CACHE_FILE, maxAge) };
 }
 
 /**
@@ -181,7 +184,7 @@ async function generateReport(jsonFormat: boolean): Promise<void> {
 	}
 
 	const maxAgeMs = parseDuration(registry.metadata.registryCacheMaxAge);
-	const cache = loadCache(maxAgeMs);
+	const { versions: cache, fresh: cacheFresh } = loadCache(maxAgeMs);
 	const reports: StatusReport[] = [];
 
 	// Process each dependency
@@ -189,10 +192,15 @@ async function generateReport(jsonFormat: boolean): Promise<void> {
 		let latest: string | null = cache.get(dep.name) || null;
 
 		// If not in cache or cache is stale, try to fetch
-		if (!cache.has(dep.name)) {
-			latest = await fetchLatestVersion(dep.name, dep.upstreamSource);
-			if (latest) {
-				cache.set(dep.name, latest);
+		if (!cacheFresh || !cache.has(dep.name)) {
+			const fetched = await fetchLatestVersion(dep.name, dep.upstreamSource);
+			if (fetched) {
+				latest = fetched;
+				cache.set(dep.name, fetched);
+			} else if (latest !== null) {
+				console.warn(
+					`Warning: upstream unavailable for ${dep.name}; using stale cache (${latest}).`,
+				);
 			}
 		}
 
@@ -201,14 +209,12 @@ async function generateReport(jsonFormat: boolean): Promise<void> {
 
 		if (latest === null) {
 			status = "error";
-		} else if (latest === dep.currentPin) {
-			status = "up-to-date";
-		} else {
+		} else if (latest !== dep.currentPin) {
 			status = "upgrade-available";
-		}
-
-		if (daysOld > 30) {
+		} else if (daysOld > 30) {
 			status = "stale";
+		} else {
+			status = "up-to-date";
 		}
 
 		reports.push({

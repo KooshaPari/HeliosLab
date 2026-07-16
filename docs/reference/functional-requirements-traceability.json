@@ -618,7 +618,7 @@
 		},
 		{
 			"id": "FR-DEP-002",
-			"status": "[ ]",
+			"status": "[x]",
 			"code": ["package.json", "scripts/deps-status.ts"],
 			"tests": ["scripts/tests/deps-status.test.ts"],
 			"evidence": ["docs/specs/020-prerelease-dependency-registry/tasks/WP01-registry-manifest-and-status-command.md"]

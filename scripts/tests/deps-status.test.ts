@@ -1,11 +1,82 @@
 import { expect, test, describe, beforeEach, afterEach } from "bun:test";
-import { readFileSync, rmSync, writeFileSync, mkdirSync } from "fs";
+import {
+	mkdtempSync,
+	readFileSync,
+	rmSync,
+	writeFileSync,
+	mkdirSync,
+	utimesSync,
+} from "fs";
 import { join } from "path";
+import { tmpdir } from "os";
 import type { DepsRegistry } from "../deps-types";
 
 const REPO_ROOT = process.cwd();
 const CACHE_DIR = join(REPO_ROOT, ".cache");
 const CACHE_FILE = join(CACHE_DIR, "deps-status-cache.json");
+const STATUS_SCRIPT = join(REPO_ROOT, "scripts", "deps-status.ts");
+
+function createStatusFixture(latest: string, cacheAgeMs = 0): string {
+	const fixtureDir = mkdtempSync(join(tmpdir(), "deps-status-cli-"));
+	const registry: DepsRegistry = {
+		schemaVersion: "1.0.0",
+		metadata: {
+			lastStatusCheck: "2026-01-01T00:00:00.000Z",
+			registryCacheMaxAge: "PT1H",
+		},
+		dependencies: [
+			{
+				name: "fixture-package",
+				currentPin: "1.0.0",
+				channel: "stable",
+				upstreamSource: "https://unavailable.invalid/fixture-package",
+				knownGoodHistory: [],
+				lastUpdated: "2026-01-01T00:00:00.000Z",
+			},
+		],
+	};
+
+	writeFileSync(join(fixtureDir, "deps-registry.json"), JSON.stringify(registry));
+	const cacheDir = join(fixtureDir, ".cache");
+	mkdirSync(cacheDir, { recursive: true });
+	const cacheFile = join(cacheDir, "deps-status-cache.json");
+	writeFileSync(
+		cacheFile,
+		JSON.stringify([
+			{
+				package: "fixture-package",
+				latest,
+				cachedAt: new Date().toISOString(),
+			},
+		]),
+	);
+	if (cacheAgeMs > 0) {
+		const staleTime = new Date(Date.now() - cacheAgeMs);
+		utimesSync(cacheFile, staleTime, staleTime);
+	}
+
+	return fixtureDir;
+}
+
+async function runStatusFixture(fixtureDir: string, jsonFormat = true): Promise<{
+	exitCode: number;
+	stdout: string;
+	stderr: string;
+}> {
+	const args = [process.execPath, STATUS_SCRIPT];
+	if (jsonFormat) args.push("--json");
+	const child = Bun.spawn(args, {
+		cwd: fixtureDir,
+		stdout: "pipe",
+		stderr: "pipe",
+	});
+	const [exitCode, stdout, stderr] = await Promise.all([
+		child.exited,
+		new Response(child.stdout).text(),
+		new Response(child.stderr).text(),
+	]);
+	return { exitCode, stdout, stderr };
+}
 
 // Traces to: FR-DEP-002 (bun run deps:status command)
 describe("Dependency Status Command", () => {
@@ -71,6 +142,55 @@ describe("Dependency Status Command", () => {
 			registry.dependencies.map((dependency) => dependency.name),
 		);
 	});
+
+	test("available upgrade remains actionable when the dependency is stale", async () => {
+		const fixtureDir = createStatusFixture("1.1.0");
+		try {
+			const result = await runStatusFixture(fixtureDir);
+			const report = JSON.parse(result.stdout) as Array<{ status: string }>;
+
+			expect(result.exitCode, result.stderr).toBe(1);
+			expect(report[0]?.status).toBe("upgrade-available");
+		} finally {
+			rmSync(fixtureDir, { recursive: true, force: true });
+		}
+	}, 15_000);
+
+	test("unavailable upstream warns and retains stale cached evidence", async () => {
+		const fixtureDir = createStatusFixture("1.1.0", 2 * 60 * 60 * 1000);
+		try {
+			const result = await runStatusFixture(fixtureDir);
+			const report = JSON.parse(result.stdout) as Array<{
+				latestAvailable: string | null;
+				status: string;
+			}>;
+
+			expect(result.exitCode).toBe(1);
+			expect(result.stderr).toContain("using stale cache");
+			expect(report[0]?.latestAvailable).toBe("1.1.0");
+			expect(report[0]?.status).toBe("upgrade-available");
+		} finally {
+			rmSync(fixtureDir, { recursive: true, force: true });
+		}
+	}, 15_000);
+
+	test("warm-cache table output remains readable and completes within 10 seconds", async () => {
+		const fixtureDir = createStatusFixture("1.0.0");
+		try {
+			const startedAt = performance.now();
+			const result = await runStatusFixture(fixtureDir, false);
+			const elapsedMs = performance.now() - startedAt;
+
+			expect(result.exitCode, result.stderr).toBe(0);
+			expect(result.stdout).toContain("Dependency Status Report");
+			expect(result.stdout).toContain("Package");
+			expect(result.stdout).toContain("fixture-package");
+			expect(result.stdout).toContain("Summary:");
+			expect(elapsedMs).toBeLessThan(10_000);
+		} finally {
+			rmSync(fixtureDir, { recursive: true, force: true });
+		}
+	}, 15_000);
 
 	test("cache file is created on first run", () => {
 		// After running deps-status, cache should be created
