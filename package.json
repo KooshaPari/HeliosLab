@@ -42,6 +42,7 @@
     "test:rust": "cargo test --workspace --exclude pheno-ffi-python",
     "test:all": "bun run test && bun run test:rust",
     "test:coverage": "bun test --coverage apps packages scripts tests",
+    "security:scan": "bun run scripts/gate-security.ts",
     "traceability": "bun tools/gates/requirement-traceability.mjs",
     "gates": "bun run typecheck:all && bun run lint:all && bun run test:all && bun run traceability",
     "docs:index": "bash docs/scripts/generate-doc-index.sh",

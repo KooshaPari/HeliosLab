@@ -1,5 +1,6 @@
 import { expect, test, describe } from "bun:test";
 import { createGateReport, type GateFinding } from "../gate-report";
+import { evaluateBunAuditResult } from "../gate-security";
 
 describe("Gate Integration Tests", () => {
 	// Traces to: FR-CI-001, FR-CI-006
@@ -73,6 +74,56 @@ describe("Gate Integration Tests", () => {
 	// Traces to: FR-CI-002, FR-CI-003, FR-CI-007 (type check, lint, security)
 	// Security Gate Tests
 	describe("Security Gate", () => {
+		test("real Bun audit output blocks high findings and reports moderate advisories", () => {
+			const findings = evaluateBunAuditResult({
+				stdout: JSON.stringify({
+					"high-package": [
+						{
+							id: 12345,
+							url: "https://github.com/advisories/GHSA-test-high",
+							title: "High severity fixture",
+							severity: "high",
+							vulnerable_versions: "<2.0.0",
+						},
+					],
+					"moderate-package": [
+						{
+							id: 67890,
+							title: "Moderate severity fixture",
+							severity: "moderate",
+							vulnerable_versions: "<=1.4.0",
+						},
+					],
+				}),
+				stderr: "",
+				exitCode: 1,
+			});
+
+			const report = createGateReport("security", findings, 10);
+			expect(report.status).toBe("fail");
+			expect(findings.map((finding) => finding.severity)).toEqual(["error", "warning"]);
+			expect(findings.every((finding) => finding.remediation)).toBe(true);
+			expect(findings[0]?.message).toContain("<2.0.0");
+		});
+
+		test("scanner failure is a blocking structured finding", () => {
+			const findings = evaluateBunAuditResult({
+				stdout: "",
+				stderr: "registry unavailable",
+				exitCode: 2,
+			});
+
+			expect(createGateReport("security", findings, 10).status).toBe("fail");
+			expect(findings).toEqual([
+				expect.objectContaining({
+					file: "bun.lock",
+					rule: "security-scanner-unavailable",
+					severity: "error",
+					remediation: expect.any(String),
+				}),
+			]);
+		});
+
 		// Traces to: FR-CI-007 (security scanning)
 		test("high severity vulnerability fails gate", () => {
 			const findings: GateFinding[] = [

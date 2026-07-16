@@ -28,6 +28,7 @@ jobs:
       - run: bun run lint
       - run: bun run test
       - run: bun run test:coverage
+      - run: bun run security:scan
 
   rust-quality:
     name: rust-quality

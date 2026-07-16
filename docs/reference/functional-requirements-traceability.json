@@ -1661,8 +1661,8 @@
 		},
 		{
 			"id": "FR-CI-007",
-			"status": "[ ]",
-			"code": ["scripts/gate-security.ts", ".github/workflows/ci.yml", ".github/workflows/security-guard.yml"],
+			"status": "[x]",
+			"code": ["scripts/gate-security.ts", "package.json", ".github/workflows/quality-gates.yml", ".github/workflows/ci.yml", ".github/workflows/security-guard.yml"],
 			"tests": ["scripts/tests/gates-integration.test.ts"],
 			"evidence": ["docs/specs/021-continuous-integration-and-quality-gates/spec.md"]
 		},
