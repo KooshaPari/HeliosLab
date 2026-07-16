@@ -1,8 +1,9 @@
 /**
  * FR-HELIOS-101: Policy Rules Engine Unit Tests
- * Verifies: FR-APR-002 (Rule pattern matching), FR-APR-003 (Deny-by-default)
+ * Verifies: FR-APR-002 (Rule pattern matching), FR-APR-003 (Deny-by-default),
+ * FR-APR-008 (protected-path denylist precedence)
  */
-import { test, expect, describe } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { PolicyRuleSet } from "../../../src/policy/rules";
 import { PolicyClassification, PolicyPatternType } from "../../../src/policy/types";
 
@@ -136,6 +137,44 @@ describe("PolicyRuleSet", () => {
 
     expect(result.classification).toBe(PolicyClassification.Blocked);
     expect(result.matchedRules.length).toBe(2);
+  });
+
+  test("protected-path denylist overrides a workspace allowlist (FR-APR-008)", () => {
+    const ruleSet = new PolicyRuleSet();
+    ruleSet.addRule({
+      id: "file-read-safe",
+      pattern: "cat *",
+      patternType: PolicyPatternType.Glob,
+      classification: PolicyClassification.Safe,
+      scope: "test",
+      priority: 10,
+      description: "Allow file reads",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    });
+    ruleSet.removeRule("protected-path:dotenv");
+    ruleSet.updateRule("protected-path:dotenv", { classification: PolicyClassification.Safe });
+
+    for (const affectedPath of [".env.local", "config/credentials.json", "~/.aws/config"]) {
+      const result = ruleSet.evaluate(`cat ${affectedPath}`, {
+        workspaceId: "test",
+        agentId: "agent1",
+        affectedPaths: [affectedPath],
+        isDirect: false,
+      });
+
+      expect(result.classification).toBe(PolicyClassification.Blocked);
+      expect(result.deniedByDefault).toBe(false);
+      expect(result.matchedRules.some(rule => rule.id.startsWith("protected-path:"))).toBe(true);
+    }
+
+    const ordinary = ruleSet.evaluate("cat README.md", {
+      workspaceId: "test",
+      agentId: "agent1",
+      affectedPaths: ["README.md"],
+      isDirect: false,
+    });
+    expect(ordinary.classification).toBe(PolicyClassification.Safe);
   });
 
   test("priority ordering: lower priority evaluates first", () => {

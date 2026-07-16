@@ -1444,8 +1444,8 @@
 		},
 		{
 			"id": "FR-APR-008",
-			"status": "[ ]",
-			"code": ["apps/runtime/src/policy/rules.ts", "apps/runtime/src/secrets/protected-paths.ts"],
+			"status": "[x]",
+			"code": ["apps/runtime/src/policy/rules.ts", "apps/runtime/src/secrets/protected-paths-matching.ts"],
 			"tests": ["apps/runtime/tests/unit/policy/rules.test.ts"],
 			"evidence": ["docs/specs/023-command-policy-engine-and-approval-workflows/spec.md"]
 		},
