@@ -1,5 +1,5 @@
 /**
- * Approval Queue Unit Tests (FR-APR-005)
+ * Approval Queue Unit Tests (FR-APR-005, FR-APR-006)
  * Exercises the current in-memory request and resolution primitives.
  */
 import { describe, expect, test } from "bun:test";
@@ -51,6 +51,40 @@ describe("ApprovalQueue", () => {
     );
     expect(queue.getRequest(approval.id)?.status).toBe(ApprovalStatus.Pending);
     expect(queue.getRequest(rejection.id)?.status).toBe(ApprovalStatus.Pending);
+  });
+
+  test("applies the default deny action when a configurable timeout elapses (FR-APR-006)", async () => {
+    const queue = new ApprovalQueue();
+    const request = queue.createRequest("git push", "workspace1", "agent1", "Test Agent", 10);
+
+    await new Promise(resolve => setTimeout(resolve, 25));
+
+    expect(queue.getRequest(request.id)?.status).toBe(ApprovalStatus.Expired);
+    expect(queue.getRequest(request.id)?.rejectedReason).toBe(
+      "Approval request timed out; default action: deny"
+    );
+  });
+
+  test("does not allow an expired request to be approved (FR-APR-006)", async () => {
+    const queue = new ApprovalQueue();
+    const request = queue.createRequest("git push", "workspace1", "agent1", "Test Agent", 10);
+
+    await new Promise(resolve => setTimeout(resolve, 25));
+
+    expect(() => queue.approve(request.id, "reviewer1", "Approve after timeout")).toThrow(
+      "Only pending approval requests can be resolved"
+    );
+    expect(queue.getRequest(request.id)?.status).toBe(ApprovalStatus.Expired);
+  });
+
+  test("rejects invalid timeout configuration (FR-APR-006)", () => {
+    const queue = new ApprovalQueue();
+
+    for (const timeout of [0, -1, Number.POSITIVE_INFINITY, Number.NaN]) {
+      expect(() =>
+        queue.createRequest("git push", "workspace1", "agent1", "Test Agent", timeout)
+      ).toThrow("Approval request timeout must be a positive finite number");
+    }
   });
 
   test("filters pending requests", () => {

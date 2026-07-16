@@ -32,6 +32,7 @@ export class ApprovalQueue {
   private requests: Map<string, ApprovalRequest> = new Map();
   private expireTimers: Map<string, NodeJS.Timeout> = new Map();
   private readonly defaultExpiryMs = 24 * 60 * 60 * 1000; // 24 hours
+  private readonly timeoutDenialReason = "Approval request timed out; default action: deny";
 
   /**
    * Create an approval request.
@@ -43,9 +44,10 @@ export class ApprovalQueue {
     requesterName: string,
     expiryMs?: number
   ): ApprovalRequest {
+    const timeoutMs = this.resolveExpiryMs(expiryMs);
     const id = `req-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const now = new Date();
-    const expiresAt = new Date(now.getTime() + (expiryMs || this.defaultExpiryMs));
+    const expiresAt = new Date(now.getTime() + timeoutMs);
 
     const request: ApprovalRequest = {
       id,
@@ -62,8 +64,8 @@ export class ApprovalQueue {
 
     // Set expiry timer
     const expiryTimer = setTimeout(() => {
-      request.status = ApprovalStatus.Expired;
-    }, expiryMs || this.defaultExpiryMs);
+      this.expire(id);
+    }, timeoutMs);
 
     this.expireTimers.set(id, expiryTimer);
 
@@ -83,6 +85,7 @@ export class ApprovalQueue {
   approve(id: string, approvedBy: string, reason: string): void {
     const request = this.requests.get(id);
     if (request) {
+      this.requirePending(request);
       const approvedReason = this.requireReason(reason);
       request.status = ApprovalStatus.Approved;
       request.approvedBy = approvedBy;
@@ -98,6 +101,7 @@ export class ApprovalQueue {
   reject(id: string, reason: string): void {
     const request = this.requests.get(id);
     if (request) {
+      this.requirePending(request);
       const rejectedReason = this.requireReason(reason);
       request.status = ApprovalStatus.Rejected;
       request.rejectedReason = rejectedReason;
@@ -126,8 +130,7 @@ export class ApprovalQueue {
     const now = new Date();
     for (const [id, request] of this.requests.entries()) {
       if (new Date(request.expiresAt) < now && request.status === ApprovalStatus.Pending) {
-        request.status = ApprovalStatus.Expired;
-        this.clearTimer(id);
+        this.expire(id);
       }
     }
   }
@@ -149,6 +152,29 @@ export class ApprovalQueue {
       clearTimeout(timer);
       this.expireTimers.delete(id);
     }
+  }
+
+  private expire(id: string): void {
+    const request = this.requests.get(id);
+    if (request?.status === ApprovalStatus.Pending) {
+      request.status = ApprovalStatus.Expired;
+      request.rejectedReason = this.timeoutDenialReason;
+    }
+    this.clearTimer(id);
+  }
+
+  private requirePending(request: ApprovalRequest): void {
+    if (request.status !== ApprovalStatus.Pending) {
+      throw new Error("Only pending approval requests can be resolved");
+    }
+  }
+
+  private resolveExpiryMs(expiryMs?: number): number {
+    const timeoutMs = expiryMs ?? this.defaultExpiryMs;
+    if (!Number.isFinite(timeoutMs) || timeoutMs <= 0) {
+      throw new Error("Approval request timeout must be a positive finite number");
+    }
+    return timeoutMs;
   }
 
   private requireReason(reason: string): string {
