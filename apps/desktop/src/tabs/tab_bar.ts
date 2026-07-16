@@ -119,6 +119,8 @@ export class TabBar {
   render(): HTMLElement {
     const container = document.createElement("div");
     container.className = "tab-bar";
+    container.setAttribute("role", "tablist");
+    container.setAttribute("aria-label", "Workspace views");
     container.style.display = "flex";
     container.style.alignItems = "center";
     container.style.borderBottom = "1px solid #e0e0e0";
@@ -163,6 +165,10 @@ export class TabBar {
     const headerEl = document.createElement("button");
     headerEl.className = "tab-header";
     headerEl.setAttribute("data-tab-id", tab.getTabId());
+    headerEl.id = `tab-trigger-${tab.getTabId()}`;
+    headerEl.setAttribute("role", "tab");
+    headerEl.setAttribute("aria-controls", `tab-panel-${tab.getTabId()}`);
+    headerEl.setAttribute("aria-selected", String(isSelected));
     headerEl.setAttribute("tabindex", this.focusedTabIndex === index ? "0" : "-1");
     headerEl.style.flex = "1";
     headerEl.style.padding = "12px 16px";

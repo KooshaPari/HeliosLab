@@ -31,7 +31,7 @@ describe("TerminalTab", () => {
       };
 
       await tab.onContextChange(context);
-      const _el = tab.render();
+      const el = tab.render();
 
       // Should render terminal output after context change
       expect(el.textContent).toContain("$");
@@ -47,7 +47,7 @@ describe("TerminalTab", () => {
       await tab.onContextChange(context);
       await tab.onContextChange(null);
 
-      const _el = tab.render();
+      const el = tab.render();
       expect(el.textContent).toContain("No terminal");
     });
 
@@ -77,14 +77,14 @@ describe("TerminalTab", () => {
   describe("Empty State", () => {
     it("should show empty state message when no terminal", async () => {
       await tab.onContextChange(null);
-      const _el = tab.render();
+      const el = tab.render();
 
       expect(el.textContent).toContain("No terminal for this lane");
     });
 
     it("should show create button in empty state", async () => {
       await tab.onContextChange(null);
-      const _el = tab.render();
+      const el = tab.render();
       const btn = el.querySelector("button");
 
       expect(btn).toBeDefined();
@@ -101,7 +101,7 @@ describe("TerminalTab", () => {
       };
 
       await tab.onContextChange(context);
-      const _el = tab.render();
+      const el = tab.render();
 
       expect(el.textContent).toContain("$");
     });
@@ -114,7 +114,7 @@ describe("TerminalTab", () => {
       };
 
       await tab.onContextChange(context);
-      const _el = tab.render();
+      const el = tab.render();
       const input = el.querySelector("input");
 
       expect(input).toBeDefined();
@@ -132,7 +132,7 @@ describe("TerminalTab", () => {
 
       await tab.onContextChange(context);
       tab.setRendererSwitchInProgress(true);
-      const _el = tab.render();
+      const el = tab.render();
 
       expect(el.textContent).toContain("Switching renderer");
     });
@@ -147,7 +147,7 @@ describe("TerminalTab", () => {
       await tab.onContextChange(context);
       tab.setRendererSwitchInProgress(true);
       tab.setRendererSwitchInProgress(false);
-      const _el = tab.render();
+      const el = tab.render();
 
       expect(el.textContent).not.toContain("Switching renderer");
     });

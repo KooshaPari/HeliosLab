@@ -26,13 +26,13 @@ describe("ProjectTab", () => {
       };
 
       await tab.onContextChange(context);
-      const _el = tab.render();
+      const el = tab.render();
       expect(el.textContent).toContain("Project Information");
     });
 
     it("should show unavailable state on null context", async () => {
       await tab.onContextChange(null);
-      const _el = tab.render();
+      const el = tab.render();
       expect(el.textContent).toContain("Workspace Unavailable");
     });
   });
@@ -46,7 +46,7 @@ describe("ProjectTab", () => {
       };
 
       await tab.onContextChange(context);
-      const _el = tab.render();
+      const el = tab.render();
       expect(el.textContent).toContain("Helios");
     });
 
@@ -58,7 +58,7 @@ describe("ProjectTab", () => {
       };
 
       await tab.onContextChange(context);
-      const _el = tab.render();
+      const el = tab.render();
       expect(el.textContent).toContain("workspace");
     });
 
@@ -70,7 +70,7 @@ describe("ProjectTab", () => {
       };
 
       await tab.onContextChange(context);
-      const _el = tab.render();
+      const el = tab.render();
       expect(el.textContent).toContain("Active Lanes");
     });
   });
@@ -84,7 +84,7 @@ describe("ProjectTab", () => {
       };
 
       await tab.onContextChange(context);
-      const _el = tab.render();
+      const el = tab.render();
       expect(el.textContent).toContain("Lanes");
     });
 
@@ -96,7 +96,7 @@ describe("ProjectTab", () => {
       };
 
       await tab.onContextChange(context);
-      const _el = tab.render();
+      const el = tab.render();
       expect(el.textContent).toContain("Current Lane");
     });
 
@@ -108,7 +108,7 @@ describe("ProjectTab", () => {
       };
 
       await tab.onContextChange(context);
-      const _el = tab.render();
+      const el = tab.render();
       expect(el.textContent).toContain("active");
     });
   });
@@ -122,7 +122,7 @@ describe("ProjectTab", () => {
       };
 
       await tab.onContextChange(context);
-      const _el = tab.render();
+      const el = tab.render();
       expect(el.textContent).toContain("Git Status");
     });
   });
@@ -136,7 +136,7 @@ describe("ProjectTab", () => {
       };
 
       await tab.onContextChange(context);
-      const _el = tab.render();
+      const el = tab.render();
       expect(el.textContent).toContain("Quick Actions");
     });
 
@@ -148,7 +148,7 @@ describe("ProjectTab", () => {
       };
 
       await tab.onContextChange(context);
-      const _el = tab.render();
+      const el = tab.render();
       const button = Array.from(el.querySelectorAll("button")).find(b =>
         b.textContent?.includes("Create New Lane")
       );
@@ -164,7 +164,7 @@ describe("ProjectTab", () => {
       };
 
       await tab.onContextChange(context);
-      const _el = tab.render();
+      const el = tab.render();
       const button = Array.from(el.querySelectorAll("button")).find(b =>
         b.textContent?.includes("Open in File Manager")
       );
@@ -176,14 +176,14 @@ describe("ProjectTab", () => {
   describe("Error State", () => {
     it("should show error on unavailable workspace", async () => {
       await tab.onContextChange(null);
-      const _el = tab.render();
+      const el = tab.render();
 
       expect(el.textContent).toContain("Workspace Unavailable");
     });
 
     it("should have retry button on error", async () => {
       await tab.onContextChange(null);
-      const _el = tab.render();
+      const el = tab.render();
       const button = el.querySelector("button");
 
       expect(button?.textContent).toContain("Retry");

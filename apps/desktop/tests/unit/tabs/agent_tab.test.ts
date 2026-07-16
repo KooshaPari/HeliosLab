@@ -26,13 +26,13 @@ describe("AgentTab", () => {
       };
 
       await tab.onContextChange(context);
-      const _el = tab.render();
+      const el = tab.render();
       expect(el.textContent).toContain("Agent Status");
     });
 
     it("should show empty state on null context", async () => {
       await tab.onContextChange(null);
-      const _el = tab.render();
+      const el = tab.render();
       expect(el.textContent).toContain("No agent activity");
     });
   });
@@ -46,7 +46,7 @@ describe("AgentTab", () => {
       };
 
       await tab.onContextChange(context);
-      const _el = tab.render();
+      const el = tab.render();
 
       expect(el.textContent).toContain("IDLE");
     });
@@ -59,7 +59,7 @@ describe("AgentTab", () => {
       };
 
       await tab.onContextChange(context);
-      const _el = tab.render();
+      const el = tab.render();
 
       expect(el.textContent).toContain("Initialize session");
     });
@@ -74,7 +74,7 @@ describe("AgentTab", () => {
       };
 
       await tab.onContextChange(context);
-      const _el = tab.render();
+      const el = tab.render();
       const buttons = el.querySelectorAll("button");
 
       expect(buttons.length).toBeGreaterThan(0);

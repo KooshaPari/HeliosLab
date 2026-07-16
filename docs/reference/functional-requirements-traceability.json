@@ -506,9 +506,9 @@
 		},
 		{
 			"id": "FR-TAB-001",
-			"status": "[ ]",
-			"code": ["apps/desktop/src/tabs/terminal_tab.ts", "apps/desktop/src/tabs/agent_tab.ts", "apps/desktop/src/tabs/session_tab.ts", "apps/desktop/src/tabs/chat_tab.ts", "apps/desktop/src/tabs/project_tab.ts"],
-			"tests": ["apps/desktop/tests/unit/tabs/terminal_tab.test.ts", "apps/desktop/tests/unit/tabs/agent_tab.test.ts", "apps/desktop/tests/unit/tabs/session_tab.test.ts", "apps/desktop/tests/unit/tabs/chat_tab.test.ts", "apps/desktop/tests/unit/tabs/project_tab.test.ts"],
+			"status": "[x]",
+			"code": ["apps/desktop/src/index.tsx", "apps/desktop/src/tabs/tab_bar.ts", "apps/desktop/src/tabs/terminal_tab.ts", "apps/desktop/src/tabs/agent_tab.ts", "apps/desktop/src/tabs/session_tab.ts", "apps/desktop/src/tabs/chat_tab.ts", "apps/desktop/src/tabs/project_tab.ts"],
+			"tests": ["apps/desktop/tests/unit/tab-surfaces-entrypoint.test.tsx", "apps/desktop/tests/unit/tabs/terminal_tab.test.ts", "apps/desktop/tests/unit/tabs/agent_tab.test.ts", "apps/desktop/tests/unit/tabs/session_tab.test.ts", "apps/desktop/tests/unit/tabs/chat_tab.test.ts", "apps/desktop/tests/unit/tabs/project_tab.test.ts"],
 			"evidence": ["TEST_COVERAGE_MATRIX.md"]
 		},
 		{

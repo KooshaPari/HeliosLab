@@ -26,13 +26,13 @@ describe("SessionTab", () => {
       };
 
       await tab.onContextChange(context);
-      const _el = tab.render();
+      const el = tab.render();
       expect(el.textContent).toContain("Session Information");
     });
 
     it("should show empty state on null context", async () => {
       await tab.onContextChange(null);
-      const _el = tab.render();
+      const el = tab.render();
       expect(el.textContent).toContain("No active session");
     });
   });
@@ -46,7 +46,7 @@ describe("SessionTab", () => {
       };
 
       await tab.onContextChange(context);
-      const _el = tab.render();
+      const el = tab.render();
       expect(el.textContent).toContain("session123");
     });
 
@@ -58,7 +58,7 @@ describe("SessionTab", () => {
       };
 
       await tab.onContextChange(context);
-      const _el = tab.render();
+      const el = tab.render();
       expect(el.textContent).toContain("Terminal Count");
     });
 
@@ -70,7 +70,7 @@ describe("SessionTab", () => {
       };
 
       await tab.onContextChange(context);
-      const _el = tab.render();
+      const el = tab.render();
       expect(el.textContent).toContain("Lifecycle State");
     });
   });
@@ -84,7 +84,7 @@ describe("SessionTab", () => {
       };
 
       await tab.onContextChange(context);
-      const _el = tab.render();
+      const el = tab.render();
       expect(el.textContent).toContain("Harness Transport");
     });
 
@@ -96,7 +96,7 @@ describe("SessionTab", () => {
       };
 
       await tab.onContextChange(context);
-      const _el = tab.render();
+      const el = tab.render();
       expect(el.textContent).toContain("Diagnostics");
     });
   });
@@ -110,7 +110,7 @@ describe("SessionTab", () => {
       };
 
       await tab.onContextChange(context);
-      const _el = tab.render();
+      const el = tab.render();
       expect(el.textContent).toContain("Timeline");
     });
 
@@ -122,7 +122,7 @@ describe("SessionTab", () => {
       };
 
       await tab.onContextChange(context);
-      const _el = tab.render();
+      const el = tab.render();
       expect(el.textContent).toContain("Session created");
     });
   });

@@ -197,7 +197,7 @@ export class AgentTab extends TabSurface {
   }
 
   private renderAction(action: AgentAction): HTMLElement {
-    const _el = document.createElement("div");
+    const el = document.createElement("div");
     el.style.marginBottom = "12px";
     el.style.paddingBottom = "12px";
     el.style.borderBottom = "1px solid #e0e0e0";
