@@ -3,7 +3,11 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "fs";
 import { tmpdir } from "os";
 import { join } from "path";
 
-import { createAggregationFailureReport, loadGateReports } from "../gate-aggregate";
+import {
+	completeGateReports,
+	createAggregationFailureReport,
+	loadGateReports,
+} from "../gate-aggregate";
 import { createGateReport } from "../gate-report";
 
 const temporaryDirectories: string[] = [];
@@ -21,6 +25,34 @@ afterEach(() => {
 });
 
 describe("Gate report aggregation", () => {
+	test("missing required gates become structured failures (FR-CI-011)", () => {
+		const lint = createGateReport("lint", [], 12);
+
+		const reports = completeGateReports([lint], ["lint", "test"]);
+
+		expect(reports).toHaveLength(2);
+		expect(reports[1]).toMatchObject({
+			gateName: "test",
+			status: "fail",
+			findings: [
+				{
+					file: ".gate-reports/gate-test.json",
+					message: "Required test gate report was not produced.",
+					severity: "error",
+				},
+			],
+		});
+		expect(reports[1]?.findings[0]?.remediation).toBeTruthy();
+	});
+
+	test("duplicate gate reports fail closed", () => {
+		const lint = createGateReport("lint", [], 12);
+
+		expect(() => completeGateReports([lint, lint], ["lint"])).toThrow(
+			"Duplicate gate report: lint",
+		);
+	});
+
 	test("converts aggregation exceptions into structured failures (FR-CI-011)", () => {
 		const report = createAggregationFailureReport(
 			new Error("Failed to read report gate-lint.json"),

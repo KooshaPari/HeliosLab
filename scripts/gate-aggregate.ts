@@ -18,6 +18,16 @@ import {
 const REPORT_DIR = ".gate-reports";
 const SUMMARY_OUTPUT = join(REPORT_DIR, "pipeline-summary.json");
 const AGGREGATION_ERROR_OUTPUT = join(REPORT_DIR, "aggregation-error.json");
+export const EXPECTED_GATE_NAMES = [
+	"typecheck",
+	"lint",
+	"test",
+	"e2e",
+	"coverage",
+	"security",
+	"static-analysis",
+	"bypass-detect",
+] as const;
 
 export function createAggregationFailureReport(error: unknown): GateReport {
 	const message = error instanceof Error ? error.message : String(error);
@@ -34,6 +44,42 @@ export function createAggregationFailureReport(error: unknown): GateReport {
 		],
 		0,
 	);
+}
+
+export function completeGateReports(
+	reports: GateReport[],
+	expectedGateNames: readonly string[] = EXPECTED_GATE_NAMES,
+): GateReport[] {
+	const reportsByName = new Map<string, GateReport>();
+	for (const report of reports) {
+		if (reportsByName.has(report.gateName)) {
+			throw new Error(`Duplicate gate report: ${report.gateName}`);
+		}
+		reportsByName.set(report.gateName, report);
+	}
+
+	const completedReports = [...reports];
+	for (const gateName of expectedGateNames) {
+		if (reportsByName.has(gateName)) {
+			continue;
+		}
+		completedReports.push(
+			createGateReport(
+				gateName,
+				[
+					{
+						file: `${REPORT_DIR}/gate-${gateName}.json`,
+						message: `Required ${gateName} gate report was not produced.`,
+						severity: "error",
+						remediation: `Run the ${gateName} gate and preserve its structured report before aggregation.`,
+					},
+				],
+				0,
+			),
+		);
+	}
+
+	return completedReports;
 }
 
 /**
@@ -69,7 +115,7 @@ export function loadGateReports(reportDirectory = REPORT_DIR): GateReport[] {
  * Main entry point.
  */
 async function main(): Promise<void> {
-	const reports = loadGateReports();
+	const reports = completeGateReports(loadGateReports());
 
 	const summary = aggregateGateReports(reports);
 	writeGateReport(summary as unknown as GateReport, SUMMARY_OUTPUT);
