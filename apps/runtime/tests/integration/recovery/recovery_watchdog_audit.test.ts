@@ -207,8 +207,10 @@ describe("WP05 recovery watchdog and audit fidelity", () => {
         record.type === "command"
     );
     expect(redactedRecord?.payload?.api_key).toBe("[REDACTED]");
+    expect(JSON.stringify(auditBundle.records)).not.toContain("super-secret-value");
 
     const allRecords = await runtime.getAuditRecords();
+    expect(JSON.stringify(allRecords)).not.toContain("super-secret-value");
     for (let i = 1; i < allRecords.length; i += 1) {
       expect(
         (allRecords[i]?.recorded_at as string) >= (allRecords[i - 1]?.recorded_at as string)

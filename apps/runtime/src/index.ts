@@ -155,7 +155,13 @@ export function createRuntime(options: RuntimeOptions = {}) {
   }
 
   function appendAuditRecord(record: RuntimeAuditRecord): void {
-    auditRecords.push(record);
+    const correlationId = record.correlation_id ?? "runtime-audit";
+    const redactedRecord = redactPayload(
+      redactionEngine,
+      record as unknown as Record<string, unknown>,
+      correlationId
+    ) as unknown as RuntimeAuditRecord;
+    auditRecords.push(redactedRecord);
   }
 
   function recordCommand(envelope: LocalBusEnvelope): void {

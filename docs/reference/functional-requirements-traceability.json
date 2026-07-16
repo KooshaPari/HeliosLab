@@ -1500,9 +1500,9 @@
 		},
 		{
 			"id": "FR-SEC-005",
-			"status": "[ ]",
+			"status": "[x]",
 			"code": ["apps/runtime/src/audit/audit-sink.ts", "apps/runtime/src/runtime/ops.ts", "apps/runtime/src/index.ts"],
-			"tests": ["apps/runtime/src/secrets/__tests__/integration.test.ts", "apps/runtime/tests/unit/audit/sink.test.ts", "apps/runtime/tests/unit/audit/export_compliance.test.ts"],
+			"tests": ["apps/runtime/src/secrets/__tests__/integration.test.ts", "apps/runtime/tests/unit/audit/sink.test.ts", "apps/runtime/tests/unit/audit/export_compliance.test.ts", "apps/runtime/tests/integration/recovery/recovery_watchdog_audit.test.ts"],
 			"evidence": ["docs/specs/028-secrets-management-and-redaction/spec.md"]
 		},
 		{
