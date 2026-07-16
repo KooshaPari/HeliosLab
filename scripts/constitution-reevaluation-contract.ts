@@ -30,7 +30,9 @@ export function evaluateConstitutionReevaluationContract(workflow: string): Gate
 	}
 
 	const listsOpenPullRequests =
-		workflow.includes("pulls.list") || workflow.includes("gh pr list --state open");
+		workflow.includes("pulls.list") ||
+		workflow.includes("gh pr list --state open") ||
+		workflow.includes("reevaluate-open-prs.cjs");
 	if (!listsOpenPullRequests) {
 		findings.push({
 			file: WORKFLOW_PATH,
