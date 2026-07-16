@@ -1579,7 +1579,7 @@
 			"id": "FR-SHL-005",
 			"status": "[ ]",
 			"code": ["apps/desktop/src/index.ts", "apps/desktop/src/stores/persistence.store.ts"],
-			"tests": [],
+			"tests": ["scripts/tests/window-lifecycle-contract.test.ts"],
 			"evidence": ["docs/specs/001-colab-agent-terminal-control-plane/spec.md"]
 		},
 		{
