@@ -13,7 +13,7 @@ export class MemorySampler {
   private readonly intervalMs: number;
   private timer: ReturnType<typeof setInterval> | null = null;
 
-  constructor(registry: MetricsRegistry, intervalMs: number = 5000) {
+  constructor(registry: MetricsRegistry, intervalMs: number = 5000, bufferSize?: number) {
     this.registry = registry;
     this.intervalMs = intervalMs;
 
@@ -23,6 +23,7 @@ export class MemorySampler {
       type: "gauge",
       unit: "MB",
       description: "Heap memory usage in megabytes",
+      bufferSize,
     });
   }
 
@@ -78,7 +79,7 @@ export class FrameTimingSampler {
   private running = false;
   private zeroCheckTimer: ReturnType<typeof setInterval> | null = null;
 
-  constructor(registry: MetricsRegistry) {
+  constructor(registry: MetricsRegistry, bufferSize?: number) {
     this.registry = registry;
 
     this.registry.register({
@@ -86,6 +87,7 @@ export class FrameTimingSampler {
       type: "gauge",
       unit: "fps",
       description: "Frames per second",
+      bufferSize,
     });
   }
 

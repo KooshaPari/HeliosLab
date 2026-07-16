@@ -1024,7 +1024,7 @@
 		},
 		{
 			"id": "FR-DIAG-006",
-			"status": "[ ]",
+			"status": "[x]",
 			"code": ["apps/runtime/src/diagnostics/samplers.ts", "apps/runtime/src/diagnostics/metrics.ts"],
 			"tests": ["apps/runtime/tests/unit/diagnostics/samplers.test.ts", "apps/runtime/tests/unit/diagnostics/metrics.test.ts"],
 			"evidence": ["FUNCTIONAL_REQUIREMENTS.md"]

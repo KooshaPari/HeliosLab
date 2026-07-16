@@ -161,3 +161,25 @@ describe("FrameTimingSampler", () => {
     expect(entry).toBeUndefined();
   });
 });
+
+describe("Per-metric sampler buffers", () => {
+  // FR-DIAG-006: samplers configure independent bounded circular buffers.
+  it("honors each sampler bufferSize and overwrites only its oldest samples", () => {
+    const registry = new MetricsRegistry();
+    const memory = new MemorySampler(registry, 5_000, 2);
+    const frames = new FrameTimingSampler(registry, 3);
+
+    for (const value of [1, 2, 3, 4]) registry.record("memory", value, value);
+    for (const value of [10, 20, 30, 40]) registry.record("fps", value, value);
+
+    const memoryBuffer = registry.getMetric("memory")!.buffer;
+    const frameBuffer = registry.getMetric("fps")!.buffer;
+    expect(Array.from(memoryBuffer.getValues())).toEqual([3, 4]);
+    expect(memoryBuffer.getOverflowCount()).toBe(2);
+    expect(Array.from(frameBuffer.getValues())).toEqual([20, 30, 40]);
+    expect(frameBuffer.getOverflowCount()).toBe(1);
+
+    memory.stop();
+    frames.stop();
+  });
+});
