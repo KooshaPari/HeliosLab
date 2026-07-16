@@ -161,12 +161,23 @@ export function extractFilePaths(command: string): string[] {
   const cmd = tokens[0].toLowerCase();
 
   if (cmd === "curl") {
+    const dataFileOptions = ["-d", "--data", "--data-ascii", "--data-binary"];
+    const uploadFileOptions = ["-T", "--upload-file"];
     for (let i = 1; i < tokens.length; i++) {
       const tok = tokens[i];
-      if ((tok === "-d" || tok === "--data" || tok === "--data-binary") && i + 1 < tokens.length) {
+      if (dataFileOptions.includes(tok) && i + 1 < tokens.length) {
         const next = tokens[i + 1];
         if (next.startsWith("@")) paths.push(next.slice(1));
         i++;
+      } else if (uploadFileOptions.includes(tok) && i + 1 < tokens.length) {
+        paths.push(tokens[i + 1]);
+        i++;
+      } else if (dataFileOptions.some(option => tok.startsWith(`${option}@`))) {
+        paths.push(tok.slice(tok.indexOf("@") + 1));
+      } else if (dataFileOptions.some(option => tok.startsWith(`${option}=@`))) {
+        paths.push(tok.slice(tok.indexOf("@") + 1));
+      } else if (uploadFileOptions.some(option => tok.startsWith(`${option}=`))) {
+        paths.push(tok.slice(tok.indexOf("=") + 1));
       } else if (tok.startsWith("@")) {
         paths.push(tok.slice(1));
       }
