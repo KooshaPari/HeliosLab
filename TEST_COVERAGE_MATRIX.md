@@ -52,12 +52,16 @@ gate verification.
   intentionally remains unchecked until all named repositories provide evidence.
 - [x] FR-ID-006 through FR-ID-009: validation, parsing, safe serialization, and
   monotonic ordering are implemented and tested.
-- [x] FR-BUS-001 and FR-BUS-003 through FR-BUS-009: the envelope contract, method
+- [x] FR-BUS-001 through FR-BUS-009: the envelope contract, spec-005 run and
+  correlation ID generation, method
   and topic registries, per-topic ordering, fail-closed validation, error taxonomy,
   correlation propagation, and deterministic subscriber delivery are implemented
   and covered by focused unit and integration tests.
-- [ ] FR-BUS-002 remains unchecked because the current protocol envelope ID prefixes
-  have not yet been brought into parity with the spec 005 ID package.
+- [x] FR-BUS-002 specifically uses the `@helios/ids` public API in the canonical
+  command, response, and event helpers for generated envelope `id` (`rn_`) and
+  `correlation_id` (`cor_`) values. Focused tests validate and parse the exact
+  spec-005 entity types and prove cross-helper uniqueness across 3,000 envelopes;
+  the ID package collision suite supplies the larger collision proof.
 - [x] `bun test packages/ids/tests` passes, including the 10-million-ID collision test.
 - [x] `node --test tools/gates/requirement-traceability.test.mjs` proves fail-closed
   behavior for missing, unknown, duplicate, malformed, unchecked, and missing-artifact

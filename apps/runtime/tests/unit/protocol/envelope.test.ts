@@ -1,9 +1,10 @@
 /**
  * FR-HELIOS-105: Protocol Envelope Creation and Validation Tests
- * Verifies: FR-BUS-001 (Envelope schema), FR-BUS-006 (Validation)
+ * Verifies: FR-BUS-001 (Envelope schema), FR-BUS-002 (spec-005 IDs), FR-BUS-006 (Validation)
  * Traces to: FR-MVP-002 (stream responses), FR-MVP-003 (display tool calls), FR-MVP-004 (multi-turn)
  */
 
+import { parseId, validateId } from "@helios/ids";
 import {
   createCommand,
   createResponse,
@@ -14,15 +15,23 @@ import {
 } from "../../../src/protocol/envelope.js";
 import type { CommandEnvelope } from "../../../src/protocol/types.js";
 
+function expectSpec005Id(id: string, entityType: "run" | "correlation"): void {
+  expect(validateId(id)).toEqual({ valid: true, entityType });
+  const parsed = parseId(id);
+  expect(parsed).not.toBeNull();
+  expect(parsed?.entityType).toBe(entityType);
+  expect(parsed?.ulid).toHaveLength(26);
+}
+
 describe("createCommand", () => {
-  it("generates a unique id with cmd_ prefix", () => {
+  it("generates a spec-005 run ID", () => {
     const env = createCommand("test.method", { data: 1 });
-    expect(env.id).toMatch(/^cmd_/);
+    expectSpec005Id(env.id, "run");
   });
 
   it("auto-generates correlation_id when not provided", () => {
     const env = createCommand("test.method", {});
-    expect(env.correlation_id).toMatch(/^cor_/);
+    expectSpec005Id(env.correlation_id, "correlation");
   });
 
   it("uses provided correlationId", () => {
@@ -56,6 +65,32 @@ describe("createCommand", () => {
     const b = createCommand("m", {});
     expect(a.id).not.toBe(b.id);
   });
+
+  it("generates globally unique spec-005 IDs across all envelope helpers", () => {
+    const commands = Array.from({ length: 1_000 }, (_, index) =>
+      createCommand("test.unique", { index })
+    );
+    const responses = commands.map(command => createResponse(command, null));
+    const events = Array.from({ length: 1_000 }, (_, index) =>
+      createEvent("test.unique", { index })
+    );
+    const envelopes = [...commands, ...responses, ...events];
+    const generatedCorrelations = [...commands, ...events].map(
+      envelope => envelope.correlation_id
+    );
+
+    expect(new Set(envelopes.map(envelope => envelope.id)).size).toBe(envelopes.length);
+    expect(new Set(generatedCorrelations).size).toBe(generatedCorrelations.length);
+    for (const envelope of envelopes) {
+      expectSpec005Id(envelope.id, "run");
+    }
+    for (const correlationId of generatedCorrelations) {
+      expectSpec005Id(correlationId, "correlation");
+    }
+    for (const [index, response] of responses.entries()) {
+      expect(response.correlation_id).toBe(commands[index]?.correlation_id);
+    }
+  });
 });
 
 describe("createResponse", () => {
@@ -75,9 +110,9 @@ describe("createResponse", () => {
     expect(res.method).toBe("test.method");
   });
 
-  it("generates a res_ prefixed id", () => {
+  it("generates a spec-005 run ID", () => {
     const res = createResponse(cmd, null);
-    expect(res.id).toMatch(/^res_/);
+    expectSpec005Id(res.id, "run");
   });
 
   it('sets type to "response"', () => {
@@ -102,9 +137,9 @@ describe("createResponse", () => {
 });
 
 describe("createEvent", () => {
-  it("generates an evt_ prefixed id", () => {
+  it("generates a spec-005 run ID", () => {
     const env = createEvent("ui.clicked", { x: 1 });
-    expect(env.id).toMatch(/^evt_/);
+    expectSpec005Id(env.id, "run");
   });
 
   it('sets type to "event"', () => {
@@ -120,7 +155,7 @@ describe("createEvent", () => {
 
   it("auto-generates correlation_id", () => {
     const env = createEvent("ui.clicked", undefined);
-    expect(env.correlation_id).toMatch(/^cor_/);
+    expectSpec005Id(env.correlation_id, "correlation");
   });
 
   it("throws on empty topic", () => {
