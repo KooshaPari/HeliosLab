@@ -1038,7 +1038,7 @@
 		},
 		{
 			"id": "FR-DIAG-008",
-			"status": "[ ]",
+			"status": "[x]",
 			"code": ["apps/runtime/src/diagnostics/query.ts"],
 			"tests": ["apps/runtime/tests/unit/diagnostics/query.test.ts"],
 			"evidence": ["FUNCTIONAL_REQUIREMENTS.md"]

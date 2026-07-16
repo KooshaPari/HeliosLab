@@ -16,6 +16,40 @@ describe("MetricsQuery", () => {
     query = new MetricsQuery(registry);
   });
 
+  // FR-DIAG-008: required MetricsQuery interface
+  it("getMetric returns percentile data and undefined for unavailable metrics", () => {
+    registry.register({
+      name: "latency",
+      type: "latency",
+      unit: "ms",
+      description: "test",
+    });
+    registry.record("latency", 10);
+    registry.record("latency", 20);
+
+    expect(query.getMetric("latency")?.count).toBe(2);
+    expect(query.getMetric("unavailable")).toBeUndefined();
+  });
+
+  // FR-DIAG-008: required MetricsQuery interface
+  it("listMetrics returns registered metric names, including metrics without samples", () => {
+    registry.register({
+      name: "recorded",
+      type: "gauge",
+      unit: "count",
+      description: "recorded metric",
+    });
+    registry.register({
+      name: "empty",
+      type: "gauge",
+      unit: "count",
+      description: "metric without samples",
+    });
+    registry.record("recorded", 1);
+
+    expect(query.listMetrics().sort()).toEqual(["empty", "recorded"]);
+  });
+
   // FR-007: getStats returns correct percentiles
   it("getStats returns correct percentiles for recorded data", () => {
     registry.register({

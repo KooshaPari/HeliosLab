@@ -16,15 +16,28 @@ export class MetricsQuery {
   }
 
   /**
+   * Return percentile statistics for a metric, or `undefined` when it has no
+   * recorded samples. This is the stable FR-DIAG-008 query interface.
+   */
+  getMetric(name: string): PercentileBucket | undefined {
+    const entry = this.registry.getMetric(name);
+    if (entry === undefined) {
+      return undefined;
+    }
+    return computePercentiles(entry.buffer.getValues());
+  }
+
+  /** List every registered metric, including metrics without samples. */
+  listMetrics(): string[] {
+    return this.registry.listMetrics();
+  }
+
+  /**
    * Compute percentile statistics for a single metric.
    * Returns null if the metric is not registered or has no samples.
    */
   getStats(metric: string): PercentileBucket | null {
-    const entry = this.registry.getMetric(metric);
-    if (entry === undefined) {
-      return null;
-    }
-    return computePercentiles(entry.buffer.getValues()) ?? null;
+    return this.getMetric(metric) ?? null;
   }
 
   /** Compute percentile statistics for all registered metrics with samples. */
