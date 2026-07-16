@@ -562,7 +562,7 @@
 		},
 		{
 			"id": "FR-RUN-002",
-			"status": "[ ]",
+			"status": "[x]",
 			"code": ["package.json"],
 			"tests": ["apps/runtime/tests/unit/build-infra.test.ts"],
 			"evidence": ["docs/specs/019-ts7-and-bun-runtime-setup/tasks/WP01-monorepo-structure-and-tsconfig.md"]

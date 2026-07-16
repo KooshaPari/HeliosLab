@@ -92,6 +92,15 @@ describe("workspace configuration", () => {
     expect(engines["bun"]).toMatch(/^>=\d+\.\d+\.\d+$/);
     expect(pkg["packageManager"]).toMatch(/^bun@\d+\.\d+\.\d+$/);
   });
+
+  test("root pins the TypeScript 7 native toolchain (FR-RUN-002)", async () => {
+    const pkg = await readJsonAsync("package.json");
+    const devDependencies = pkg["devDependencies"] as Record<string, string>;
+
+    expect(devDependencies["@typescript/native-preview"]).toBe(
+      "7.0.0-dev.20260707.2"
+    );
+  });
 });
 
 describe("tsconfig strict mode", () => {
