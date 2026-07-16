@@ -118,7 +118,12 @@ export class CredentialStore {
   /**
    * Reads and decrypts a credential from disk.
    */
-  async retrieve(providerId: string, workspaceId: string, name: string): Promise<string> {
+  async retrieve(
+    providerId: string,
+    workspaceId: string,
+    name: string,
+    correlationId = `credential-read:${randomBytes(8).toString("hex")}`
+  ): Promise<string> {
     validateId("providerId", providerId);
     validateId("workspaceId", workspaceId);
     validateId("name", name);
@@ -130,7 +135,15 @@ export class CredentialStore {
 
     const raw = readFileSync(path, "utf8");
     const payload = JSON.parse(raw) as Parameters<EncryptionService["decrypt"]>[0];
-    return this.encryption.decrypt(payload, providerId);
+    const value = await this.encryption.decrypt(payload, providerId);
+    await this.emitAuditOnly("secrets.credential.accessed", {
+      providerId,
+      workspaceId,
+      name,
+      correlationId,
+      requestingProviderId: providerId,
+    });
+    return value;
   }
 
   /**
@@ -282,15 +295,7 @@ export class CredentialStore {
   ): Promise<string> {
     this.checkAccess(ctx, targetProviderId, workspaceId);
 
-    const value = await this.retrieve(targetProviderId, workspaceId, name);
-    await this.emit("secrets.credential.accessed", {
-      providerId: targetProviderId,
-      workspaceId,
-      name,
-      correlationId: ctx.correlationId,
-      requestingProviderId: ctx.requestingProviderId,
-    });
-    return value;
+    return this.retrieve(targetProviderId, workspaceId, name, ctx.correlationId);
   }
 
   // -------------------------------------------------------------------------
@@ -362,5 +367,13 @@ export class CredentialStore {
       payload,
     };
     await this.bus.publish(envelope);
+  }
+
+  private async emitAuditOnly(topic: string, payload: Record<string, unknown>): Promise<void> {
+    try {
+      await this.emit(topic, payload);
+    } catch {
+      // Audit transport failures must not block credential access.
+    }
   }
 }

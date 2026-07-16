@@ -331,6 +331,25 @@ describe("Integration Tests (T015)", () => {
   // -------------------------------------------------------------------------
 
   describe("Audit completeness [SC-028-005]", () => {
+    it("persists an audit record for direct credential reads", async () => {
+      const bus = new InMemoryLocalBus();
+      const engine = makeEngine();
+      const sink = new AuditSink({ redactFn: makeRedactFn(engine) });
+      const wrappedBus = sink.wrapBus(bus);
+      const storeWithAudit = makeStore(tmpDir, wrappedBus);
+
+      await storeWithAudit.create("prov", "ws", "key", "secret-value", "corr-create");
+      await storeWithAudit.retrieve("prov", "ws", "key", "corr-read");
+
+      const accessed = sink.query({
+        topic: "secrets.credential.accessed",
+        correlationId: "corr-read",
+      });
+      expect(accessed).toHaveLength(1);
+      expect(accessed[0]?.payload?.name).toBe("key");
+      expect(JSON.stringify(accessed)).not.toContain("secret-value");
+    });
+
     it("full lifecycle: create/access/rotate/revoke all have audit records", async () => {
       const bus = new InMemoryLocalBus();
       const engine = makeEngine();
