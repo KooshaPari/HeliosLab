@@ -1390,7 +1390,7 @@
 			"id": "FR-REV-010",
 			"status": "[ ]",
 			"code": ["docs/reference/constitution.md", ".github/workflows/pr-governance-gate.yml"],
-			"tests": [],
+			"tests": ["scripts/tests/constitution-reevaluation-contract.test.ts"],
 			"evidence": ["docs/specs/022-code-review-and-governance-process/spec.md"]
 		},
 		{
