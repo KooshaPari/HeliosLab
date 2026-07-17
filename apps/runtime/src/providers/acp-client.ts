@@ -10,6 +10,7 @@
  */
 
 import type { LocalBus } from "../protocol/bus.js";
+import { monotonicNow, type MonotonicClock } from "../diagnostics/hooks.js";
 import type {
   ProviderAdapter,
   ProviderHealthStatus,
@@ -95,10 +96,16 @@ export class ACPClientAdapter implements ProviderAdapter<
   private inFlightTasks = new Map<string, AbortController>();
   private lastHealthCheckTime = 0;
   private healthCheckInterval = 30000; // Default 30s
+  private readonly clock: MonotonicClock;
 
-  constructor(bus?: LocalBus, policyGate?: PolicyGate) {
+  constructor(
+    bus?: LocalBus,
+    policyGate?: PolicyGate,
+    clock: MonotonicClock = { now: monotonicNow }
+  ) {
     this.bus = bus || null;
     this.policyGate = policyGate || new DefaultPolicyGate();
+    this.clock = clock;
   }
 
   /**
@@ -111,7 +118,7 @@ export class ACPClientAdapter implements ProviderAdapter<
    * @throws NormalizedProviderError if init fails
    */
   async init(config: ACPConfig): Promise<void> {
-    const startTime = Date.now();
+    const startTime = this.clock.now();
 
     try {
       // Validate config
@@ -154,7 +161,7 @@ export class ACPClientAdapter implements ProviderAdapter<
         failureCount: 0,
       };
 
-      const elapsed = Date.now() - startTime;
+      const elapsed = this.clock.now() - startTime;
       if (elapsed > 5000) {
         throw new Error(`Init exceeded 5s timeout (${elapsed}ms)`);
       }
@@ -309,7 +316,7 @@ export class ACPClientAdapter implements ProviderAdapter<
       this.inFlightTasks.set(correlationId, abortController);
 
       try {
-        const startTime = Date.now();
+        const startTime = this.clock.now();
 
         // Construct ACP request
         const acpRequest: ACPRequest = {
@@ -328,7 +335,7 @@ export class ACPClientAdapter implements ProviderAdapter<
         // Execute task (mock implementation)
         const result = await this.sendACPRequest(acpRequest, abortController.signal);
 
-        const duration = Date.now() - startTime;
+        const duration = this.clock.now() - startTime;
 
         // Publish success event
         await this.publishEvent("provider.acp.execute.completed", {

@@ -9,6 +9,7 @@
  */
 
 import type { LocalBus } from "../protocol/bus.js";
+import { monotonicNow, type MonotonicClock } from "../diagnostics/hooks.js";
 import type {
   ProviderAdapter,
   ProviderHealthStatus,
@@ -66,9 +67,11 @@ export class MCPBridgeAdapter implements ProviderAdapter<
     lastCheck: new Date(),
     failureCount: 0,
   };
+  private readonly clock: MonotonicClock;
 
-  constructor(bus?: LocalBus) {
+  constructor(bus?: LocalBus, clock: MonotonicClock = { now: monotonicNow }) {
     this.bus = bus || null;
+    this.clock = clock;
   }
 
   /**
@@ -203,7 +206,7 @@ export class MCPBridgeAdapter implements ProviderAdapter<
       this.inFlightTools.set(correlationId, abortController);
 
       try {
-        const startTime = Date.now();
+        const startTime = this.clock.now();
 
         // Execute tool (mock implementation)
         const result = await this.invokeTool(
@@ -212,7 +215,7 @@ export class MCPBridgeAdapter implements ProviderAdapter<
           abortController.signal
         );
 
-        const duration = Date.now() - startTime;
+        const duration = this.clock.now() - startTime;
 
         // Publish success event
         await this.publishEvent("provider.mcp.tool.executed", {
