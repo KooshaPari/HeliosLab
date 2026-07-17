@@ -8,6 +8,7 @@
  */
 
 import type { RendererAdapter } from "./adapter.js";
+import { monotonicNow, type MonotonicClock } from "../diagnostics/hooks.js";
 import type { SwitchBuffer } from "./stream_binding.js";
 import type { RendererEventBus } from "./index.js";
 import type { TerminalContext } from "./hot_swap.js";
@@ -73,9 +74,10 @@ export async function executeRollback(
   terminals: Map<string, TerminalContext>,
   streamBuffer: SwitchBuffer,
   failureReason: string,
-  eventBus?: RendererEventBus
+  eventBus?: RendererEventBus,
+  clock: MonotonicClock = { now: monotonicNow }
 ): Promise<RollbackResult> {
-  const startTime = Date.now();
+  const startTime = clock.now();
   const terminalStatuses: RollbackTerminalStatus[] = [];
 
   try {
@@ -128,6 +130,7 @@ export async function executeRollback(
     // (state machine transition handled by caller)
 
     // Emit event if bus available
+    const durationMs = clock.now() - startTime;
     eventBus?.publish({
       type: "renderer.switch_failed",
       rendererId: originalAdapter.id,
@@ -137,13 +140,13 @@ export async function executeRollback(
       correlationId: crypto.randomUUID(),
       fromRenderer: targetAdapter.id,
       toRenderer: originalAdapter.id,
-      switchDurationMs: Date.now() - startTime,
+      switchDurationMs: durationMs,
       error: new Error(failureReason),
     });
 
     return {
       success: allRestored && !anyDegraded,
-      durationMs: Date.now() - startTime,
+      durationMs,
       terminalStatuses,
       failureReason,
     };
@@ -152,7 +155,7 @@ export async function executeRollback(
 
     return {
       success: false,
-      durationMs: Date.now() - startTime,
+      durationMs: clock.now() - startTime,
       terminalStatuses,
       failureReason,
       error: rollbackError,

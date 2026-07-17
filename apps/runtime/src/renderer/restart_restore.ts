@@ -8,6 +8,7 @@
  */
 
 import type { RendererAdapter, RendererConfig, RenderSurface } from "./adapter.js";
+import { monotonicNow, type MonotonicClock } from "../diagnostics/hooks.js";
 import type { SwitchBuffer } from "./stream_binding.js";
 import type { RendererEventBus } from "./index.js";
 import type { TerminalContext } from "./hot_swap.js";
@@ -133,9 +134,10 @@ export async function executeRestartWithRestore(
   config: RendererConfig,
   surface: RenderSurface,
   onRollback: (error: Error) => Promise<void>,
-  _eventBus?: RendererEventBus
+  _eventBus?: RendererEventBus,
+  clock: MonotonicClock = { now: monotonicNow }
 ): Promise<RestartRestoreResult> {
-  const startTime = Date.now();
+  const startTime = clock.now();
   let currentPhase = "checkpoint";
   let checkpoints: ZmxCheckpoint[] = [];
 
@@ -202,7 +204,7 @@ export async function executeRestartWithRestore(
     return {
       success: true,
       phase: "committed",
-      durationMs: Date.now() - startTime,
+      durationMs: clock.now() - startTime,
       checkpoints,
     };
   } catch (error) {
@@ -221,7 +223,7 @@ export async function executeRestartWithRestore(
     return {
       success: false,
       phase: currentPhase,
-      durationMs: Date.now() - startTime,
+      durationMs: clock.now() - startTime,
       checkpoints,
       error: restartError,
     };

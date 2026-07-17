@@ -8,6 +8,7 @@
  */
 
 import type { RendererAdapter, RendererConfig, RenderSurface } from "./adapter.js";
+import { monotonicNow, type MonotonicClock } from "../diagnostics/hooks.js";
 import type { SwitchBuffer } from "./stream_binding.js";
 import type { RendererEventBus } from "./index.js";
 
@@ -90,9 +91,10 @@ export async function executeHotSwap(
   config: RendererConfig,
   surface: RenderSurface,
   onRollback: (error: Error) => Promise<void>,
-  _eventBus?: RendererEventBus
+  _eventBus?: RendererEventBus,
+  clock: MonotonicClock = { now: monotonicNow }
 ): Promise<HotSwapResult> {
-  const startTime = Date.now();
+  const startTime = clock.now();
   let currentPhase = "pre-validation";
 
   try {
@@ -168,7 +170,7 @@ export async function executeHotSwap(
     return {
       success: true,
       phase: "committed",
-      durationMs: Date.now() - startTime,
+      durationMs: clock.now() - startTime,
       preservedContexts: Array.from(terminals.values()),
     };
   } catch (error) {
@@ -185,7 +187,7 @@ export async function executeHotSwap(
     return {
       success: false,
       phase: currentPhase,
-      durationMs: Date.now() - startTime,
+      durationMs: clock.now() - startTime,
       preservedContexts: Array.from(terminals.values()),
       error: hotSwapError,
     };
