@@ -1,3 +1,4 @@
+import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
 import { CapabilityDisplay } from "../../../src/settings/capability_display";
 import type { Capability } from "../../../src/settings/capability_display";
 
@@ -24,7 +25,7 @@ describe("CapabilityDisplay", () => {
   });
 
   it("should render collapsed by default", () => {
-    const onToggle = vi.fn();
+    const onToggle = mock();
     display = new CapabilityDisplay({
       capability: mockCapability,
       onToggleExpanded: onToggle,
@@ -37,7 +38,7 @@ describe("CapabilityDisplay", () => {
   });
 
   it("should expand when toggle clicked", async () => {
-    const onToggle = vi.fn();
+    const onToggle = mock();
     display = new CapabilityDisplay({
       capability: mockCapability,
       onToggleExpanded: onToggle,
