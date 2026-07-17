@@ -1,9 +1,10 @@
 import {
-  ActiveContextStore,
   type ActiveContext,
-  resetActiveContextStore,
+  ActiveContextStore,
   getActiveContextStore,
+  resetActiveContextStore,
 } from "../../../src/tabs/context_switch";
+import { createMockTabSurface } from "../../../src/tabs/tab_surface";
 
 describe("ActiveContextStore", () => {
   let store: ActiveContextStore;
@@ -118,6 +119,66 @@ describe("ActiveContextStore", () => {
 
       expect(calls).toContain("listener1");
       expect(calls).toContain("listener2");
+    });
+
+    it("should wait for asynchronous listeners before resolving", async () => {
+      const context: ActiveContext = {
+        workspaceId: "ws1",
+        laneId: "lane1",
+        sessionId: "session1",
+      };
+      let releaseListener: (() => void) | null = null;
+      let listenerCompleted = false;
+      const listenerStarted = new Promise<void>(resolve => {
+        store.onContextChange(async () => {
+          resolve();
+          await new Promise<void>(release => {
+            releaseListener = release;
+          });
+          listenerCompleted = true;
+        });
+      });
+
+      let contextUpdateResolved = false;
+      const contextUpdate = store.setContext(context).then(() => {
+        contextUpdateResolved = true;
+      });
+      await listenerStarted;
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      expect(contextUpdateResolved).toBe(false);
+      releaseListener?.();
+      await contextUpdate;
+      expect(listenerCompleted).toBe(true);
+    });
+
+    it("should reject when a listener does not contain its failure", async () => {
+      const context: ActiveContext = {
+        workspaceId: "ws1",
+        laneId: "lane1",
+        sessionId: "session1",
+      };
+      const listenerError = new Error("listener failed");
+      store.onContextChange(() => Promise.reject(listenerError));
+
+      await expect(store.setContext(context)).rejects.toBe(listenerError);
+    });
+
+    it("should resolve after a tab contains a context failure as stale state", async () => {
+      const context: ActiveContext = {
+        workspaceId: "ws1",
+        laneId: "lane1",
+        sessionId: "session1",
+      };
+      const globalStore = getActiveContextStore();
+      const tab = createMockTabSurface("tab1", "terminal", "Terminal");
+      tab.onContextChange = () => Promise.reject(new Error("tab update failed"));
+
+      await globalStore.setContext(context);
+
+      expect(tab.hasStaleContext()).toBe(true);
+      expect(tab.getErrorMessage()).toBe("tab update failed");
+      tab.destroy();
     });
 
     it("should allow unsubscribing from changes", async () => {

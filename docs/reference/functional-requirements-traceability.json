@@ -513,7 +513,7 @@
 		},
 		{
 			"id": "FR-TAB-002",
-			"status": "[ ]",
+			"status": "[x]",
 			"code": ["apps/desktop/src/tabs/tab_surface.ts", "apps/desktop/src/tabs/context_switch.ts"],
 			"tests": ["apps/desktop/tests/unit/tabs/context_switch.test.ts", "apps/desktop/tests/unit/tabs/context_propagation.test.ts"],
 			"evidence": ["TEST_COVERAGE_MATRIX.md"]
