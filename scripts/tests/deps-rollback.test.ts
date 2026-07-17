@@ -1,12 +1,5 @@
 import { expect, test, describe, beforeEach, afterEach } from "bun:test";
-import {
-	existsSync,
-	mkdirSync,
-	mkdtempSync,
-	readFileSync,
-	rmSync,
-	writeFileSync,
-} from "fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "fs";
 import { createHash } from "node:crypto";
 import { tmpdir } from "node:os";
 import { join } from "path";
@@ -15,19 +8,16 @@ import type { DepsRegistry, DepsChangelog } from "../deps-types";
 const REPO_ROOT = process.cwd();
 const REGISTRY_PATH = join(REPO_ROOT, "deps-registry.json");
 const CHANGELOG_PATH = join(REPO_ROOT, "deps-changelog.json");
-const PROTECTED_REPO_FILES = [
-	join(REPO_ROOT, "package.json"),
-	join(REPO_ROOT, "bun.lock"),
-	join(REPO_ROOT, "deps-registry.json"),
-	join(REPO_ROOT, "deps-changelog.json"),
-	join(REPO_ROOT, "scripts", "deps-rollback.ts"),
-];
+const PROTECTED_REPO_FILES = ["package.json", "bun.lock", "deps-registry.json",
+	"deps-changelog.json", join("scripts", "deps-rollback.ts")].map(path => join(REPO_ROOT, path));
 
 function hashFile(path: string): string {
 	return createHash("sha256").update(readFileSync(path)).digest("hex");
 }
 
-async function prepareRollbackFixture(): Promise<{
+async function prepareRollbackFixture(
+	options: { changelog?: unknown; typecheckExitCode?: number } = {},
+): Promise<{
 	fixtureRoot: string;
 	workspaceRoot: string;
 	lockBefore: {
@@ -39,6 +29,7 @@ async function prepareRollbackFixture(): Promise<{
 	stderr: string;
 	durationMs: number;
 	repoHashesBefore: Map<string, string>;
+	fixtureHashesBefore: Map<string, string>;
 }> {
 	const fixtureRoot = mkdtempSync(join(tmpdir(), "helios-deps-rollback-"));
 	const workspaceRoot = join(fixtureRoot, "apps", "tool");
@@ -60,7 +51,7 @@ async function prepareRollbackFixture(): Promise<{
 			workspaces: ["apps/tool"],
 			scripts: {
 				"deps:rollback": `bun ${productionScript}`,
-				typecheck: 'bun -e "process.exit(0)"',
+				typecheck: `bun -e "process.exit(${options.typecheckExitCode ?? 0})"`,
 			},
 		}),
 	);
@@ -113,7 +104,10 @@ async function prepareRollbackFixture(): Promise<{
 			],
 		}),
 	);
-	writeFileSync(join(fixtureRoot, "deps-changelog.json"), JSON.stringify({ entries: [] }));
+	writeFileSync(
+		join(fixtureRoot, "deps-changelog.json"),
+		JSON.stringify(options.changelog ?? { entries: [] }),
+	);
 
 	const initialInstall = Bun.spawn([process.execPath, "install", "--lockfile-only"], {
 		cwd: fixtureRoot,
@@ -129,6 +123,13 @@ async function prepareRollbackFixture(): Promise<{
 		packages: Record<string, unknown>;
 	};
 	const repoHashesBefore = new Map(PROTECTED_REPO_FILES.map(path => [path, hashFile(path)]));
+	const fixtureHashesBefore = new Map([
+		join(fixtureRoot, "package.json"),
+		join(workspaceRoot, "package.json"),
+		join(fixtureRoot, "bun.lock"),
+		join(fixtureRoot, "deps-registry.json"),
+		join(fixtureRoot, "deps-changelog.json"),
+	].map(path => [path, hashFile(path)]));
 	const stdoutPath = join(fixtureRoot, "rollback.stdout.log");
 	const stderrPath = join(fixtureRoot, "rollback.stderr.log");
 	const startedAt = performance.now();
@@ -151,10 +152,14 @@ async function prepareRollbackFixture(): Promise<{
 		stderr: readFileSync(stderrPath, "utf-8"),
 		durationMs,
 		repoHashesBefore,
+		fixtureHashesBefore,
 	};
 }
 
-const rollbackFixture = await prepareRollbackFixture();
+const [rollbackFixture, gateFailureFixture, lateFailureFixture] = await Promise.all(
+	[prepareRollbackFixture(), prepareRollbackFixture({ typecheckExitCode: 7 }),
+		prepareRollbackFixture({ changelog: { entries: "invalid" } })],
+);
 
 // Traces to: FR-DEP-004 (rollback command), FR-DEP-005 (atomic rollback)
 describe("Dependency Rollback Integration", () => {
@@ -461,6 +466,35 @@ describe("Dependency Rollback Integration", () => {
 		expect(existsSync(fixtureRoot)).toBe(false);
 		for (const [path, hash] of repoHashesBefore) {
 			expect(hashFile(path), `rollback modified consolidation file ${path}`).toBe(hash);
+		}
+	});
+
+	test("root rollback CLI restores every tracked file after gate and publication failures (FR-DEP-005)", () => {
+		for (const [failureStage, fixture] of [
+			["changelog", lateFailureFixture],
+			["typecheck", gateFailureFixture],
+		] as const) {
+			const { fixtureRoot, exitCode, stdout, stderr, repoHashesBefore,
+				fixtureHashesBefore } = fixture;
+			try {
+				expect(exitCode).toBe(2);
+				expect(`${stdout}\n${stderr}`.toLowerCase()).toContain(failureStage);
+				if (failureStage === "changelog") {
+					expect(stdout).toContain("typecheck: passed");
+				}
+				for (const [path, hash] of fixtureHashesBefore) {
+					expect(hashFile(path), `${failureStage} failure changed ${path}`).toBe(hash);
+				}
+				expect(stderr).toContain("State restoration: passed");
+				expect(existsSync(join(fixtureRoot, ".deps-rollback-backup"))).toBe(false);
+			} finally {
+				rmSync(fixtureRoot, { recursive: true, force: true });
+			}
+
+			expect(existsSync(fixtureRoot)).toBe(false);
+			for (const [path, hash] of repoHashesBefore) {
+				expect(hashFile(path), `rollback modified consolidation file ${path}`).toBe(hash);
+			}
 		}
 	});
 });

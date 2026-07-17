@@ -19,6 +19,7 @@ import { appendChangelogEntry } from "./deps-changelog-util";
 
 const REPO_ROOT = process.cwd();
 const REGISTRY_PATH = join(REPO_ROOT, "deps-registry.json");
+const CHANGELOG_PATH = join(REPO_ROOT, "deps-changelog.json");
 const LOCKFILE_PATH = join(REPO_ROOT, "bun.lock");
 const ROOT_MANIFEST_PATH = join(REPO_ROOT, "package.json");
 const BACKUP_DIR = join(REPO_ROOT, ".deps-rollback-backup");
@@ -36,9 +37,10 @@ interface TargetManifest {
 	section: "dependencies" | "devDependencies" | "optionalDependencies";
 }
 
-interface BackupFiles {
-	lockfile?: string;
-	manifest: string;
+interface FileSnapshot {
+	sourcePath: string;
+	backupPath?: string;
+	existed: boolean;
 }
 
 function readJson<T>(path: string): T {
@@ -101,23 +103,44 @@ function findTargetManifest(packageName: string): TargetManifest {
 	return matches[0];
 }
 
-function createBackup(manifestPath: string): BackupFiles {
-	mkdirSync(BACKUP_DIR, { recursive: true });
-	const stamp = Date.now();
-	const manifest = join(BACKUP_DIR, `package.json.${stamp}`);
-	copyFileSync(manifestPath, manifest);
-	const backup: BackupFiles = { manifest };
-	if (existsSync(LOCKFILE_PATH)) {
-		backup.lockfile = join(BACKUP_DIR, `bun.lock.${stamp}`);
-		copyFileSync(LOCKFILE_PATH, backup.lockfile);
+function createBackup(manifestPath: string): FileSnapshot[] {
+	const sourcePaths = [...new Set([
+		manifestPath,
+		LOCKFILE_PATH,
+		REGISTRY_PATH,
+		CHANGELOG_PATH,
+	])];
+	const snapshots: FileSnapshot[] = [];
+	try {
+		mkdirSync(BACKUP_DIR);
+		for (const [index, sourcePath] of sourcePaths.entries()) {
+			const existed = existsSync(sourcePath);
+			const backupPath = existed ? join(BACKUP_DIR, `${index}.snapshot`) : undefined;
+			if (backupPath) copyFileSync(sourcePath, backupPath);
+			snapshots.push({ sourcePath, backupPath, existed });
+		}
+		return snapshots;
+	} catch (error) {
+		rmSync(BACKUP_DIR, { recursive: true, force: true });
+		throw new Error(`Failed to snapshot rollback state: ${error}`);
 	}
-	return backup;
 }
 
-function restoreBackup(backup: BackupFiles, manifestPath: string): void {
-	copyFileSync(backup.manifest, manifestPath);
-	if (backup.lockfile && existsSync(backup.lockfile)) {
-		copyFileSync(backup.lockfile, LOCKFILE_PATH);
+function restoreBackup(snapshots: FileSnapshot[]): void {
+	const failures: string[] = [];
+	for (const snapshot of snapshots) {
+		try {
+			if (snapshot.existed && snapshot.backupPath) {
+				copyFileSync(snapshot.backupPath, snapshot.sourcePath);
+			} else {
+				rmSync(snapshot.sourcePath, { force: true });
+			}
+		} catch (error) {
+			failures.push(`${snapshot.sourcePath}: ${error}`);
+		}
+	}
+	if (failures.length > 0) {
+		throw new Error(failures.join("; "));
 	}
 }
 
@@ -216,10 +239,16 @@ async function rollback(packageName: string): Promise<void> {
 		console.log(`Rollback successful: ${packageName} ${fromVersion} -> ${rollbackVersion}`);
 		console.log(`elapsed: ${Math.round(performance.now() - startedAt)}ms`);
 	} catch (error) {
-		// This preserves the command's pre-existing bounded file backup behavior.
-		// Full transaction restoration remains FR-DEP-005.
-		restoreBackup(backup, target.path);
-		throw error;
+		const originalError = error instanceof Error ? error.message : String(error);
+		try {
+			restoreBackup(backup);
+			console.error("State restoration: passed");
+		} catch (restoreError) {
+			throw new Error(
+				`${originalError}\nState restoration failed: ${restoreError}`,
+			);
+		}
+		throw new Error(originalError);
 	} finally {
 		rmSync(BACKUP_DIR, { recursive: true, force: true });
 	}
