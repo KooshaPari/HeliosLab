@@ -48,6 +48,7 @@ This document specifies all functional requirements for heliosApp extracted from
 ### Observability
 
 - **AUD**: Audit Logging and Session Replay (spec 024) (11 requirements)
+- **DIAG**: Diagnostics and SLO Instrumentation (repository-derived) (9 requirements)
 - **PRF**: Performance Baseline and Instrumentation (spec 006) (10 requirements)
 
 ### Rendering
@@ -486,8 +487,8 @@ This document specifies all functional requirements for heliosApp extracted from
 
 ## Summary
 
-- **Total Functional Requirements**: 283
-- **Categories**: 29
+- **Total Functional Requirements**: 292
+- **Categories**: 30
 - **Domains**: 15
 
 ## Traceability

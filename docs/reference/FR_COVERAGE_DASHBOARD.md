@@ -1,5 +1,11 @@
 # FR Coverage Dashboard — heliosApp
 
+> **Historical discovery metric (not the strict traceability gate).** This 2026-04-25
+> source-marker snapshot is retained for provenance. Current status is defined by
+> [`functional-requirements-traceability.json`](functional-requirements-traceability.json)
+> and validated by
+> [`requirement-traceability.mjs`](../../tools/gates/requirement-traceability.mjs).
+
 **Coverage Target:** 100+ FRs traced (35%+ of 283 total)  
 **Current Status:** 174/283 FRs traced (61.5%)  
 **Last Updated:** 2026-04-25

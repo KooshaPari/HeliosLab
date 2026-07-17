@@ -1,5 +1,12 @@
 # FR-to-Test Traceability Matrix
 
+> **Historical discovery metric (not the strict traceability gate).** This explicit-marker
+> sweep measures a different signal and is retained for provenance. Current status is
+> defined by
+> [`functional-requirements-traceability.json`](functional-requirements-traceability.json)
+> and validated by
+> [`requirement-traceability.mjs`](../../tools/gates/requirement-traceability.mjs).
+
 ## Summary
 
 - **Total FRs:** 292

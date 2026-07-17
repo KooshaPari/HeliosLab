@@ -1,5 +1,12 @@
 # Code Entity Map — heliosApp
 
+> **Historical discovery metric (not the strict traceability gate).** These broad path
+> associations are an implementation index, not checked evidence. Current status is defined
+> by
+> [`functional-requirements-traceability.json`](functional-requirements-traceability.json)
+> and validated by
+> [`requirement-traceability.mjs`](../../tools/gates/requirement-traceability.mjs).
+
 ## Forward Map (Code -> Requirements)
 
 | Entity | Type | FRs |

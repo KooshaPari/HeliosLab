@@ -1,5 +1,11 @@
 # Traceability Matrix — heliosApp Phase 3
 
+> **Historical discovery metric (not the strict traceability gate).** This five-item Phase 3
+> subset uses legacy local IDs and is not the root inventory. Current status is defined by
+> [`functional-requirements-traceability.json`](../reference/functional-requirements-traceability.json)
+> and validated by
+> [`requirement-traceability.mjs`](../../tools/gates/requirement-traceability.mjs).
+
 **REPOID:** HELIOSAPP
 **Phase:** 3 — Hexagonal Architecture + Traceability
 **Date:** 2026-06-15

@@ -1,49 +1,56 @@
-# FR Traceability Gaps — heliosApp
+# HeliosLab strict traceability gaps
 
-## Summary
+Snapshot date: 2026-07-16.
 
-As of 2026-04-25, **283/293 FRs are traced**. The remaining 10 untraced FRs are documented below with rationale for deferral to later versions.
+The authoritative status source is
+[`functional-requirements-traceability.json`](functional-requirements-traceability.json),
+validated against root [`FUNCTIONAL_REQUIREMENTS.md`](../../FUNCTIONAL_REQUIREMENTS.md) by
+[`requirement-traceability.mjs`](../../tools/gates/requirement-traceability.mjs).
 
-| FR ID | Description | Rationale | Target Version |
-|-------|-------------|-----------|-----------------|
-| FR-SHL-001 | Fork co(lab) and strip embedded editor/browser/non-terminal UI | UI framework migration deferred; pending ElectroBun upgrade | 2026.06A |
-| FR-SHL-002 | Bootstrap ElectroBun shell with <2s startup | Deferred pending native build infrastructure setup | 2026.06A |
-| FR-SHL-005 | Manage window lifecycle (create, close, minimize, maximize, restore geometry) | ElectroBun desktop features deferred | 2026.06A |
-| FR-SHL-006 | Support multiple windows, each bound to workspace context | Multi-window architecture deferred; single-window MVP | 2026.06A |
-| FR-SHL-008 | Expose shell-level extension point for subsystems (renderer, mux, bus) | Plugin system deferred; core subsystems integrated as modules | 2026.07A |
-| FR-SHL-010 | Display degraded-mode banner when critical subsystem unavailable | UI enhancement deferred; health checks implemented | 2026.06A |
-| FR-SHR-001 through FR-SHR-011 | All Share Session Workflows | Provider integration and sharing infrastructure deferred; no external share backends (upterm/tmate) integrated | 2026.06A |
+**Strict status:** 176/292 checked; 116/292 unchecked. All 292 root IDs have exactly one
+matrix row. There are zero missing mappings, zero unknown mappings, and zero missing code,
+test, or evidence paths. The 116 unchecked rows remain proper reds; path presence alone does
+not justify changing their status.
 
-### Deferred Categories
+## Strict status by category
 
-**Shell (SHL):** 6 FRs — Desktop shell UI features depend on ElectroBun native build infrastructure and multi-window architecture (not available in MVP).
+| Category | Total | Checked | Unchecked |
+| --- | ---: | ---: | ---: |
+| APR | 11 | 7 | 4 |
+| AUD | 11 | 11 | 0 |
+| BND | 8 | 8 | 0 |
+| BUS | 10 | 10 | 0 |
+| CFG | 10 | 10 | 0 |
+| CI | 11 | 5 | 6 |
+| CRH | 10 | 4 | 6 |
+| DEP | 8 | 5 | 3 |
+| DIAG | 9 | 9 | 0 |
+| ENG | 8 | 3 | 5 |
+| GHT | 7 | 1 | 6 |
+| ID | 9 | 8 | 1 |
+| LAN | 8 | 8 | 0 |
+| LST | 7 | 1 | 6 |
+| MVP | 27 | 3 | 24 |
+| ORF | 9 | 7 | 2 |
+| PER | 10 | 9 | 1 |
+| PRF | 10 | 7 | 3 |
+| PTY | 8 | 8 | 0 |
+| PVD | 12 | 3 | 9 |
+| REV | 10 | 3 | 7 |
+| RIO | 8 | 7 | 1 |
+| RND | 8 | 8 | 0 |
+| RUN | 8 | 5 | 3 |
+| SEC | 11 | 11 | 0 |
+| SHL | 10 | 0 | 10 |
+| SHR | 11 | 0 | 11 |
+| TAB | 7 | 6 | 1 |
+| TXN | 8 | 3 | 5 |
+| ZMX | 8 | 6 | 2 |
+| **Total** | **292** | **176** | **116** |
 
-**Sharing (SHR):** 11 FRs — Terminal sharing workflows require external providers (upterm, tmate) and approval gate integration; deferred to post-MVP.
+## Closing a gap
 
-**Provider (PVD):** Fully traced. Core adapter interface and provider lifecycle tests exist.
-
-## Test Coverage Strategy
-
-FRs deferred to v2026.06+ are tracked via:
-1. **Epic in AgilePlus** (eco-012: "Desktop Shell UI Hardening")
-2. **Placeholder e2e tests** in `apps/desktop/tests/e2e/` with `.skip` markers
-3. **Provider integration spec** in `specs/025-provider-adapter-lifecycle.md`
-
-## Verification
-
-To verify traceability:
-
-```bash
-# Count traced FRs
-grep -r "FR-" apps/ --include="*.ts" --include="*.tsx" | grep -o "FR-[A-Z0-9]*-[0-9]*" | sort -u | wc -l
-
-# List untraced FRs
-grep "^- \*\*FR-" FUNCTIONAL_REQUIREMENTS.md | grep -o "FR-[A-Z0-9]*-[0-9]*" > /tmp/all.txt
-grep -r "FR-" apps/ --include="*.ts" --include="*.tsx" | grep -o "FR-[A-Z0-9]*-[0-9]*" | sort -u > /tmp/traced.txt
-comm -23 /tmp/all.txt /tmp/traced.txt
-```
-
----
-
-**Last Updated:** 2026-04-25  
-**Status:** 96% traced (283/293) | 4% deferred to v2026.06+
+Change an unchecked row only in the same change that supplies reviewable code, executable
+tests, and evidence for that exact requirement. Then run the focused document contract and
+the strict gate. Historical source-marker dashboards may help locate work, but they do not
+override this matrix or the gate.

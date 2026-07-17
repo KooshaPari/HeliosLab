@@ -1,5 +1,12 @@
 # FR Implementation Tracker — heliosApp
 
+> **Historical discovery metric (not the strict traceability gate).** Category-level
+> implementation labels do not assert checked requirement evidence. Current status is
+> defined by
+> [`functional-requirements-traceability.json`](functional-requirements-traceability.json)
+> and validated by
+> [`requirement-traceability.mjs`](../../tools/gates/requirement-traceability.mjs).
+
 Comprehensive FR list is in `FUNCTIONAL_REQUIREMENTS.md`. This tracker covers implementation status by category.
 
 | Category | FR Count | Status | Code Location |

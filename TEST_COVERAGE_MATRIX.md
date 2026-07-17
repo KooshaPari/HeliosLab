@@ -1,5 +1,11 @@
 # Test Coverage Matrix
 
+> **Historical discovery metric (not the strict traceability gate).** The counts below are
+> a dated source-marker survey. Current requirement status is defined by
+> [`functional-requirements-traceability.json`](docs/reference/functional-requirements-traceability.json)
+> and validated by
+> [`requirement-traceability.mjs`](tools/gates/requirement-traceability.mjs).
+
 **Project**: heliosApp  
 **Document Version**: 1.0  
 **Last Updated**: 2026-04-02
