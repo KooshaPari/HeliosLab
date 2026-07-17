@@ -625,7 +625,7 @@
 		},
 		{
 			"id": "FR-DEP-003",
-			"status": "[ ]",
+			"status": "[x]",
 			"code": ["bun.lock", "deps-registry.json"],
 			"tests": ["scripts/tests/deps-manifest.test.ts"],
 			"evidence": ["docs/specs/020-prerelease-dependency-registry/tasks/WP01-registry-manifest-and-status-command.md"]

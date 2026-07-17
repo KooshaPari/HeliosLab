@@ -1,6 +1,7 @@
 import { expect, test, describe } from "bun:test";
 import { readFileSync } from "fs";
 import { join } from "path";
+import { parseConfigFileTextToJson } from "typescript";
 import type { DepsRegistry } from "../deps-types";
 
 const REGISTRY_PATH = join(process.cwd(), "deps-registry.json");
@@ -94,7 +95,12 @@ describe("Dependency Manifest", () => {
 		const registry: DepsRegistry = JSON.parse(
 			readFileSync(join(process.cwd(), "deps-registry.json"), "utf-8"),
 		);
-		const lock = Bun.JSONC.parse(readFileSync(join(process.cwd(), "bun.lock"), "utf-8")) as {
+		const parsedLock = parseConfigFileTextToJson(
+			"bun.lock",
+			readFileSync(join(process.cwd(), "bun.lock"), "utf-8"),
+		);
+		expect(parsedLock.error).toBeUndefined();
+		const lock = parsedLock.config as {
 			packages: Record<string, [string, ...unknown[]]>;
 		};
 		const mismatches: string[] = [];
