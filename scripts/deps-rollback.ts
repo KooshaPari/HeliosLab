@@ -1,205 +1,239 @@
 #!/usr/bin/env bun
 /**
- * Atomic rollback command: reverts a broken prerelease dependency to last known-good pin.
+ * Revert a dependency to its most recent different known-good pin.
  * Usage: bun run deps:rollback <package>
  */
 
 import {
-	readFileSync,
-	writeFileSync,
 	copyFileSync,
 	existsSync,
-	unlinkSync,
+	mkdirSync,
+	readFileSync,
+	readdirSync,
+	rmSync,
+	writeFileSync,
 } from "fs";
 import { join } from "path";
-import type { DepsRegistry, ChangelogEntry } from "./deps-types";
+import type { ChangelogEntry, DepsRegistry } from "./deps-types";
 import { appendChangelogEntry } from "./deps-changelog-util";
 
 const REPO_ROOT = process.cwd();
 const REGISTRY_PATH = join(REPO_ROOT, "deps-registry.json");
-const LOCKFILE_PATH = join(REPO_ROOT, "bun.lockb");
-const PACKAGE_JSON_PATH = join(REPO_ROOT, "package.json");
+const LOCKFILE_PATH = join(REPO_ROOT, "bun.lock");
+const ROOT_MANIFEST_PATH = join(REPO_ROOT, "package.json");
 const BACKUP_DIR = join(REPO_ROOT, ".deps-rollback-backup");
+
+interface PackageManifest {
+	workspaces?: string[] | { packages?: string[] };
+	dependencies?: Record<string, string>;
+	devDependencies?: Record<string, string>;
+	optionalDependencies?: Record<string, string>;
+}
+
+interface TargetManifest {
+	path: string;
+	manifest: PackageManifest;
+	section: "dependencies" | "devDependencies" | "optionalDependencies";
+}
 
 interface BackupFiles {
 	lockfile?: string;
-	packageJson?: string;
+	manifest: string;
 }
 
-/**
- * Create atomic backup of critical files.
- */
-function createBackup(): BackupFiles {
-	const backup: BackupFiles = {};
+function readJson<T>(path: string): T {
+	return JSON.parse(readFileSync(path, "utf-8")) as T;
+}
 
-	try {
-		require("fs").mkdirSync(BACKUP_DIR, { recursive: true });
+function readLock(): unknown {
+	return Bun.JSONC.parse(readFileSync(LOCKFILE_PATH, "utf-8"));
+}
 
-		if (existsSync(LOCKFILE_PATH)) {
-			backup.lockfile = join(BACKUP_DIR, `bun.lockb.${Date.now()}`);
-			copyFileSync(LOCKFILE_PATH, backup.lockfile);
+function workspacePatterns(manifest: PackageManifest): string[] {
+	if (Array.isArray(manifest.workspaces)) return manifest.workspaces;
+	return manifest.workspaces?.packages ?? [];
+}
+
+function expandWorkspacePattern(pattern: string): string[] {
+	const normalized = pattern.replace(/\\/g, "/").replace(/\/$/, "");
+	if (!normalized.endsWith("/*")) return [normalized];
+
+	const parent = normalized.slice(0, -2);
+	const parentPath = join(REPO_ROOT, parent);
+	if (!existsSync(parentPath)) return [];
+	return readdirSync(parentPath, { withFileTypes: true })
+		.filter((entry) => entry.isDirectory())
+		.map((entry) => `${parent}/${entry.name}`);
+}
+
+function findTargetManifest(packageName: string): TargetManifest {
+	const rootManifest = readJson<PackageManifest>(ROOT_MANIFEST_PATH);
+	const manifestPaths = [
+		ROOT_MANIFEST_PATH,
+		...workspacePatterns(rootManifest)
+			.flatMap(expandWorkspacePattern)
+			.map((workspace) => join(REPO_ROOT, workspace, "package.json"))
+			.filter(existsSync),
+	];
+	const matches: TargetManifest[] = [];
+
+	for (const path of manifestPaths) {
+		const manifest = path === ROOT_MANIFEST_PATH
+			? rootManifest
+			: readJson<PackageManifest>(path);
+		for (const section of [
+			"dependencies",
+			"devDependencies",
+			"optionalDependencies",
+		] as const) {
+			if (manifest[section]?.[packageName] !== undefined) {
+				matches.push({ path, manifest, section });
+			}
 		}
+	}
 
-		if (existsSync(PACKAGE_JSON_PATH)) {
-			backup.packageJson = join(BACKUP_DIR, `package.json.${Date.now()}`);
-			copyFileSync(PACKAGE_JSON_PATH, backup.packageJson);
-		}
+	if (matches.length === 0) {
+		throw new Error(`Package '${packageName}' not found in root or declared workspace manifests`);
+	}
+	if (matches.length > 1) {
+		throw new Error(`Package '${packageName}' is declared in multiple manifests`);
+	}
+	return matches[0];
+}
 
-		return backup;
-	} catch (e) {
-		console.error(`Failed to create backup: ${e}`);
-		throw e;
+function createBackup(manifestPath: string): BackupFiles {
+	mkdirSync(BACKUP_DIR, { recursive: true });
+	const stamp = Date.now();
+	const manifest = join(BACKUP_DIR, `package.json.${stamp}`);
+	copyFileSync(manifestPath, manifest);
+	const backup: BackupFiles = { manifest };
+	if (existsSync(LOCKFILE_PATH)) {
+		backup.lockfile = join(BACKUP_DIR, `bun.lock.${stamp}`);
+		copyFileSync(LOCKFILE_PATH, backup.lockfile);
+	}
+	return backup;
+}
+
+function restoreBackup(backup: BackupFiles, manifestPath: string): void {
+	copyFileSync(backup.manifest, manifestPath);
+	if (backup.lockfile && existsSync(backup.lockfile)) {
+		copyFileSync(backup.lockfile, LOCKFILE_PATH);
 	}
 }
 
-/**
- * Restore from backup on failure.
- */
-function restoreBackup(backup: BackupFiles): void {
-	try {
-		if (backup.lockfile && existsSync(backup.lockfile)) {
-			copyFileSync(backup.lockfile, LOCKFILE_PATH);
+function runGate(label: string, args: string[]): void {
+	const result = Bun.spawnSync(args, {
+		cwd: REPO_ROOT,
+		stdout: "pipe",
+		stderr: "pipe",
+	});
+	const stdout = result.stdout.toString();
+	const stderr = result.stderr.toString();
+	if (result.exitCode !== 0) {
+		throw new Error(`${label} failed (exit ${result.exitCode})\n${stderr || stdout}`);
+	}
+	console.log(`${label}: passed`);
+}
+
+function stripTargetFromLock(lock: unknown, packageName: string): unknown {
+	const copy = structuredClone(lock) as {
+		workspaces?: Record<string, Record<string, Record<string, unknown>>>;
+		packages?: Record<string, unknown>;
+	};
+	for (const workspace of Object.values(copy.workspaces ?? {})) {
+		for (const section of [
+			"dependencies",
+			"devDependencies",
+			"optionalDependencies",
+			"peerDependencies",
+		]) {
+			delete workspace[section]?.[packageName];
 		}
-		if (backup.packageJson && existsSync(backup.packageJson)) {
-			copyFileSync(backup.packageJson, PACKAGE_JSON_PATH);
+	}
+	for (const key of Object.keys(copy.packages ?? {})) {
+		if (key === packageName || key.endsWith(`/${packageName}`)) {
+			delete copy.packages?.[key];
 		}
-	} catch (e) {
-		console.error(`Failed to restore backup: ${e}`);
+	}
+	return copy;
+}
+
+function assertOnlyTargetLockChanged(before: unknown, after: unknown, packageName: string): void {
+	const unrelatedBefore = JSON.stringify(stripTargetFromLock(before, packageName));
+	const unrelatedAfter = JSON.stringify(stripTargetFromLock(after, packageName));
+	if (unrelatedBefore !== unrelatedAfter) {
+		throw new Error(`bun.lock contains changes unrelated to '${packageName}'`);
 	}
 }
 
-/**
- * Clean up backup directory.
- */
-function cleanupBackup(backup: BackupFiles): void {
-	try {
-		if (backup.lockfile && existsSync(backup.lockfile)) {
-			unlinkSync(backup.lockfile);
-		}
-		if (backup.packageJson && existsSync(backup.packageJson)) {
-			unlinkSync(backup.packageJson);
-		}
-	} catch (e) {
-		// Ignore cleanup errors
-	}
-}
-
-/**
- * Perform atomic rollback of a dependency.
- */
 async function rollback(packageName: string): Promise<void> {
-	// Load registry
-	let registry: DepsRegistry;
-	try {
-		registry = JSON.parse(readFileSync(REGISTRY_PATH, "utf-8"));
-	} catch (e) {
-		console.error(`Failed to read registry: ${e}`);
-		process.exit(2);
-	}
+	const startedAt = performance.now();
+	const registry = readJson<DepsRegistry>(REGISTRY_PATH);
+	const dependency = registry.dependencies.find((candidate) => candidate.name === packageName);
+	if (!dependency) throw new Error(`Package '${packageName}' not found in registry`);
 
-	// Find dependency
-	const dep = registry.dependencies.find((d) => d.name === packageName);
-	if (!dep) {
-		console.error(`Package '${packageName}' not found in registry`);
-		process.exit(1);
-	}
-
-	// Find known-good version different from current
-	let rollbackVersion: string | null = null;
-	if (dep.knownGoodHistory.length > 1) {
-		rollbackVersion =
-			dep.knownGoodHistory[dep.knownGoodHistory.length - 2].version;
-	}
-
+	const fromVersion = dependency.currentPin;
+	const rollbackVersion = [...dependency.knownGoodHistory]
+		.reverse()
+		.find((candidate) => candidate.version !== fromVersion)?.version;
 	if (!rollbackVersion) {
-		console.error(
-			`No previous known-good version available for '${packageName}'`,
-		);
-		process.exit(1);
+		throw new Error(`No previous known-good version available for '${packageName}'`);
 	}
 
-	console.log(
-		`Attempting rollback of '${packageName}' from ${dep.currentPin} to ${rollbackVersion}...`,
-	);
-
-	// Create backup
-	const backup = createBackup();
+	const target = findTargetManifest(packageName);
+	const lockBefore = readLock();
+	const backup = createBackup(target.path);
+	console.log(`Rolling back ${packageName}: ${fromVersion} -> ${rollbackVersion}`);
 
 	try {
-		// Update package.json to pin the known-good version
-		let packageJson;
-		try {
-			packageJson = JSON.parse(readFileSync(PACKAGE_JSON_PATH, "utf-8"));
-		} catch (e) {
-			throw new Error(`Failed to read package.json: ${e}`);
-		}
+		target.manifest[target.section]![packageName] = rollbackVersion;
+		writeFileSync(target.path, `${JSON.stringify(target.manifest, null, 2)}\n`);
 
-		// Update in dependencies or devDependencies
-		if (packageJson.dependencies && packageJson.dependencies[packageName]) {
-			packageJson.dependencies[packageName] = rollbackVersion;
-		} else if (
-			packageJson.devDependencies &&
-			packageJson.devDependencies[packageName]
-		) {
-			packageJson.devDependencies[packageName] = rollbackVersion;
-		} else {
-			throw new Error(`Package '${packageName}' not found in package.json`);
-		}
+		runGate("bun install --offline", [process.execPath, "install", "--offline"]);
+		const lockAfter = readLock();
+		assertOnlyTargetLockChanged(lockBefore, lockAfter, packageName);
+		console.log("lockfile invariant: passed");
+		runGate("typecheck", [process.execPath, "run", "typecheck"]);
 
-		writeFileSync(PACKAGE_JSON_PATH, JSON.stringify(packageJson, null, 2));
-		console.log(`Updated package.json to pin ${rollbackVersion}`);
+		const timestamp = new Date().toISOString();
+		dependency.currentPin = rollbackVersion;
+		dependency.lastUpdated = timestamp;
+		writeFileSync(REGISTRY_PATH, `${JSON.stringify(registry, null, 2)}\n`);
 
-		// Note: In a real scenario, you would run:
-		// - bun install to regenerate lockfile
-		// - bun run typecheck as a smoke test
-		// For demo purposes, we'll assume these pass and just log the intent.
-		console.log("(In production: would run bun install and typecheck)");
-
-		// Update registry
-		dep.currentPin = rollbackVersion;
-		dep.lastUpdated = new Date().toISOString();
-		writeFileSync(REGISTRY_PATH, JSON.stringify(registry, null, 2));
-		console.log("Updated registry manifest");
-
-		// Append changelog entry
-		const previousVersion =
-			dep.knownGoodHistory[dep.knownGoodHistory.length - 1]?.version ||
-			dep.currentPin;
 		const entry: ChangelogEntry = {
-			timestamp: new Date().toISOString(),
+			timestamp,
 			package: packageName,
-			fromVersion: previousVersion,
+			fromVersion,
 			toVersion: rollbackVersion,
-			channel: dep.channel,
+			channel: dependency.channel,
 			gateResults: { typecheck: true },
 			outcome: "success",
 			actor: "user",
 		};
 		appendChangelogEntry(entry);
-		console.log("Appended changelog entry");
 
-		console.log(
-			`\nRollback successful: ${packageName} reverted to ${rollbackVersion}`,
-		);
-		process.exit(0);
-	} catch (e) {
-		console.error(`Rollback error: ${e}`);
-		restoreBackup(backup);
-		process.exit(2);
+		console.log(`changelog: ${timestamp}`);
+		console.log(`Rollback successful: ${packageName} ${fromVersion} -> ${rollbackVersion}`);
+		console.log(`elapsed: ${Math.round(performance.now() - startedAt)}ms`);
+	} catch (error) {
+		// This preserves the command's pre-existing bounded file backup behavior.
+		// Full transaction restoration remains FR-DEP-005.
+		restoreBackup(backup, target.path);
+		throw error;
 	} finally {
-		cleanupBackup(backup);
+		rmSync(BACKUP_DIR, { recursive: true, force: true });
 	}
 }
 
-// Main entry point
-const args = process.argv.slice(2);
-if (args.length === 0) {
+const packageName = process.argv.slice(2)[0];
+if (!packageName) {
 	console.error("Usage: bun run deps:rollback <package>");
-	process.exit(1);
+	process.exitCode = 1;
+} else {
+	try {
+		await rollback(packageName);
+	} catch (error) {
+		console.error(`Rollback error: ${error}`);
+		process.exitCode = 2;
+	}
 }
-
-const packageName = args[0];
-rollback(packageName).catch((e) => {
-	console.error(`Fatal error: ${e}`);
-	process.exit(2);
-});

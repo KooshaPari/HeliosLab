@@ -1,11 +1,160 @@
 import { expect, test, describe, beforeEach, afterEach } from "bun:test";
-import { readFileSync, writeFileSync, rmSync, existsSync } from "fs";
+import {
+	existsSync,
+	mkdirSync,
+	mkdtempSync,
+	readFileSync,
+	rmSync,
+	writeFileSync,
+} from "fs";
+import { createHash } from "node:crypto";
+import { tmpdir } from "node:os";
 import { join } from "path";
 import type { DepsRegistry, DepsChangelog } from "../deps-types";
 
 const REPO_ROOT = process.cwd();
 const REGISTRY_PATH = join(REPO_ROOT, "deps-registry.json");
 const CHANGELOG_PATH = join(REPO_ROOT, "deps-changelog.json");
+const PROTECTED_REPO_FILES = [
+	join(REPO_ROOT, "package.json"),
+	join(REPO_ROOT, "bun.lock"),
+	join(REPO_ROOT, "deps-registry.json"),
+	join(REPO_ROOT, "deps-changelog.json"),
+	join(REPO_ROOT, "scripts", "deps-rollback.ts"),
+];
+
+function hashFile(path: string): string {
+	return createHash("sha256").update(readFileSync(path)).digest("hex");
+}
+
+async function prepareRollbackFixture(): Promise<{
+	fixtureRoot: string;
+	workspaceRoot: string;
+	lockBefore: {
+		workspaces: Record<string, { dependencies?: Record<string, string> }>;
+		packages: Record<string, unknown>;
+	};
+	exitCode: number;
+	stdout: string;
+	stderr: string;
+	durationMs: number;
+	repoHashesBefore: Map<string, string>;
+}> {
+	const fixtureRoot = mkdtempSync(join(tmpdir(), "helios-deps-rollback-"));
+	const workspaceRoot = join(fixtureRoot, "apps", "tool");
+	const productionScript = join(REPO_ROOT, "scripts", "deps-rollback.ts").replace(/\\/g, "/");
+	for (const directory of [
+		workspaceRoot,
+		join(fixtureRoot, "vendor", "target-v1"),
+		join(fixtureRoot, "vendor", "target-v2"),
+		join(fixtureRoot, "vendor", "stable"),
+	]) {
+		mkdirSync(directory, { recursive: true });
+	}
+
+	writeFileSync(
+		join(fixtureRoot, "package.json"),
+		JSON.stringify({
+			name: "rollback-fixture",
+			private: true,
+			workspaces: ["apps/tool"],
+			scripts: {
+				"deps:rollback": `bun ${productionScript}`,
+				typecheck: 'bun -e "process.exit(0)"',
+			},
+		}),
+	);
+	writeFileSync(
+		join(workspaceRoot, "package.json"),
+		JSON.stringify({
+			name: "fixture-tool",
+			version: "1.0.0",
+			dependencies: {
+				"fixture-target": "file:../../vendor/target-v2",
+				"fixture-stable": "file:../../vendor/stable",
+			},
+		}),
+	);
+	for (const [directory, name, version] of [
+		["target-v1", "fixture-target", "1.0.0"],
+		["target-v2", "fixture-target", "2.0.0"],
+		["stable", "fixture-stable", "1.0.0"],
+	] as const) {
+		writeFileSync(
+			join(fixtureRoot, "vendor", directory, "package.json"),
+			JSON.stringify({ name, version }),
+		);
+	}
+	writeFileSync(
+		join(fixtureRoot, "deps-registry.json"),
+		JSON.stringify({
+			schemaVersion: "1.0.0",
+			metadata: { lastStatusCheck: new Date().toISOString(), registryCacheMaxAge: "PT1H" },
+			dependencies: [
+				{
+					name: "fixture-target",
+					currentPin: "file:../../vendor/target-v2",
+					channel: "stable",
+					upstreamSource: "file:../../vendor",
+					knownGoodHistory: [
+						{
+							version: "file:../../vendor/target-v1",
+							timestamp: "2026-01-01T00:00:00.000Z",
+							gateResult: "pass",
+						},
+						{
+							version: "file:../../vendor/target-v2",
+							timestamp: "2026-02-01T00:00:00.000Z",
+							gateResult: "pass",
+						},
+					],
+					lastUpdated: "2026-02-01T00:00:00.000Z",
+				},
+			],
+		}),
+	);
+	writeFileSync(join(fixtureRoot, "deps-changelog.json"), JSON.stringify({ entries: [] }));
+
+	const initialInstall = Bun.spawn([process.execPath, "install", "--lockfile-only"], {
+		cwd: fixtureRoot,
+		stdout: "pipe",
+		stderr: "pipe",
+	});
+	if ((await initialInstall.exited) !== 0) {
+		rmSync(fixtureRoot, { recursive: true, force: true });
+		throw new Error("failed to prepare local rollback fixture lockfile");
+	}
+	const lockBefore = Bun.JSONC.parse(readFileSync(join(fixtureRoot, "bun.lock"), "utf-8")) as {
+		workspaces: Record<string, { dependencies?: Record<string, string> }>;
+		packages: Record<string, unknown>;
+	};
+	const repoHashesBefore = new Map(PROTECTED_REPO_FILES.map(path => [path, hashFile(path)]));
+	const stdoutPath = join(fixtureRoot, "rollback.stdout.log");
+	const stderrPath = join(fixtureRoot, "rollback.stderr.log");
+	const startedAt = performance.now();
+	const rollback = Bun.spawn(
+		[process.execPath, "run", "deps:rollback", "fixture-target"],
+		{
+			cwd: fixtureRoot,
+			stdout: Bun.file(stdoutPath),
+			stderr: Bun.file(stderrPath),
+		},
+	);
+	const exitCode = await rollback.exited;
+	const durationMs = performance.now() - startedAt;
+	return {
+		fixtureRoot,
+		workspaceRoot,
+		lockBefore,
+		exitCode,
+		stdout: readFileSync(stdoutPath, "utf-8"),
+		stderr: readFileSync(stderrPath, "utf-8"),
+		durationMs,
+		repoHashesBefore,
+	};
+}
+
+const rollbackFixture = await prepareRollbackFixture();
 
 // Traces to: FR-DEP-004 (rollback command), FR-DEP-005 (atomic rollback)
 describe("Dependency Rollback Integration", () => {
@@ -20,7 +169,7 @@ describe("Dependency Rollback Integration", () => {
 				recursive: true,
 				force: true,
 			});
-		} catch (e) {
+		} catch {
 			// Ignore
 		}
 	});
@@ -32,7 +181,7 @@ describe("Dependency Rollback Integration", () => {
 				recursive: true,
 				force: true,
 			});
-		} catch (e) {
+		} catch {
 			// Ignore
 		}
 	});
@@ -240,5 +389,78 @@ describe("Dependency Rollback Integration", () => {
 		expect(changelog.entries[changelog.entries.length - 1].package).toBe(
 			"concurrent-2",
 		);
+	});
+
+	test("root rollback CLI restores the last known-good pin and regenerates bun.lock (FR-DEP-004)", async () => {
+		const {
+			fixtureRoot,
+			workspaceRoot,
+			lockBefore,
+			exitCode,
+			stdout,
+			stderr,
+			durationMs,
+			repoHashesBefore,
+		} = rollbackFixture;
+
+		try {
+			expect(exitCode, stderr).toBe(0);
+			expect(durationMs).toBeLessThan(60_000);
+			expect(stdout).toContain("fixture-target");
+			expect(stdout).toContain("file:../../vendor/target-v2");
+			expect(stdout).toContain("file:../../vendor/target-v1");
+			expect(stdout.toLowerCase()).toContain("typecheck");
+			expect(stdout.toLowerCase()).toContain("changelog");
+
+			const workspacePackage = JSON.parse(
+				readFileSync(join(workspaceRoot, "package.json"), "utf-8"),
+			) as { dependencies: Record<string, string> };
+			expect(workspacePackage.dependencies["fixture-target"]).toBe(
+				"file:../../vendor/target-v1",
+			);
+			expect(workspacePackage.dependencies["fixture-stable"]).toBe(
+				"file:../../vendor/stable",
+			);
+
+			const lockAfterText = readFileSync(join(fixtureRoot, "bun.lock"), "utf-8");
+			const lockAfter = Bun.JSONC.parse(lockAfterText) as typeof lockBefore;
+			expect(lockAfterText).toContain("target-v1");
+			expect(lockAfterText).not.toContain("target-v2");
+			expect(lockAfter.workspaces["apps/tool"]?.dependencies?.["fixture-stable"]).toBe(
+				lockBefore.workspaces["apps/tool"]?.dependencies?.["fixture-stable"],
+			);
+			const stableLockKey = Object.keys(lockBefore.packages).find((key) =>
+				key === "fixture-stable" || key.endsWith("/fixture-stable"),
+			);
+			expect(stableLockKey).toBeDefined();
+			expect(lockAfter.packages[stableLockKey!]).toEqual(
+				lockBefore.packages[stableLockKey!],
+			);
+
+			const registry = JSON.parse(
+				readFileSync(join(fixtureRoot, "deps-registry.json"), "utf-8"),
+			) as DepsRegistry;
+			expect(registry.dependencies[0]?.currentPin).toBe("file:../../vendor/target-v1");
+			const changelog = JSON.parse(
+				readFileSync(join(fixtureRoot, "deps-changelog.json"), "utf-8"),
+			) as DepsChangelog;
+			expect(changelog.entries).toHaveLength(1);
+			expect(changelog.entries[0]).toMatchObject({
+				package: "fixture-target",
+				fromVersion: "file:../../vendor/target-v2",
+				toVersion: "file:../../vendor/target-v1",
+				gateResults: { typecheck: true },
+				outcome: "success",
+				actor: "user",
+			});
+			expect(existsSync(join(fixtureRoot, ".deps-rollback-backup"))).toBe(false);
+		} finally {
+			rmSync(fixtureRoot, { recursive: true, force: true });
+		}
+
+		expect(existsSync(fixtureRoot)).toBe(false);
+		for (const [path, hash] of repoHashesBefore) {
+			expect(hashFile(path), `rollback modified consolidation file ${path}`).toBe(hash);
+		}
 	});
 });

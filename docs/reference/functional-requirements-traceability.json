@@ -632,7 +632,7 @@
 		},
 		{
 			"id": "FR-DEP-004",
-			"status": "[ ]",
+			"status": "[x]",
 			"code": ["package.json", "scripts/deps-rollback.ts"],
 			"tests": ["scripts/tests/deps-rollback.test.ts"],
 			"evidence": ["docs/specs/020-prerelease-dependency-registry/tasks/WP02-rollback-and-canary-process.md"]
