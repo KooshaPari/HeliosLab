@@ -56,6 +56,9 @@ describe("constitution review re-evaluation contract (FR-REV-010)", () => {
 		expect(canonicalJob).toContain("pull-requests: read");
 		expect(canonicalJob).not.toContain("contents: write");
 		expect(canonicalJob).not.toContain("actions/checkout");
+		expect(canonicalJob).toContain(
+			'run: |\n          echo "Governance check entered for PR #${{ steps.target.outputs.pr_number }} at ${{ steps.target.outputs.head_sha }}"',
+		);
 	});
 
 	test("inventory traverses multiple pages and binds every dispatch", async () => {

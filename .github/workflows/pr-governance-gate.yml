@@ -65,4 +65,5 @@ jobs:
             core.setOutput("pr_number", String(prNumber));
             core.setOutput("head_sha", requestedHead);
       - name: Canonical Governance Check
-        run: echo "Governance check entered for PR #${{ steps.target.outputs.pr_number }} at ${{ steps.target.outputs.head_sha }}"
+        run: |
+          echo "Governance check entered for PR #${{ steps.target.outputs.pr_number }} at ${{ steps.target.outputs.head_sha }}"
