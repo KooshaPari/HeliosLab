@@ -49,8 +49,17 @@ if (root) render(() => <TerminalTabs />, root);
 			rmSync(outputDirectory, { recursive: true, force: true });
 		}
 
+		const tablist = root.querySelector('[role="tablist"]');
 		const tab = root.querySelector('[role="tab"]');
+		const addButton = root.querySelector('button[aria-label="New terminal"]');
+		expect(tablist).not.toBeNull();
 		expect(tab).not.toBeNull();
 		expect(tab?.parentElement?.getAttribute("role")).toBe("tablist");
+		expect(Array.from(tablist?.children ?? []).map((child) => child.getAttribute("role"))).toEqual([
+			"tab",
+		]);
+		expect(addButton).not.toBeNull();
+		expect(addButton?.parentElement).toBe(tablist?.parentElement);
+		expect(addButton?.parentElement).not.toBe(tablist);
 	});
 });
