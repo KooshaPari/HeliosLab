@@ -25,6 +25,7 @@ describe("colab terminal tabs accessibility", () => {
 import { TerminalTabs } from ${JSON.stringify(componentPath)};
 import { createTerminal } from ${JSON.stringify(storePath)};
 createTerminal();
+createTerminal();
 const root = document.getElementById("root");
 if (root) render(() => <TerminalTabs />, root);
 `,
@@ -50,16 +51,31 @@ if (root) render(() => <TerminalTabs />, root);
 		}
 
 		const tablist = root.querySelector('[role="tablist"]');
-		const tab = root.querySelector('[role="tab"]');
+		const tabs = Array.from(root.querySelectorAll<HTMLElement>('[role="tab"]'));
+		const tab = tabs[0];
+		const closeButtons = Array.from(root.querySelectorAll<HTMLButtonElement>('button[aria-label^="Close "]'));
 		const addButton = root.querySelector('button[aria-label="New terminal"]');
 		expect(tablist).not.toBeNull();
-		expect(tab).not.toBeNull();
+		expect(tabs).toHaveLength(2);
 		expect(tab?.parentElement?.getAttribute("role")).toBe("tablist");
 		expect(Array.from(tablist?.children ?? []).map((child) => child.getAttribute("role"))).toEqual([
 			"tab",
+			"tab",
 		]);
+		expect(tabs.every((item) => item.tagName === "BUTTON")).toBe(true);
+		expect(tabs.every((item) => item.querySelector("button, a, input, select, textarea") === null)).toBe(
+			true,
+		);
+		expect(closeButtons).toHaveLength(2);
+		expect(closeButtons.every((button) => button.closest('[role="tab"]') === null)).toBe(true);
+		expect(closeButtons.every((button) => button.closest('[role="tablist"]') === null)).toBe(true);
 		expect(addButton).not.toBeNull();
 		expect(addButton?.parentElement).toBe(tablist?.parentElement);
 		expect(addButton?.parentElement).not.toBe(tablist);
+
+		tab?.click();
+		expect(tab?.getAttribute("aria-selected")).toBe("true");
+		closeButtons[0]?.click();
+		expect(root.querySelectorAll('[role="tab"]')).toHaveLength(1);
 	});
 });

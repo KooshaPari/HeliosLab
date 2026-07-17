@@ -46,7 +46,8 @@ export const TerminalTabs: Component<TerminalTabsProps> = props => {
           {(term: TerminalInfo) => {
             const isActive = () => getActiveTerminalId() === term.id;
             return (
-              <div
+              <button
+                type="button"
                 role="tab"
                 aria-selected={isActive()}
                 onClick={() => switchTerminal(term.id)}
@@ -66,26 +67,36 @@ export const TerminalTabs: Component<TerminalTabsProps> = props => {
                 }}
               >
                 <span>{term.name}</span>
-                <button
-                  type="button"
-                  onClick={(e: MouseEvent) => handleClose(e, term.id)}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    color: "inherit",
-                    cursor: "pointer",
-                    padding: "0 2px",
-                    "font-size": "12px",
-                    "line-height": "1",
-                    opacity: "0.7",
-                  }}
-                  aria-label={`Close ${term.name}`}
-                >
-                  X
-                </button>
-              </div>
+              </button>
             );
           }}
+        </For>
+      </div>
+      <div
+        role="toolbar"
+        aria-label="Close terminal sessions"
+        style={{ display: "flex", "align-items": "center" }}
+      >
+        <For each={getTerminals()}>
+          {(term: TerminalInfo) => (
+            <button
+              type="button"
+              onClick={(e: MouseEvent) => handleClose(e, term.id)}
+              style={{
+                background: "none",
+                border: "none",
+                color: "#cdd6f4",
+                cursor: "pointer",
+                padding: "0 2px",
+                "font-size": "12px",
+                "line-height": "1",
+                opacity: "0.7",
+              }}
+              aria-label={`Close ${term.name}`}
+            >
+              X
+            </button>
+          )}
         </For>
       </div>
       <button
