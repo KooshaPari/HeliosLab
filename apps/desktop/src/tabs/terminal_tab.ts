@@ -82,7 +82,7 @@ export class TerminalTab extends TabSurface {
       emptyEl.style.alignItems = "center";
       emptyEl.style.justifyContent = "center";
       emptyEl.style.height = "100%";
-      emptyEl.style.color = "#666";
+      emptyEl.style.color = "#a6adc8";
       emptyEl.style.gap = "16px";
 
       const messageEl = document.createElement("div");
