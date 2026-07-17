@@ -1,15 +1,23 @@
-import { expect, test, describe, beforeEach, afterEach } from "bun:test";
-import { rmSync, existsSync, writeFileSync } from "fs";
+import { expect, test, describe, beforeEach, afterEach, afterAll } from "bun:test";
+import { rmSync, existsSync, mkdtempSync, writeFileSync } from "fs";
+import { tmpdir } from "os";
 import { join } from "path";
 import {
 	validateChangelogEntry,
-	loadChangelog,
-	appendChangelogEntry,
+	loadChangelog as loadChangelogAtPath,
+	appendChangelogEntry as appendChangelogEntryAtPath,
 } from "../deps-changelog-util";
 import type { ChangelogEntry, DepsChangelog } from "../deps-types";
 
-const REPO_ROOT = process.cwd();
-const CHANGELOG_PATH = join(REPO_ROOT, "deps-changelog.json");
+const FIXTURE_ROOT = mkdtempSync(join(tmpdir(), "helios-deps-changelog-"));
+const CHANGELOG_PATH = join(FIXTURE_ROOT, "deps-changelog.json");
+const loadChangelog = (): DepsChangelog => loadChangelogAtPath(CHANGELOG_PATH);
+const appendChangelogEntry = (entry: ChangelogEntry): void =>
+	appendChangelogEntryAtPath(entry, CHANGELOG_PATH);
+
+afterAll(() => {
+	rmSync(FIXTURE_ROOT, { recursive: true, force: true });
+});
 
 // Traces to: FR-DEP-008 (dependency changelog recording)
 describe("Dependency Changelog Utility", () => {

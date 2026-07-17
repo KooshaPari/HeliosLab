@@ -48,13 +48,13 @@ export function validateChangelogEntry(entry: ChangelogEntry): void {
 /**
  * Load the current changelog, or initialize empty if it doesn't exist.
  */
-export function loadChangelog(): DepsChangelog {
-	if (!existsSync(CHANGELOG_PATH)) {
+export function loadChangelog(changelogPath: string = CHANGELOG_PATH): DepsChangelog {
+	if (!existsSync(changelogPath)) {
 		return { entries: [] };
 	}
 
 	try {
-		const data = JSON.parse(readFileSync(CHANGELOG_PATH, "utf-8"));
+		const data = JSON.parse(readFileSync(changelogPath, "utf-8"));
 		if (!Array.isArray(data.entries)) {
 			throw new Error("Changelog entries is not an array");
 		}
@@ -68,12 +68,15 @@ export function loadChangelog(): DepsChangelog {
  * Append a validated entry to the changelog using atomic write.
  * Throws an error if validation fails or write fails.
  */
-export function appendChangelogEntry(entry: ChangelogEntry): void {
+export function appendChangelogEntry(
+	entry: ChangelogEntry,
+	changelogPath: string = CHANGELOG_PATH,
+): void {
 	// Validate entry
 	validateChangelogEntry(entry);
 
 	// Load current changelog
-	const changelog = loadChangelog();
+	const changelog = loadChangelog(changelogPath);
 
 	// Append new entry
 	changelog.entries.push(entry);
@@ -83,7 +86,7 @@ export function appendChangelogEntry(entry: ChangelogEntry): void {
 	try {
 		writeFileSync(tempFile, JSON.stringify(changelog, null, 2));
 		// Atomic rename (move temp file to final location)
-		require("fs").renameSync(tempFile, CHANGELOG_PATH);
+		require("fs").renameSync(tempFile, changelogPath);
 	} catch (e) {
 		// Clean up temp file if it exists
 		if (existsSync(tempFile)) {
