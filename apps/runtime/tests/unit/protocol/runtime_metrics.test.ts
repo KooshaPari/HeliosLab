@@ -5,6 +5,13 @@
 import { expect, test } from "bun:test";
 import { InMemoryLocalBus } from "../../../src/protocol/bus";
 
+function sequenceClock(values: number[]): { now(): number } {
+  let index = 0;
+  return {
+    now: () => values[index++] ?? values.at(-1) ?? 0,
+  };
+}
+
 test("captures lane create latency metrics", async () => {
   const bus = new InMemoryLocalBus();
 
@@ -97,4 +104,60 @@ test("captures terminal output backlog depth", async () => {
   expect(
     metricEvents.some(event => event.payload?.metric === "terminal_output_backlog_depth")
   ).toBe(true);
+});
+
+test("uses one monotonic clock for mapped request latency when wall time rolls back", async () => {
+  const originalDateNow = Date.now;
+  let wallTime = 1_000;
+  Date.now = () => --wallTime;
+
+  try {
+    const laneBus = new InMemoryLocalBus(sequenceClock([10, 17]));
+    await laneBus.request({
+      id: "cmd-clock-lane",
+      type: "command",
+      ts: new Date().toISOString(),
+      correlation_id: "corr-clock-lane",
+      method: "lane.create",
+      payload: { id: "lane-clock" },
+    });
+
+    const restoreBus = new InMemoryLocalBus(sequenceClock([20, 25, 34]));
+    await restoreBus.request({
+      id: "cmd-clock-restore",
+      type: "command",
+      ts: new Date().toISOString(),
+      correlation_id: "corr-clock-restore",
+      method: "session.attach",
+      payload: { id: "session-clock", restore: true },
+    });
+
+    const terminalBus = new InMemoryLocalBus(sequenceClock([40, 52]));
+    await terminalBus.request({
+      id: "cmd-clock-terminal",
+      type: "command",
+      ts: new Date().toISOString(),
+      correlation_id: "corr-clock-terminal",
+      method: "terminal.spawn",
+      payload: { id: "terminal-clock" },
+    });
+
+    expect(
+      laneBus
+        .getMetricsReport()
+        .summaries.find(metric => metric.metric === "lane_create_latency_ms")?.latest
+    ).toBe(7);
+    expect(
+      restoreBus
+        .getMetricsReport()
+        .summaries.find(metric => metric.metric === "session_restore_latency_ms")?.latest
+    ).toBe(9);
+    expect(
+      terminalBus
+        .getMetricsReport()
+        .summaries.find(metric => metric.metric === "terminal_spawn_latency_ms")?.latest
+    ).toBe(12);
+  } finally {
+    Date.now = originalDateNow;
+  }
 });

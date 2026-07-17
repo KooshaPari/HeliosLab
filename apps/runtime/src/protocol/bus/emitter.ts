@@ -10,6 +10,7 @@ import type {
 import type { MethodHandler } from "../methods.js";
 import { ProtocolValidationError } from "../types.js";
 import { validateEnvelope } from "../validator.js";
+import { monotonicNow, type MonotonicClock } from "../../diagnostics/hooks.js";
 import { isTerminalTopic, isStartTopic, resolveExpectedStartTopic } from "./lifecycle.js";
 import { MetricsRecorder } from "./metrics.js";
 import {
@@ -36,6 +37,11 @@ export class InMemoryLocalBus implements LocalBus {
   private state: BusState = { session: "detached" };
   private readonly lifecycleProgress: Map<string, Set<string>> = new Map();
   private rendererEngine: "ghostty" | "rio" = "ghostty";
+  private readonly clock: MonotonicClock;
+
+  constructor(clock: MonotonicClock = { now: monotonicNow }) {
+    this.clock = clock;
+  }
 
   getEvents(): LocalBusEnvelope[] {
     return [...this.eventLog];
@@ -196,6 +202,7 @@ export class InMemoryLocalBus implements LocalBus {
       auditLog: this.auditLog,
       metricsRecorder: this.metricsRecorder,
       rendererEngine: this.rendererEngine,
+      monotonicNow: () => this.clock.now(),
       setState: (newState: BusState) => {
         this.state = newState;
       },
@@ -231,7 +238,7 @@ export class InMemoryLocalBus implements LocalBus {
         };
       }
 
-      const startTime = Date.now();
+      const startTime = this.clock.now();
       const ctx = this.getHandlerContext();
 
       if (command.method === "lane.create") return handleLaneCreate(command, startTime, ctx);

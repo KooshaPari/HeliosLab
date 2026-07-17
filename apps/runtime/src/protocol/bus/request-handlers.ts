@@ -16,6 +16,7 @@ export interface RequestHandlerContext {
   auditLog: AuditRecord[];
   metricsRecorder: MetricsRecorder;
   rendererEngine: "ghostty" | "rio";
+  monotonicNow(): number;
   setState(newState: BusState): void;
   setRendererEngine(engine: "ghostty" | "rio"): void;
 }
@@ -73,10 +74,11 @@ export function handleLaneCreate(
   ctx.lifecycleProgress.get(correlationId)?.add("lane.create.started");
   publishLifecycleEvent("lane.create.started", command, ctx.eventLog, ctx.auditLog);
   publishLifecycleEvent("lane.created", command, ctx.eventLog, ctx.auditLog);
-  ctx.metricsRecorder.recordMetric("lane_create_latency_ms", Date.now() - startTime);
+  const latencyMs = ctx.monotonicNow() - startTime;
+  ctx.metricsRecorder.recordMetric("lane_create_latency_ms", latencyMs);
   ctx.metricsRecorder.emitMetricEvent(
     "lane_create_latency_ms",
-    Date.now() - startTime,
+    latencyMs,
     ctx.eventLog,
     ctx.auditLog
   );
@@ -157,12 +159,13 @@ export function handleSessionAttach(
 
   const isRestore = command.payload?.restore === true;
   if (isRestore) {
-    const restoreStart = Date.now();
+    const restoreStart = ctx.monotonicNow();
     publishLifecycleEvent("session.restore.started", command, ctx.eventLog, ctx.auditLog);
-    ctx.metricsRecorder.recordMetric("session_restore_latency_ms", Date.now() - restoreStart);
+    const latencyMs = ctx.monotonicNow() - restoreStart;
+    ctx.metricsRecorder.recordMetric("session_restore_latency_ms", latencyMs);
     ctx.metricsRecorder.emitMetricEvent(
       "session_restore_latency_ms",
-      Date.now() - restoreStart,
+      latencyMs,
       ctx.eventLog,
       ctx.auditLog
     );
@@ -260,10 +263,11 @@ export function handleTerminalSpawn(
   publishLifecycleEvent("terminal.state.changed", command, ctx.eventLog, ctx.auditLog);
   ctx.lifecycleProgress.get(correlationId)?.add("terminal.spawned");
   publishLifecycleEvent("terminal.spawned", command, ctx.eventLog, ctx.auditLog);
-  ctx.metricsRecorder.recordMetric("terminal_spawn_latency_ms", Date.now() - startTime);
+  const latencyMs = ctx.monotonicNow() - startTime;
+  ctx.metricsRecorder.recordMetric("terminal_spawn_latency_ms", latencyMs);
   ctx.metricsRecorder.emitMetricEvent(
     "terminal_spawn_latency_ms",
-    Date.now() - startTime,
+    latencyMs,
     ctx.eventLog,
     ctx.auditLog
   );
