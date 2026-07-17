@@ -6,7 +6,7 @@ import test from 'node:test'
 const boundaryDirectory = join('docs', 'boundary')
 const rawPlaceholder = /<[^>]+>/g
 
-test('boundary table placeholders are escaped for VitePress', async () => {
+test('boundary placeholders are escaped for VitePress', async () => {
   const markdownFiles = (await readdir(boundaryDirectory)).filter((file) => file.endsWith('.md'))
   const violations = []
 
@@ -15,7 +15,7 @@ test('boundary table placeholders are escaped for VitePress', async () => {
     const lines = (await readFile(path, 'utf8')).split(/\r?\n/)
 
     for (const [index, line] of lines.entries()) {
-      if (line.startsWith('|') && rawPlaceholder.test(line)) {
+      if (rawPlaceholder.test(line)) {
         violations.push(`${basename(path)}:${index + 1}: ${line}`)
       }
       rawPlaceholder.lastIndex = 0

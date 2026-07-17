@@ -12,9 +12,9 @@ status: active
 last_boundary_review: 2026-06-17
 review_cadence: 30d
 in_scope:
-  - "<to be filled>"
+  - "&lt;to be filled&gt;"
 out_of_scope:
-  - "<to be filled>"
+  - "&lt;to be filled&gt;"
 ---
 
 # Boundary — HeliosLab
