@@ -1,3 +1,4 @@
+import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
 import { SwitchConfirmation } from "../../../src/settings/switch_confirmation";
 
 describe("SwitchConfirmation", () => {
@@ -17,8 +18,8 @@ describe("SwitchConfirmation", () => {
   });
 
   it("should mount to container", () => {
-    const onConfirm = vi.fn();
-    const onCancel = vi.fn();
+    const onConfirm = mock();
+    const onCancel = mock();
 
     dialog = new SwitchConfirmation({
       targetRendererName: "Rio",
@@ -33,8 +34,8 @@ describe("SwitchConfirmation", () => {
   });
 
   it("should show hot-swap message when supported", async () => {
-    const onConfirm = vi.fn();
-    const onCancel = vi.fn();
+    const onConfirm = mock();
+    const onCancel = mock();
 
     dialog = new SwitchConfirmation({
       targetRendererName: "Rio",
@@ -54,8 +55,8 @@ describe("SwitchConfirmation", () => {
   });
 
   it("should show restart message when hot-swap not supported", async () => {
-    const onConfirm = vi.fn();
-    const onCancel = vi.fn();
+    const onConfirm = mock();
+    const onCancel = mock();
 
     dialog = new SwitchConfirmation({
       targetRendererName: "Rio",
@@ -75,8 +76,8 @@ describe("SwitchConfirmation", () => {
   });
 
   it("should call onConfirm when confirm button clicked", async () => {
-    const onConfirm = vi.fn();
-    const onCancel = vi.fn();
+    const onConfirm = mock();
+    const onCancel = mock();
 
     dialog = new SwitchConfirmation({
       targetRendererName: "Rio",
@@ -99,8 +100,8 @@ describe("SwitchConfirmation", () => {
   });
 
   it("should call onCancel when cancel button clicked", async () => {
-    const onConfirm = vi.fn();
-    const onCancel = vi.fn();
+    const onConfirm = mock();
+    const onCancel = mock();
 
     dialog = new SwitchConfirmation({
       targetRendererName: "Rio",
@@ -121,8 +122,8 @@ describe("SwitchConfirmation", () => {
   });
 
   it("should close dialog when Escape is pressed", async () => {
-    const onConfirm = vi.fn();
-    const onCancel = vi.fn();
+    const onConfirm = mock();
+    const onCancel = mock();
 
     dialog = new SwitchConfirmation({
       targetRendererName: "Rio",
@@ -144,8 +145,8 @@ describe("SwitchConfirmation", () => {
   });
 
   it("should have proper accessibility attributes", async () => {
-    const onConfirm = vi.fn();
-    const onCancel = vi.fn();
+    const onConfirm = mock();
+    const onCancel = mock();
 
     dialog = new SwitchConfirmation({
       targetRendererName: "Rio",

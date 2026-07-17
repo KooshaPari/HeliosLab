@@ -1,3 +1,4 @@
+import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
 import { RendererSettings } from "../../../src/settings/renderer_settings";
 import type { Renderer } from "../../../src/settings/renderer_settings";
 
@@ -25,7 +26,7 @@ describe("RendererSettings", () => {
 
   it("should render settings section with header", () => {
     // Traces to: FR-ENG-001 (settings panel section)
-    const onRendererSelect = vi.fn();
+    const onRendererSelect = mock();
     settings = new RendererSettings({
       renderers: mockRenderers,
       onRendererSelect,
@@ -38,7 +39,7 @@ describe("RendererSettings", () => {
   });
 
   it("should render settings section with description", () => {
-    const onRendererSelect = vi.fn();
+    const onRendererSelect = mock();
     settings = new RendererSettings({
       renderers: mockRenderers,
       onRendererSelect,
@@ -52,7 +53,7 @@ describe("RendererSettings", () => {
 
   it("should render all available renderers", () => {
     // Traces to: FR-ENG-002 (display both ghostty and rio with availability)
-    const onRendererSelect = vi.fn();
+    const onRendererSelect = mock();
     settings = new RendererSettings({
       renderers: mockRenderers,
       onRendererSelect,
@@ -65,7 +66,7 @@ describe("RendererSettings", () => {
   });
 
   it("should display active renderer indicator", () => {
-    const onRendererSelect = vi.fn();
+    const onRendererSelect = mock();
     settings = new RendererSettings({
       renderers: mockRenderers,
       onRendererSelect,
@@ -86,7 +87,7 @@ describe("RendererSettings", () => {
       { id: "rio", name: "Rio", isAvailable: false, isActive: false },
     ];
 
-    const onRendererSelect = vi.fn();
+    const onRendererSelect = mock();
     settings = new RendererSettings({
       renderers,
       onRendererSelect,
@@ -102,7 +103,7 @@ describe("RendererSettings", () => {
   });
 
   it("should call onRendererSelect when renderer is clicked", () => {
-    const onRendererSelect = vi.fn();
+    const onRendererSelect = mock();
     settings = new RendererSettings({
       renderers: mockRenderers,
       onRendererSelect,
@@ -117,7 +118,7 @@ describe("RendererSettings", () => {
   });
 
   it("should display loading state", () => {
-    const onRendererSelect = vi.fn();
+    const onRendererSelect = mock();
     settings = new RendererSettings({
       renderers: [],
       onRendererSelect,
@@ -131,7 +132,7 @@ describe("RendererSettings", () => {
   });
 
   it("should display error state", () => {
-    const onRendererSelect = vi.fn();
+    const onRendererSelect = mock();
     settings = new RendererSettings({
       renderers: [],
       onRendererSelect,
@@ -145,7 +146,7 @@ describe("RendererSettings", () => {
   });
 
   it("should update renderers when update() is called", () => {
-    const onRendererSelect = vi.fn();
+    const onRendererSelect = mock();
     settings = new RendererSettings({
       renderers: [mockRenderers[0]],
       onRendererSelect,
@@ -163,7 +164,7 @@ describe("RendererSettings", () => {
   });
 
   it("should update active indicator when active renderer changes", () => {
-    const onRendererSelect = vi.fn();
+    const onRendererSelect = mock();
     const renderers = [...mockRenderers];
     settings = new RendererSettings({
       renderers,
@@ -187,7 +188,7 @@ describe("RendererSettings", () => {
   });
 
   it("should render radio buttons for each renderer", () => {
-    const onRendererSelect = vi.fn();
+    const onRendererSelect = mock();
     settings = new RendererSettings({
       renderers: mockRenderers,
       onRendererSelect,
