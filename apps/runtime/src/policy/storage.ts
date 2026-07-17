@@ -3,13 +3,68 @@
  * Persists policy rules to disk with in-memory caching and hot-swap support.
  */
 
-import { promises as fs } from "fs";
+import {
+  existsSync,
+  mkdirSync,
+  promises as fs,
+  readFileSync,
+  renameSync,
+  unlinkSync,
+  writeFileSync,
+} from "fs";
 import * as path from "path";
 
+import type { ApprovalQueueStore, ApprovalRequest } from "./approval-queue";
 import { PolicyRuleSet } from "./rules";
 import type { PolicyRule } from "./types";
 
 export type RulesChangedCallback = (workspaceId: string, rules: PolicyRule[]) => void;
+
+/** Atomic file persistence for pending approval requests. */
+export class ApprovalQueueStorage implements ApprovalQueueStore {
+  private readonly filePath: string;
+
+  constructor(
+    filePath: string = path.join(
+      process.env["HOME"] || "/tmp",
+      ".helios/policies/approval-queue.json"
+    )
+  ) {
+    this.filePath = filePath;
+  }
+
+  load(): ApprovalRequest[] {
+    if (!existsSync(this.filePath)) return [];
+
+    try {
+      const parsed = JSON.parse(readFileSync(this.filePath, "utf-8")) as unknown;
+      if (!Array.isArray(parsed)) {
+        throw new Error("approval queue file must contain an array");
+      }
+      return parsed as ApprovalRequest[];
+    } catch (error) {
+      throw new Error(`Failed to load approval queue: ${String(error)}`);
+    }
+  }
+
+  save(requests: ApprovalRequest[]): void {
+    const directory = path.dirname(this.filePath);
+    const tempPath = `${this.filePath}.${process.pid}.tmp`;
+    mkdirSync(directory, { recursive: true });
+
+    try {
+      writeFileSync(tempPath, JSON.stringify(requests, null, 2), "utf-8");
+      renameSync(tempPath, this.filePath);
+    } catch (error) {
+      try {
+        unlinkSync(tempPath);
+      } catch {
+        // Ignore cleanup failures; preserve the original persistence error.
+      }
+      throw error;
+    }
+  }
+}
 
 /**
  * Policy Storage with file persistence and hot-swap support.
@@ -21,7 +76,7 @@ export class PolicyStorage {
   private changeCallbacks: RulesChangedCallback[] = [];
   private debounceTimers: Map<string, NodeJS.Timeout> = new Map();
 
-  constructor(policyDir: string = path.join(process.env.HOME || "/tmp", ".helios/policies")) {
+  constructor(policyDir: string = path.join(process.env["HOME"] || "/tmp", ".helios/policies")) {
     this.policyDir = policyDir;
   }
 

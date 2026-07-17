@@ -3,8 +3,12 @@
  * Exercises the current in-memory request and resolution primitives.
  */
 import { describe, expect, test } from "bun:test";
+import { mkdtemp, rm } from "fs/promises";
+import { tmpdir } from "os";
+import { join } from "path";
 import type { ApprovalRequestInput } from "../../../src/policy/approval-queue";
 import { ApprovalQueue, ApprovalStatus } from "../../../src/policy/approval-queue";
+import { ApprovalQueueStorage } from "../../../src/policy/storage";
 
 const approvalInput = (overrides: Partial<ApprovalRequestInput> = {}): ApprovalRequestInput => ({
   command: "git push",
@@ -20,7 +24,7 @@ const approvalInput = (overrides: Partial<ApprovalRequestInput> = {}): ApprovalR
 
 describe("ApprovalQueue", () => {
   test("creates requests with complete review context (FR-APR-004)", () => {
-    const queue = new ApprovalQueue();
+    const queue = new ApprovalQueue({ storage: null });
     const request = queue.createRequest(approvalInput());
 
     expect(request.affectedFiles).toEqual(["src/policy.ts"]);
@@ -30,7 +34,7 @@ describe("ApprovalQueue", () => {
   });
 
   test("rejects incomplete or invalid review context (FR-APR-004)", () => {
-    const queue = new ApprovalQueue();
+    const queue = new ApprovalQueue({ storage: null });
 
     expect(() => queue.createRequest(approvalInput({ agentRationale: " " }))).toThrow(
       "Approval request agent rationale must not be blank"
@@ -51,7 +55,7 @@ describe("ApprovalQueue", () => {
   });
 
   test("creates approval requests", () => {
-    const queue = new ApprovalQueue();
+    const queue = new ApprovalQueue({ storage: null });
     const request = queue.createRequest(approvalInput());
 
     expect(request.id).toBeTruthy();
@@ -60,7 +64,7 @@ describe("ApprovalQueue", () => {
   });
 
   test("approves requests with an operator-supplied reason (FR-APR-005)", () => {
-    const queue = new ApprovalQueue();
+    const queue = new ApprovalQueue({ storage: null });
     const request = queue.createRequest(approvalInput());
 
     queue.approve(request.id, "reviewer1", "Reviewed the command and affected files");
@@ -72,7 +76,7 @@ describe("ApprovalQueue", () => {
   });
 
   test("rejects requests with an operator-supplied reason (FR-APR-005)", () => {
-    const queue = new ApprovalQueue();
+    const queue = new ApprovalQueue({ storage: null });
     const request = queue.createRequest(approvalInput());
 
     queue.reject(request.id, "Dangerous operation");
@@ -83,7 +87,7 @@ describe("ApprovalQueue", () => {
   });
 
   test("requires a non-blank operator reason for either resolution (FR-APR-005)", () => {
-    const queue = new ApprovalQueue();
+    const queue = new ApprovalQueue({ storage: null });
     const approval = queue.createRequest(approvalInput());
     const rejection = queue.createRequest(approvalInput({ command: "rm artifact" }));
 
@@ -98,7 +102,7 @@ describe("ApprovalQueue", () => {
   });
 
   test("applies the default deny action when a configurable timeout elapses (FR-APR-006)", async () => {
-    const queue = new ApprovalQueue();
+    const queue = new ApprovalQueue({ storage: null });
     const request = queue.createRequest(approvalInput({ expiryMs: 10 }));
 
     await new Promise(resolve => setTimeout(resolve, 25));
@@ -110,7 +114,7 @@ describe("ApprovalQueue", () => {
   });
 
   test("does not allow an expired request to be approved (FR-APR-006)", async () => {
-    const queue = new ApprovalQueue();
+    const queue = new ApprovalQueue({ storage: null });
     const request = queue.createRequest(approvalInput({ expiryMs: 10 }));
 
     await new Promise(resolve => setTimeout(resolve, 25));
@@ -122,7 +126,7 @@ describe("ApprovalQueue", () => {
   });
 
   test("rejects invalid timeout configuration (FR-APR-006)", () => {
-    const queue = new ApprovalQueue();
+    const queue = new ApprovalQueue({ storage: null });
 
     for (const timeout of [0, -1, Number.POSITIVE_INFINITY, Number.NaN]) {
       expect(() => queue.createRequest(approvalInput({ expiryMs: timeout }))).toThrow(
@@ -132,7 +136,7 @@ describe("ApprovalQueue", () => {
   });
 
   test("filters pending requests", () => {
-    const queue = new ApprovalQueue();
+    const queue = new ApprovalQueue({ storage: null });
     queue.createRequest(
       approvalInput({ command: "cmd1", workspaceId: "ws1", agentId: "ag1", requesterName: "User1" })
     );
@@ -143,15 +147,42 @@ describe("ApprovalQueue", () => {
 
     const pending = queue.getPending();
     expect(pending.length).toBe(1);
-    expect(pending[0].command).toBe("cmd1");
+    expect(pending[0]?.command).toBe("cmd1");
   });
 
   test("filters by workspace", () => {
-    const queue = new ApprovalQueue();
+    const queue = new ApprovalQueue({ storage: null });
     queue.createRequest(approvalInput({ command: "cmd1", workspaceId: "ws1" }));
     queue.createRequest(approvalInput({ command: "cmd2", workspaceId: "ws2" }));
 
     const ws1 = queue.getForWorkspace("ws1");
     expect(ws1.length).toBe(1);
+  });
+
+  test("restores pending requests after restart (FR-APR-007)", async () => {
+    const dataDir = await mkdtemp(join(tmpdir(), "helios-approval-queue-"));
+    const storagePath = join(dataDir, "approval-queue.json");
+
+    try {
+      const firstQueue = new ApprovalQueue({
+        storage: new ApprovalQueueStorage(storagePath),
+      });
+      const pending = firstQueue.createRequest(approvalInput({ command: "deploy pending" }));
+      const resolved = firstQueue.createRequest(approvalInput({ command: "deploy approved" }));
+      firstQueue.approve(resolved.id, "reviewer", "Approved before restart");
+      firstQueue.close();
+
+      const restartedQueue = new ApprovalQueue({
+        storage: new ApprovalQueueStorage(storagePath),
+      });
+
+      expect(restartedQueue.getPending()).toEqual([
+        expect.objectContaining({ id: pending.id, command: "deploy pending" }),
+      ]);
+      expect(restartedQueue.getRequest(resolved.id)).toBeUndefined();
+      restartedQueue.close();
+    } finally {
+      await rm(dataDir, { recursive: true, force: true });
+    }
   });
 });

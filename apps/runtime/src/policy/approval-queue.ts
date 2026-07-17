@@ -3,6 +3,8 @@
  * Manages pending approval requests for commands.
  */
 
+import { ApprovalQueueStorage } from "./storage";
+
 export enum ApprovalStatus {
   Pending = "pending",
   Approved = "approved",
@@ -43,14 +45,29 @@ export interface ApprovalRequestInput {
   expiryMs?: number;
 }
 
+export interface ApprovalQueueStore {
+  load(): ApprovalRequest[];
+  save(requests: ApprovalRequest[]): void;
+}
+
+export interface ApprovalQueueOptions {
+  storage?: ApprovalQueueStore | null;
+}
+
 /**
  * Manages approval requests for commands requiring authorization.
  */
 export class ApprovalQueue {
   private requests: Map<string, ApprovalRequest> = new Map();
   private expireTimers: Map<string, NodeJS.Timeout> = new Map();
+  private readonly storage: ApprovalQueueStore | null;
   private readonly defaultExpiryMs = 24 * 60 * 60 * 1000; // 24 hours
   private readonly timeoutDenialReason = "Approval request timed out; default action: deny";
+
+  constructor(options: ApprovalQueueOptions = {}) {
+    this.storage = options.storage === undefined ? new ApprovalQueueStorage() : options.storage;
+    this.restorePending();
+  }
 
   /**
    * Create an approval request.
@@ -81,13 +98,15 @@ export class ApprovalQueue {
     };
 
     this.requests.set(id, request);
+    this.scheduleExpiry(id, timeoutMs);
 
-    // Set expiry timer
-    const expiryTimer = setTimeout(() => {
-      this.expire(id);
-    }, timeoutMs);
-
-    this.expireTimers.set(id, expiryTimer);
+    try {
+      this.persistPending();
+    } catch (error) {
+      this.clearTimer(id);
+      this.requests.delete(id);
+      throw error;
+    }
 
     return request;
   }
@@ -112,6 +131,7 @@ export class ApprovalQueue {
       request.approvedAt = new Date().toISOString();
       request.approvedReason = approvedReason;
       this.clearTimer(id);
+      this.persistPending();
     }
   }
 
@@ -126,6 +146,7 @@ export class ApprovalQueue {
       request.status = ApprovalStatus.Rejected;
       request.rejectedReason = rejectedReason;
       this.clearTimer(id);
+      this.persistPending();
     }
   }
 
@@ -179,8 +200,79 @@ export class ApprovalQueue {
     if (request?.status === ApprovalStatus.Pending) {
       request.status = ApprovalStatus.Expired;
       request.rejectedReason = this.timeoutDenialReason;
+      try {
+        this.persistPending();
+      } catch (error) {
+        console.error("Failed to persist approval queue expiry:", error);
+      }
     }
     this.clearTimer(id);
+  }
+
+  private restorePending(): void {
+    if (this.storage === null) return;
+
+    const now = Date.now();
+    let pruned = false;
+    for (const request of this.storage.load()) {
+      this.validateStoredRequest(request);
+      const remainingMs = Date.parse(request.expiresAt) - now;
+      if (request.status !== ApprovalStatus.Pending || remainingMs <= 0) {
+        pruned = true;
+        continue;
+      }
+
+      this.requests.set(request.id, {
+        ...request,
+        affectedFiles: [...request.affectedFiles],
+      });
+      this.scheduleExpiry(request.id, remainingMs);
+    }
+
+    if (pruned) this.persistPending();
+  }
+
+  private persistPending(): void {
+    if (this.storage === null) return;
+    this.storage.save(
+      this.getPending().map(request => ({
+        ...request,
+        affectedFiles: [...request.affectedFiles],
+      }))
+    );
+  }
+
+  private scheduleExpiry(id: string, timeoutMs: number): void {
+    const expiryTimer = setTimeout(() => {
+      this.expire(id);
+    }, timeoutMs);
+    this.expireTimers.set(id, expiryTimer);
+  }
+
+  private validateStoredRequest(request: ApprovalRequest): void {
+    if (
+      typeof request !== "object" ||
+      request === null ||
+      typeof request.id !== "string" ||
+      typeof request.command !== "string" ||
+      typeof request.workspaceId !== "string" ||
+      typeof request.agentId !== "string" ||
+      typeof request.requesterName !== "string" ||
+      !Array.isArray(request.affectedFiles) ||
+      typeof request.agentRationale !== "string" ||
+      typeof request.diffContext !== "string" ||
+      typeof request.createdAt !== "string" ||
+      typeof request.expiresAt !== "string" ||
+      !Object.values(ApprovalStatus).includes(request.status) ||
+      Number.isNaN(Date.parse(request.createdAt)) ||
+      Number.isNaN(Date.parse(request.expiresAt))
+    ) {
+      throw new Error("Persisted approval queue contains an invalid request");
+    }
+    this.requireRiskClassification(request.riskClassification);
+    this.normalizeAffectedFiles(request.affectedFiles);
+    this.requireContextText(request.agentRationale, "agent rationale");
+    this.requireContextText(request.diffContext, "diff context");
   }
 
   private requirePending(request: ApprovalRequest): void {
