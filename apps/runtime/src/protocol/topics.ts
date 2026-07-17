@@ -80,7 +80,7 @@ export const TOPICS: readonly string[] = [
   "boundary.dispatch.failed",
   "audit.recorded",
   "diagnostics.metric",
-  "diagnostics.slo_violation",
+  "perf.slo_violation",
 ] as const;
 
 /** Type for valid protocol topics. */

@@ -1206,7 +1206,7 @@
 		},
 		{
 			"id": "FR-PRF-004",
-			"status": "[ ]",
+			"status": "[x]",
 			"code": ["apps/runtime/src/diagnostics/slo.ts", "apps/runtime/src/diagnostics/metrics.ts"],
 			"tests": ["apps/runtime/tests/integration/diagnostics/slo.test.ts"],
 			"evidence": ["docs/specs/006-performance-baseline-and-instrumentation/spec.md"]

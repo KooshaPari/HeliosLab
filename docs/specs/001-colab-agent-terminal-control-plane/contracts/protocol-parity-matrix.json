@@ -524,7 +524,7 @@
 			"task_ids": ["T026", "T045"]
 		},
 		{
-			"name": "diagnostics.slo_violation",
+			"name": "perf.slo_violation",
 			"status": "implemented",
 			"contract_refs": [
 				"contracts/orchestration-envelope.schema.json#properties.topic"

@@ -47,6 +47,6 @@
 		"boundary.dispatch.failed",
 		"audit.recorded",
 		"diagnostics.metric",
-		"diagnostics.slo_violation"
+		"perf.slo_violation"
 	]
 }

@@ -169,7 +169,7 @@ export class SLOMonitor {
           console.error("[slo] Violation listener failed:", error);
         }
       }
-      this.publishViolation("diagnostics.slo_violation", event);
+      this.publishViolation("perf.slo_violation", event);
     }
   }
 

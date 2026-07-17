@@ -124,8 +124,8 @@ describe("Record-driven SLO listeners", () => {
     monitor.dispose();
   });
 
-  // FR-DIAG-005: every record-driven breach is published on the canonical topic.
-  it("publishes diagnostics.slo_violation for every breaching sample", () => {
+  // FR-PRF-004: every record-driven breach is published on the canonical topic.
+  it("publishes perf.slo_violation for every breaching sample", () => {
     const published: Array<{ topic: string; payload: unknown }> = [];
     const { registry, monitor } = createSetup((topic, payload) => {
       published.push({ topic, payload });
@@ -134,8 +134,8 @@ describe("Record-driven SLO listeners", () => {
     registry.record(METRIC_NAME, 100, 1);
     registry.record(METRIC_NAME, 120, 2);
 
-    const events = published.filter(event => event.topic === "diagnostics.slo_violation");
-    expect(TOPICS).toContain("diagnostics.slo_violation");
+    const events = published.filter(event => event.topic === "perf.slo_violation");
+    expect(TOPICS).toContain("perf.slo_violation");
     expect(events).toHaveLength(2);
     expect(events[0]!.payload).toMatchObject({
       metric: METRIC_NAME,
@@ -283,10 +283,11 @@ describe("Bus Integration", () => {
     for (let i = 0; i < 100; i++) {
       registry.record(METRIC_NAME, 100, i);
     }
+    const recordDrivenCount = events.length;
     monitor.checkAll();
     const perfEvents = events.filter(event => event.topic === "perf.slo_violation");
-    expect(perfEvents.length).toBe(1);
-    const payload = perfEvents[0]!.payload as Record<string, unknown>;
+    expect(perfEvents.length - recordDrivenCount).toBe(1);
+    const payload = perfEvents.at(-1)!.payload as Record<string, unknown>;
     expect(payload.metric).toBe(METRIC_NAME);
     expect(payload.percentile).toBe("p95");
   });
@@ -433,8 +434,9 @@ describe("Periodic Check Loop", () => {
       registry.record("m3", 100, i);
     }
 
+    const recordDrivenCount = events.length;
     const violations = m.checkAll();
     expect(violations.length).toBe(3);
-    expect(events.length).toBe(3);
+    expect(events.length - recordDrivenCount).toBe(3);
   });
 });
