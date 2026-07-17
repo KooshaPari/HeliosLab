@@ -27,6 +27,8 @@ export const TerminalTabs: Component<TerminalTabsProps> = props => {
 
   return (
     <div
+      role="tablist"
+      aria-label="Terminal sessions"
       style={{
         display: "flex",
         "flex-direction": "row",
