@@ -1,0 +1,20 @@
+npm warn invalid config sbom-format="cyclonedx-json" set in command line options
+npm warn invalid config Must be one of: cyclonedx, spdx
+npm error code EUSAGE
+npm error
+npm error Must specify --sbom-format flag with one of: cyclonedx, spdx.
+npm error
+npm error Generate a Software Bill of Materials (SBOM)
+npm error
+npm error Usage:
+npm error npm sbom
+npm error
+npm error Options:
+npm error [--omit <dev|optional|peer> [--omit <dev|optional|peer> ...]]
+npm error [--package-lock-only] [--sbom-format <cyclonedx|spdx>]
+npm error [--sbom-type <library|application|framework>]
+npm error [-w|--workspace <workspace-name> [-w|--workspace <workspace-name> ...]]
+npm error [-ws|--workspaces]
+npm error
+npm error Run "npm help sbom" for more info
+npm error A complete log of this run can be found in: /Users/kooshapari/.npm/_logs/2026-04-25T13_03_49_402Z-debug-0.log

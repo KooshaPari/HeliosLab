@@ -1,0 +1,9 @@
+{
+	"feature_number": "011",
+	"slug": "011-ghostty-renderer-backend",
+	"friendly_name": "Ghostty Renderer Backend",
+	"mission": "software-dev",
+	"created_at": "2026-02-27T00:00:00Z",
+	"target_branch": "main",
+	"vcs": "git"
+}

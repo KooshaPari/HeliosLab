@@ -1,0 +1,31 @@
+rules:
+  - id: runtime-no-eval
+    message: Do not use eval in runtime code.
+    languages: [typescript]
+    severity: ERROR
+    patterns:
+      - pattern: "eval(...)"
+
+  - id: runtime-no-function-constructor
+    message: Do not use Function constructor.
+    languages: [typescript]
+    severity: ERROR
+    patterns:
+      - pattern: "new Function(...)"
+
+  - id: runtime-no-execsync
+    message: Avoid execSync in runtime code.
+    languages: [typescript]
+    severity: ERROR
+    patterns:
+      - pattern: "execSync(...)"
+
+  - id: runtime-no-shell-true
+    message: shell:true subprocesses are not allowed in this feature scope.
+    languages: [typescript]
+    severity: ERROR
+    patterns:
+      - pattern: "$FN(..., { ..., shell: true, ... })"
+      - metavariable-regex:
+          metavariable: $FN
+          regex: "(spawn|exec|execFile)"

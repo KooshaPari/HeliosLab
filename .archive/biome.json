@@ -1,0 +1,67 @@
+{
+	"$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+	"files": {
+		"ignore": [
+			"node_modules/**",
+			"docs/.vitepress/dist/**",
+			"docs/.generated/**",
+			".worktrees/**",
+			"kitty-specs/**",
+			"docs/sessions/**"
+		]
+	},
+	"formatter": {
+		"enabled": true,
+		"lineWidth": 100,
+		"indentStyle": "space",
+		"indentWidth": 2
+	},
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"recommended": true,
+			"correctness": {
+				"noUnusedImports": "error",
+				"useImportExtensions": "off"
+			},
+			"style": {
+				"useNamingConvention": "off",
+				"noDefaultExport": "off",
+				"useFilenamingConvention": "off",
+				"useBlockStatements": "off"
+			},
+			"suspicious": {
+				"noConsole": "off",
+				"noConsoleLog": "off"
+			}
+		}
+	},
+	"javascript": {
+		"formatter": {
+			"arrowParentheses": "asNeeded",
+			"bracketSameLine": false,
+			"bracketSpacing": true,
+			"jsxQuoteStyle": "double",
+			"quoteProperties": "asNeeded",
+			"semicolons": "always",
+			"trailingComma": "es5"
+		}
+	},
+	"overrides": [
+		{
+			"include": ["apps/desktop/src/runtime_client.ts"],
+			"linter": {
+				"rules": {
+					"style": {
+						"useNamingConvention": "off"
+					}
+				}
+			}
+		}
+	],
+	"json": {
+		"formatter": {
+			"trailingCommas": "none"
+		}
+	}
+}

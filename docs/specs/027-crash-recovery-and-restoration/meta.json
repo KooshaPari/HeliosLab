@@ -1,0 +1,9 @@
+{
+	"feature_number": 27,
+	"slug": "crash-recovery-and-restoration",
+	"friendly_name": "Crash Recovery and Session Restoration",
+	"mission": "software-dev",
+	"created_at": "2026-02-27T00:00:00Z",
+	"target_branch": "main",
+	"vcs": "git"
+}

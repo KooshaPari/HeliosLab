@@ -1,0 +1,29 @@
+{
+  "namespace": "helios.localbus.v1",
+  "methods": [
+    "workspace.create",
+    "workspace.open",
+    "project.clone",
+    "project.init",
+    "session.create",
+    "session.attach",
+    "session.terminate",
+    "terminal.spawn",
+    "terminal.resize",
+    "terminal.input",
+    "renderer.switch",
+    "renderer.capabilities",
+    "agent.run",
+    "agent.cancel",
+    "approval.request.resolve",
+    "share.upterm.start",
+    "share.upterm.stop",
+    "share.tmate.start",
+    "share.tmate.stop",
+    "zmx.checkpoint",
+    "zmx.restore",
+    "lane.create",
+    "lane.attach",
+    "lane.cleanup"
+  ]
+}

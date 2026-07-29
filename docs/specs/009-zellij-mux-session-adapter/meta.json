@@ -1,0 +1,9 @@
+{
+	"feature_number": "009",
+	"slug": "009-zellij-mux-session-adapter",
+	"friendly_name": "Zellij Mux Session Adapter",
+	"mission": "software-dev",
+	"created_at": "2026-02-27T00:00:00Z",
+	"target_branch": "main",
+	"vcs": "git"
+}

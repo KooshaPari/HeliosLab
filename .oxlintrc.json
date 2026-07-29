@@ -1,0 +1,18 @@
+{
+  "env": {
+    "builtin": true
+  },
+  "rules": {
+    "no-unused-vars": "warn"
+  },
+  "ignorePatterns": [
+    "node_modules/**",
+    "docs/.vitepress/dist/**",
+    "apps/**/dist/**",
+    "docs/.generated/**",
+    ".worktrees/**",
+    "kitty-specs/**",
+    "docs/sessions/**",
+    "tsconfig*.json"
+  ]
+}

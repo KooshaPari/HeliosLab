@@ -1,0 +1,9 @@
+{
+	"feature_number": "004",
+	"slug": "004-app-settings-and-feature-flags",
+	"friendly_name": "App Settings and Feature Flags",
+	"mission": "software-dev",
+	"created_at": "2026-02-27",
+	"target_branch": "main",
+	"vcs": "git"
+}

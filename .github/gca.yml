@@ -1,0 +1,58 @@
+# GitHub Code Analysis Configuration
+
+name: GCA Review
+
+# Trigger on PR events
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+
+# Concurrency to cancel older runs
+concurrency:
+  group: gca-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gca-review:
+    runs-on: ubuntu-latest
+    name: GCA Code Analysis
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Run GCA analysis with retry
+        id: gca
+        uses: ./.github/actions/gca-with-retry
+        with:
+          max-retries: 5
+          initial-delay: 60
+          backoff-multiplier: 2
+          max-delay: 900
+        env:
+          GCA_TOKEN: ${{ secrets.GCA_TOKEN }}
+      
+      - name: Notify on rate limit
+        if: failure() && steps.gca.outputs.rate-limited == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '⚠️ GCA analysis is rate-limited. The check is blocking merge and will retry automatically. Please wait for completion.'
+            });
+
+# Status check result
+# Success: All analysis checks pass
+# Pending: Analysis in progress or rate-limited (blocks merge)
+# Failure: Analysis found issues

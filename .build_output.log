@@ -1,0 +1,13 @@
+$ bun run --cwd apps/desktop build && bun run --cwd apps/runtime build
+$ bun build src/index.ts --outdir dist --target bun --minify --sourcemap=external
+Bundled 26 modules in 47ms
+
+  index.js      31.40 KB   (entry point)
+  index.js.map  158.93 KB  (source map)
+
+$ bun build src/index.ts --outdir dist --target bun --minify --sourcemap=external
+Bundled 21 modules in 13ms
+
+  index.js      52.59 KB   (entry point)
+  index.js.map  186.32 KB  (source map)
+

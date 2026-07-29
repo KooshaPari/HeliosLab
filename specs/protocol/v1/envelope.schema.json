@@ -1,0 +1,81 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"$id": "https://helios.app/schemas/protocol/v1/envelope.schema.json",
+	"title": "Helios Bus Envelope v1",
+	"description": "Canonical envelope schema for the Helios local bus protocol.",
+	"type": "object",
+	"required": ["id", "correlation_id", "type", "timestamp"],
+	"properties": {
+		"id": {
+			"type": "string",
+			"minLength": 1,
+			"description": "Unique message identifier (spec-005 format)."
+		},
+		"correlation_id": {
+			"type": "string",
+			"minLength": 1,
+			"description": "Correlation identifier linking related messages."
+		},
+		"timestamp": {
+			"type": "number",
+			"exclusiveMinimum": 0,
+			"description": "Monotonic timestamp in milliseconds."
+		},
+		"sequence": {
+			"type": "integer",
+			"description": "Ordering sequence; required for event envelopes."
+		},
+		"type": {
+			"type": "string",
+			"enum": ["command", "response", "event"]
+		}
+	},
+	"oneOf": [
+		{
+			"title": "CommandEnvelope",
+			"properties": {
+				"type": { "const": "command" },
+				"method": { "type": "string", "minLength": 1 },
+				"payload": {}
+			},
+			"required": ["type", "method", "payload"]
+		},
+		{
+			"title": "ResponseEnvelope",
+			"properties": {
+				"type": { "const": "response" },
+				"method": { "type": "string", "minLength": 1 },
+				"payload": {},
+				"error": {
+					"type": "object",
+					"properties": {
+						"code": {
+							"type": "string",
+							"enum": [
+								"VALIDATION_ERROR",
+								"METHOD_NOT_FOUND",
+								"HANDLER_ERROR",
+								"TIMEOUT",
+								"BACKPRESSURE"
+							]
+						},
+						"message": { "type": "string" },
+						"details": {}
+					},
+					"required": ["code", "message"]
+				}
+			},
+			"required": ["type", "method"]
+		},
+		{
+			"title": "EventEnvelope",
+			"properties": {
+				"type": { "const": "event" },
+				"topic": { "type": "string", "minLength": 1 },
+				"payload": {},
+				"sequence": { "type": "integer" }
+			},
+			"required": ["type", "topic", "payload", "sequence"]
+		}
+	]
+}

@@ -1,0 +1,12 @@
+{
+  "gateName": "security",
+  "status": "pass",
+  "findings": [],
+  "duration": 1,
+  "timestamp": "2026-03-24T12:50:24.940Z",
+  "summary": {
+    "errors": 0,
+    "warnings": 0,
+    "infos": 0
+  }
+}

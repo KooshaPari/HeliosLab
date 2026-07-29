@@ -1,0 +1,58 @@
+{
+  "app": {
+    "name": "HeliosApp",
+    "tagline": "Entorno de desarrollo centrado en la terminal"
+  },
+  "nav": {
+    "home": "Inicio",
+    "projects": "Proyectos",
+    "settings": "Ajustes",
+    "help": "Ayuda"
+  },
+  "skip": {
+    "toMain": "Saltar al contenido principal"
+  },
+  "tabs": {
+    "terminal": "Terminal",
+    "agent": "Agente",
+    "files": "Archivos",
+    "logs": "Registros"
+  },
+  "tree": {
+    "root": "Espacio de trabajo",
+    "newFile": "Nuevo archivo",
+    "newFolder": "Nueva carpeta"
+  },
+  "status": {
+    "compiling": "Compilando {file}…",
+    "compileComplete": "Compilación completada en {duration} ms",
+    "deploying": "Desplegando en {target}…",
+    "deploySuccess": "Se desplegó la versión {version} en {target}",
+    "saved": "Guardado",
+    "copied": "Copiado al portapapeles",
+    "connectionLost": "Conexión perdida. Intentando reconectar…",
+    "connectionRestored": "Conexión restablecida"
+  },
+  "errors": {
+    "generic": "Algo salió mal. Inténtalo de nuevo.",
+    "permission": "No tienes permiso para realizar esta acción.",
+    "network": "Error de red. Verifica tu conexión.",
+    "validation": "Por favor revisa los campos resaltados."
+  },
+  "settings": {
+    "title": "Ajustes",
+    "language": "Idioma",
+    "theme": "Tema",
+    "themeDark": "Oscuro",
+    "themeLight": "Claro",
+    "save": "Guardar cambios",
+    "cancel": "Cancelar"
+  },
+  "actions": {
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "confirm": "Confirmar",
+    "close": "Cerrar"
+  }
+}

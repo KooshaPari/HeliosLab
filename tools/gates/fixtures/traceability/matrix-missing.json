@@ -1,0 +1,8 @@
+{
+	"requirements": [
+		{
+			"id": "FR-001",
+			"artifacts": ["tools/gates/requirement-traceability.mjs"]
+		}
+	]
+}

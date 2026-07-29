@@ -1,0 +1,9 @@
+{
+	"feature_number": "001",
+	"slug": "001-colab-agent-terminal-control-plane",
+	"friendly_name": "Terminal-First Desktop Shell",
+	"mission": "software-dev",
+	"created_at": "2026-02-26",
+	"target_branch": "main",
+	"vcs": "git"
+}

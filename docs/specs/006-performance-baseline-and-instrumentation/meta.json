@@ -1,0 +1,9 @@
+{
+	"feature_number": "006",
+	"slug": "006-performance-baseline-and-instrumentation",
+	"friendly_name": "Performance Baseline and Instrumentation",
+	"mission": "software-dev",
+	"created_at": "2026-02-27",
+	"target_branch": "main",
+	"vcs": "git"
+}

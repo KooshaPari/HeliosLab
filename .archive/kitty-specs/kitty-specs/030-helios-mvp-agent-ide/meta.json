@@ -1,0 +1,10 @@
+{
+	"feature_number": "030",
+	"slug": "030-helios-mvp-agent-ide",
+	"friendly_name": "Helios MVP Agent IDE",
+	"mission": "software-dev",
+	"source_description": "Transform the helios debug dashboard into a production-quality agent-first desktop IDE with Cursor/Windsurf-inspired UI, unified inference engine (MLX + vLLM + llama.cpp), and de-stubbed muxer/tool adapters.",
+	"created_at": "2026-03-01T00:00:00Z",
+	"target_branch": "main",
+	"vcs": "git"
+}
