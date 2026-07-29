@@ -1,0 +1,168 @@
+{
+  "id": "heliosbench-main",
+  "intent": "List the deterministic code-completion benchmark tasks through the HeliosBench CLI",
+  "keyframe_count": 2,
+  "passed": true,
+  "recording": "recordings/heliosbench-main.mp4",
+  "recording_gif": "recordings/heliosbench-main.gif",
+  "steps": [
+    {
+      "agreement": {
+        "backend": "jaccard",
+        "blind_tokens": [
+          "block",
+          "column",
+          "frame",
+          "invok",
+          "list",
+          "monospac",
+          "numer",
+          "output",
+          "show",
+          "slug",
+          "task",
+          "termin"
+        ],
+        "extras_in_blind": [
+          "block",
+          "column",
+          "frame",
+          "list",
+          "monospac",
+          "numer",
+          "output",
+          "show",
+          "slug",
+          "task",
+          "termin"
+        ],
+        "intent_tokens": [
+          "categori",
+          "cli",
+          "code",
+          "complet",
+          "filter",
+          "heliosbench",
+          "instal",
+          "invok"
+        ],
+        "missing_in_blind": [
+          "categori",
+          "cli",
+          "code",
+          "complet",
+          "filter",
+          "heliosbench",
+          "instal"
+        ],
+        "overlap": 0.05263157894736842,
+        "raw_score": 0.05263157894736842,
+        "status": "red"
+      },
+      "assertions": {
+        "must_contain": [
+          "uv run",
+          "code_completion"
+        ],
+        "must_not_contain": [
+          "Traceback",
+          "error:"
+        ],
+        "ocr_required": true
+      },
+      "blind_description": "Terminal showing monospaced output with a block of numeric columns. (frame slug: invoke-task-list)",
+      "description": "The terminal shows the real uv-run HeliosBench command in progress.",
+      "index": 0,
+      "intent": "Invoke the installed HeliosBench CLI with the code_completion category filter",
+      "screenshot_path": "frame-004.png",
+      "slug": "invoke-task-list"
+    },
+    {
+      "agreement": {
+        "backend": "jaccard",
+        "blind_tokens": [
+          "colour",
+          "command",
+          "emit",
+          "frame",
+          "hex",
+          "line",
+          "list",
+          "log",
+          "output",
+          "prompt",
+          "recent",
+          "slug",
+          "success",
+          "task"
+        ],
+        "extras_in_blind": [
+          "colour",
+          "command",
+          "emit",
+          "frame",
+          "hex",
+          "line",
+          "list",
+          "log",
+          "output",
+          "prompt",
+          "recent",
+          "slug"
+        ],
+        "intent_tokens": [
+          "both",
+          "exit",
+          "finish",
+          "match",
+          "process",
+          "render",
+          "success",
+          "task"
+        ],
+        "missing_in_blind": [
+          "both",
+          "exit",
+          "finish",
+          "match",
+          "process",
+          "render"
+        ],
+        "overlap": 0.1,
+        "raw_score": 0.1,
+        "status": "red"
+      },
+      "assertions": {
+        "must_contain": [
+          "Benchmark Tasks",
+          "Palindrome Check",
+          "Fibonacci Sequence",
+          "EXIT_0"
+        ],
+        "must_not_contain": [
+          "Traceback",
+          "error:"
+        ],
+        "ocr_required": true
+      },
+      "blind_description": "Command-line prompt with recently-emitted lines of hex-coloured log output. (frame slug: task-list-success)",
+      "description": "The terminal shows both code-completion tasks and the EXIT_0 success sentinel.",
+      "index": 1,
+      "intent": "Render both matching tasks and finish with a successful process exit",
+      "screenshot_path": "frame-007.png",
+      "slug": "task-list-success"
+    }
+  ],
+  "traces_to": [
+    "HB-FR-009"
+  ],
+  "verification": {
+    "all_intents_passed": true,
+    "assertion_violations": [],
+    "describe_confidence": 0.95,
+    "judge_confidence": 0.9,
+    "mode": "mock",
+    "overall_score": 0.92,
+    "timestamp": "2026-07-15T02:18:56Z"
+  }
+}

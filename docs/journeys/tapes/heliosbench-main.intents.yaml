@@ -1,0 +1,8 @@
+journey: heliosbench-main
+traces_to:
+  - HB-FR-009
+steps:
+  - index: 0
+    intent: Invoke the installed HeliosBench CLI with the code_completion category filter
+  - index: 1
+    intent: Render both matching tasks and finish with a successful process exit

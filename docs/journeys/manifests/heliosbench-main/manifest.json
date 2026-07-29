@@ -1,0 +1,42 @@
+{
+  "id": "heliosbench-main",
+  "intent": "List the deterministic code-completion benchmark tasks through the HeliosBench CLI",
+  "recording": "recordings/heliosbench-main.mp4",
+  "recording_gif": "recordings/heliosbench-main.gif",
+  "keyframe_count": 2,
+  "passed": false,
+  "steps": [
+    {
+      "index": 0,
+      "slug": "invoke-task-list",
+      "intent": "Invoke the installed HeliosBench CLI with the code_completion category filter",
+      "screenshot_path": "frame-004.png",
+      "description": "The terminal shows the real uv-run HeliosBench command in progress.",
+      "assertions": {
+        "must_contain": ["uv run", "code_completion"],
+        "must_not_contain": ["Traceback", "error:"],
+        "expected_exit": null,
+        "ocr_required": true
+      }
+    },
+    {
+      "index": 1,
+      "slug": "task-list-success",
+      "intent": "Render both matching tasks and finish with a successful process exit",
+      "screenshot_path": "frame-007.png",
+      "description": "The terminal shows both code-completion tasks and the EXIT_0 success sentinel.",
+      "assertions": {
+        "must_contain": [
+          "Benchmark Tasks",
+          "Palindrome Check",
+          "Fibonacci Sequence",
+          "EXIT_0"
+        ],
+        "must_not_contain": ["Traceback", "error:"],
+        "expected_exit": null,
+        "ocr_required": true
+      }
+    }
+  ],
+  "verification": null
+}
