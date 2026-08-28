@@ -9,6 +9,9 @@
 		"lint": "bunx biome check .",
 		"format": "bunx biome format --write .",
 		"setup": "bun run scripts/setup-deps.ts",
+		"format:check": "biome check .",
+		"test": "bun test apps/runtime/src apps/runtime/tests/unit apps/desktop/tests/unit packages/*/tests scripts/tests tests/unit",
+		"test:coverage": "bun run tools/gates/runtime-coverage.mjs",
 		"build:dev": "bun setup && electrobun build",
 		"dev": "bun setup && electrobun dev",
 		"build:canary": "electrobun build --env=canary",
@@ -67,6 +70,7 @@
 	},
 	"devDependencies": {
 		"@axe-core/playwright": "^4.10.0",
+		"@biomejs/biome": "2.5.11",
 		"@playwright/test": "^1.48.0",
 		"@types/bun": "^1.1.0",
 		"happy-dom": "^15.0.0",
