@@ -27,13 +27,40 @@ function createTempGitRepo(): string {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "helios-wt-test-"));
   tmpDirs.push(dir);
 
-  // Initialize a git repo with an initial commit
-  Bun.spawnSync(["git", "init", "--initial-branch=main"], { cwd: dir });
-  Bun.spawnSync(["git", "config", "user.email", "test@test.com"], { cwd: dir });
+  // Prefer Git 2.28+ initial-branch support; retain an explicit legacy fallback.
+  const modernInit = Bun.spawnSync(["git", "init", "--initial-branch=main"], { cwd: dir });
+  const needsBranchRename = !modernInit.success;
+  if (needsBranchRename) {
+    const fallbackInit = Bun.spawnSync(["git", "init"], { cwd: dir });
+    if (!fallbackInit.success) {
+      const reason = new TextDecoder().decode(fallbackInit.stderr).trim();
+      throw new Error(
+        `Unable to initialize temporary Git repository with fallback \`git init\`: `,
+      );
+    }
+  }
+
+  Bun.spawnSync(["git", "config", "user.email", "test\.com"], { cwd: dir });
   Bun.spawnSync(["git", "config", "user.name", "Test"], { cwd: dir });
   fs.writeFileSync(path.join(dir, "README.md"), "# test repo\n");
   Bun.spawnSync(["git", "add", "."], { cwd: dir });
-  Bun.spawnSync(["git", "commit", "-m", "initial"], { cwd: dir });
+  const initialCommit = Bun.spawnSync(["git", "commit", "-m", "initial"], { cwd: dir });
+  if (!initialCommit.success) {
+    const reason = new TextDecoder().decode(initialCommit.stderr).trim();
+    throw new Error(
+      `Unable to create initial temporary Git commit: `,
+    );
+  }
+
+  if (needsBranchRename) {
+    const renameBranch = Bun.spawnSync(["git", "branch", "-M", "main"], { cwd: dir });
+    if (!renameBranch.success) {
+      const reason = new TextDecoder().decode(renameBranch.stderr).trim();
+      throw new Error(
+        `Unable to rename temporary Git branch to main: `,
+      );
+    }
+  }
 
   return dir;
 }
