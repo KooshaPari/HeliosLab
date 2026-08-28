@@ -1,6 +1,5 @@
 [graph]
 all-features = true
-always-allow-build-rt = false
 
 [advisories]
 version = 2
@@ -19,14 +18,11 @@ allow = [
 ]
 
 [bans]
-version = 2
-default = "deny"
 multiple-versions = "warn"
 wildcards = "warn"
 highlight = "all"
 workspace-default-features = "warn"
 
 [sources]
-version = 2
 unknown-registry = "deny"
 unknown-git = "deny"
