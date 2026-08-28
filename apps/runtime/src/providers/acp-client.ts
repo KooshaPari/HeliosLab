@@ -18,6 +18,7 @@ import type {
   ACPExecuteOutput,
 } from "./adapter.js";
 
+import { NormalizedProviderError, normalizeError } from "./errors.js";
 /**
  * Policy gate interface for access control.
  * Blocks unauthorized provider actions before contacting external endpoints.
@@ -160,7 +161,7 @@ export class ACPClientAdapter
         endpoint: config.baseUrl,
         model: config.model,
       });
-    } catch {
+    } catch (error) {
       const normalized = normalizeError(error, "acp");
 
       throw new NormalizedProviderError(
