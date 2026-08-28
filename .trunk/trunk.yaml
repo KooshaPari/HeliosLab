@@ -9,5 +9,4 @@ plugins:
   sources:
     - id: trunk
       ref: v1.6.6
-    - id: trunk-fmt
-      ref: v1.2.1
+      uri: https://github.com/trunk-io/plugins
