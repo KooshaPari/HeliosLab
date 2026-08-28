@@ -35,12 +35,12 @@ function createTempGitRepo(): string {
     if (!fallbackInit.success) {
       const reason = new TextDecoder().decode(fallbackInit.stderr).trim();
       throw new Error(
-        `Unable to initialize temporary Git repository with fallback \`git init\`: `,
+        `Unable to initialize temporary Git repository with fallback \`git init\`: ${reason || `exit ${fallbackInit.exitCode}`}`,
       );
     }
   }
 
-  Bun.spawnSync(["git", "config", "user.email", "test\.com"], { cwd: dir });
+  Bun.spawnSync(["git", "config", "user.email", "test@test.com"], { cwd: dir });
   Bun.spawnSync(["git", "config", "user.name", "Test"], { cwd: dir });
   fs.writeFileSync(path.join(dir, "README.md"), "# test repo\n");
   Bun.spawnSync(["git", "add", "."], { cwd: dir });
@@ -48,7 +48,7 @@ function createTempGitRepo(): string {
   if (!initialCommit.success) {
     const reason = new TextDecoder().decode(initialCommit.stderr).trim();
     throw new Error(
-      `Unable to create initial temporary Git commit: `,
+      `Unable to create initial temporary Git commit: ${reason || `exit ${initialCommit.exitCode}`}`,
     );
   }
 
@@ -57,7 +57,7 @@ function createTempGitRepo(): string {
     if (!renameBranch.success) {
       const reason = new TextDecoder().decode(renameBranch.stderr).trim();
       throw new Error(
-        `Unable to rename temporary Git branch to main: `,
+        `Unable to rename temporary Git branch to main: ${reason || `exit ${renameBranch.exitCode}`}`,
       );
     }
   }
