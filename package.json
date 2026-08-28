@@ -9,7 +9,7 @@
 		"lint": "bunx biome check .",
 		"format": "bunx biome format --write .",
 		"setup": "bun run scripts/setup-deps.ts",
-		"format:check": "biome check .",
+		"format:check": "biome check --config-path=biome.json apps packages scripts src tests",
 		"test": "bun test apps/runtime/src apps/runtime/tests/unit apps/desktop/tests/unit packages/*/tests scripts/tests tests/unit",
 		"test:coverage": "bun run tools/gates/runtime-coverage.mjs",
 		"build:dev": "bun setup && electrobun build",
