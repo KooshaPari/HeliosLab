@@ -5,6 +5,8 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  merge_group:
+    types: [checks_requested]
   workflow_dispatch:
 
 permissions:
@@ -25,6 +27,24 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9
+        with:
+          toolchain: 1.97.1
+
+      - name: Cache Rust build inputs
+        uses: Swatinem/rust-cache@874b06e0d3f63371f9ddbee43d4c8ebc73021583
+        with:
+          save-if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+
+      - name: Install pinned journey verifier
+        run: |
+          cargo install \
+            --git https://github.com/KooshaPari/phenotype-journeys \
+            --rev c90480645acd860a6fdbeb3404014c17f988bb72 \
+            --locked \
+            phenotype-journey
+
       - name: Set up uv
         uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
@@ -38,4 +58,15 @@ jobs:
           tesseract --version
 
       - name: Verify journey evidence
-        run: uv run --locked --extra dev pytest tests/test_journey_evidence.py -q
+        run: |
+          phenotype-journey validate docs/journeys/manifests/heliosbench-main/manifest.json
+          phenotype-journey assert docs/journeys/manifests/heliosbench-main/manifest.json --strict
+          phenotype-journey verify \
+            --manifests-dir docs/journeys/manifests \
+            --tapes-dir docs/journeys/tapes \
+            --artefacts docs/journeys \
+            --mock
+          phenotype-journey validate docs/journeys/manifests/heliosbench-main/manifest.verified.json
+          phenotype-journey assert docs/journeys/manifests/heliosbench-main/manifest.verified.json --strict
+          git diff --exit-code -- docs/journeys/manifests/heliosbench-main/manifest.verified.json
+          uv run --locked --extra dev pytest tests/test_journey_evidence.py -q
