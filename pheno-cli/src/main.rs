@@ -126,13 +126,13 @@ enum SecretCmd {
 enum VersionCmd {
     Show,
     Bump {
-        #[arg(default_value = ".")]
-        repo: String,
+        #[arg(value_name = "REPO")]
+        name: String,
         version: String,
     },
     Sync {
-        #[arg(default_value = ".")]
-        repo: String,
+        #[arg(value_name = "REPO")]
+        name: String,
         upstream: String,
     },
 }
@@ -401,7 +401,7 @@ fn handle_version(repo: &Option<PathBuf>, cmd: VersionCmd) {
                 );
             }
         }
-        VersionCmd::Bump { repo: name, version } => {
+        VersionCmd::Bump { name, version } => {
             let mut info = db.get_version(&name).unwrap_or(VersionInfo {
                 repo: name.clone(),
                 our_version: "0.0.0".to_string(),
@@ -413,10 +413,7 @@ fn handle_version(repo: &Option<PathBuf>, cmd: VersionCmd) {
             db.set_version(&info).unwrap();
             println!("Bumped {name} to {version}");
         }
-        VersionCmd::Sync {
-            repo: name,
-            upstream,
-        } => {
+        VersionCmd::Sync { name, upstream } => {
             let mut info = db.get_version(&name).unwrap_or(VersionInfo {
                 repo: name.clone(),
                 our_version: "0.0.0".to_string(),
@@ -491,5 +488,61 @@ mod tests {
         let cli = Cli::try_parse_from(["phenoctl", "status"]).expect("parse");
         assert_eq!(cli.verbosity.verbose, 0);
         assert!(!cli.verbosity.quiet);
+    }
+
+    #[test]
+    fn version_bump_parses_with_repo_root_override() {
+        let cli = Cli::try_parse_from([
+            "phenoctl",
+            "--repo",
+            "/tmp/worktree",
+            "version",
+            "bump",
+            "helioslab",
+            "1.2.3",
+        ])
+        .expect("version bump should parse");
+
+        assert_eq!(
+            cli.repo.as_deref(),
+            Some(std::path::Path::new("/tmp/worktree"))
+        );
+        match cli.command {
+            Commands::Version {
+                cmd: VersionCmd::Bump { name, version },
+            } => {
+                assert_eq!(name, "helioslab");
+                assert_eq!(version, "1.2.3");
+            }
+            _ => panic!("expected version bump command"),
+        }
+    }
+
+    #[test]
+    fn version_sync_parses_with_repo_root_override() {
+        let cli = Cli::try_parse_from([
+            "phenoctl",
+            "--repo",
+            "/tmp/worktree",
+            "version",
+            "sync",
+            "helioslab",
+            "2.0.0",
+        ])
+        .expect("version sync should parse");
+
+        assert_eq!(
+            cli.repo.as_deref(),
+            Some(std::path::Path::new("/tmp/worktree"))
+        );
+        match cli.command {
+            Commands::Version {
+                cmd: VersionCmd::Sync { name, upstream },
+            } => {
+                assert_eq!(name, "helioslab");
+                assert_eq!(upstream, "2.0.0");
+            }
+            _ => panic!("expected version sync command"),
+        }
     }
 }
