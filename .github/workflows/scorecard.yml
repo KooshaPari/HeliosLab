@@ -19,9 +19,12 @@ permissions: read-all
 jobs:
   analysis:
     name: Scorecard analysis
-    runs-on: ubuntu-latest
-    security:
-      permissions: read-all
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write
+      security-events: write
 
     steps:
       - name: Checkout
