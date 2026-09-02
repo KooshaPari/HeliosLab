@@ -4,10 +4,11 @@ on:
   push:
     branches: [main, develop]
   pull_request:
-  schedule: [{cron: "0 2 * * *"}]
+  schedule: [{ cron: "0 2 * * *" }]
 
 permissions:
   contents: read
+  security-events: write
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
