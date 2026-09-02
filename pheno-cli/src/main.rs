@@ -16,6 +16,9 @@
 
 mod tui;
 
+#[cfg(test)]
+mod cli_tests;
+
 use chrono::Utc;
 use clap::{Parser, Subcommand};
 use clap_ext::prelude::{ConfigArg, Verbosity, setup_tracing};
@@ -126,13 +129,13 @@ enum SecretCmd {
 enum VersionCmd {
     Show,
     Bump {
-        #[arg(default_value = ".")]
-        repo: String,
+        #[arg(value_name = "REPO")]
+        name: String,
         version: String,
     },
     Sync {
-        #[arg(default_value = ".")]
-        repo: String,
+        #[arg(value_name = "REPO")]
+        name: String,
         upstream: String,
     },
 }
@@ -401,7 +404,7 @@ fn handle_version(repo: &Option<PathBuf>, cmd: VersionCmd) {
                 );
             }
         }
-        VersionCmd::Bump { repo: name, version } => {
+        VersionCmd::Bump { name, version } => {
             let mut info = db.get_version(&name).unwrap_or(VersionInfo {
                 repo: name.clone(),
                 our_version: "0.0.0".to_string(),
@@ -413,10 +416,7 @@ fn handle_version(repo: &Option<PathBuf>, cmd: VersionCmd) {
             db.set_version(&info).unwrap();
             println!("Bumped {name} to {version}");
         }
-        VersionCmd::Sync {
-            repo: name,
-            upstream,
-        } => {
+        VersionCmd::Sync { name, upstream } => {
             let mut info = db.get_version(&name).unwrap_or(VersionInfo {
                 repo: name.clone(),
                 our_version: "0.0.0".to_string(),
@@ -469,27 +469,4 @@ fn whoami() -> String {
     std::env::var("USER")
         .or_else(|_| std::env::var("USERNAME"))
         .unwrap_or_else(|_| "unknown".to_string())
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use clap::Parser;
-
-    #[test]
-    fn cli_parses_with_clap_ext_flattens() {
-        // Verify the new Verbosity + ConfigArg flattens parse cleanly.
-        let cli = Cli::try_parse_from(["phenoctl", "--quiet", "--config", "/tmp/x.yml", "status"])
-            .expect("parse");
-        assert!(cli.verbosity.quiet);
-        assert_eq!(cli.config.config.as_deref(), Some(std::path::Path::new("/tmp/x.yml")));
-    }
-
-    #[test]
-    fn cli_parses_default_verbosity() {
-        // No flags => Verbosity::default() (verbose=0, quiet=false)
-        let cli = Cli::try_parse_from(["phenoctl", "status"]).expect("parse");
-        assert_eq!(cli.verbosity.verbose, 0);
-        assert!(!cli.verbosity.quiet);
-    }
 }
