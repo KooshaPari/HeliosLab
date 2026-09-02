@@ -7,6 +7,8 @@
 | Open PRs | 2 |
 | Focus | TS+Rust monorepo lab (journeys/contracts/desktop) |
 
+[![AI slop inside](https://sladge.net/badge.svg)](https://sladge.net) [![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/KooshaPari/HeliosLab/total)](https://github.com/KooshaPari/HeliosLab/releases)
+
 Progress: ████████░░ 80%
 
 > **Work state:** ACTIVE · **Progress:** `███████░░░ 65%`
