@@ -296,3 +296,6 @@ fn phenotype_config(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<VersionInfoPy>()?;
     Ok(())
 }
+
+#[cfg(test)]
+mod tests;

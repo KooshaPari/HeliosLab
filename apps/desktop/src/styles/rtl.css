@@ -1,0 +1,56 @@
+/* apps/desktop/src/styles/rtl.css
+ * Logical-property overrides for RTL locales (ar, he, fa, ur).
+ * Imported after tokens.css; the [dir="rtl"] selector wins by specificity
+ * over the base rules. Mirrors the spec's "code editor remains LTR" decision
+ * — only chrome (sidebar, tabs, tree) is mirrored.
+ *
+ * Codemod target: apps/desktop/src/styles/*.css — replace
+ *   margin-left:   →  margin-inline-start:
+ *   margin-right:  →  margin-inline-end:
+ *   padding-left:  →  padding-inline-start:
+ *   padding-right: →  padding-inline-end:
+ *   text-align: left;  →  text-align: start;
+ *   text-align: right; →  text-align: end;
+ *   left:  →  inset-inline-start:
+ *   right: →  inset-inline-end:
+ */
+
+[dir="rtl"] .app-shell {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .sidebar {
+  border-inline-end: 1px solid var(--color-border);
+  border-inline-start: none;
+}
+
+[dir="rtl"] .panel-header {
+  /* Toolbar icons that imply "previous" flip in RTL. */
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .tree-indent {
+  margin-inline-start: 0;
+  margin-inline-end: var(--indent-step);
+}
+
+[dir="rtl"] .status-bar {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .toast-stack {
+  inset-inline-end: 1rem;
+  inset-inline-start: auto;
+}
+
+[dir="rtl"] .modal-close {
+  inset-inline-start: 0.5rem;
+  inset-inline-end: auto;
+}
+
+/* Chevrons in [dir=rtl] — apply transform: scaleX(-1) so they keep their
+ * semantic "right" direction. Icons that should NOT mirror (logos, file
+ * types) get the .no-mirror class. */
+[dir="rtl"] .icon-mirror {
+  transform: scaleX(-1);
+}

@@ -1,0 +1,13 @@
+# Id Standards And Cross Repo Coordination
+
+## Overview
+
+No description provided.
+
+## Requirements
+
+See tasks and plan files for detailed requirements.
+
+## Status
+
+Migrated from kitty-specs. Tracked in AgilePlus.

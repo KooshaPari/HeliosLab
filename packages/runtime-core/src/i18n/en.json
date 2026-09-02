@@ -1,0 +1,58 @@
+{
+  "app": {
+    "name": "HeliosApp",
+    "tagline": "Terminal-first development environment"
+  },
+  "nav": {
+    "home": "Home",
+    "projects": "Projects",
+    "settings": "Settings",
+    "help": "Help"
+  },
+  "skip": {
+    "toMain": "Skip to main content"
+  },
+  "tabs": {
+    "terminal": "Terminal",
+    "agent": "Agent",
+    "files": "Files",
+    "logs": "Logs"
+  },
+  "tree": {
+    "root": "Workspace",
+    "newFile": "New file",
+    "newFolder": "New folder"
+  },
+  "status": {
+    "compiling": "Compiling {file}…",
+    "compileComplete": "Build complete in {duration}ms",
+    "deploying": "Deploying to {target}…",
+    "deploySuccess": "Deployed {version} to {target}",
+    "saved": "Saved",
+    "copied": "Copied to clipboard",
+    "connectionLost": "Connection lost. Attempting to reconnect…",
+    "connectionRestored": "Connection restored"
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "permission": "You do not have permission to perform this action.",
+    "network": "Network error. Check your connection.",
+    "validation": "Please check the highlighted fields."
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "theme": "Theme",
+    "themeDark": "Dark",
+    "themeLight": "Light",
+    "save": "Save changes",
+    "cancel": "Cancel"
+  },
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "close": "Close"
+  }
+}

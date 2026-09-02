@@ -1,0 +1,133 @@
+{
+	"requirements": [
+		{
+			"id": "FR-001a",
+			"artifacts": [
+				"apps/runtime/tests/integration/sessions/harness-routing.test.ts"
+			]
+		},
+		{
+			"id": "FR-001b",
+			"artifacts": ["apps/runtime/tests/soak/multi_session_soak.test.ts"]
+		},
+		{
+			"id": "FR-002",
+			"artifacts": [
+				"apps/runtime/tests/integration/sessions/harness-routing.test.ts"
+			]
+		},
+		{
+			"id": "FR-003",
+			"artifacts": [
+				"apps/runtime/tests/integration/sessions/harness-routing.test.ts"
+			]
+		},
+		{
+			"id": "FR-004",
+			"artifacts": [
+				"apps/runtime/tests/unit/sessions/test_terminal_registry.test.ts"
+			]
+		},
+		{
+			"id": "FR-005a",
+			"artifacts": [
+				"apps/runtime/tests/integration/sessions/harness-routing.test.ts"
+			]
+		},
+		{
+			"id": "FR-005b",
+			"artifacts": ["apps/runtime/tests/soak/multi_session_soak.test.ts"]
+		},
+		{
+			"id": "FR-006",
+			"artifacts": [
+				"apps/runtime/tests/integration/sessions/harness-routing.test.ts"
+			]
+		},
+		{
+			"id": "FR-007",
+			"artifacts": ["apps/runtime/tests/unit/protocol/protocol_bus.test.ts"]
+		},
+		{
+			"id": "FR-008",
+			"artifacts": ["apps/runtime/tests/unit/protocol/protocol_bus.test.ts"]
+		},
+		{
+			"id": "FR-009",
+			"artifacts": ["apps/runtime/tests/unit/protocol/protocol_bus.test.ts"]
+		},
+		{
+			"id": "FR-010",
+			"artifacts": [
+				"apps/runtime/tests/unit/protocol/boundary_adapter.test.ts",
+				"apps/runtime/tests/integration/protocol/boundary_dispatch.test.ts"
+			]
+		},
+		{
+			"id": "FR-011",
+			"artifacts": ["apps/desktop/tests/unit/control_plane.test.ts"]
+		},
+		{
+			"id": "FR-012",
+			"artifacts": ["apps/runtime/tests/soak/multi_session_soak.test.ts"]
+		},
+		{
+			"id": "FR-013",
+			"artifacts": ["apps/runtime/tests/unit/protocol/protocol_bus.test.ts"]
+		},
+		{
+			"id": "FR-014",
+			"artifacts": ["apps/runtime/tests/unit/protocol/protocol_bus.test.ts"]
+		},
+		{
+			"id": "FR-015",
+			"artifacts": [
+				"kitty-specs/001-colab-agent-terminal-control-plane/spec.md"
+			]
+		},
+		{
+			"id": "FR-016",
+			"artifacts": [
+				"apps/desktop/tests/e2e/wp04-editorless-control-plane.spec.ts"
+			]
+		},
+		{
+			"id": "FR-017",
+			"artifacts": [
+				"apps/runtime/tests/unit/protocol/protocol_assets.test.ts",
+				"tools/gates/protocol-parity.mjs"
+			]
+		},
+		{
+			"id": "FR-018",
+			"artifacts": ["apps/runtime/tests/unit/protocol/protocol_assets.test.ts"]
+		},
+
+		{
+			"id": "NFR-001",
+			"artifacts": ["apps/runtime/tests/soak/multi_session_soak.test.ts"]
+		},
+		{
+			"id": "NFR-002",
+			"artifacts": ["apps/runtime/tests/soak/multi_session_soak.test.ts"]
+		},
+		{
+			"id": "NFR-003",
+			"artifacts": ["apps/runtime/tests/soak/multi_session_soak.test.ts"]
+		},
+		{
+			"id": "NFR-004",
+			"artifacts": [
+				"apps/runtime/tests/integration/protocol/boundary_dispatch.test.ts"
+			]
+		},
+		{
+			"id": "NFR-005a",
+			"artifacts": ["apps/runtime/tests/unit/protocol/protocol_bus.test.ts"]
+		},
+		{
+			"id": "NFR-005b",
+			"artifacts": ["apps/runtime/tests/unit/protocol/protocol_bus.test.ts"]
+		}
+	]
+}

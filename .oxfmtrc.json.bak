@@ -1,0 +1,47 @@
+{
+<<<<<<< HEAD
+  "useTabs": false,
+  "tabWidth": 2,
+  "printWidth": 100,
+  "singleQuote": false,
+  "jsxSingleQuote": false,
+  "quoteProps": "as-needed",
+  "trailingComma": "es5",
+  "semi": true,
+  "arrowParens": "avoid",
+  "bracketSameLine": false,
+  "bracketSpacing": true,
+  "ignorePatterns": [
+    "node_modules/**",
+    "docs/.vitepress/dist/**",
+    "apps/**/dist/**",
+    "docs/.generated/**",
+    ".worktrees/**",
+    "agileplus/**",
+    "docs/sessions/**",
+    "tsconfig*.json"
+  ]
+=======
+	"useTabs": false,
+	"tabWidth": 2,
+	"printWidth": 100,
+	"singleQuote": false,
+	"jsxSingleQuote": false,
+	"quoteProps": "as-needed",
+	"trailingComma": "es5",
+	"semi": true,
+	"arrowParens": "avoid",
+	"bracketSameLine": false,
+	"bracketSpacing": true,
+	"ignorePatterns": [
+		"node_modules/**",
+		"docs/.vitepress/dist/**",
+		"apps/**/dist/**",
+		"docs/.generated/**",
+		".worktrees/**",
+		"kitty-specs/**",
+		"docs/sessions/**",
+		"tsconfig*.json"
+	]
+>>>>>>> origin/main
+}

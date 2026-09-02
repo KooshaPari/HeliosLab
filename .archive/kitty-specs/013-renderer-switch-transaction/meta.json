@@ -1,0 +1,9 @@
+{
+	"feature_number": "013",
+	"slug": "013-renderer-switch-transaction",
+	"friendly_name": "Transactional Renderer Switching",
+	"mission": "software-dev",
+	"created_at": "2026-02-27T00:00:00Z",
+	"target_branch": "main",
+	"vcs": "git"
+}

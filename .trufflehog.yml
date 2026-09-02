@@ -1,0 +1,13 @@
+exclude:
+  paths:
+    - ".git/**"
+    - "target/**"
+    - "node_modules/**"
+    - "*.sum"
+    - "*.lock"
+    - "dist/**"
+    # Test fixtures with intentionally fake/example secrets for redaction engine testing
+    - "apps/runtime/src/secrets/__tests__/**"
+include:
+  files:
+    - "**/*"

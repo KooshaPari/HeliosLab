@@ -1,0 +1,9 @@
+{
+	"feature_number": "018",
+	"slug": "018-renderer-engine-settings-control",
+	"friendly_name": "Renderer Engine Settings Control",
+	"mission": "software-dev",
+	"created_at": "2026-02-27T00:00:00Z",
+	"target_branch": "main",
+	"vcs": "git"
+}

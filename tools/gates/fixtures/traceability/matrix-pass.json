@@ -1,0 +1,10 @@
+{
+	"requirements": [
+		{
+			"id": "FR-001",
+			"artifacts": ["tools/gates/requirement-traceability.mjs"]
+		},
+		{ "id": "FR-002", "artifacts": ["tools/gates/runtime-coverage.mjs"] },
+		{ "id": "NFR-001", "artifacts": ["tools/gates/protocol-parity.mjs"] }
+	]
+}

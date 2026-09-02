@@ -1,0 +1,44 @@
+name: agent-dir-guard
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  enforce-agent-directory-policy:
+    name: enforce-agent-directory-policy
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.1.1
+
+      - name: Validate staged-like file policy for agent directories
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          files="$(git ls-files)"
+
+          if blocked=$(printf "%s\n" "$files" | \
+            grep -E '^\.(claude|codex|gemini|cursor|qwen|opencode|windsurf|kilocode|augment|roo|amazonq)/|^\.github/copilot/' | \
+            grep -v '^\.claude/skills/' | \
+            grep -v '^\.claude/commands/.*\.md$' | \
+            grep -v '^\.codex/prompts/.*\.md$' | \
+            grep -v '^\.cursor/commands/.*\.md$' | \
+            grep -v '^\.gemini/config.yaml$' | \
+            grep -v '^\.gemini/commands/.*\.toml$'); then
+            :
+          else
+            blocked=""
+          fi
+
+          if [[ -n "$blocked" ]]; then
+            echo "Blocked agent directory files detected:" >&2
+            printf '%s\n' "$blocked" >&2
+            exit 1
+          fi
+
+          echo "Agent directory policy check passed."

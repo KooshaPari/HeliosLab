@@ -1,0 +1,49 @@
+# reusable-a11y.yml
+# Reusable WCAG 2.1 AA gate — boots the app dev server and runs axe Playwright specs.
+
+name: reusable-a11y
+
+on:
+  workflow_call:
+    inputs:
+      app_name:
+        required: true
+        type: string
+      app_dir:
+        required: true
+        type: string
+      dev_command:
+        required: true
+        type: string
+      dev_port:
+        required: true
+        type: number
+      spec_glob:
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  axe:
+    name: axe-${{ inputs.app_name }}
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.1.1
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
+        with:
+          bun-version: 1.2.20
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: bunx playwright install --with-deps chromium
+
+      - name: Run axe accessibility gate
+        run: bunx playwright test ${{ inputs.spec_glob }}
+        working-directory: ${{ inputs.app_dir }}

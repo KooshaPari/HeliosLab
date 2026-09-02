@@ -1,0 +1,406 @@
+{
+  "metadata": {
+    "formal_methods_source": "specs/protocol/v1/methods.json",
+    "formal_topics_source": "specs/protocol/v1/topics.json",
+    "runtime_methods_source": "apps/runtime/src/protocol/methods.ts",
+    "runtime_topics_source": "apps/runtime/src/protocol/topics.ts",
+    "task_package": "kitty-specs/001-colab-agent-terminal-control-plane/tasks/WP09-formal-protocol-surface-completion.md"
+  },
+  "statuses": ["implemented", "deferred", "extension"],
+  "methods": [
+    {
+      "name": "workspace.create",
+      "status": "implemented",
+      "contract_refs": ["contracts/control-plane.openapi.yaml#x-formal-method-families.workspace"],
+      "runtime_refs": ["apps/runtime/src/protocol/methods.ts"],
+      "task_ids": ["T001", "T009", "T043"]
+    },
+    {
+      "name": "workspace.open",
+      "status": "implemented",
+      "contract_refs": ["contracts/control-plane.openapi.yaml#x-formal-method-families.workspace"],
+      "runtime_refs": ["apps/runtime/src/protocol/methods.ts"],
+      "task_ids": ["T001", "T009", "T043"]
+    },
+    {
+      "name": "project.clone",
+      "status": "deferred",
+      "contract_refs": ["contracts/control-plane.openapi.yaml#x-formal-method-families.project"],
+      "runtime_refs": ["apps/runtime/src/protocol/methods.ts"],
+      "task_ids": ["T044"]
+    },
+    {
+      "name": "project.init",
+      "status": "deferred",
+      "contract_refs": ["contracts/control-plane.openapi.yaml#x-formal-method-families.project"],
+      "runtime_refs": ["apps/runtime/src/protocol/methods.ts"],
+      "task_ids": ["T044"]
+    },
+    {
+      "name": "session.create",
+      "status": "implemented",
+      "contract_refs": ["contracts/control-plane.openapi.yaml#x-formal-method-families.session"],
+      "runtime_refs": ["apps/runtime/src/protocol/methods.ts"],
+      "task_ids": ["T006", "T007", "T043"]
+    },
+    {
+      "name": "session.attach",
+      "status": "implemented",
+      "contract_refs": ["contracts/control-plane.openapi.yaml#x-formal-method-families.session"],
+      "runtime_refs": ["apps/runtime/src/protocol/methods.ts"],
+      "task_ids": ["T006", "T007", "T043"]
+    },
+    {
+      "name": "session.terminate",
+      "status": "implemented",
+      "contract_refs": ["contracts/control-plane.openapi.yaml#x-formal-method-families.session"],
+      "runtime_refs": ["apps/runtime/src/protocol/methods.ts"],
+      "task_ids": ["T006", "T025", "T043"]
+    },
+    {
+      "name": "terminal.spawn",
+      "status": "implemented",
+      "contract_refs": ["contracts/control-plane.openapi.yaml#x-formal-method-families.terminal"],
+      "runtime_refs": ["apps/runtime/src/protocol/methods.ts"],
+      "task_ids": ["T011", "T012", "T043"]
+    },
+    {
+      "name": "terminal.resize",
+      "status": "implemented",
+      "contract_refs": ["contracts/control-plane.openapi.yaml#x-formal-method-families.terminal"],
+      "runtime_refs": ["apps/runtime/src/protocol/methods.ts"],
+      "task_ids": ["T012", "T015", "T043"]
+    },
+    {
+      "name": "terminal.input",
+      "status": "implemented",
+      "contract_refs": ["contracts/control-plane.openapi.yaml#x-formal-method-families.terminal"],
+      "runtime_refs": ["apps/runtime/src/protocol/methods.ts"],
+      "task_ids": ["T012", "T015", "T043"]
+    },
+    {
+      "name": "renderer.switch",
+      "status": "deferred",
+      "contract_refs": ["contracts/control-plane.openapi.yaml#x-formal-method-families.renderer"],
+      "runtime_refs": ["apps/runtime/src/protocol/methods.ts"],
+      "task_ids": ["T019", "T044"]
+    },
+    {
+      "name": "renderer.capabilities",
+      "status": "deferred",
+      "contract_refs": ["contracts/control-plane.openapi.yaml#x-formal-method-families.renderer"],
+      "runtime_refs": ["apps/runtime/src/protocol/methods.ts"],
+      "task_ids": ["T019", "T044"]
+    },
+    {
+      "name": "agent.run",
+      "status": "deferred",
+      "contract_refs": ["contracts/control-plane.openapi.yaml#x-formal-method-families.agent"],
+      "runtime_refs": ["apps/runtime/src/protocol/methods.ts"],
+      "task_ids": ["T031", "T032", "T044"]
+    },
+    {
+      "name": "agent.cancel",
+      "status": "deferred",
+      "contract_refs": ["contracts/control-plane.openapi.yaml#x-formal-method-families.agent"],
+      "runtime_refs": ["apps/runtime/src/protocol/methods.ts"],
+      "task_ids": ["T031", "T032", "T044"]
+    },
+    {
+      "name": "approval.request.resolve",
+      "status": "deferred",
+      "contract_refs": ["contracts/control-plane.openapi.yaml#x-formal-method-families.approval"],
+      "runtime_refs": ["apps/runtime/src/protocol/methods.ts"],
+      "task_ids": ["T044"]
+    },
+    {
+      "name": "share.upterm.start",
+      "status": "deferred",
+      "contract_refs": ["contracts/control-plane.openapi.yaml#x-formal-method-families.share"],
+      "runtime_refs": ["apps/runtime/src/protocol/methods.ts"],
+      "task_ids": ["T044"]
+    },
+    {
+      "name": "share.upterm.stop",
+      "status": "deferred",
+      "contract_refs": ["contracts/control-plane.openapi.yaml#x-formal-method-families.share"],
+      "runtime_refs": ["apps/runtime/src/protocol/methods.ts"],
+      "task_ids": ["T044"]
+    },
+    {
+      "name": "share.tmate.start",
+      "status": "deferred",
+      "contract_refs": ["contracts/control-plane.openapi.yaml#x-formal-method-families.share"],
+      "runtime_refs": ["apps/runtime/src/protocol/methods.ts"],
+      "task_ids": ["T044"]
+    },
+    {
+      "name": "share.tmate.stop",
+      "status": "deferred",
+      "contract_refs": ["contracts/control-plane.openapi.yaml#x-formal-method-families.share"],
+      "runtime_refs": ["apps/runtime/src/protocol/methods.ts"],
+      "task_ids": ["T044"]
+    },
+    {
+      "name": "zmx.checkpoint",
+      "status": "deferred",
+      "contract_refs": ["contracts/control-plane.openapi.yaml#x-formal-method-families.zmx"],
+      "runtime_refs": ["apps/runtime/src/protocol/methods.ts"],
+      "task_ids": ["T037", "T038", "T044"]
+    },
+    {
+      "name": "zmx.restore",
+      "status": "deferred",
+      "contract_refs": ["contracts/control-plane.openapi.yaml#x-formal-method-families.zmx"],
+      "runtime_refs": ["apps/runtime/src/protocol/methods.ts"],
+      "task_ids": ["T037", "T038", "T044"]
+    },
+    {
+      "name": "lane.create",
+      "status": "implemented",
+      "contract_refs": ["contracts/control-plane.openapi.yaml#x-formal-method-families.lane"],
+      "runtime_refs": ["apps/runtime/src/protocol/methods.ts"],
+      "task_ids": ["T006", "T009", "T043"]
+    },
+    {
+      "name": "lane.attach",
+      "status": "implemented",
+      "contract_refs": ["contracts/control-plane.openapi.yaml#x-formal-method-families.lane"],
+      "runtime_refs": ["apps/runtime/src/protocol/methods.ts"],
+      "task_ids": ["T006", "T016", "T043"]
+    },
+    {
+      "name": "lane.cleanup",
+      "status": "implemented",
+      "contract_refs": ["contracts/control-plane.openapi.yaml#x-formal-method-families.lane"],
+      "runtime_refs": ["apps/runtime/src/protocol/methods.ts"],
+      "task_ids": ["T006", "T022", "T043"]
+    }
+  ],
+  "topics": [
+    {
+      "name": "workspace.opened",
+      "status": "implemented",
+      "contract_refs": ["contracts/control-plane.openapi.yaml#x-formal-event-families.workspace"],
+      "runtime_refs": ["apps/runtime/src/protocol/topics.ts"],
+      "task_ids": ["T001", "T045"]
+    },
+    {
+      "name": "project.ready",
+      "status": "deferred",
+      "contract_refs": ["contracts/control-plane.openapi.yaml#x-formal-event-families.project"],
+      "runtime_refs": ["apps/runtime/src/protocol/topics.ts"],
+      "task_ids": ["T045"]
+    },
+    {
+      "name": "session.created",
+      "status": "implemented",
+      "contract_refs": ["contracts/control-plane.openapi.yaml#x-formal-event-families.session"],
+      "runtime_refs": ["apps/runtime/src/protocol/topics.ts"],
+      "task_ids": ["T006", "T045"]
+    },
+    {
+      "name": "session.attach.started",
+      "status": "implemented",
+      "contract_refs": ["contracts/control-plane.openapi.yaml#x-formal-event-families.session"],
+      "runtime_refs": ["apps/runtime/src/protocol/topics.ts"],
+      "task_ids": ["T003", "T045"]
+    },
+    {
+      "name": "session.attached",
+      "status": "implemented",
+      "contract_refs": ["contracts/control-plane.openapi.yaml#x-formal-event-families.session"],
+      "runtime_refs": ["apps/runtime/src/protocol/topics.ts"],
+      "task_ids": ["T003", "T045"]
+    },
+    {
+      "name": "session.attach.failed",
+      "status": "implemented",
+      "contract_refs": ["contracts/control-plane.openapi.yaml#x-formal-event-families.session"],
+      "runtime_refs": ["apps/runtime/src/protocol/topics.ts"],
+      "task_ids": ["T024", "T045"]
+    },
+    {
+      "name": "session.restore.started",
+      "status": "deferred",
+      "contract_refs": ["contracts/control-plane.openapi.yaml#x-formal-event-families.session"],
+      "runtime_refs": ["apps/runtime/src/protocol/topics.ts"],
+      "task_ids": ["T021", "T045"]
+    },
+    {
+      "name": "session.restore.completed",
+      "status": "deferred",
+      "contract_refs": ["contracts/control-plane.openapi.yaml#x-formal-event-families.session"],
+      "runtime_refs": ["apps/runtime/src/protocol/topics.ts"],
+      "task_ids": ["T021", "T045"]
+    },
+    {
+      "name": "session.terminated",
+      "status": "implemented",
+      "contract_refs": ["contracts/control-plane.openapi.yaml#x-formal-event-families.session"],
+      "runtime_refs": ["apps/runtime/src/protocol/topics.ts"],
+      "task_ids": ["T006", "T045"]
+    },
+    {
+      "name": "terminal.spawn.started",
+      "status": "implemented",
+      "contract_refs": ["contracts/control-plane.openapi.yaml#x-formal-event-families.terminal"],
+      "runtime_refs": ["apps/runtime/src/protocol/topics.ts"],
+      "task_ids": ["T014", "T045"]
+    },
+    {
+      "name": "terminal.spawned",
+      "status": "implemented",
+      "contract_refs": ["contracts/control-plane.openapi.yaml#x-formal-event-families.terminal"],
+      "runtime_refs": ["apps/runtime/src/protocol/topics.ts"],
+      "task_ids": ["T011", "T014", "T045"]
+    },
+    {
+      "name": "terminal.spawn.failed",
+      "status": "implemented",
+      "contract_refs": ["contracts/control-plane.openapi.yaml#x-formal-event-families.terminal"],
+      "runtime_refs": ["apps/runtime/src/protocol/topics.ts"],
+      "task_ids": ["T014", "T024", "T045"]
+    },
+    {
+      "name": "terminal.output",
+      "status": "implemented",
+      "contract_refs": ["contracts/control-plane.openapi.yaml#x-formal-event-families.terminal"],
+      "runtime_refs": ["apps/runtime/src/protocol/topics.ts"],
+      "task_ids": ["T013", "T014", "T045"]
+    },
+    {
+      "name": "terminal.state.changed",
+      "status": "implemented",
+      "contract_refs": ["contracts/control-plane.openapi.yaml#x-formal-event-families.terminal"],
+      "runtime_refs": ["apps/runtime/src/protocol/topics.ts"],
+      "task_ids": ["T011", "T014", "T045"]
+    },
+    {
+      "name": "renderer.switch.started",
+      "status": "deferred",
+      "contract_refs": ["contracts/control-plane.openapi.yaml#x-formal-event-families.renderer"],
+      "runtime_refs": ["apps/runtime/src/protocol/topics.ts"],
+      "task_ids": ["T019", "T045"]
+    },
+    {
+      "name": "renderer.switch.succeeded",
+      "status": "deferred",
+      "contract_refs": ["contracts/control-plane.openapi.yaml#x-formal-event-families.renderer"],
+      "runtime_refs": ["apps/runtime/src/protocol/topics.ts"],
+      "task_ids": ["T019", "T045"]
+    },
+    {
+      "name": "renderer.switch.failed",
+      "status": "deferred",
+      "contract_refs": ["contracts/control-plane.openapi.yaml#x-formal-event-families.renderer"],
+      "runtime_refs": ["apps/runtime/src/protocol/topics.ts"],
+      "task_ids": ["T019", "T045"]
+    },
+    {
+      "name": "agent.run.started",
+      "status": "deferred",
+      "contract_refs": ["contracts/control-plane.openapi.yaml#x-formal-event-families.agent"],
+      "runtime_refs": ["apps/runtime/src/protocol/topics.ts"],
+      "task_ids": ["T031", "T033", "T045"]
+    },
+    {
+      "name": "agent.run.progress",
+      "status": "deferred",
+      "contract_refs": ["contracts/control-plane.openapi.yaml#x-formal-event-families.agent"],
+      "runtime_refs": ["apps/runtime/src/protocol/topics.ts"],
+      "task_ids": ["T031", "T033", "T045"]
+    },
+    {
+      "name": "agent.run.completed",
+      "status": "deferred",
+      "contract_refs": ["contracts/control-plane.openapi.yaml#x-formal-event-families.agent"],
+      "runtime_refs": ["apps/runtime/src/protocol/topics.ts"],
+      "task_ids": ["T031", "T033", "T045"]
+    },
+    {
+      "name": "agent.run.failed",
+      "status": "deferred",
+      "contract_refs": ["contracts/control-plane.openapi.yaml#x-formal-event-families.agent"],
+      "runtime_refs": ["apps/runtime/src/protocol/topics.ts"],
+      "task_ids": ["T031", "T033", "T045"]
+    },
+    {
+      "name": "approval.requested",
+      "status": "deferred",
+      "contract_refs": ["contracts/control-plane.openapi.yaml#x-formal-event-families.approval"],
+      "runtime_refs": ["apps/runtime/src/protocol/topics.ts"],
+      "task_ids": ["T045"]
+    },
+    {
+      "name": "approval.resolved",
+      "status": "deferred",
+      "contract_refs": ["contracts/control-plane.openapi.yaml#x-formal-event-families.approval"],
+      "runtime_refs": ["apps/runtime/src/protocol/topics.ts"],
+      "task_ids": ["T045"]
+    },
+    {
+      "name": "share.session.started",
+      "status": "deferred",
+      "contract_refs": ["contracts/control-plane.openapi.yaml#x-formal-event-families.share"],
+      "runtime_refs": ["apps/runtime/src/protocol/topics.ts"],
+      "task_ids": ["T045"]
+    },
+    {
+      "name": "share.session.stopped",
+      "status": "deferred",
+      "contract_refs": ["contracts/control-plane.openapi.yaml#x-formal-event-families.share"],
+      "runtime_refs": ["apps/runtime/src/protocol/topics.ts"],
+      "task_ids": ["T045"]
+    },
+    {
+      "name": "lane.create.started",
+      "status": "implemented",
+      "contract_refs": ["contracts/control-plane.openapi.yaml#x-formal-event-families.lane"],
+      "runtime_refs": ["apps/runtime/src/protocol/topics.ts"],
+      "task_ids": ["T006", "T045"]
+    },
+    {
+      "name": "lane.created",
+      "status": "implemented",
+      "contract_refs": ["contracts/control-plane.openapi.yaml#x-formal-event-families.lane"],
+      "runtime_refs": ["apps/runtime/src/protocol/topics.ts"],
+      "task_ids": ["T006", "T045"]
+    },
+    {
+      "name": "lane.create.failed",
+      "status": "implemented",
+      "contract_refs": ["contracts/control-plane.openapi.yaml#x-formal-event-families.lane"],
+      "runtime_refs": ["apps/runtime/src/protocol/topics.ts"],
+      "task_ids": ["T006", "T024", "T045"]
+    },
+    {
+      "name": "lane.attached",
+      "status": "extension",
+      "contract_refs": ["contracts/control-plane.openapi.yaml#x-formal-event-families.extensions"],
+      "runtime_refs": ["apps/runtime/src/protocol/topics.ts"],
+      "task_ids": ["T016", "T045"]
+    },
+    {
+      "name": "lane.cleaned",
+      "status": "implemented",
+      "contract_refs": ["contracts/control-plane.openapi.yaml#x-formal-event-families.lane"],
+      "runtime_refs": ["apps/runtime/src/protocol/topics.ts"],
+      "task_ids": ["T006", "T022", "T045"]
+    },
+    {
+      "name": "harness.status.changed",
+      "status": "extension",
+      "contract_refs": ["contracts/control-plane.openapi.yaml#x-formal-event-families.extensions"],
+      "runtime_refs": ["apps/runtime/src/protocol/topics.ts"],
+      "task_ids": ["T008", "T045"]
+    },
+    {
+      "name": "audit.recorded",
+      "status": "implemented",
+      "contract_refs": ["contracts/control-plane.openapi.yaml#x-formal-event-families.audit"],
+      "runtime_refs": ["apps/runtime/src/protocol/topics.ts"],
+      "task_ids": ["T004", "T023", "T045"]
+    }
+  ]
+}

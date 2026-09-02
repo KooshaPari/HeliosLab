@@ -1,0 +1,147 @@
+name: Quality Gates
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  quality-gates:
+    name: Quality Gates Pipeline
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.2.20'
+
+      - name: Cache Bun modules
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-cache-${{ hashFiles('bun.lockb') }}
+          restore-keys: bun-cache-
+
+      - name: Install dependencies
+        run: bun install
+        timeout-minutes: 5
+
+      - name: Create reports directory
+        run: mkdir -p .gate-reports
+
+      - name: Gate 1 - TypeScript Typecheck
+        id: gate-typecheck
+        run: |
+          set +e
+          bun run typecheck | tee /tmp/typecheck.log
+          TYPECHECK_EXIT=${PIPESTATUS[0]}
+          bun run scripts/gate-typecheck.ts
+          REPORT_EXIT=$?
+          set -e
+          if [ "$TYPECHECK_EXIT" -ne 0 ] || [ "$REPORT_EXIT" -ne 0 ]; then
+            exit 1
+          fi
+        timeout-minutes: 3
+        continue-on-error: false
+
+      - name: Gate 2 - OXC Lint
+        id: gate-lint
+        run: |
+          set +e
+          bun run lint | tee /tmp/lint.log
+          LINT_EXIT=${PIPESTATUS[0]}
+          bun run scripts/gate-lint.ts
+          REPORT_EXIT=$?
+          set -e
+          if [ "$LINT_EXIT" -ne 0 ] || [ "$REPORT_EXIT" -ne 0 ]; then
+            exit 1
+          fi
+        timeout-minutes: 3
+        continue-on-error: false
+
+      - name: Gate 3 - Unit Tests
+        id: gate-test
+<<<<<<< HEAD
+        run: |
+          set +e
+          bun test apps/runtime apps/desktop/tests/unit scripts/tests/ | tee /tmp/test.log
+          TEST_EXIT=${PIPESTATUS[0]}
+          bun run scripts/gate-test.ts
+          REPORT_EXIT=$?
+          set -e
+          if [ "$TEST_EXIT" -ne 0 ] || [ "$REPORT_EXIT" -ne 0 ]; then
+            exit 1
+          fi
+=======
+        run: bun run test
+>>>>>>> origin/main
+        timeout-minutes: 5
+        continue-on-error: false
+
+      - name: Install Playwright browsers
+        run: bunx playwright install --with-deps chromium
+
+      - name: Gate 4 - E2E Tests
+        id: gate-e2e
+        run: |
+          if ls apps/desktop/tests/e2e/*.spec.ts 1>/dev/null 2>&1; then
+            bun run test:e2e
+          else
+            echo "No e2e spec files found — skipping"
+          fi
+        timeout-minutes: 5
+        continue-on-error: true
+
+      - name: Gate 5 - Coverage
+        id: gate-coverage
+        run: bun run scripts/gate-coverage.ts
+        timeout-minutes: 5
+        continue-on-error: false
+
+      - name: Gate 6 - Security
+        id: gate-security
+        run: bun run scripts/gate-security.ts
+        timeout-minutes: 3
+        continue-on-error: false
+
+      - name: Gate 7 - Static Analysis
+        id: gate-static-analysis
+        run: bun run scripts/gate-static-analysis.ts
+        timeout-minutes: 3
+        continue-on-error: false
+
+      - name: Coverage Manifest
+        id: coverage-manifest
+        if: always()
+        run: bun run scripts/coverage-manifest.ts
+        continue-on-error: true
+
+      - name: Gate 8 - Bypass Detect
+        id: gate-bypass-detect
+        run: bun run scripts/gate-bypass-detect.ts
+        timeout-minutes: 2
+        continue-on-error: false
+
+      - name: Upload Gate Reports
+        if: always()
+<<<<<<< HEAD
+        run: bun run scripts/gate-aggregate.ts
+
+      - name: Upload Gate Reports Artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+=======
+        uses: actions/upload-artifact@v7
+>>>>>>> origin/main
+        with:
+          name: gate-reports
+          path: .gate-reports/
+          retention-days: 30

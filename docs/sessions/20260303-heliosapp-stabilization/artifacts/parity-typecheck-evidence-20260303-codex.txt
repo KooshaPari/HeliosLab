@@ -1,0 +1,26 @@
+# Parity + Typecheck Evidence (2026-03-03)
+
+## Repository
+- /Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp-wtrees/ts-debt-parity-20260303
+
+## Commands and Results
+
+1) bun run typecheck
+- Exit: 2
+- Total error lines: 197
+- Error code counts:
+  - TS2551: 191
+  - TS2353: 3
+  - TS2740: 3
+- Summary: FAIL in pre-existing runtime registry/session typing surface.
+
+2) bun test apps/runtime/tests/unit/protocol/protocol_parity_gate.test.ts apps/runtime/tests/unit/protocol/protocol_asset_parity.test.ts apps/runtime/tests/unit/protocol/schema-parity.test.ts
+- Exit: 0
+- Summary: PASS (12 pass / 0 fail)
+- Notes:
+  - parity gate pass + fail-closed scenario both executed
+  - schema parity suite pass
+
+3) node tools/gates/protocol-parity.mjs
+- Exit: 0
+- Output: Protocol parity gate passed.
