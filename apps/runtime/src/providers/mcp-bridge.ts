@@ -224,7 +224,7 @@ export class MCPBridgeAdapter
         clearTimeout(timeoutHandle);
         this.inFlightTools.delete(correlationId);
       }
-    } catch {
+    } catch (error) {
       // Handle timeout
       if (error instanceof Error && error.name === "AbortError") {
         const normalized = new NormalizedProviderError(

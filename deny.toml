@@ -1,13 +1,14 @@
 [graph]
 all-features = true
-always-allow-build-rt = false
 
 [advisories]
-version = 2
-ignore = []
+ignore = [
+    # paste is unmaintained; transitive via pyo3 0.24 macro internals.
+    # Remove when the pyo3 >= 0.29 upgrade (dependabot PR #174) lands.
+    "RUSTSEC-2024-0436",
+]
 
 [licenses]
-version = 2
 allow = [
     "MIT",
     "Apache-2.0",
@@ -16,17 +17,19 @@ allow = [
     "CC0-1.0",
     "Unicode-DFS-2016",
     "Unicode-3.0",
+    "Zlib",
+    "Apache-2.0 WITH LLVM-exception",
 ]
 
 [bans]
-version = 2
-default = "deny"
 multiple-versions = "warn"
 wildcards = "warn"
 highlight = "all"
 workspace-default-features = "warn"
 
 [sources]
-version = 2
 unknown-registry = "deny"
 unknown-git = "deny"
+allow-git = [
+    "https://github.com/KooshaPari/clap-ext",
+]
