@@ -21,7 +21,8 @@
 		"push:patch": "npm version prepatch --preid=canary && git push origin main --tags",
 		"push:minor": "npm version preminor --preid=canary && git push origin main --tags",
 		"push:major": "npm version premajor --preid=canary && git push origin main --tags",
-		"push:stable": "npm version patch && git push origin main --tags"
+		"push:stable": "npm version patch && git push origin main --tags",
+		"lint": "bunx --package=@biomejs/biome@2.0.0 biome check --error-on-warnings ."
 	},
 	"repository": {
 		"type": "git",
