@@ -6,7 +6,7 @@
 	"main": "index.js",
 	"scripts": {
 		"typecheck": "tsc --noEmit",
-		"lint": "bunx biome check .",
+		"lint": "bunx --package=@biomejs/biome@2.0.0 biome check --error-on-warnings .",
 		"format": "bunx biome format --write .",
 		"setup": "bun run scripts/setup-deps.ts",
 		"format:check": "biome check --config-path=biome.json apps packages scripts src tests",
@@ -16,16 +16,15 @@
 		"dev": "bun setup && electrobun dev",
 		"build:canary": "electrobun build --env=canary",
 		"build:stable": "electrobun build --env=stable",
-		"docs:dev": "cd documentation && bun install && bun start",
-		"docs:build": "cd documentation && bun install && bun run build",
-		"docs:serve": "cd documentation && bun run serve",
-		"build:docs:release": "cd documentation && bun run build",
+		"docs:dev": "cd docs && npm install --no-audit --no-fund && npm start",
+		"docs:build": "cd docs && npm install --no-audit --no-fund && npm run docs:build",
+		"docs:serve": "cd docs && npm run docs:serve",
+		"build:docs:release": "cd docs && npm install --no-audit --no-fund && npm run docs:build",
 		"push:canary": "npm version prerelease --preid=canary && git push origin main --tags",
 		"push:patch": "npm version prepatch --preid=canary && git push origin main --tags",
 		"push:minor": "npm version preminor --preid=canary && git push origin main --tags",
 		"push:major": "npm version premajor --preid=canary && git push origin main --tags",
-		"push:stable": "npm version patch && git push origin main --tags",
-		"lint": "bunx --package=@biomejs/biome@2.0.0 biome check --error-on-warnings ."
+		"push:stable": "npm version patch && git push origin main --tags"
 	},
 	"repository": {
 		"type": "git",
