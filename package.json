@@ -5,6 +5,9 @@
 	"description": "A hybrid browser + code editor for deep work",
 	"main": "index.js",
 	"scripts": {
+		"typecheck": "tsc --noEmit",
+		"lint": "bunx biome check .",
+		"format": "bunx biome format --write .",
 		"setup": "bun run scripts/setup-deps.ts",
 		"build:dev": "bun setup && electrobun build",
 		"dev": "bun setup && electrobun dev",

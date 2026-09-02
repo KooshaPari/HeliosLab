@@ -55,8 +55,6 @@ worktrees/
 
 # Worktree directories (org policy)
 .claude/worktrees/
-Cargo.lock
-Cargo.lock
 
 # ===== Standard auto-generated hygiene ignores (do not edit manually) =====
 .env.*
