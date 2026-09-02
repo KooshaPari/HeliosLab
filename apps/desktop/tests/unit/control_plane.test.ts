@@ -2,7 +2,7 @@
 // FR-002: Command Correlation Guarantee (control plane commands must receive correlated responses)
 // Traces to: ILocalBusPort (primary port), IWorkspacePort (workspace boot)
 import { describe, expect, test } from "bun:test";
-import { createRuntime } from "../../../runtime/src";
+import { createRuntime } from "../../../runtime/src/index.js";
 import { bootDesktop } from "../../src";
 
 describe("EditorlessControlPlane", () => {
