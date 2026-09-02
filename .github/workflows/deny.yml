@@ -15,19 +15,10 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Org-policy enforcement via the shared reusable workflow. This is the
-  # canonical cargo-deny entry point and is what blocks policy regressions
-  # against the phenotype-org-governance baseline.
-  cargo-deny:
-    uses: KooshaPari/phenotype-tooling/.github/workflows/reusable/cargo-deny.yml@604fcb5352a8fb68fdd52a9503fefea1163dc2ea # pinned from @ref; org SHA may shift on new commits
-
-  # Explicit local policy enforcement with --workspace scope. This guarantees
-  # the repo's own deny.toml is checked against every member of the workspace
-  # with all feature combinations, independently of the org-level reusable.
-  # Pinned actions mirror the reusable workflow for auditability.
   cargo-deny-workspace:
     name: cargo deny check --workspace
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
       - name: Checkout
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.2.2
@@ -38,9 +29,9 @@ jobs:
           toolchain: stable
 
       - name: Install cargo-deny
-        uses: taiki-e/install-action@4f7e985c9561fb6d55af351690fa6c1b0b9b3575 # v2
+        uses: taiki-e/install-action@1ed6d7be6168f6c9046541087ff549b6bc581fdf # v2.87.2
         with:
-          tool: cargo-deny
+          tool: cargo-deny@0.19.0
 
       - name: Run cargo-deny against the workspace
         run: |

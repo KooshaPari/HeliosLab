@@ -1,21 +1,21 @@
-name: Alert sync issues
+name: Alert sync issues (disabled)
 
-# DISABLED: KooshaPari/phenoShared repository no longer exists (404).
-# The reusable workflow at phenoShared/.github/workflows/reusable/alert-sync-issues.yml
-# cannot be resolved. This workflow is kept as documentation but will not run.
-# To re-enable, either recreate the phenoShared repo with the reusable workflow
-# or replace this with a local implementation.
+# Alert synchronization previously depended on a reusable workflow in the
+# deleted KooshaPari/phenoShared repository. Keep a manual, non-mutating notice
+# until a supported local implementation is reviewed and restored.
 on:
-  schedule:
-    - cron: '17 * * * *'
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  sync:
-    if: false  # Disabled — reusable workflow dependency (phenoShared) is missing
-    uses: KooshaPari/phenoShared/.github/workflows/reusable/alert-sync-issues.yml@6a6e1b06026e9443449e419a2892cd0e47c19442
-    with:
-      auto-label: auto-alert-sync
+  unavailable:
+    name: Alert sync unavailable (manual notice only)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 1
+    steps:
+      - name: Report disabled integration
+        run: |
+          echo "::notice title=Alert sync disabled::The phenoShared reusable workflow no longer exists."
+          echo "No alerts were read and no issues were created, updated, or closed."

@@ -1,13 +1,14 @@
-﻿name: Journey Gate
+name: Journey Gate
+
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
+  merge_group:
+    types: [checks_requested]
   workflow_dispatch:
-jobs:
-  journey-gate:
-    uses: KooshaPari/phenotype-tooling/.github/workflows/reusable/journey-gate.yml@604fcb5352a8fb68fdd52a9503fefea1163dc2ea # pinned from @ref; org SHA may shift on new commits
+
 permissions:
   contents: read
 
@@ -15,3 +16,59 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+jobs:
+  journey-gate:
+    name: Verify committed journey evidence
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      OTEL_EXPORTER_OTLP_ENDPOINT: stdout
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9
+        with:
+          toolchain: 1.97.1
+
+      - name: Cache Rust build inputs
+        uses: Swatinem/rust-cache@874b06e0d3f63371f9ddbee43d4c8ebc73021583
+        with:
+          save-if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+
+      - name: Install pinned journey verifier
+        run: |
+          cargo install \
+            --git https://github.com/KooshaPari/phenotype-journeys \
+            --rev c90480645acd860a6fdbeb3404014c17f988bb72 \
+            --locked \
+            phenotype-journey
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          version: 0.11.29
+          enable-cache: true
+
+      - name: Install OCR runtime
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends tesseract-ocr
+          tesseract --version
+
+      - name: Verify journey evidence
+        run: |
+          phenotype-journey validate docs/journeys/manifests/heliosbench-main/manifest.json
+          phenotype-journey assert docs/journeys/manifests/heliosbench-main/manifest.json --strict
+          phenotype-journey verify \
+            --manifests-dir docs/journeys/manifests \
+            --tapes-dir docs/journeys/tapes \
+            --artefacts docs/journeys \
+            --mock
+          phenotype-journey validate docs/journeys/manifests/heliosbench-main/manifest.verified.json
+          phenotype-journey assert docs/journeys/manifests/heliosbench-main/manifest.verified.json --strict
+          git diff --exit-code -- docs/journeys/manifests/heliosbench-main/manifest.verified.json
+          uv run --locked --extra dev pytest tests/test_journey_evidence.py -q

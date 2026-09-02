@@ -1,13 +1,55 @@
-﻿name: TruffleHog Secrets Scan
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+name: TruffleHog Secrets Scan
+
 on:
   push:
     branches: [main]
   pull_request:
+    branches: [main]
+  merge_group:
+    types: [checks_requested]
+
 permissions:
   contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   trufflehog:
-    uses: KooshaPari/phenotype-tooling/.github/workflows/reusable/trufflehog.yml@604fcb5352a8fb68fdd52a9503fefea1163dc2ea # pinned from @ref; org SHA may shift on new commits
+    name: Scan changed Git history
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout full history
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.2.2
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Scan pull request commit range
+        if: github.event_name == 'pull_request'
+        uses: trufflesecurity/trufflehog@20652fbbdefffcdaa493a5bf57ab2ac6b1db715b # v3.97.1
+        with:
+          base: ${{ github.event.pull_request.base.sha }}
+          head: ${{ github.event.pull_request.head.sha }}
+          version: 3.97.1
+          extra_args: --only-verified
+
+      - name: Scan pushed commit range
+        if: github.event_name == 'push'
+        uses: trufflesecurity/trufflehog@20652fbbdefffcdaa493a5bf57ab2ac6b1db715b # v3.97.1
+        with:
+          base: ${{ github.event.before }}
+          head: ${{ github.sha }}
+          version: 3.97.1
+          extra_args: --only-verified
+
+      - name: Scan merge queue commit range
+        if: github.event_name == 'merge_group'
+        uses: trufflesecurity/trufflehog@20652fbbdefffcdaa493a5bf57ab2ac6b1db715b # v3.97.1
+        with:
+          base: ${{ github.event.merge_group.base_sha }}
+          head: ${{ github.event.merge_group.head_sha }}
+          version: 3.97.1
+          extra_args: --only-verified
