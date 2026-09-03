@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>HeliosLab phenoctl concurrency stress — live dashboard</title>
+<style>
+  :root { color-scheme: dark; --bg:#0b0d10; --panel:#14181d; --panel-2:#1b2128; --text:#e6edf3; --muted:#7d8590; --ok:#3fb950; --warn:#d29922; --err:#f85149; --accent:#58a6ff; --border:#30363d; }
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;}
+  header{padding:18px 24px;border-bottom:1px solid var(--border);display:flex;gap:16px;align-items:baseline;}
+  header h1{margin:0;font-size:16px;font-weight:600;}
+  header .badge{background:var(--panel-2);color:var(--muted);padding:2px 8px;border-radius:999px;font-size:11px;}
+  main{display:grid;grid-template-columns:repeat(12,1fr);gap:16px;padding:16px 24px;}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:14px;}
+  .card h2{margin:0 0 10px;font-size:12px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+  .metric{font-size:28px;font-weight:600;font-variant-numeric:tabular-nums;}
+  .metric small{font-size:13px;color:var(--muted);font-weight:400;margin-left:6px;}
+  .span-3{grid-column:span 3;} .span-4{grid-column:span 4;} .span-6{grid-column:span 6;} .span-12{grid-column:span 12;}
+  table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;}
+  th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--border);}
+  th{color:var(--muted);font-weight:500;font-size:11px;text-transform:uppercase;letter-spacing:.4px;}
+  .ok{color:var(--ok);} .warn{color:var(--warn);} .err{color:var(--err);}
+  .bar{height:8px;background:var(--panel-2);border-radius:999px;overflow:hidden;margin-top:4px;}
+  .bar > i{display:block;height:100%;background:var(--accent);}
+  .row{display:flex;align-items:baseline;justify-content:space-between;gap:12px;}
+  footer{padding:8px 24px 18px;color:var(--muted);font-size:11px;}
+  code{background:var(--panel-2);padding:1px 6px;border-radius:4px;font-size:12px;}
+</style>
+</head>
+<body>
+<header>
+  <h1>HeliosLab phenoctl concurrency stress</h1>
+  <span class="badge">flags · config · stage · events</span>
+  <span class="badge" id="ts">live</span>
+</header>
+<main>
+  <section class="card span-3"><h2>Completed</h2><div class="metric"><span id="completed">0</span><small>cmds</small></div></section>
+  <section class="card span-3"><h2>Throughput</h2><div class="metric"><span id="throughput">0.0</span><small>cmds/s</small></div></section>
+  <section class="card span-3"><h2>Avg latency</h2><div class="metric"><span id="lat_avg">0</span><small>ms</small></div></section>
+  <section class="card span-3"><h2>p99 latency</h2><div class="metric"><span id="lat_p99">0</span><small>ms</small></div></section>
+
+  <section class="card span-6">
+    <h2>Exit-code distribution</h2>
+    <div class="row"><span>ok</span><span id="exit_ok" class="ok">0</span></div>
+    <div class="row" style="margin-top:6px;"><span>fail</span><span id="exit_fail" class="warn">0</span></div>
+    <div class="row" style="margin-top:8px;"><span>fail rate</span><span id="fail_rate">0.00%</span></div>
+  </section>
+
+  <section class="card span-6">
+    <h2>Latency envelope</h2>
+    <div class="row"><span>min</span><span id="lat_min">0</span><small>ms</small></div>
+    <div class="row"><span>p50</span><span id="lat_p50">0</span><small>ms</small></div>
+    <div class="row"><span>max</span><span id="lat_max">0</span><small>ms</small></div>
+  </section>
+
+  <section class="card span-6">
+    <h2>Per-subcommand</h2>
+    <table id="by_cmd">
+      <thead><tr><th>cmd</th><th>runs</th><th>avg ms</th><th>fail</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <section class="card span-6">
+    <h2>Per-worker</h2>
+    <table id="by_worker">
+      <thead><tr><th>worker</th><th>runs</th><th>avg ms</th><th>rows</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <section class="card span-12">
+    <h2>What this stresses</h2>
+    <p>Concurrent <code>phenoctl</code> invocations against a sandbox repo. The dashboard measures per-subcommand latency + exit-code distribution + throughput under N=8 workers hitting status/flags/config/stage/version/events. A green board means the CLI serialized cleanly with no DB-lock contention or parser panics.</p>
+    <p>Run: <code>bash demos/phenoctl-concurrency-stress/scripts/stress.sh &amp;&amp; python3 demos/phenoctl-concurrency-stress/scripts/aggregate.py --watch --port 9001</code></p>
+  </section>
+</main>
+<footer>
+  phenoctl-concurrency-stress · render-target for the HeliosLab closure demo · numbers pulled from <code>/metrics.json</code>
+</footer>
+<script>
+async function tick() {
+  try {
+    const res = await fetch('/metrics.json', { cache: 'no-cache' });
+    if (!res.ok) return;
+    const m = await res.json();
+    document.getElementById('ts').textContent = new Date(m.ts_ms).toLocaleTimeString();
+    document.getElementById('completed').textContent = (m.completed_runs || 0).toLocaleString();
+    document.getElementById('throughput').textContent = (m.throughput_per_s || 0).toFixed(2);
+    document.getElementById('lat_avg').textContent = m.lat_ms.avg.toLocaleString();
+    document.getElementById('lat_p99').textContent = m.lat_ms.p99.toLocaleString();
+    document.getElementById('lat_min').textContent = m.lat_ms.min.toLocaleString();
+    document.getElementById('lat_p50').textContent = m.lat_ms.p50.toLocaleString();
+    document.getElementById('lat_max').textContent = m.lat_ms.max.toLocaleString();
+    document.getElementById('exit_ok').textContent = m.exit_codes.ok.toLocaleString();
+    document.getElementById('exit_fail').textContent = m.exit_codes.fail.toLocaleString();
+    document.getElementById('fail_rate').textContent = (m.exit_codes.fail_rate * 100).toFixed(2) + '%';
+
+    const tbody_cmd = document.querySelector('#by_cmd tbody');
+    tbody_cmd.innerHTML = '';
+    const cmds = Object.entries(m.by_cmd).sort((a, b) => b[1].runs - a[1].runs);
+    for (const [name, c] of cmds) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = '<td><code>' + name + '</code></td>' +
+                      '<td>' + c.runs.toLocaleString() + '</td>' +
+                      '<td>' + c.avg_lat_ms.toFixed(1) + '</td>' +
+                      '<td class="' + (c.fail > 0 ? 'warn' : 'ok') + '">' + c.fail.toLocaleString() + '</td>';
+      tbody_cmd.appendChild(tr);
+    }
+    const tbody_w = document.querySelector('#by_worker tbody');
+    tbody_w.innerHTML = '';
+    const workers = Object.entries(m.by_worker).sort((a, b) => b[1].runs - a[1].runs);
+    for (const [name, w] of workers) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = '<td><code>w' + name + '</code></td>' +
+                      '<td>' + w.runs.toLocaleString() + '</td>' +
+                      '<td>' + w.avg_lat_ms.toFixed(1) + '</td>' +
+                      '<td>' + w.rows.toLocaleString() + '</td>';
+      tbody_w.appendChild(tr);
+    }
+  } catch (e) { /* swallow */ }
+}
+tick();
+setInterval(tick, 1000);
+</script>
+</body>
+</html>
