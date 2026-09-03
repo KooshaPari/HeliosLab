@@ -1,10 +1,3 @@
-<!--
-propagated-from: KooshaPari/phenotype-registry @ chore/l7-001-curation-snapshot
-date: 2026-06-17
-source-commit: a1aa44660
-do-not-edit-locally: regenerate via scripts/propagate-intent-to-repos.py
-                     or update in the source-of-truth registry repo
--->
 ---
 repo: "HeliosLab"
 role: unknown
@@ -12,10 +5,11 @@ status: active
 last_boundary_review: 2026-06-17
 review_cadence: 30d
 in_scope:
-  - "<to be filled>"
+  - "to be filled"
 out_of_scope:
-  - "<to be filled>"
+  - "to be filled"
 ---
+
 
 # Boundary — HeliosLab
 
@@ -44,3 +38,10 @@ out_of_scope:
 - Initial scaffolding; needs human review.
 
 **Next review:** 2026-07-17
+<!--
+propagated-from: KooshaPari/phenotype-registry @ chore/l7-001-curation-snapshot
+date: 2026-06-17
+source-commit: a1aa44660
+do-not-edit-locally: regenerate via scripts/propagate-intent-to-repos.py
+                     or update in the source-of-truth registry repo
+-->

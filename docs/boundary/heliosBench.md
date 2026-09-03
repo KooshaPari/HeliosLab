@@ -1,10 +1,3 @@
-<!--
-propagated-from: KooshaPari/phenotype-registry @ chore/l7-001-curation-snapshot
-date: 2026-06-17
-source-commit: a1aa44660
-do-not-edit-locally: regenerate via scripts/propagate-intent-to-repos.py
-                     or update in the source-of-truth registry repo
--->
 ---
 repo: "heliosBench"
 role: unknown
@@ -13,10 +6,11 @@ archived: false
 last_boundary_review: 2026-06-20
 review_cadence: 30d
 in_scope:
-  - "<to be filled>"
+  - "to be filled"
 out_of_scope:
-  - "<to be filled>"
+  - "to be filled"
 ---
+
 
 # Boundary — heliosBench
 
@@ -45,3 +39,10 @@ out_of_scope:
 - Initial scaffolding; archived state per L7-007.
 
 **Next review:** 2026-07-20
+<!--
+propagated-from: KooshaPari/phenotype-registry @ chore/l7-001-curation-snapshot
+date: 2026-06-17
+source-commit: a1aa44660
+do-not-edit-locally: regenerate via scripts/propagate-intent-to-repos.py
+                     or update in the source-of-truth registry repo
+-->
