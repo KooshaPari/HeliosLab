@@ -1,0 +1,1 @@
+import{_ as a,o as i,c as e,ae as t}from"./chunks/framework.RRduUuAx.js";const c=JSON.parse('{"title":"Install and Run","description":"","frontmatter":{},"headers":[],"relativePath":"guide.md","filePath":"guide.md"}'),n={name:"guide.md"};function h(l,s,p,r,o,d){return i(),e("div",null,[...s[0]||(s[0]=[t("",18)])])}const u=a(n,[["render",h]]);export{c as __pageData,u as default};

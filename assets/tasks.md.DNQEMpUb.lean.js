@@ -1,0 +1,1 @@
+import{_ as e,o as d,c as a,ae as r}from"./chunks/framework.RRduUuAx.js";const h=JSON.parse('{"title":"Benchmark Tasks","description":"","frontmatter":{},"headers":[],"relativePath":"tasks.md","filePath":"tasks.md"}'),i={name:"tasks.md"};function o(s,t,n,c,l,m){return d(),a("div",null,[...t[0]||(t[0]=[r("",6)])])}const p=e(i,[["render",o]]);export{h as __pageData,p as default};

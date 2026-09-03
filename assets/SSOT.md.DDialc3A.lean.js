@@ -1,0 +1,1 @@
+import{_ as a,o as i,c as l,ae as t}from"./chunks/framework.RRduUuAx.js";const S=JSON.parse('{"title":"SSOT — HeliosLab","description":"","frontmatter":{},"headers":[],"relativePath":"SSOT.md","filePath":"SSOT.md"}'),s={name:"SSOT.md"};function r(n,e,o,d,h,c){return i(),l("div",null,[...e[0]||(e[0]=[t("",11)])])}const p=a(s,[["render",r]]);export{S as __pageData,p as default};
