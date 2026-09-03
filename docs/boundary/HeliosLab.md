@@ -21,13 +21,13 @@ out_of_scope:
 
 ## In Scope
 
-<To be filled.>
+`<To be filled.>`
 
 ## Out of Scope
 
 | Not here | Lives in | Reason |
 | -------- | -------- | ------ |
-| <capability> | <other-repo-or-N/A> | <why> |
+| `<capability>` | `<other-repo-or-N/A>` | `<why>` |
 
 ## Boundary Crossings
 
