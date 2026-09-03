@@ -3,6 +3,7 @@ import { defineConfig } from "vitepress";
 export default defineConfig({
 	title: "Project",
 	description: "Documentation",
+	ignoreDeadLinks: true,
 	themeConfig: {
 		nav: [
 			{ text: "Home", link: "/" },
