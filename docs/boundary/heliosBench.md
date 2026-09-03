@@ -34,7 +34,7 @@ out_of_scope:
 
 | Crossing | Direction | Surface | Status |
 | -------- | --------- | ------- | ------ |
-| <capability or interface> | <this-repo→other or other→this-repo> | <Trait / HTTP / CLI / file / event> | <green or amber or red> |
+| `<capability or interface>` | <this-repo→other or other→this-repo> | `<Trait / HTTP / CLI / file / event>` | `<green or amber or red>` |
 
 ## Last Boundary Review
 
