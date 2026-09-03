@@ -152,7 +152,7 @@ export class ACPClientAdapter
         failureCount: 0,
       };
 
-      const elapsed = Date.now() - startTime;
+      const elapsed = Date.now() - _startTime;
       if (elapsed > 5000) {
         throw new Error(`Init exceeded 5s timeout (${elapsed}ms)`);
       }
@@ -323,7 +323,7 @@ export class ACPClientAdapter
         // Execute task (mock implementation)
         const result = await this.sendACPRequest(acpRequest, abortController.signal);
 
-        const _duration = Date.now() - startTime;
+        const _duration = Date.now() - _startTime;
 
         // Publish success event
         await this.publishEvent("provider.acp.execute.completed", {
