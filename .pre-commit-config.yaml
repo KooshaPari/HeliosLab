@@ -40,13 +40,13 @@ repos:
 
   # ── Rust ──
   - repo: https://github.com/rust-lang/rust-clippy
-    rev: nightly-2025-07-15
+    rev: v0.0.212
     hooks:
       - id: clippy
         args: [--all-targets, --all-features, --, -D, warnings]
 
   - repo: https://github.com/rust-lang/rustfmt
-    rev: nightly-2025-07-15
+    rev: v1.10.0
     hooks:
       - id: rustfmt
 
