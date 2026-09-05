@@ -44,7 +44,7 @@ export const AriaTree: Component<AriaTreeProps> = props => {
   const focusNode = (id: string): void => {
     setFocusedId(id);
     queueMicrotask(() => {
-      document.querySelector(`[data-treeitem-id="${id}"]`)?.focus();
+      document.querySelector<HTMLElement>(`[data-treeitem-id="${id}"]`)?.focus();
     });
   };
 
