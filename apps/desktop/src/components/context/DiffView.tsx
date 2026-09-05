@@ -1,3 +1,5 @@
+import { type Component, For, Show } from "solid-js";
+
 type DiffLine = {
   type: "add" | "remove" | "context";
   content: string;
