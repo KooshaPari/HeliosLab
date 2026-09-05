@@ -6,60 +6,74 @@ on:
 
 permissions:
   contents: read
-  statuses: write
   checks: read
+  actions: read
+  pull-requests: read
 
 jobs:
   bridge:
     name: Required Checks Bridge
     runs-on: ubuntu-24.04
+    timeout-minutes: 12
     steps:
-      - name: Wait for other workflows to start
-        run: sleep 30
-
-      - name: Bridge missing required checks
+      - name: Audit required checks without creating statuses
         uses: actions/github-script@v7
         with:
           script: |
             const requiredChecks = [
-              'typecheck', 'lint', 'unit-tests', 'coverage',
-              'secret-scan', 'ci-summary', 'policy-gate',
-              'verify-required-check-names', 'enforce-agent-directory-policy'
+              'Quality Gates Pipeline',
+              'Unit Tests',
+              'Scan changed Git history',
+              'Constitution Compliance Validation'
             ];
 
             const sha = context.payload.pull_request.head.sha;
+            const workflows = ['quality-gates.yml', 'quality-gate.yml', 'trufflehog.yml', 'compliance-check.yml'];
 
-            // Get all check runs for this SHA
-            const { data: checkRuns } = await github.rest.checks.listForRef({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              ref: sha,
-            });
-
-            // Get all commit statuses for this SHA
-            const { data: statuses } = await github.rest.repos.listCommitStatusesForRef({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              ref: sha,
-            });
-
-            const reportedChecks = new Set([
-              ...checkRuns.check_runs.map(cr => cr.name),
-              ...statuses.map(s => s.context),
-            ]);
-
-            for (const check of requiredChecks) {
-              if (!reportedChecks.has(check)) {
-                console.log(`Bridging missing required check: ${check}`);
-                await github.rest.repos.createCommitStatus({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  sha: sha,
-                  state: 'success',
-                  context: check,
-                  description: 'Skipped — not triggered for this PR',
+            const repo = context.repo;
+            const verifyHead = async () => {
+              const { data: pr } = await github.rest.pulls.get({
+                ...repo, pull_number: context.payload.pull_request.number
+              });
+              if (pr.head.sha !== sha) throw new Error('PR head changed; rerun the audit.');
+            };
+            for (let attempt = 0; attempt < 20; attempt++) {
+              await verifyHead();
+              const runs = await github.paginate(github.rest.checks.listForRef, {
+                ...repo, ref: sha, filter: 'all', per_page: 100
+              });
+              const suites = await github.paginate(github.rest.checks.listSuitesForRef, {
+                ...repo, ref: sha, per_page: 100
+              });
+              const latest = await Promise.all(workflows.map(async workflow_id => {
+                const executions = await github.paginate(github.rest.actions.listWorkflowRuns, {
+                  ...repo, workflow_id, head_sha: sha, event: 'pull_request', per_page: 100
                 });
-              } else {
-                console.log(`Check already reported: ${check}`);
+                return executions.filter(run => run.head_sha === sha && run.event === 'pull_request')
+                  .sort((a, b) => b.id - a.id || b.run_attempt - a.run_attempt)[0];
+              }));
+              const states = requiredChecks.map((name, index) => {
+                const execution = latest[index];
+                if (!execution || execution.status !== 'completed') return `${name}: workflow pending`;
+                if (execution.conclusion !== 'success') return `${name}: workflow ${execution.conclusion ?? 'unknown'}`;
+                const candidates = runs.filter(run => run.name === name &&
+                  run.head_sha === sha && run.app?.id === 15368 &&
+                  run.check_suite.id === execution.check_suite_id);
+                candidates.sort((a, b) => b.check_suite.id - a.check_suite.id || b.id - a.id);
+                const run = candidates[0];
+                if (!run) return `${name}: missing`;
+                const suite = suites.find(item => item.id === run.check_suite.id &&
+                  item.head_sha === sha && item.app?.id === 15368);
+                if (!suite || suite.status !== 'completed') return `${name}: suite pending`;
+                if (run.status !== 'completed') return `${name}: ${run.status}`;
+                return `${name}: ${run.conclusion}`;
+              });
+              core.info(states.join('\n'));
+              await verifyHead();
+              if (states.every((state, index) => state === `${requiredChecks[index]}: success`)) {
+                core.info(`All required checks succeeded on ${sha}.`);
+                return;
               }
+              if (attempt < 19) await new Promise(resolve => setTimeout(resolve, 30000));
             }
+            core.setFailed('Required checks did not all succeed on the current PR head within 10 minutes. Once the required workflows finish, use Actions > Required Checks Bridge > Re-run failed jobs for this PR head.');
