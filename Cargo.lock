@@ -767,6 +767,7 @@ dependencies = [
  "pheno-core",
  "pheno-crypto",
  "pheno-db",
+ "pheno-otel",
  "ratatui",
  "rpassword",
  "tracing-subscriber",
@@ -823,6 +824,16 @@ dependencies = [
  "pheno-db",
  "pyo3",
  "pyo3-build-config 0.24.2",
+]
+
+[[package]]
+name = "pheno-otel"
+version = "0.1.0"
+source = "git+https://github.com/KooshaPari/PhenoObservability?tag=v0.1.0#96ea9b7d80ba2fba0a76c00a975694497463c413"
+dependencies = [
+ "serde",
+ "serde_json",
+ "thiserror",
 ]
 
 [[package]]
