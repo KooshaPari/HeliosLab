@@ -1,13 +1,15 @@
 {
-	"$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+	"$schema": "https://biomejs.dev/schemas/2.0.0/schema.json",
+	"root": false,
 	"files": {
-		"ignore": [
-			"node_modules/**",
-			"docs/.vitepress/dist/**",
-			"docs/.generated/**",
-			".worktrees/**",
-			"kitty-specs/**",
-			"docs/sessions/**"
+		"includes": [
+			"**",
+			"!**/node_modules/**",
+			"!**/docs/.vitepress/dist/**",
+			"!**/docs/.generated/**",
+			"!**/.worktrees/**",
+			"!**/kitty-specs/**",
+			"!**/docs/sessions/**"
 		]
 	},
 	"formatter": {
@@ -31,8 +33,7 @@
 				"useBlockStatements": "off"
 			},
 			"suspicious": {
-				"noConsole": "off",
-				"noConsoleLog": "off"
+				"noConsole": "off"
 			}
 		}
 	},
@@ -44,12 +45,12 @@
 			"jsxQuoteStyle": "double",
 			"quoteProperties": "asNeeded",
 			"semicolons": "always",
-			"trailingComma": "es5"
+			"trailingCommas": "es5"
 		}
 	},
 	"overrides": [
 		{
-			"include": ["apps/desktop/src/runtime_client.ts"],
+			"includes": ["**/apps/desktop/src/runtime_client.ts"],
 			"linter": {
 				"rules": {
 					"style": {
