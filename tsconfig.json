@@ -26,6 +26,50 @@
 		// Some stricter flags
 		"noUnusedLocals": true,
 		"noUnusedParameters": true,
-		"noPropertyAccessFromIndexSignature": true
-	}
+		"noPropertyAccessFromIndexSignature": true,
+
+		// Runtime types
+		"types": ["bun-types", "node"],
+
+		// Path aliases
+		"baseUrl": ".",
+		"paths": {
+			"@helios/runtime": ["apps/runtime/src/index.ts"],
+			"@helios/runtime/*": ["apps/runtime/src/*"],
+			"@helios/desktop": ["apps/desktop/src/index.ts"],
+			"@helios/desktop/*": ["apps/desktop/src/*"],
+			"@helios/runtime-core": ["packages/runtime-core/src/index.ts"],
+			"@helios/runtime-core/*": ["packages/runtime-core/src/*"],
+			"@helios/errors": ["packages/errors/src/index.ts"],
+			"@helios/errors/*": ["packages/errors/src/*"],
+			"@helios/logger": ["packages/logger/src/index.ts"],
+			"@helios/logger/*": ["packages/logger/src/*"],
+			"@helios/ids": ["packages/ids/src/index.ts"],
+			"@helios/ids/*": ["packages/ids/src/*"],
+			"@helios/types": ["packages/types/src/index.ts"],
+			"@helios/types/*": ["packages/types/src/*"],
+			"@helios/colab-renderer": ["apps/colab-renderer/src/index.tsx"],
+			"@helios/colab-renderer/*": ["apps/colab-renderer/src/*"]
+		}
+	},
+	"files": ["test-globals.d.ts"],
+	"include": [
+		"apps/**/*.ts",
+		"apps/**/*.tsx",
+		"packages/*/src/**/*.ts",
+		"packages/*/src/**/*.tsx",
+		"packages/*/tests/**/*.ts",
+		"playwright.config.ts",
+		"playwright.config.mts"
+	],
+	"exclude": [
+		"node_modules",
+		"dist",
+		"coverage",
+		".worktrees",
+		"apps/runtime/tests/integration",
+		"apps/desktop/tests/e2e",
+		"apps/desktop/tests/unit/control_plane.test.ts",
+		"apps/desktop/tests/unit/settings.test.ts"
+	]
 }
