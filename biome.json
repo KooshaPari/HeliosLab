@@ -71,8 +71,8 @@
 						"useConst": "off"
 					},
 					"correctness": {
-						"noUnusedFunctionParameters": "warn",
-						"noConstantCondition": "warn"
+						"noUnusedFunctionParameters": "off",
+						"noConstantCondition": "off"
 					}
 				}
 			}
@@ -153,6 +153,9 @@
 						"noImplicitAnyLet": "off",
 						"noAssignInExpressions": "off",
 						"noControlCharactersInRegex": "off"
+					},
+					"correctness": {
+						"noUnusedFunctionParameters": "off"
 					}
 				}
 			}

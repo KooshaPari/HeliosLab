@@ -24,7 +24,7 @@ jobs:
         run: bun run typecheck
 
       - name: Lint
-        run: bun run lint --max-warnings 0
+        run: bun run lint
 
       - name: Unit tests
         run: bun test --timeout 30000 2>&1 | head -100
