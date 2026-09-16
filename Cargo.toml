@@ -17,3 +17,9 @@ clap-ext = { git = "https://github.com/KooshaPari/clap-ext", tag = "v0.1.0" }
 # so all consumers across the pheno-* fleet see the same OTLP wire-format
 # export surface. See https://github.com/KooshaPari/PhenoObservability/releases/tag/v0.1.0
 pheno-otel = { git = "https://github.com/KooshaPari/PhenoObservability", tag = "v0.1.0", subdirectory = "pheno-otel" }
+
+# --- Phenotype shared infrakit crates (from PhenoInfra) ---
+phenotype-crypto = { git = "https://github.com/KooshaPari/PhenoInfra.git", rev = "e001322" }
+phenotype-health = { git = "https://github.com/KooshaPari/PhenoInfra.git", rev = "e001322" }
+phenotype-observability = { git = "https://github.com/KooshaPari/PhenoInfra.git", rev = "e001322" }
+phenotype-state-machine = { git = "https://github.com/KooshaPari/PhenoInfra.git", rev = "e001322" }
