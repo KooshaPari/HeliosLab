@@ -10,6 +10,7 @@ export class MlxInferenceEngine implements InferenceEngine {
 	readonly id = "mlx";
 	readonly name = "MLX (Apple Silicon)";
 	readonly type = "local" as const;
+	private modelPath: string;
 
 	constructor(modelPath = "~/.cache/mlx-models/") {
 		this.modelPath = modelPath;

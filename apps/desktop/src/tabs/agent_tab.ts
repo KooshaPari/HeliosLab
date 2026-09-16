@@ -27,8 +27,6 @@ export class AgentTab extends TabSurface {
 	private agentStatus: "idle" | "running" | "error" = "idle";
 	private actions: AgentAction[] = [];
 	protected override errorMessage: string | null = null;
-	private contentEl: HTMLElement | null = null;
-
 	constructor() {
 		super("agent-tab", "agent", "Agent");
 	}

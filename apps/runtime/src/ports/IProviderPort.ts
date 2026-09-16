@@ -7,7 +7,7 @@
  * Referenced FRs map to specs/025-provider-adapter-interface-and-lifecycle.
  */
 
-import type { AnthropicHistoryEntry } from "../../packages/runtime-core/src/api-client.js";
+import type { AnthropicHistoryEntry } from "@helios/runtime-core/api-client";
 
 export interface ProviderCapabilities {
 	readonly maxTokens: number;

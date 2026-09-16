@@ -24,6 +24,7 @@ export interface ErrorResponse {
  */
 export class AuditLedgerAPI {
 	private requestCounts: Map<string, number> = new Map();
+	private requestResetTime: number = 0;
 	private readonly RATE_LIMIT = 100; // 100 requests per minute
 	private readonly RATE_LIMIT_WINDOW = 60_000; // 1 minute
 
@@ -52,7 +53,7 @@ export class AuditLedgerAPI {
 
 		try {
 			const filter = this.parseAuditFilter(queryParams);
-			const _results = this.ledger.search(filter);
+			const results = this.ledger.search(filter);
 
 			const total = this.ledger.count(filter);
 
@@ -62,7 +63,7 @@ export class AuditLedgerAPI {
 				limit: filter.limit || 100,
 				offset: filter.offset || 0,
 			};
-		} catch {
+		} catch (err) {
 			return {
 				error: "Invalid search parameters",
 				details: err instanceof Error ? err.message : String(err),
@@ -100,7 +101,7 @@ export class AuditLedgerAPI {
 				limit: chain.length,
 				offset: 0,
 			};
-		} catch {
+		} catch (err) {
 			return {
 				error: "Error retrieving correlation chain",
 				details: err instanceof Error ? err.message : String(err),
@@ -128,7 +129,7 @@ export class AuditLedgerAPI {
 			const count = this.ledger.count(filter);
 
 			return { count };
-		} catch {
+		} catch (err) {
 			return {
 				error: "Invalid filter parameters",
 				details: err instanceof Error ? err.message : String(err),

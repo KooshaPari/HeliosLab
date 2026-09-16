@@ -91,6 +91,7 @@ export class ACPClientAdapter
 		failureCount: 0,
 	};
 	private inFlightTasks = new Map<string, AbortController>();
+	private healthCheckInterval?: ReturnType<typeof setInterval>;
 
 	constructor(bus?: LocalBus, policyGate?: PolicyGate) {
 		this.bus = bus || null;
@@ -142,7 +143,9 @@ export class ACPClientAdapter
 			}
 
 			this.config = config;
-			this.healthCheckInterval = 30000;
+			this.healthCheckInterval = setInterval(() => {
+				void this.health();
+			}, 30000);
 
 			this.healthStatus = {
 				state: "healthy",
@@ -217,7 +220,7 @@ export class ACPClientAdapter
 
 				return { ...this.healthStatus };
 			}
-		} catch {
+		} catch (error) {
 			// Increment failure count
 			this.healthStatus.failureCount++;
 
@@ -334,7 +337,7 @@ export class ACPClientAdapter
 					abortController.signal,
 				);
 
-				const _duration = Date.now() - _startTime;
+				const duration = Date.now() - _startTime;
 
 				// Publish success event
 				await this.publishEvent("provider.acp.execute.completed", {
@@ -353,7 +356,7 @@ export class ACPClientAdapter
 				clearTimeout(timeoutHandle);
 				this.inFlightTasks.delete(correlationId);
 			}
-		} catch {
+		} catch (error) {
 			// Handle timeout
 			if (error instanceof Error && error.name === "AbortError") {
 				const normalized = new NormalizedProviderError(
@@ -416,7 +419,7 @@ export class ACPClientAdapter
 			await this.publishEvent("provider.acp.execute.cancelled", {
 				taskId,
 			});
-		} catch {
+		} catch (error) {
 			const normalized = normalizeError(error, "acp");
 
 			throw new NormalizedProviderError(
@@ -451,7 +454,7 @@ export class ACPClientAdapter
 			};
 
 			await this.publishEvent("provider.acp.terminated", {});
-		} catch {
+		} catch (error) {
 			const normalized = normalizeError(error, "acp");
 
 			throw new NormalizedProviderError(
@@ -539,7 +542,7 @@ export class ACPClientAdapter
 				topic,
 				payload,
 			});
-		} catch {
+		} catch (error) {
 			// Log but don't throw (event publishing is best-effort)
 			console.warn(`Failed to publish ACP event ${topic}:`, error);
 		}

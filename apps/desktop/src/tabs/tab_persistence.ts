@@ -107,7 +107,7 @@ export class TabPersistence {
 					// Write state to file
 					const data = JSON.stringify(stateToWrite, null, 2);
 					await fs.writeFile(this.storagePath, data, "utf-8");
-				} catch {
+				} catch (error) {
 					console.error("Failed to save tab state:", error);
 				}
 
@@ -137,7 +137,7 @@ export class TabPersistence {
 			await fs.mkdir(this.storageDir, { recursive: true });
 			const data = JSON.stringify(stateToWrite, null, 2);
 			await fs.writeFile(this.storagePath, data, "utf-8");
-		} catch {
+		} catch (error) {
 			console.error("Failed to flush tab state:", error);
 		}
 	}

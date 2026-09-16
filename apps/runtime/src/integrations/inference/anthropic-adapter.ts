@@ -12,6 +12,7 @@ export class AnthropicInferenceEngine implements InferenceEngine {
 	readonly name = "Anthropic (Cloud)";
 	readonly type = "cloud" as const;
 	private apiKey: string;
+	private endpoint: string;
 	private client: KyInstance;
 
 	constructor(apiKey?: string, endpoint = "https://api.anthropic.com") {

@@ -5,12 +5,12 @@
 //
 // Reference: https://www.w3.org/WAI/ARIA/apg/patterns/tabs/
 
-import { type Component, createSignal, For, Show } from "solid-js";
+import { type Component, type JSX, createSignal, For, Show } from "solid-js";
 
 export interface TabDef {
 	id: string;
 	label: string;
-	panel: () => unknown;
+	panel: () => JSX.Element;
 	ariaKeyshortcuts?: string;
 }
 

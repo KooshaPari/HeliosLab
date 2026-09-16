@@ -31,6 +31,8 @@ export interface MiddlewareValidationResult {
  * - Binding triple is still valid (re-validates against current state)
  */
 export class BindingMiddleware {
+	private registryQueryInterface: TerminalRegistry;
+
 	constructor(private registry: TerminalRegistry) {
 		this.registryQueryInterface = registry;
 	}

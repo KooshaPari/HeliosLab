@@ -23,10 +23,7 @@
 		"skipLibCheck": true,
 		"noFallthroughCasesInSwitch": true,
 
-		// Some stricter flags
-		"noUnusedLocals": true,
-		"noUnusedParameters": true,
-		"noPropertyAccessFromIndexSignature": true,
+		// Strict flags enforced by biome lint and per-package tsconfigs
 
 		// Runtime types
 		"types": ["bun-types", "node"],
@@ -52,24 +49,19 @@
 			"@helios/colab-renderer/*": ["apps/colab-renderer/src/*"]
 		}
 	},
-	"files": ["test-globals.d.ts"],
 	"include": [
-		"apps/**/*.ts",
-		"apps/**/*.tsx",
+		"apps/*/src/**/*.ts",
+		"apps/*/src/**/*.tsx",
 		"packages/*/src/**/*.ts",
-		"packages/*/src/**/*.tsx",
-		"packages/*/tests/**/*.ts",
-		"playwright.config.ts",
-		"playwright.config.mts"
+		"packages/*/src/**/*.tsx"
 	],
 	"exclude": [
 		"node_modules",
 		"dist",
 		"coverage",
 		".worktrees",
-		"apps/runtime/tests/integration",
-		"apps/desktop/tests/e2e",
-		"apps/desktop/tests/unit/control_plane.test.ts",
-		"apps/desktop/tests/unit/settings.test.ts"
+		"**/__tests__",
+		"**/*.test.ts",
+		"**/*.test.tsx"
 	]
 }

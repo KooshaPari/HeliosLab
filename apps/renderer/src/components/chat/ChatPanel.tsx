@@ -15,7 +15,7 @@ export const ChatPanel: Component<ChatPanelProps> = (props) => {
 		const _ = props.messages.length;
 		if (containerRef) {
 			requestAnimationFrame(() => {
-				containerRef!.scrollTop = containerRef?.scrollHeight;
+				containerRef!.scrollTop = containerRef?.scrollHeight ?? 0;
 			});
 		}
 	});

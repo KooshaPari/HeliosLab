@@ -19,7 +19,6 @@ export interface TerminalTabState extends TabState {
 export class TerminalTab extends TabSurface {
 	private terminalId: string | null = null;
 	private rendererSwitchInProgress: boolean = false;
-	private contentEl: HTMLElement | null = null;
 	private outputBuffer: string[] = [];
 
 	constructor() {

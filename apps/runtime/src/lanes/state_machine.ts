@@ -126,7 +126,7 @@ export async function withLaneLock<T>(
 	fn: () => Promise<T>,
 ): Promise<T> {
 	const prev = laneLocks.get(laneId) ?? Promise.resolve();
-	let resolve: () => void;
+	let resolve!: () => void;
 	const next = new Promise<void>((r) => {
 		resolve = r;
 	});

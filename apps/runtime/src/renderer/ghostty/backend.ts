@@ -54,6 +54,7 @@ export class GhosttyBackend implements RendererAdapter {
 	readonly version: string;
 
 	private _state: RendererState = "uninitialized";
+	private _config: unknown;
 	private readonly _process = new GhosttyProcess();
 	private readonly _surface = new GhosttySurface();
 	private readonly _streams = new Map<

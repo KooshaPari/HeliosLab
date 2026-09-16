@@ -55,6 +55,7 @@ const MAX_GPU_MEMORY_PER_TERMINAL_BYTES = 10 * 1024 * 1024;
 export class GhosttySurface {
 	private _bound = false;
 	private _surface: RenderSurface | undefined;
+	private _processPid: number | undefined;
 
 	// T011: GPU rendering state
 	private _gpuMode: GpuRenderingMode = "unknown";

@@ -31,6 +31,7 @@ export class LanePanel {
 	private selectedLaneId?: string;
 	private props: LanePanelProps;
 	private container: HTMLElement | null = null;
+	private scrollContainer: HTMLElement | null = null;
 	private keyboardListeners: Map<string, (e: KeyboardEvent) => void> =
 		new Map();
 

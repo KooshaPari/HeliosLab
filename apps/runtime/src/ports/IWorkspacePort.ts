@@ -10,7 +10,7 @@
  * FR-004: Workspace names MUST be unique within a runtime instance.
  */
 
-import type { Workspace, WorkspaceState } from "../../src/runtime/types.js";
+import type { Workspace, WorkspaceState } from "@helios/runtime-core/types";
 
 export interface WorkspaceCreateOptions {
 	readonly name: string;

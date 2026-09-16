@@ -145,6 +145,8 @@ export class GhosttyMetrics {
 
 	private _enabled = false;
 	private _droppedFrames = 0;
+	private _frameCount = 0;
+	private _framesInWindow = 0;
 	private _lastFrameTimestamp = 0;
 	private _windowStartTimestamp = 0;
 

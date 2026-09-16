@@ -13,6 +13,7 @@ export class CheckpointScheduler {
 	private isRunning = false;
 	private timerInterval?: NodeJS.Timeout;
 	private currentInterval = DEFAULT_CHECKPOINT_INTERVAL_MS;
+	private lastCheckpointTime: number = 0;
 	private activityCounter = 0;
 	private lastWriteDurationMs = 0;
 	private pendingTrigger?: Promise<void>;

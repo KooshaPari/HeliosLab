@@ -133,7 +133,7 @@ export class RioBackend implements RendererAdapter {
 			gpuAcceleration: this._config?.gpuAcceleration ?? false,
 		});
 
-		this._surface.bind(surface, pid.pid);
+		this._surface.bind(surface, pid!.pid);
 
 		// Set up crash detection forwarding with fallback.
 		this._process?.onExit((code) => {

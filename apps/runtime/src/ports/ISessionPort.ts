@@ -8,7 +8,7 @@
  * and specs/009-zellij-mux-session-adapter.
  */
 
-import type { Session } from "../../packages/runtime-core/src/types.js";
+import type { Session } from "@helios/runtime-core/types";
 
 export interface SessionCreateOptions {
 	readonly laneId: string;

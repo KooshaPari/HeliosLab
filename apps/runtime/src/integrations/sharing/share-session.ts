@@ -65,6 +65,7 @@ export interface ShareWorkerResult {
  */
 export class ShareWorker {
 	private hearbeat: NodeJS.Timeout | null = null;
+	private process: { pid: number } | null = null;
 
 	/**
 	 * Spawn a share worker process.

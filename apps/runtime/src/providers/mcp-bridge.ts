@@ -102,7 +102,7 @@ export class MCPBridgeAdapter
 				serverPath: config.serverPath,
 				toolCount: this.toolCatalog.size,
 			});
-		} catch {
+		} catch (error) {
 			const normalized = normalizeError(error, "mcp");
 
 			throw new NormalizedProviderError(
@@ -153,7 +153,7 @@ export class MCPBridgeAdapter
 					message: "MCP server disconnected",
 				};
 			}
-		} catch {
+		} catch (error) {
 			this.healthStatus.failureCount++;
 			this.healthStatus = {
 				state: "unavailable",
@@ -214,7 +214,7 @@ export class MCPBridgeAdapter
 					abortController.signal,
 				);
 
-				const _duration = Date.now() - startTime;
+				const duration = Date.now() - _startTime;
 
 				// Publish success event
 				await this.publishEvent("provider.mcp.tool.executed", {
@@ -315,7 +315,7 @@ export class MCPBridgeAdapter
 			};
 
 			await this.publishEvent("provider.mcp.terminated", {});
-		} catch {
+		} catch (error) {
 			const normalized = normalizeError(error, "mcp");
 
 			throw new NormalizedProviderError(
@@ -366,7 +366,7 @@ export class MCPBridgeAdapter
 			}
 
 			this.connection.connected = true;
-		} catch {
+		} catch (error) {
 			this.connection.lastConnectionAttempt = new Date();
 			this.connection.reconnectAttempts++;
 			throw error;
@@ -391,7 +391,7 @@ export class MCPBridgeAdapter
 
 		try {
 			await this.connectToServer();
-		} catch {
+		} catch (error) {
 			// Exponential backoff: 1s, 2s, 4s, 8s, etc. (max 30s)
 			this.connection.reconnectBackoffMs = Math.min(
 				this.connection.reconnectBackoffMs * 2,
@@ -514,7 +514,7 @@ export class MCPBridgeAdapter
 				topic,
 				payload,
 			});
-		} catch {
+		} catch (error) {
 			console.warn(`Failed to publish MCP event ${topic}:`, error);
 		}
 	}

@@ -113,6 +113,8 @@ export interface TmateConfig {
  * FR-026-004: Tmate backend with link generation.
  */
 export class TmateAdapter implements ShareBackendAdapter {
+	private config: TmateConfig;
+
 	constructor(config?: TmateConfig) {
 		this.config = config || {};
 	}
