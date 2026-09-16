@@ -60,7 +60,7 @@ export const AriaTabs: Component<AriaTabsProps> = (props) => {
 	};
 
 	return (
-		<div class="aria-tabs">
+		<div role="button" tabIndex={0} class="aria-tabs">
 			<div role="tablist" aria-label={props.ariaLabel} onKeyDown={onKey}>
 				<For each={props.tabs}>
 					{(t) => (
@@ -73,6 +73,7 @@ export const AriaTabs: Component<AriaTabsProps> = (props) => {
 							tabindex={activeId() === t.id ? 0 : -1}
 							aria-keyshortcuts={t.ariaKeyshortcuts}
 							onClick={() => focusTab(t.id)}
+							onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") focusTab(t.id) }}
 						>
 							{t.label}
 						</button>

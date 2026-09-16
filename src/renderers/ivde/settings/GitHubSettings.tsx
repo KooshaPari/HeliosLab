@@ -234,7 +234,7 @@ export const GitHubSettings = (): JSXElement => {
 						placeholder="your@email.com"
 						style="background: #2b2b2b; border: 1px solid #555; color: #d9d9d9; padding: 8px 12px; border-radius: 4px; font-size: 12px; width: 100%; box-sizing: border-box;"
 					/>
-					<div style="font-size: 10px; color: #777; margin-top: 4px;">
+					<div role="button" tabIndex={0} style="font-size: 10px; color: #777; margin-top: 4px;">
 						Used for commit author attribution
 					</div>
 				</SettingsPaneField>
@@ -243,6 +243,7 @@ export const GitHubSettings = (): JSXElement => {
 					<button
 						type="button"
 						onClick={saveIdentity}
+						onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") saveIdentity }}
 						style={{
 							background: identitySaved() ? "#51cf66" : "#0969da",
 							color: "white",
@@ -267,7 +268,7 @@ export const GitHubSettings = (): JSXElement => {
 						<>
 							{/* Not connected - show input fields */}
 							<SettingsPaneField label="">
-								<div style="background: #1a1a1a; border: 1px solid #333; padding: 12px; border-radius: 4px; margin-bottom: 8px;">
+								<div role="button" tabIndex={0} style="background: #1a1a1a; border: 1px solid #333; padding: 12px; border-radius: 4px; margin-bottom: 8px;">
 									<div style="font-size: 11px; color: #ffa500; font-weight: 500; margin-bottom: 6px;">
 										Use a Classic PAT
 									</div>
@@ -278,6 +279,7 @@ export const GitHubSettings = (): JSXElement => {
 									<a
 										href="#"
 										onClick={openTokenPage}
+										onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") openTokenPage }}
 										style="display: inline-block; margin-top: 8px; font-size: 11px; color: #0969da; text-decoration: none;"
 									>
 										Create Classic Token on GitHub
@@ -303,7 +305,7 @@ export const GitHubSettings = (): JSXElement => {
 									placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
 									style="background: #2b2b2b; border: 1px solid #555; color: #d9d9d9; padding: 8px 12px; border-radius: 4px; font-size: 12px; width: 100%; box-sizing: border-box; font-family: 'Fira Code', monospace;"
 								/>
-								<div style="font-size: 10px; color: #777; margin-top: 4px;">
+								<div role="button" tabIndex={0} style="font-size: 10px; color: #777; margin-top: 4px;">
 									Classic tokens start with <code>ghp_</code>
 								</div>
 							</SettingsPaneField>
@@ -312,6 +314,7 @@ export const GitHubSettings = (): JSXElement => {
 								<button
 									type="button"
 									onClick={connectGitHub}
+									onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") connectGitHub }}
 									disabled={isVerifyingPat()}
 									style={{
 										background: isVerifyingPat() ? "#555" : "#51cf66",

@@ -494,7 +494,7 @@ export const AgentSlate = ({
 	};
 
 	return (
-		<div style="height: 100%; display: flex; flex-direction: column; background: #1e1e1e">
+		<div role="button" tabIndex={0} style="height: 100%; display: flex; flex-direction: column; background: #1e1e1e">
 			{/* Connection bar to match active tab */}
 
 			<div style="display: flex; flex: 1; margin-top: 8px; background: #1e1e1e;">
@@ -508,6 +508,7 @@ export const AgentSlate = ({
 							</h4>
 							<button type="button"
 								onClick={() => setShowSidebar(false)}
+								onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setShowSidebar(false) }}
 								style="background: none; border: none; color: #888; cursor: pointer; font-size: 16px; padding: 2px;"
 								title="Hide sidebar"
 							>
@@ -516,9 +517,10 @@ export const AgentSlate = ({
 						</div>
 
 						{/* New Chat Button */}
-						<div style="padding: 12px 16px; border-bottom: 1px solid #333;">
+						<div role="button" tabIndex={0} style="padding: 12px 16px; border-bottom: 1px solid #333;">
 							<button type="button"
 								onClick={startNewChat}
+								onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") startNewChat }}
 								style="width: 100%; background: #0066cc; border: none; color: white; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500;"
 							>
 								+ New Chat
@@ -535,7 +537,7 @@ export const AgentSlate = ({
 
 							<For each={chatHistories()}>
 								{(chat) => (
-									<div
+									<div role="button" tabIndex={0}
 										style={`padding: 12px 16px; border-bottom: 1px solid #2a2a2a; cursor: pointer; transition: background 0.15s; ${
 											currentChatId() === chat.id ? "background: #333;" : ""
 										}`}
@@ -550,6 +552,7 @@ export const AgentSlate = ({
 											}
 										}}
 										onClick={() => switchToChat(chat.id)}
+										onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") switchToChat(chat.id) }}
 									>
 										<div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
 											<div style="flex: 1; min-width: 0;">
@@ -582,13 +585,14 @@ export const AgentSlate = ({
 				</Show>
 
 				{/* Main Chat Area */}
-				<div style="flex: 1; display: flex; flex-direction: column;">
+				<div role="button" tabIndex={0} style="flex: 1; display: flex; flex-direction: column;">
 					{/* Header */}
 					<div style="display: flex; align-items: center; justify-content: space-between; padding: 16px 16px; border-bottom: 2px solid #111; background: #1e1e1e;">
 						<div style="display: flex; align-items: center; gap: 12px;">
 							<Show when={!showSidebar()}>
 								<button type="button"
 									onClick={() => setShowSidebar(true)}
+									onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setShowSidebar(true) }}
 									style="background: #555; border: 1px solid #666; color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 12px; cursor: pointer;"
 									title="Show chat history"
 								>

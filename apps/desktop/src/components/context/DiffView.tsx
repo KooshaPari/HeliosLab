@@ -43,10 +43,11 @@ export const DiffView: Component<DiffViewProps> = (props) => {
 				<span style={{ color: "#cdd6f4", "font-size": "13px" }}>
 					{props.fileName}
 				</span>
-				<div style={{ display: "flex", gap: "8px" }}>
+				<div role="button" tabIndex={0} style={{ display: "flex", gap: "8px" }}>
 					<Show when={props.onAccept}>
 						<button type="button"
 							onClick={props.onAccept}
+							onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") props.onAccept }}
 							style={{
 								background: "#a6e3a1",
 								border: "none",

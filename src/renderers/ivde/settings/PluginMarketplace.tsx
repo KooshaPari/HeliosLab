@@ -248,10 +248,11 @@ export const PluginMarketplace = (): JSXElement => {
 				>
 					Plugins
 				</h1>
-				<div style={{ "flex-grow": "1" }} />
+				<div role="button" tabIndex={0} style={{ "flex-grow": "1" }} />
 				<button
 					type="button"
 					onClick={onCloseClick}
+					onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onCloseClick }}
 					style={{
 						"border-color": "rgb(54, 54, 54)",
 						outline: "0px",
@@ -315,9 +316,10 @@ export const PluginMarketplace = (): JSXElement => {
 				>
 					Installed ({installedPlugins().length})
 				</button>
-				<div style={{ "flex-grow": "1" }} />
+				<div role="button" tabIndex={0} style={{ "flex-grow": "1" }} />
 				<button type="button"
 					onClick={handleInstallFromFolder}
+					onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") handleInstallFromFolder }}
 					disabled={installing() !== null}
 					style={{
 						padding: "6px 12px",

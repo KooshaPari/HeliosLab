@@ -343,7 +343,7 @@ const Llama = () => {
 	};
 
 	return (
-		<div
+		<div role="button" tabIndex={0}
 			style={{
 				margin: "0 5px",
 				color: getStatusColor(),
@@ -353,6 +353,7 @@ const Llama = () => {
 				gap: "4px",
 			}}
 			onClick={handleLlamaClick}
+			onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") handleLlamaClick }}
 			title="Click to open llama.cpp settings"
 		>
 			{shouldShowSpinner() && (
@@ -407,7 +408,7 @@ const GitHub = () => {
 	};
 
 	return (
-		<div
+		<div role="button" tabIndex={0}
 			style={{
 				margin: "0 5px",
 				color: getStatusColor(),
@@ -416,6 +417,7 @@ const GitHub = () => {
 				"font-size": "11px",
 			}}
 			onClick={handleGitHubClick}
+			onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") handleGitHubClick }}
 			title={
 				isConnected()
 					? "GitHub connected - click to open settings"
@@ -459,7 +461,7 @@ const ColabCloud = () => {
 	};
 
 	return (
-		<div
+		<div role="button" tabIndex={0}
 			style={{
 				margin: "0 5px",
 				color: getStatusColor(),
@@ -468,6 +470,7 @@ const ColabCloud = () => {
 				"font-size": "11px",
 			}}
 			onClick={handleColabCloudClick}
+			onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") handleColabCloudClick }}
 			title={
 				isConnected()
 					? "Colab Cloud connected - click to open settings"
@@ -497,7 +500,7 @@ const AnalyticsConsent = () => {
 	return (
 		<>
 			<span>|</span>
-			<div
+			<div role="button" tabIndex={0}
 				style={{
 					margin: "0 5px",
 					color: "#ffa500", // Orange to indicate action needed
@@ -506,6 +509,7 @@ const AnalyticsConsent = () => {
 					"font-size": "11px",
 				}}
 				onClick={handleAnalyticsClick}
+				onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") handleAnalyticsClick }}
 				title="Click to enable analytics and help improve Colab"
 			>
 				Enable Analytics
@@ -524,7 +528,7 @@ const Plugins = () => {
 	};
 
 	return (
-		<div
+		<div role="button" tabIndex={0}
 			style={{
 				margin: "0 5px",
 				color: "#999",
@@ -533,6 +537,7 @@ const Plugins = () => {
 				"font-size": "11px",
 			}}
 			onClick={handlePluginsClick}
+			onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") handlePluginsClick }}
 			title="Open Plugins"
 		>
 			Plugins

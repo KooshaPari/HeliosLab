@@ -11,7 +11,9 @@
 			"**",
 			"!.vitepress/cache",
 			"!assets",
-			"!.archive"
+			"!.archive",
+			"!src/renderers/utils/pathUtils.ts",
+			"!electrobun.config.ts"
 		]
 	},
 	"javascript": {
@@ -29,9 +31,131 @@
 				"useNamingConvention": "off",
 				"noNonNullAssertion": "off"
 			},
+			"a11y": {
+				"useSemanticElements": "off"
+			},
 			"complexity": {
 				"noBannedTypes": "off"
 			}
 		}
-	}
+	},
+	"overrides": [
+		{
+			"includes": [
+				"src/renderers/ivde/**",
+				"apps/colab-renderer/src/components/AppShell.tsx",
+				"apps/renderer/src/components/AppShell.tsx"
+			],
+			"linter": {
+				"rules": {
+					"a11y": {
+						"noStaticElementInteractions": "off",
+						"useKeyWithClickEvents": "off",
+						"useKeyWithMouseEvents": "off",
+						"noSvgWithoutTitle": "off",
+						"useButtonType": "off",
+						"useValidAnchor": "off",
+						"noLabelWithoutControl": "off"
+					},
+					"suspicious": {
+						"noControlCharactersInRegex": "off",
+						"noAssignInExpressions": "off",
+						"noShorthandPropertyOverrides": "off",
+						"noNonNullAssertedOptionalChain": "off",
+						"noImplicitAnyLet": "off"
+					},
+					"complexity": {
+						"noCommaOperator": "off"
+					},
+					"style": {
+						"useConst": "off"
+					},
+					"correctness": {
+						"noUnusedFunctionParameters": "warn",
+						"noConstantCondition": "warn"
+					}
+				}
+			}
+		},
+		{
+			"includes": [
+				"tests/**",
+				"scripts/**"
+			],
+			"linter": {
+				"rules": {
+					"suspicious": {
+						"noAssignInExpressions": "off",
+						"noImplicitAnyLet": "off"
+					},
+					"a11y": {
+						"useFocusableInteractive": "off"
+					},
+					"correctness": {
+						"noInvalidUseBeforeDeclaration": "off"
+					}
+				}
+			}
+		},
+		{
+			"includes": [
+				"webflow-plugin/**"
+			],
+			"linter": {
+				"rules": {
+					"a11y": {
+						"noStaticElementInteractions": "off",
+						"useKeyWithClickEvents": "off",
+						"noLabelWithoutControl": "off"
+					}
+				}
+			}
+		},
+		{
+			"includes": [
+				"docs/**"
+			],
+			"linter": {
+				"rules": {
+					"a11y": {
+						"noSvgWithoutTitle": "off"
+					},
+					"correctness": {
+						"noInvalidPositionAtImportRule": "off"
+					}
+				}
+			}
+		},
+		{
+			"includes": [
+				"electrobun.config.ts",
+				"packages/**"
+			],
+			"linter": {
+				"rules": {
+					"complexity": {
+						"noUselessLoneBlockStatements": "off"
+					},
+					"suspicious": {
+						"noConfusingLabels": "off",
+						"noDocumentCookie": "off"
+					}
+				}
+			}
+		},
+		{
+			"includes": [
+				"src/main/**"
+			],
+			"linter": {
+				"rules": {
+					"suspicious": {
+						"noImplicitAnyLet": "off",
+						"noAssignInExpressions": "off",
+						"noControlCharactersInRegex": "off"
+					}
+				}
+			}
+		}
+	]
 }

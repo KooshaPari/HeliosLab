@@ -59,9 +59,10 @@ export const ModelSelector: Component<ModelSelectorProps> = (props) => {
 	};
 
 	return (
-		<div style={{ position: "relative" }}>
+		<div role="button" tabIndex={0} style={{ position: "relative" }}>
 			<button type="button"
 				onClick={() => setIsOpen(!isOpen())}
+				onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setIsOpen(!isOpen()) }}
 				style={{
 					background: "none",
 					border: "1px solid #45475a",

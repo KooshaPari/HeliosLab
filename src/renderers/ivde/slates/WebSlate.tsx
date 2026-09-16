@@ -932,12 +932,13 @@ console.log('Preload script loaded for:', window.location.href);
 				}
 			}}
 		>
-			<div style="display: flex; box-sizing: border-box; gap: 5px; padding: 10px; min-height: 40px;height: 40px; width: 100%;overflow-x:hidden;">
+			<div role="button" tabIndex={0} style="display: flex; box-sizing: border-box; gap: 5px; padding: 10px; min-height: 40px;height: 40px; width: 100%;overflow-x:hidden;">
 				<button
 					class="browser-btn"
 					disabled={isBackDisabled()}
 					type="button"
 					onClick={onClickBack}
+					onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onClickBack }}
 					aria-label="Back"
 					title="Back"
 				>

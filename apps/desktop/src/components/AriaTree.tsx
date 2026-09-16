@@ -127,12 +127,20 @@ const AriaTreeItem: Component<AriaTreeItemProps> = (props) => {
 			aria-expanded={hasChildren() ? props.isOpen(props.node.id) : undefined}
 			aria-selected={props.selectedId() === props.node.id}
 			aria-level={props.level}
-			tabindex={props.focusedId() === props.node.id ? 0 : -1}
+			tabIndex={props.focusedId() === props.node.id ? 0 : -1}
 			onClick={() => {
 				if (hasChildren()) props.toggleOpen(props.node.id);
 				props.setSelectedId(props.node.id);
 				props.focusNode(props.node.id);
 				props.onActivate?.(props.node.id);
+			}}
+			onKeyDown={(e) => {
+				if (e.key === "Enter" || e.key === " ") {
+					if (hasChildren()) props.toggleOpen(props.node.id);
+					props.setSelectedId(props.node.id);
+					props.focusNode(props.node.id);
+					props.onActivate?.(props.node.id);
+				}
 			}}
 		>
 			{props.node.label}

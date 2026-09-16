@@ -17,7 +17,7 @@ export const App: Component = () => {
 	return (
 		<DirProvider>
 			<SkipLink />
-			<header aria-label="App header">
+			<header>
 				{/* Header chrome — file tree toggle, search, settings */}
 			</header>
 			<nav aria-label="Primary">{/* Primary navigation */}</nav>

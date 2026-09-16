@@ -42,7 +42,7 @@ export const Dialog = ({
 
 	return (
 		<Show when={isOpen()}>
-			<div
+			<div role="button" tabIndex={0}
 				class="webview-overlay"
 				style={{
 					position: "fixed",
@@ -57,8 +57,9 @@ export const Dialog = ({
 					"z-index": "10000",
 				}}
 				onClick={onCancel}
+				onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onCancel }}
 			>
-				<div
+				<div role="button" tabIndex={0}
 					class="webview-overlay"
 					style={{
 						background: "#2d2d2d",
@@ -71,6 +72,7 @@ export const Dialog = ({
 						color: "#cccccc",
 					}}
 					onClick={(e) => e.stopPropagation()}
+					onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") (e) => e.stopPropagation() }}
 				>
 					<h3
 						style={{

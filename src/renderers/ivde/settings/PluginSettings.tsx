@@ -379,10 +379,11 @@ export const PluginSettings = (): JSXElement => {
 					<h1 style="font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', Helvetica, Arial, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;font-weight: 400;margin: 0 0px 0 0;overflow-x: hidden;text-overflow: ellipsis;white-space: nowrap;padding: 3px 11px;font-size: 20px;line-height: 1.34;">
 						{pluginDisplayName() || "Plugin Settings"}
 					</h1>
-					<div style="flex-grow: 1;"></div>
+					<div role="button" tabIndex={0} style="flex-grow: 1;"></div>
 					<button
 						type="button"
 						onClick={onClose}
+						onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onClose }}
 						style="border-color: rgb(54, 54, 54);outline: 0px;cursor: default;-webkit-user-select: none;padding: 0px 12px;font-family: inherit;font-size: 12px;position: relative;display: flex;align-items: center;justify-content: center;height: 32px;border-radius: 2px;color: rgb(235, 235, 235);background: rgb(94, 94, 94);border-width: 1px;border-style: solid;box-sizing: border-box;align-self: center;"
 					>
 						Close

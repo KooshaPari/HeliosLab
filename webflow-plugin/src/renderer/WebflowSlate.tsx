@@ -2956,8 +2956,9 @@ const EditableConfigField = (props: {
 			<Show
 				when={editing()}
 				fallback={
-					<div
+					<div role="button" tabIndex={0}
 						onClick={() => setEditing(true)}
+						onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setEditing(true) }}
 						style={{
 							background: "#1e1e1e",
 							padding: "8px 12px",

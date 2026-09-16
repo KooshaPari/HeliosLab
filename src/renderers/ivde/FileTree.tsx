@@ -452,11 +452,12 @@ const TemplateNodeItem = ({
 	};
 
 	return (
-		<div
+		<div role="button" tabIndex={0}
 			draggable={true}
 			onDragStart={handleDragStart}
 			onDragEnd={handleDragEnd}
 			onClick={handleClick}
+			onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") handleClick }}
 			onDblClick={handleDoubleClick}
 			onMouseEnter={() => setIsHovered(true)}
 			onMouseLeave={() => setIsHovered(false)}
@@ -618,8 +619,9 @@ const OpenFileItem = ({
 	};
 
 	return (
-		<div
+		<div role="button" tabIndex={0}
 			onClick={handleClick}
+			onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") handleClick }}
 			onContextMenu={handleContextMenu}
 			onMouseEnter={() => setIsHovered(true)}
 			onMouseLeave={() => setIsHovered(false)}
@@ -2003,18 +2005,20 @@ const NodeName = ({
 				</span>
 
 				<Show when={!readonly}>
-					<div style="position: absolute; display: flex; top: 0px; right: 0px; left: 0px; height: 23px; align-items: center; justify-content: right;">
+					<div role="button" tabIndex={0} style="position: absolute; display: flex; top: 0px; right: 0px; left: 0px; height: 23px; align-items: center; justify-content: right;">
 						<Show when={isHovered()}>
 							<FileTreeItemControlButton
 								label="..."
 								onClick={editNodeSettings}
+								onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") editNodeSettings }}
 							/>
 						</Show>
 					</div>
 				</Show>
-				<div
+				<div role="button" tabIndex={0}
 					style="position: absolute; left: 0px; bottom: 0px; top: 0px; cursor: default; "
 					onClick={onLeftActionClick}
+					onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onLeftActionClick }}
 				>
 					<div
 						style="position: absolute; right: 0px; bottom: 0px;top: 0px; width: 100px"

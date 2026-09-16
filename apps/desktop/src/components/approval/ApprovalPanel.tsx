@@ -46,8 +46,11 @@ export function ApprovalPanel(props: ApprovalPanelProps) {
 					<For each={props.requests}>
 						{(request) => (
 							<div
+								role="button"
+								tabIndex={0}
 								class={`request-item ${selectedId() === request.id ? "selected" : ""}`}
 								onclick={() => setSelectedId(request.id)}
+								onkeydown={(e) => { if (e.key === "Enter" || e.key === " ") setSelectedId(request.id) }}
 							>
 								<div class="request-header">
 									<code class="command">{request.command}</code>
@@ -69,15 +72,15 @@ export function ApprovalPanel(props: ApprovalPanelProps) {
 				<div class="approval-details">
 					<h3>Review Request</h3>
 					<div class="detail-group">
-						<span aria-label="Command">Command:</span>
+						<span role="note" aria-label="Command">Command:</span>
 						<code>{selectedRequest()?.command}</code>
 					</div>
 					<div class="detail-group">
-						<span aria-label="Requested by">Requested by:</span>
+						<span role="note" aria-label="Requested by">Requested by:</span>
 						<span>{selectedRequest()?.requesterName}</span>
 					</div>
 					<div class="detail-group">
-						<span aria-label="Workspace">Workspace:</span>
+						<span role="note" aria-label="Workspace">Workspace:</span>
 						<span>{selectedRequest()?.workspaceId}</span>
 					</div>
 

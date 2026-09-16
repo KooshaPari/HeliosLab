@@ -891,12 +891,13 @@ const _WorkspaceMenu = ({ children }: { children: JSX.Element }) => {
 				>
 					{state.workspace?.name || "Workspace"}
 				</span>
-				<div style="position:relative;">
+				<div role="button" tabIndex={0} style="position:relative;">
 					<Show when={state.ui.showWorkspaceMenu}>
 						<div
 							class="workspace-menu webview-overlay"
 							style="border-radius: 4px; position: absolute; top: 8px; right: 0px;min-width:200px; text-align: right; border: 2px solid black; padding:2px; z-index: 2; background: #000"
 							onClick={() => setState("ui", "showWorkspaceMenu", false)}
+							onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setState("ui", "showWorkspaceMenu", false) }}
 						>
 							<ul style="list-style: none;">{children}</ul>
 						</div>
@@ -959,9 +960,10 @@ const Update = () => {
 
 	return (
 		<Show when={updateAvailable()}>
-			<div
+			<div role="button" tabIndex={0}
 				class={`update-button${hasError() ? " error" : ""}`}
 				onClick={onClick}
+				onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onClick }}
 				title={buttonTitle()}
 				style={`font-size: 13px;margin: 8px 0px; padding: 5px; cursor: ${
 					isReady() ? "pointer" : "default"

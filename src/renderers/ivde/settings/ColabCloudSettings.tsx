@@ -488,7 +488,7 @@ export const ColabCloudSettings = (): JSXElement => {
 						{/* Passphrase not set - show setup prompt */}
 						<Show when={!hasPassphrase() && !isSettingPassphrase()}>
 							<SettingsPaneField label="">
-								<div style="background: rgba(255, 193, 7, 0.1); border: 1px solid rgba(255, 193, 7, 0.3); padding: 16px; border-radius: 4px; text-align: center;">
+								<div role="button" tabIndex={0} style="background: rgba(255, 193, 7, 0.1); border: 1px solid rgba(255, 193, 7, 0.3); padding: 16px; border-radius: 4px; text-align: center;">
 									<div style="font-size: 13px; color: #ffc107; font-weight: 500; margin-bottom: 8px;">
 										Set up encryption to enable sync
 									</div>
@@ -499,6 +499,7 @@ export const ColabCloudSettings = (): JSXElement => {
 									<button
 										type="button"
 										onClick={() => setIsSettingPassphrase(true)}
+										onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setIsSettingPassphrase(true) }}
 										style="background: #4ade80; color: #1a1a1a; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 500;"
 									>
 										Set Encryption Passphrase
@@ -528,10 +529,11 @@ export const ColabCloudSettings = (): JSXElement => {
 									onInput={(e) => setConfirmPassphrase(e.currentTarget.value)}
 									style="background: #2b2b2b; border: 1px solid #555; color: #d9d9d9; padding: 8px 12px; border-radius: 4px; font-size: 12px; width: 100%; box-sizing: border-box; margin-bottom: 12px;"
 								/>
-								<div style="display: flex; gap: 8px;">
+								<div role="button" tabIndex={0} style="display: flex; gap: 8px;">
 									<button
 										type="button"
 										onClick={handleSavePassphrase}
+										onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") handleSavePassphrase }}
 										style="flex: 1; background: #4ade80; color: #1a1a1a; border: none; padding: 10px 16px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 500;"
 									>
 										Save Passphrase
@@ -639,10 +641,11 @@ export const ColabCloudSettings = (): JSXElement => {
 										</div>
 									</Show>
 								</div>
-								<div style="display: flex; gap: 8px;">
+								<div role="button" tabIndex={0} style="display: flex; gap: 8px;">
 									<button
 										type="button"
 										onClick={handleBackup}
+										onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") handleBackup }}
 										disabled={isSyncing()}
 										style={`flex: 1; background: #4ade80; color: #1a1a1a; border: none; padding: 10px 16px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 500; opacity: ${isSyncing() ? 0.7 : 1};`}
 									>

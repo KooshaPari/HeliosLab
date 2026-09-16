@@ -2393,7 +2393,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 											onMouseEnter={() => setIsCommitHovered(true)}
 											onMouseLeave={() => setIsCommitHovered(false)}
 										>
-											<div
+											<div role="button" tabIndex={0}
 												style={{
 													display: "flex",
 													"align-items": "center",
@@ -2405,6 +2405,7 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 													"border-bottom": "1px solid #2d2d2d",
 												}}
 												onClick={() => setIsExpanded(!isExpanded())}
+												onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setIsExpanded(!isExpanded()) }}
 											>
 												{/* Commit indicator circle */}
 												<div
@@ -4072,9 +4073,10 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 												</label>
 											</div>
 
-											<div style={{ display: "flex", gap: "8px" }}>
+											<div role="button" tabIndex={0} style={{ display: "flex", gap: "8px" }}>
 												<button type="button"
 													onClick={createStash}
+													onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") createStash }}
 													style={{
 														background: "#0e639c",
 														border: "none",
@@ -4557,13 +4559,14 @@ const FileList = ({
 	repoRootPath: string;
 }) => {
 	return (
-		<div class="file-list" style={{ margin: "10px 0" }}>
+		<div role="button" tabIndex={0} class="file-list" style={{ margin: "10px 0" }}>
 			<For each={filesAsChanges(files())}>
 				{(change) => (
 					<FileListItem
 						change={change}
 						commitHash={commitHash}
 						onClick={onClick}
+						onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onClick }}
 						selectedFile={selectedFile}
 						showStageButtons={showStageButtons}
 						onStage={onStage}
@@ -4650,8 +4653,9 @@ const FileListItem = ({
 				"font-family": "'Segoe UI', 'SF Pro Display', system-ui, sans-serif",
 			}}
 		>
-			<div
+			<div role="button" tabIndex={0}
 				onClick={() => onClick(change, commitHash)}
+				onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onClick(change, commitHash) }}
 				onDblClick={handleDoubleClick}
 				style={{
 					cursor: "pointer",

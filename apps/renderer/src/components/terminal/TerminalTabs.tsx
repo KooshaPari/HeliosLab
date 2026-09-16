@@ -43,8 +43,10 @@ export const TerminalTabs: Component<TerminalTabsProps> = (props) => {
 					return (
 						<div
 							role="tab"
+							tabIndex={0}
 							aria-selected={isActive()}
 							onClick={() => switchTerminal(term.id)}
+							onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") switchTerminal(term.id) }}
 							style={{
 								display: "flex",
 								"align-items": "center",

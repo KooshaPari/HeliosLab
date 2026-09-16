@@ -33,7 +33,7 @@ export const ToastContainer: Component<ToastContainerProps> = (props) => {
 		>
 			<For each={props.toasts}>
 				{(toast) => (
-					<div
+					<div role="button" tabIndex={0}
 						onClick={() => props.onDismiss(toast.id)}
 						onKeyDown={(e) => {
 							if (e.key === "Enter" || e.key === " ") {

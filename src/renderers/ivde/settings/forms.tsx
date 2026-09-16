@@ -71,10 +71,11 @@ export const SettingsPaneSaveClose = ({
 				class="actions"
 				style="display: flex;-webkit-box-flex: 1;-ms-flex-positive: 1;flex-grow: 1;-ms-flex-negative: 0;flex-shrink: 0;-webkit-box-pack: end;-ms-flex-pack: end;justify-content: flex-end;-webkit-box-align: center;-ms-flex-align: center;align-items: center;"
 			></div>
-			<div style="flex-grow: 0;margin-left: 8px;     display: -webkit-box;display: -ms-flexbox;display: flex;-webkit-box-flex: 1;-ms-flex-positive: 1;flex-grow: 1;-ms-flex-negative: 0;flex-shrink: 0;-webkit-box-pack: end;-ms-flex-pack: end;justify-content: flex-end;-webkit-box-align: center;-ms-flex-align: center;align-items: center;">
+			<div role="button" tabIndex={0} style="flex-grow: 0;margin-left: 8px;     display: -webkit-box;display: -ms-flexbox;display: flex;-webkit-box-flex: 1;-ms-flex-positive: 1;flex-grow: 1;-ms-flex-negative: 0;flex-shrink: 0;-webkit-box-pack: end;-ms-flex-pack: end;justify-content: flex-end;-webkit-box-align: center;-ms-flex-align: center;align-items: center;">
 				<button
 					type="button"
 					onClick={onCloseClick}
+					onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onCloseClick }}
 					style="border-color: rgb(54, 54, 54);outline: 0px;cursor: default;-webkit-user-select: none;padding: 0px 12px;font-family: inherit;font-size: 12px;position: relative;display: flex;align-items: center;justify-content: center;height: 32px;border-radius: 2px;color: rgb(235, 235, 235);background: rgb(94, 94, 94);border-width: 1px;border-style: solid;box-sizing: border-box;align-self: center;"
 				>
 					Close
@@ -111,11 +112,12 @@ export const SettingsPaneFormSection = ({
 	//   setLabel(label);
 	// });
 	return (
-		<div class="form-section">
+		<div role="button" tabIndex={0} class="form-section">
 			<div
 				class="form-section-header"
 				style="outline: 0px;cursor: default;-webkit-user-select: none;"
 				onClick={() => setOpen(!open())}
+				onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setOpen(!open()) }}
 			>
 				<div style="padding: 7px 4px;display: flex;align-items: center;background-color: rgb(43, 43, 43);font-size: 12px;font-weight: bold;line-height: 16px;border-width: 1px 0px;border-style: solid;border-top-color: rgb(33, 33, 33);border-bottom-color: rgb(33, 33, 33);">
 					<div class="arrow" style="padding-right: 4px;">

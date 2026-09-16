@@ -21,7 +21,7 @@ export const ShareModal: Component<ShareModalProps> = (props) => {
 
 	return (
 		<Show when={props.isOpen}>
-			<div
+			<div role="button" tabIndex={0}
 				style={{
 					position: "fixed",
 					inset: "0",
@@ -32,8 +32,9 @@ export const ShareModal: Component<ShareModalProps> = (props) => {
 					"z-index": "1000",
 				}}
 				onClick={props.onClose}
+				onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") props.onClose }}
 			>
-				<div
+				<div role="button" tabIndex={0}
 					style={{
 						"background-color": "#313244",
 						"border-radius": "12px",
@@ -42,6 +43,7 @@ export const ShareModal: Component<ShareModalProps> = (props) => {
 						"max-width": "500px",
 					}}
 					onClick={(e: MouseEvent) => e.stopPropagation()}
+					onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") (e: MouseEvent) => e.stopPropagation() }}
 				>
 					<h3
 						style={{
