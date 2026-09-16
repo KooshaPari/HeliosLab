@@ -2252,7 +2252,7 @@ const PaneTab = ({
 	};
 
 	const isDroppingTabLeftOfThisTab = () => {
-		const { targetPaneId, targetTabIndex, type } = state.dragState || {};
+		const { targetPaneId, targetTabIndex, type: _type } = state.dragState || {};
 		return paneId === targetPaneId && index() === targetTabIndex;
 	};
 
@@ -2426,7 +2426,7 @@ const PaneTab = ({
 };
 
 const NodeSettings = () => {
-	const { type, data } = state.settingsPane;
+	const { type, data: _data } = state.settingsPane;
 	if (!type) {
 		return null;
 	}

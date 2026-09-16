@@ -277,7 +277,7 @@ export async function activate(api: PluginAPI): Promise<void> {
 			api.log.info(`Step 2: Setting up auth directory: ${authDir}`);
 
 			// Create the temp auth directory
-			const { mkdir, rm, exists, watch } = await import("node:fs/promises");
+			const { mkdir, rm } = await import("node:fs/promises");
 			const { existsSync, readFileSync } = await import("node:fs");
 
 			try {
@@ -1345,10 +1345,10 @@ export default declareComponent(ColabBadge, {
 		async (ctx) => {
 			if (!ctx.filePath) return;
 
-			const { existsSync, writeFileSync, mkdirSync, readFileSync } =
+			const { writeFileSync, mkdirSync } =
 				await import("node:fs");
 			const { statSync } = await import("node:fs");
-			const { join, dirname, basename } = await import("node:path");
+			const { join, dirname } = await import("node:path");
 
 			// Get the parent directory path
 			let parentDir = ctx.filePath;

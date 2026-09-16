@@ -11,12 +11,6 @@ import {
 	type GateReport,
 } from "./gate-report";
 
-interface GateResult {
-	name: string;
-	status: "pass" | "fail";
-	duration: number;
-}
-
 /**
  * Run a single gate.
  */

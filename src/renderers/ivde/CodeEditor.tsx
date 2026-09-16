@@ -417,12 +417,12 @@ export const Editor = ({ currentTabId }: { currentTabId: string }) => {
 			model.onDidChangeContent((e) => {
 				const {
 					changes,
-					isFlush,
-					isEolChange,
-					isRedoing,
-					isUndoing,
-					versionId,
-					eol,
+					isFlush: _isFlush,
+					isEolChange: _isEolChange,
+					isRedoing: _isRedoing,
+					isUndoing: _isUndoing,
+					versionId: _versionId,
+					eol: _eol,
 				} = e;
 				const model = editor.getModel();
 
@@ -1312,16 +1312,16 @@ const handleDiagnosticResponse = (
 		if (event === "projectLoadingStart") {
 			const {
 				// absolute path to tsconfig
-				projectName,
+				projectName: _projectName,
 				// human text reason for loading
-				reason,
+				reason: _reason,
 			} = body;
 
 			// todo (yoav): show loading indicator in the UI to show tsserver status
 		} else if (event === "projectLoadingFinish") {
 			const {
 				// absolute path to tsconfig
-				projectName,
+				projectName: _projectName2,
 			} = body;
 
 			// You can only start running diagnostics after the project has finished loading
@@ -1331,7 +1331,7 @@ const handleDiagnosticResponse = (
 			const {
 				// lots of info about the project
 				// compilerOptions, fileStats, typeAcquisition, and more
-				payload,
+				payload: _payload,
 			} = body;
 		} else if (event === "syntaxDiag") {
 			if (!body) {
@@ -1339,7 +1339,7 @@ const handleDiagnosticResponse = (
 			}
 			const {
 				// filepath
-				file,
+				file: _file1,
 				// array of diagnostics
 				diagnostics,
 			} = body;
@@ -1362,7 +1362,7 @@ const handleDiagnosticResponse = (
 			}
 			const {
 				// filepath
-				file,
+				file: _file2,
 				// array of diagnostics {category, code, start, end, text}
 				diagnostics,
 			} = body;
@@ -1390,7 +1390,7 @@ const handleDiagnosticResponse = (
 			const {
 				// filepath
 
-				file,
+				file: _file3,
 				// array of diagnostics {category, code, start, end, text}
 				diagnostics,
 			} = body;
@@ -1417,7 +1417,7 @@ const handleDiagnosticResponse = (
 		} else if (event === "requestCompleted") {
 			const {
 				// the seq of the request that was completed
-				request_seq,
+				request_seq: _request_seq,
 			} = body;
 		}
 	} else if (parsedResponse.type === "response") {

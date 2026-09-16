@@ -978,11 +978,11 @@ Electrobun.events.on("context-menu-clicked", (e) => {
 
 		Utils.showItemInFolder(nodePath);
 	} else if (action === "remove_project_from_colab") {
-		const { workspaceId, windowId, projectId } = data;
+		const { workspaceId, windowId: _windowId, projectId } = data;
 		console.log("remove_project_from_colab", projectId);
 		deleteProject(workspaceId, projectId);
 	} else if (action === "fully_delete_project_from_disk_and_colab") {
-		const { workspaceId, windowId, projectId } = data;
+		const { workspaceId, windowId: _windowId, projectId } = data;
 		console.log("fully_delete_project_from_disk_and_colab", projectId);
 		const { data: _project } = db.collection("projects").queryById(projectId);
 		const path = _project?.path;
@@ -991,7 +991,7 @@ Electrobun.events.on("context-menu-clicked", (e) => {
 			safeTrashFileOrFolder(path);
 		}
 	} else if (action === "fully_delete_node_from_disk") {
-		const { workspaceId, windowId, nodePath, projectId } = data;
+		const { workspaceId, windowId: _windowId, nodePath, projectId } = data;
 		console.log("fully_delete_node_from_disk", nodePath, projectId);
 
 		// If this is a project node, also remove it from the database

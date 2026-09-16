@@ -17,14 +17,6 @@ import type { PluginAPI } from "../../../src/main/plugins/types";
 import type { WebflowClient } from "../api/client";
 import type { StorageManager } from "../storage/manager";
 
-interface CloudConfig {
-	siteId: string;
-	siteName?: string;
-	framework: "astro" | "nextjs";
-	mountPath: string;
-	devlinkEnabled?: boolean;
-}
-
 export async function handleCloudCommand(
 	args: string[],
 	write: (text: string) => void,
