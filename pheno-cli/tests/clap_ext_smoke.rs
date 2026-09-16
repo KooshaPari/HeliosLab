@@ -44,7 +44,9 @@ fn clap_ext_config_arg_default_is_none() {
         config: ConfigArg,
     }
 
-    let _guard = phenotype_config_lock().lock().expect("lock config environment");
+    let _guard = phenotype_config_lock()
+        .lock()
+        .expect("lock config environment");
     let previous = std::env::var_os("PHENOTYPE_CONFIG");
     std::env::remove_var("PHENOTYPE_CONFIG");
     let probe = Probe::try_parse_from(["probe"]).expect("parse");
@@ -64,5 +66,8 @@ fn clap_ext_config_arg_parses_short_flag() {
     }
 
     let probe = Probe::try_parse_from(["probe", "-c", "/tmp/cfg.toml"]).expect("parse");
-    assert_eq!(probe.config.config.as_deref(), Some(Path::new("/tmp/cfg.toml")));
+    assert_eq!(
+        probe.config.config.as_deref(),
+        Some(Path::new("/tmp/cfg.toml"))
+    );
 }

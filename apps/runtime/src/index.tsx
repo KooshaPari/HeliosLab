@@ -4,23 +4,23 @@
 // announce() primitive and dir handling from @helios/runtime-core.
 
 import { type Component, onMount } from "solid-js";
-import { SkipLink } from "./a11y/SkipLink.js";
-import { DirProvider } from "../../desktop/src/a11y/DirProvider.js";
 import { getAnnouncer } from "../../../packages/runtime-core/src/a11y/announce.js";
+import { DirProvider } from "../../desktop/src/a11y/DirProvider.js";
+import { SkipLink } from "./a11y/SkipLink.js";
 
 export const App: Component = () => {
-  onMount(() => {
-    getAnnouncer();
-  });
+	onMount(() => {
+		getAnnouncer();
+	});
 
-  return (
-    <DirProvider>
-      <SkipLink />
-      <main id="main" tabindex="-1" role="main">
-        {/* Runtime dashboard content */}
-      </main>
-    </DirProvider>
-  );
+	return (
+		<DirProvider>
+			<SkipLink />
+			<main id="main" tabindex="-1">
+				{/* Runtime dashboard content */}
+			</main>
+		</DirProvider>
+	);
 };
 
 export default App;

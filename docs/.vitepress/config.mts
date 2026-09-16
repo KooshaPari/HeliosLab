@@ -41,7 +41,10 @@ export default defineConfig({
 					items: [
 						{ text: "Overview", link: "/operations/" },
 						{ text: "Runbook", link: "/operations/runbook" },
-						{ text: "Incident Response", link: "/operations/incident-response" },
+						{
+							text: "Incident Response",
+							link: "/operations/incident-response",
+						},
 						{ text: "Migration", link: "/operations/HELIOSLAB_MIGRATION" },
 					],
 				},

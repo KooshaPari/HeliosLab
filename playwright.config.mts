@@ -10,9 +10,10 @@
  *
  * Locally, set HELIOSLAB_SKIP_SERVER=1 to use an already-running server.
  */
-import { defineConfig, devices } from "@playwright/test";
-import { fileURLToPath } from "node:url";
+
 import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import { defineConfig, devices } from "@playwright/test";
 
 const PORT = Number(process.env.HELIOSLAB_RENDERER_PORT ?? 5173);
 const BASE_URL = `http://localhost:${PORT}`;

@@ -3,9 +3,8 @@
  * Verifies the ADR approval and validation process.
  */
 
-import { test, expect, describe, beforeAll, afterAll } from "bun:test";
-import { promises as fs } from "fs";
-import * as path from "path";
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
+import { promises as fs } from "node:fs";
 
 const ADR_DIR = "./scripts/tests/adr-fixtures";
 
@@ -86,7 +85,7 @@ Exception without sunset date - should be rejected.
 		const hasSunset =
 			content.includes("Sunset Date") ||
 			content.includes("Permanence Justification");
-		const hasJustification = content.includes("Justification");
+		const _hasJustification = content.includes("Justification");
 
 		// ADR is invalid if it has justification but no sunset AND no permanence
 		const hasPermanence = content.includes("Permanence Justification");
@@ -220,8 +219,8 @@ This ADR has expired.
 	test("ADR with valid exception updates governance log", async () => {
 		// Simulate a merge with ADR
 		const adrRef = "ADR-2026-001";
-		const prNumber = 123;
-		const author = "test-author";
+		const _prNumber = 123;
+		const _author = "test-author";
 
 		// In governance log, exceptionADRs field would contain ['ADR-2026-001']
 		const exceptionADRs = adrRef ? [adrRef] : [];

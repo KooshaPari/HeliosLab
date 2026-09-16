@@ -1,6 +1,6 @@
-import { expect, test, describe } from "bun:test";
-import { readFileSync } from "fs";
-import { join } from "path";
+import { describe, expect, test } from "bun:test";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import type { DepsRegistry } from "../deps-types";
 
 const REGISTRY_PATH = join(process.cwd(), "deps-registry.json");

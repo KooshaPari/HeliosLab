@@ -1,8 +1,8 @@
 // FR-008 — Format compliance test
 // Verifies 100% of generated IDs conform to the format specification.
-import { describe, test, expect } from "bun:test";
-import { generateId } from "../src/index.js";
+import { describe, expect, test } from "bun:test";
 import type { EntityType } from "../src/index.js";
+import { generateId } from "../src/index.js";
 
 const FORMAT_REGEX = /^[a-z]{2,3}_[0-9A-HJKMNP-TV-Z]{26}$/;
 const EXCLUDED_CHARS = /[ILOU]/; // Crockford base32 excludes I, L, O, U

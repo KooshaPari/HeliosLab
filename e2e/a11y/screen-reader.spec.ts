@@ -10,7 +10,7 @@
  *  - Settings dialog exposes role="dialog" + aria-modal="true"
  *  - Live regions exist with correct politeness settings
  */
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 const BASE_URL = process.env.HELIOSLAB_RENDERER_URL ?? "http://localhost:5173";
 
@@ -30,7 +30,9 @@ test.describe("Screen-reader contract", () => {
 		// Each treeitem must have aria-expanded (or be a leaf without children).
 		const firstItem = tree.locator('[role="treeitem"]').first();
 		const hasExpanded = await firstItem.evaluate(
-			(el) => el.hasAttribute("aria-expanded") || el.getAttribute("aria-level") !== null,
+			(el) =>
+				el.hasAttribute("aria-expanded") ||
+				el.getAttribute("aria-level") !== null,
 		);
 		expect(hasExpanded).toBe(true);
 	});
@@ -62,7 +64,9 @@ test.describe("Screen-reader contract", () => {
 		await expect(alert).toHaveAttribute("role", "alert");
 	});
 
-	test("Monaco editor exposes accessibilitySupport via aria-label", async ({ page }) => {
+	test("Monaco editor exposes accessibilitySupport via aria-label", async ({
+		page,
+	}) => {
 		// Monaco adds aria-label="Code editor" (or similar) when
 		// accessibilitySupport: 'on' is set in `src/config/editor.ts`.
 		const monaco = page.locator(".monaco-editor").first();

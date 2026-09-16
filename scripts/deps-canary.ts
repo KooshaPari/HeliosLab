@@ -4,14 +4,14 @@
  * Usage: bun run deps:canary [package] [--dry-run]
  */
 
-import { readFileSync, writeFileSync, existsSync } from "fs";
-import { join } from "path";
-import type { DepsRegistry, ChangelogEntry } from "./deps-types";
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { appendChangelogEntry } from "./deps-changelog-util";
+import type { ChangelogEntry, DepsRegistry } from "./deps-types";
 
 const REPO_ROOT = process.cwd();
 const REGISTRY_PATH = join(REPO_ROOT, "deps-registry.json");
-const PACKAGE_JSON_PATH = join(REPO_ROOT, "package.json");
+const _PACKAGE_JSON_PATH = join(REPO_ROOT, "package.json");
 
 interface UpgradeCandidate {
 	package: string;

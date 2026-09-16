@@ -1,7 +1,7 @@
-import { expect, test, describe } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import {
-	createGateReport,
 	aggregateGateReports,
+	createGateReport,
 	formatGateReport,
 	formatPipelineSummary,
 	type GateFinding,

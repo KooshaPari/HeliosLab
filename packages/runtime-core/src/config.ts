@@ -16,14 +16,12 @@
  * Returns an empty string when neither is set.
  */
 export function getAnthropicApiKey(): string {
-  if (typeof process !== "undefined") {
-    return (
-      process.env?.ANTHROPIC_API_KEY ??
-      process.env?.HELIOS_ACP_API_KEY ??
-      ""
-    );
-  }
-  return "";
+	if (typeof process !== "undefined") {
+		return (
+			process.env?.ANTHROPIC_API_KEY ?? process.env?.HELIOS_ACP_API_KEY ?? ""
+		);
+	}
+	return "";
 }
 
 /**
@@ -31,10 +29,10 @@ export function getAnthropicApiKey(): string {
  * Can be overridden by the HELIOS_DEFAULT_MODEL env var.
  */
 export function getDefaultModelId(): string {
-  if (typeof process !== "undefined") {
-    return process.env?.HELIOS_DEFAULT_MODEL ?? "claude-sonnet-4-20250514";
-  }
-  return "claude-sonnet-4-20250514";
+	if (typeof process !== "undefined") {
+		return process.env?.HELIOS_DEFAULT_MODEL ?? "claude-sonnet-4-20250514";
+	}
+	return "claude-sonnet-4-20250514";
 }
 
 /**
@@ -42,20 +40,18 @@ export function getDefaultModelId(): string {
  * Can be overridden by ANTHROPIC_BASE_URL for proxying scenarios.
  */
 export function getAnthropicBaseUrl(): string {
-  if (typeof process !== "undefined") {
-    return (
-      process.env?.ANTHROPIC_BASE_URL ?? "https://api.anthropic.com"
-    );
-  }
-  return "https://api.anthropic.com";
+	if (typeof process !== "undefined") {
+		return process.env?.ANTHROPIC_BASE_URL ?? "https://api.anthropic.com";
+	}
+	return "https://api.anthropic.com";
 }
 
 /**
  * Returns true when the environment is a development build.
  */
 export function isDev(): boolean {
-  if (typeof process !== "undefined") {
-    return process.env?.NODE_ENV === "development";
-  }
-  return false;
+	if (typeof process !== "undefined") {
+		return process.env?.NODE_ENV === "development";
+	}
+	return false;
 }

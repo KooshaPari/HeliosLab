@@ -7,31 +7,35 @@
  * @see FR-010-009, SC-010-002
  */
 
-import type { RendererAdapter, RendererConfig, RenderSurface } from "./adapter.js";
-import type { SwitchBuffer } from "./stream_binding.js";
+import type {
+	RendererAdapter,
+	RendererConfig,
+	RenderSurface,
+} from "./adapter.js";
 import type { RendererEventBus } from "./index.js";
+import type { SwitchBuffer } from "./stream_binding.js";
 
 // ---------------------------------------------------------------------------
 // Errors
 // ---------------------------------------------------------------------------
 
 export class HotSwapError extends Error {
-  constructor(
-    public readonly phase: string,
-    message: string
-  ) {
-    super(`Hot-swap failed during ${phase}: ${message}`);
-    this.name = "HotSwapError";
-  }
+	constructor(
+		public readonly phase: string,
+		message: string,
+	) {
+		super(`Hot-swap failed during ${phase}: ${message}`);
+		this.name = "HotSwapError";
+	}
 }
 
 export class HotSwapCapabilityError extends Error {
-  constructor(sourceId: string, targetId: string) {
-    super(
-      `Cannot hot-swap from "${sourceId}" to "${targetId}": renderer does not support hot-swap`
-    );
-    this.name = "HotSwapCapabilityError";
-  }
+	constructor(sourceId: string, targetId: string) {
+		super(
+			`Cannot hot-swap from "${sourceId}" to "${targetId}": renderer does not support hot-swap`,
+		);
+		this.name = "HotSwapCapabilityError";
+	}
 }
 
 // ---------------------------------------------------------------------------
@@ -40,21 +44,21 @@ export class HotSwapCapabilityError extends Error {
 
 /** Terminal context to preserve during hot-swap. */
 export interface TerminalContext {
-  ptyId: string;
-  scrollback: Uint8Array[];
-  cursorX: number;
-  cursorY: number;
-  env: Record<string, string>;
-  cwd: string;
+	ptyId: string;
+	scrollback: Uint8Array[];
+	cursorX: number;
+	cursorY: number;
+	env: Record<string, string>;
+	cwd: string;
 }
 
 /** Result of hot-swap execution. */
 export interface HotSwapResult {
-  success: boolean;
-  phase: string;
-  durationMs: number;
-  preservedContexts: TerminalContext[];
-  error?: Error;
+	success: boolean;
+	phase: string;
+	durationMs: number;
+	preservedContexts: TerminalContext[];
+	error?: Error;
 }
 
 // ---------------------------------------------------------------------------
@@ -83,111 +87,113 @@ export interface HotSwapResult {
  * @returns Hot-swap result with success flag and per-terminal context.
  */
 export async function executeHotSwap(
-  sourceAdapter: RendererAdapter,
-  targetAdapter: RendererAdapter,
-  terminals: Map<string, TerminalContext>,
-  streamBuffer: SwitchBuffer,
-  config: RendererConfig,
-  surface: RenderSurface,
-  onRollback: (error: Error) => Promise<void>,
-  _eventBus?: RendererEventBus
+	sourceAdapter: RendererAdapter,
+	targetAdapter: RendererAdapter,
+	terminals: Map<string, TerminalContext>,
+	streamBuffer: SwitchBuffer,
+	config: RendererConfig,
+	surface: RenderSurface,
+	onRollback: (error: Error) => Promise<void>,
+	_eventBus?: RendererEventBus,
 ): Promise<HotSwapResult> {
-  const startTime = Date.now();
-  let currentPhase = "pre-validation";
+	const startTime = Date.now();
+	let currentPhase = "pre-validation";
 
-  try {
-    // ===== Phase 1: Pre-validation =====
-    if (terminals.size === 0) {
-      throw new HotSwapError(currentPhase, "no active terminals");
-    }
+	try {
+		// ===== Phase 1: Pre-validation =====
+		if (terminals.size === 0) {
+			throw new HotSwapError(currentPhase, "no active terminals");
+		}
 
-    // Verify all PTY streams are healthy
-    for (const [ptyId] of terminals) {
-      // In real implementation, would check stream health
-      if (ptyId === "") {
-        throw new HotSwapError(currentPhase, "invalid ptyId");
-      }
-    }
+		// Verify all PTY streams are healthy
+		for (const [ptyId] of terminals) {
+			// In real implementation, would check stream health
+			if (ptyId === "") {
+				throw new HotSwapError(currentPhase, "invalid ptyId");
+			}
+		}
 
-    // ===== Phase 2: Buffer activation =====
-    currentPhase = "buffer-activation";
-    streamBuffer.startBuffering();
+		// ===== Phase 2: Buffer activation =====
+		currentPhase = "buffer-activation";
+		streamBuffer.startBuffering();
 
-    // ===== Phase 3: Renderer swap =====
-    currentPhase = "renderer-swap";
+		// ===== Phase 3: Renderer swap =====
+		currentPhase = "renderer-swap";
 
-    // Initialize target renderer
-    try {
-      await targetAdapter.init(config);
-    } catch (e: unknown) {
-      throw new HotSwapError(
-        currentPhase,
-        `target init failed: ${e instanceof Error ? e.message : String(e)}`
-      );
-    }
+		// Initialize target renderer
+		try {
+			await targetAdapter.init(config);
+		} catch (e: unknown) {
+			throw new HotSwapError(
+				currentPhase,
+				`target init failed: ${e instanceof Error ? e.message : String(e)}`,
+			);
+		}
 
-    try {
-      await targetAdapter.start(surface);
-    } catch (e: unknown) {
-      throw new HotSwapError(
-        currentPhase,
-        `target start failed: ${e instanceof Error ? e.message : String(e)}`
-      );
-    }
+		try {
+			await targetAdapter.start(surface);
+		} catch (e: unknown) {
+			throw new HotSwapError(
+				currentPhase,
+				`target start failed: ${e instanceof Error ? e.message : String(e)}`,
+			);
+		}
 
-    // Stop source renderer
-    try {
-      await sourceAdapter.stop();
-    } catch (e: unknown) {
-      throw new HotSwapError(
-        currentPhase,
-        `source stop failed: ${e instanceof Error ? e.message : String(e)}`
-      );
-    }
+		// Stop source renderer
+		try {
+			await sourceAdapter.stop();
+		} catch (e: unknown) {
+			throw new HotSwapError(
+				currentPhase,
+				`source stop failed: ${e instanceof Error ? e.message : String(e)}`,
+			);
+		}
 
-    // ===== Phase 4: Replay and commit =====
-    currentPhase = "replay-commit";
+		// ===== Phase 4: Replay and commit =====
+		currentPhase = "replay-commit";
 
-    // Replay PTY buffers to target renderer
-    streamBuffer.stopBuffering(targetAdapter);
+		// Replay PTY buffers to target renderer
+		streamBuffer.stopBuffering(targetAdapter);
 
-    // Verify all replays are functional (no errors)
-    for (const ptyId of terminals.keys()) {
-      try {
-        targetAdapter.bindStream(ptyId, new ReadableStream());
-      } catch (e: unknown) {
-        throw new HotSwapError(
-          currentPhase,
-          `replay for ${ptyId} failed: ${e instanceof Error ? e.message : String(e)}`
-        );
-      }
-    }
+		// Verify all replays are functional (no errors)
+		for (const ptyId of terminals.keys()) {
+			try {
+				targetAdapter.bindStream(ptyId, new ReadableStream());
+			} catch (e: unknown) {
+				throw new HotSwapError(
+					currentPhase,
+					`replay for ${ptyId} failed: ${e instanceof Error ? e.message : String(e)}`,
+				);
+			}
+		}
 
-    currentPhase = "complete";
+		currentPhase = "complete";
 
-    return {
-      success: true,
-      phase: "committed",
-      durationMs: Date.now() - startTime,
-      preservedContexts: Array.from(terminals.values()),
-    };
-  } catch (error) {
-    const hotSwapError =
-      error instanceof HotSwapError ? error : new HotSwapError(currentPhase, String(error));
+		return {
+			success: true,
+			phase: "committed",
+			durationMs: Date.now() - startTime,
+			preservedContexts: Array.from(terminals.values()),
+		};
+	} catch (error) {
+		const hotSwapError =
+			error instanceof HotSwapError
+				? error
+				: new HotSwapError(currentPhase, String(error));
 
-    // Trigger rollback
-    try {
-      await onRollback(hotSwapError);
-    } catch {
-      // Rollback error will be handled separately
-    }
+		// Trigger rollback
+		try {
+			await onRollback(hotSwapError);
+		} catch {
+			// Rollback error will be handled separately
+		}
 
-    return {
-      success: false,
-      phase: currentPhase,
-      durationMs: Date.now() - startTime,
-      preservedContexts: Array.from(terminals.values()),
-      error: hotSwapError,
-    };
-  }
+		return {
+			success: false,
+			phase: currentPhase,
+			durationMs: Date.now() - startTime,
+			preservedContexts: Array.from(terminals.values()),
+			error: hotSwapError,
+		};
+	}
 }

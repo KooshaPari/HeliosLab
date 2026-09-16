@@ -1,25 +1,17 @@
-// Public API for @helios/ids
-import {
-	type EntityType,
-	getPrefix,
-	PREFIX_MAP,
-	REVERSE_PREFIX_MAP,
-} from "./prefixes.js";
+import { type EntityType, getPrefix } from "./prefixes.js";
 import { generateUlid } from "./ulid.js";
-import { validateId } from "./validate.js";
-import { parseId } from "./parse.js";
 
-export type { EntityType } from "./prefixes.js";
-export type { ValidationResult } from "./validate.js";
 export type { ParsedId } from "./parse.js";
-export { validateId } from "./validate.js";
 export { parseId } from "./parse.js";
+export type { EntityType } from "./prefixes.js";
 export {
-	getPrefix,
 	getEntityType,
+	getPrefix,
 	PREFIX_MAP,
 	REVERSE_PREFIX_MAP,
 } from "./prefixes.js";
+export type { ValidationResult } from "./validate.js";
+export { validateId } from "./validate.js";
 
 const ID_FORMAT_REGEX = /^[a-z]{2,3}_[0-9A-HJKMNP-TV-Z]{26}$/;
 

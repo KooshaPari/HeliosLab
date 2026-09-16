@@ -4,7 +4,7 @@ export type BunnyRPC = {
 	bun: RPCSchema<{
 		requests: {};
 		messages: {
-			bunnyClicked: void;
+			bunnyClicked: undefined;
 		};
 	}>;
 	webview: RPCSchema<{

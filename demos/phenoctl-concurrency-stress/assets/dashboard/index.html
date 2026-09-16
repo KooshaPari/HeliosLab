@@ -94,7 +94,7 @@ async function tick() {
     document.getElementById('lat_max').textContent = m.lat_ms.max.toLocaleString();
     document.getElementById('exit_ok').textContent = m.exit_codes.ok.toLocaleString();
     document.getElementById('exit_fail').textContent = m.exit_codes.fail.toLocaleString();
-    document.getElementById('fail_rate').textContent = (m.exit_codes.fail_rate * 100).toFixed(2) + '%';
+    document.getElementById('fail_rate').textContent = `${(m.exit_codes.fail_rate * 100).toFixed(2)}%`;
 
     const tbody_cmd = document.querySelector('#by_cmd tbody');
     tbody_cmd.innerHTML = '';
@@ -118,7 +118,7 @@ async function tick() {
                       '<td>' + w.rows.toLocaleString() + '</td>';
       tbody_w.appendChild(tr);
     }
-  } catch (e) { /* swallow */ }
+  } catch (_e) { /* swallow */ }
 }
 tick();
 setInterval(tick, 1000);

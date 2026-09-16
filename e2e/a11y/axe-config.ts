@@ -16,32 +16,27 @@
 //     steal keystrokes from the PTY.
 //   - region: same reason as `bypass`; renderer chrome is non-semantic.
 
-export const AXE_TAGS = [
-  "wcag2a",
-  "wcag2aa",
-  "wcag21a",
-  "wcag21aa",
-] as const;
+export const AXE_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"] as const;
 
 export const AXE_RULES = {
-  "color-contrast": { enabled: true },
-  region: { enabled: true },
+	"color-contrast": { enabled: true },
+	region: { enabled: true },
 } as const;
 
 export const COLAB_RENDERER_DISABLED_RULES = [
-  "bypass",
-  "scrollable-region-focusable",
-  "region",
+	"bypass",
+	"scrollable-region-focusable",
+	"region",
 ] as const;
 
 export const APP_DISABLED_RULES: Record<string, readonly string[]> = {
-  "apps/desktop": [],
-  "apps/runtime": [],
-  "apps/colab-renderer": COLAB_RENDERER_DISABLED_RULES,
+	"apps/desktop": [],
+	"apps/runtime": [],
+	"apps/colab-renderer": COLAB_RENDERER_DISABLED_RULES,
 };
 
 export type AxeAppKey = keyof typeof APP_DISABLED_RULES;
 
 export function disabledRulesFor(app: AxeAppKey): readonly string[] {
-  return APP_DISABLED_RULES[app] ?? [];
+	return APP_DISABLED_RULES[app] ?? [];
 }

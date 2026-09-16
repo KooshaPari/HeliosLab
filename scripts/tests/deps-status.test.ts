@@ -1,10 +1,10 @@
-import { expect, test, describe, beforeEach, afterEach, mock } from "bun:test";
-import { rmSync, writeFileSync, mkdirSync } from "fs";
-import { join } from "path";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { mkdirSync, rmSync } from "node:fs";
+import { join } from "node:path";
 
 const REPO_ROOT = process.cwd();
 const CACHE_DIR = join(REPO_ROOT, ".cache");
-const CACHE_FILE = join(CACHE_DIR, "deps-status-cache.json");
+const _CACHE_FILE = join(CACHE_DIR, "deps-status-cache.json");
 
 // Traces to: FR-DEP-002 (bun run deps:status command)
 describe("Dependency Status Command", () => {
@@ -12,7 +12,7 @@ describe("Dependency Status Command", () => {
 		// Clean up cache before each test
 		try {
 			rmSync(CACHE_DIR, { recursive: true, force: true });
-		} catch (e) {
+		} catch (_e) {
 			// Ignore
 		}
 	});
@@ -21,7 +21,7 @@ describe("Dependency Status Command", () => {
 		// Clean up cache after each test
 		try {
 			rmSync(CACHE_DIR, { recursive: true, force: true });
-		} catch (e) {
+		} catch (_e) {
 			// Ignore
 		}
 	});
@@ -30,7 +30,7 @@ describe("Dependency Status Command", () => {
 		// This is a fixture test: we rely on deps-registry.json existing
 		// The command should successfully load it without errors
 		const registryPath = join(REPO_ROOT, "deps-registry.json");
-		const stat = require("fs").statSync(registryPath);
+		const stat = require("node:fs").statSync(registryPath);
 		expect(stat.isFile()).toBe(true);
 	});
 
@@ -40,7 +40,7 @@ describe("Dependency Status Command", () => {
 		try {
 			mkdirSync(CACHE_DIR, { recursive: true });
 			expect(true).toBe(true);
-		} catch (e) {
+		} catch (_e) {
 			expect(false).toBe(true);
 		}
 	});

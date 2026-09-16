@@ -11,11 +11,15 @@
  *         response delivery.
  */
 
-import type { CommandEnvelope, ResponseEnvelope, EventEnvelope } from "../protocol/types.js";
+import type {
+	CommandEnvelope,
+	EventEnvelope,
+	ResponseEnvelope,
+} from "../protocol/types.js";
 
 /** Handler registered for a method name on the bus. */
 export type CommandHandler = (
-  command: CommandEnvelope,
+	command: CommandEnvelope,
 ) => Promise<ResponseEnvelope>;
 
 /** Subscriber notified of bus-wide events. */
@@ -27,15 +31,15 @@ export type EventSubscriber = (event: EventEnvelope) => void | Promise<void>;
  * @see apps/runtime/src/protocol/bus.ts — default adapter
  */
 export interface ILocalBusPort {
-  /** Register a handler for a given method name. */
-  register(method: string, handler: CommandHandler): void;
+	/** Register a handler for a given method name. */
+	register(method: string, handler: CommandHandler): void;
 
-  /** Dispatch a command envelope; returns the correlated response. */
-  dispatch(command: CommandEnvelope): Promise<ResponseEnvelope>;
+	/** Dispatch a command envelope; returns the correlated response. */
+	dispatch(command: CommandEnvelope): Promise<ResponseEnvelope>;
 
-  /** Publish an event to all subscribed listeners. */
-  publish(event: EventEnvelope): Promise<void>;
+	/** Publish an event to all subscribed listeners. */
+	publish(event: EventEnvelope): Promise<void>;
 
-  /** Subscribe to a topic pattern; returns an unsubscribe function. */
-  subscribe(topic: string, subscriber: EventSubscriber): () => void;
+	/** Subscribe to a topic pattern; returns an unsubscribe function. */
+	subscribe(topic: string, subscriber: EventSubscriber): () => void;
 }

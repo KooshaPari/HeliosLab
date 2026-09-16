@@ -5,25 +5,26 @@
 // to the spec values if the DOM is not yet available (SSR, tests).
 
 export interface FocusRingTokens {
-  color: string;
-  width: string;
-  offset: string;
+	color: string;
+	width: string;
+	offset: string;
 }
 
 const FALLBACK: FocusRingTokens = {
-  color: "#38bdf8",
-  width: "2px",
-  offset: "2px",
+	color: "#38bdf8",
+	width: "2px",
+	offset: "2px",
 };
 
 export function getFocusRingTokens(): FocusRingTokens {
-  if (typeof document === "undefined") return FALLBACK;
-  const styles = getComputedStyle(document.documentElement);
-  return {
-    color: styles.getPropertyValue("--focus-ring-color").trim() || FALLBACK.color,
-    width:
-      styles.getPropertyValue("--focus-ring-width").trim() || FALLBACK.width,
-    offset:
-      styles.getPropertyValue("--focus-ring-offset").trim() || FALLBACK.offset,
-  };
+	if (typeof document === "undefined") return FALLBACK;
+	const styles = getComputedStyle(document.documentElement);
+	return {
+		color:
+			styles.getPropertyValue("--focus-ring-color").trim() || FALLBACK.color,
+		width:
+			styles.getPropertyValue("--focus-ring-width").trim() || FALLBACK.width,
+		offset:
+			styles.getPropertyValue("--focus-ring-offset").trim() || FALLBACK.offset,
+	};
 }

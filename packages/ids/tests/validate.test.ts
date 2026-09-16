@@ -1,6 +1,6 @@
-import { describe, it, expect } from "bun:test";
+import { describe, expect, it } from "bun:test";
+import { type EntityType, generateId } from "../src/index.js";
 import { validateId } from "../src/validate.js";
-import { generateId, type EntityType } from "../src/index.js";
 
 // Traces to: FR-ID-006 (ID validation: prefix/format/charset), FR-ID-008 (URL/filename/JSON safe)
 

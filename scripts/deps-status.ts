@@ -4,8 +4,8 @@
  * Usage: bun run deps:status [--json]
  */
 
-import { readFileSync, writeFileSync, existsSync } from "fs";
-import { join } from "path";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 import type { DepsRegistry } from "./deps-types";
 
 const REPO_ROOT = process.cwd();
@@ -32,7 +32,7 @@ interface StatusReport {
 /**
  * Calculate days since the given ISO timestamp.
  */
-function daysSince(timestamp: string): number {
+function _daysSince(timestamp: string): number {
 	const then = new Date(timestamp);
 	const now = new Date();
 	const ms = now.getTime() - then.getTime();
@@ -66,7 +66,7 @@ function parseDuration(duration: string): number {
  */
 function isCacheFresh(cacheFile: string, maxAge: number): boolean {
 	if (!existsSync(cacheFile)) return false;
-	const stat = require("fs").statSync(cacheFile);
+	const stat = require("node:fs").statSync(cacheFile);
 	const ageMs = Date.now() - stat.mtimeMs;
 	return ageMs < maxAge;
 }
@@ -83,7 +83,7 @@ function loadCache(maxAge: number): Map<string, string> {
 		(data as CachedVersion[]).forEach((entry) => {
 			map.set(entry.package, entry.latest);
 		});
-	} catch (e) {
+	} catch (_e) {
 		// Ignore cache read errors
 	}
 	return map;
@@ -95,7 +95,7 @@ function loadCache(maxAge: number): Map<string, string> {
 function saveCache(cached: Map<string, string>): void {
 	try {
 		if (!existsSync(CACHE_DIR)) {
-			require("fs").mkdirSync(CACHE_DIR, { recursive: true });
+			require("node:fs").mkdirSync(CACHE_DIR, { recursive: true });
 		}
 		const data: CachedVersion[] = Array.from(cached.entries()).map(
 			([pkg, version]) => ({
@@ -105,7 +105,7 @@ function saveCache(cached: Map<string, string>): void {
 			}),
 		);
 		writeFileSync(CACHE_FILE, JSON.stringify(data, null, 2));
-	} catch (e) {
+	} catch (_e) {
 		// Ignore cache write errors
 	}
 }
@@ -121,7 +121,7 @@ async function queryNpmRegistry(pkg: string): Promise<string | null> {
 			"dist-tags"?: { latest: string };
 		};
 		return data["dist-tags"]?.latest || null;
-	} catch (e) {
+	} catch (_e) {
 		return null;
 	}
 }
@@ -139,7 +139,7 @@ async function queryGitHubReleases(apiUrl: string): Promise<string | null> {
 		// Get tag_name and remove 'v' prefix if present
 		const tag = releases[0].tag_name || "";
 		return tag.replace(/^v/, "");
-	} catch (e) {
+	} catch (_e) {
 		return null;
 	}
 }

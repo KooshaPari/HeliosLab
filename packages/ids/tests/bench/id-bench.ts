@@ -1,6 +1,6 @@
 // Microbenchmarks for ID generation, validation, and parsing
 // Enforces SLOs: generation p95 < 0.01ms, validation p95 < 0.005ms
-import { generateId, validateId, parseId } from "../../src/index.js";
+import { generateId, parseId, validateId } from "../../src/index.js";
 
 const ITERATIONS = 100_000;
 const WARMUP = 1_000;

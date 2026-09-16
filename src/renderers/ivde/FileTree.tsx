@@ -1,34 +1,31 @@
 import {
+	type Accessor,
+	createEffect,
+	createMemo,
+	createResource,
+	createSignal,
+	For,
+	type JSX,
+	Show,
+} from "solid-js";
+import { produce } from "solid-js/store";
+import type {
+	CachedFileType,
+	DomEventWithTarget,
+	PreviewFileNodeType,
+	PreviewFileTreeType,
+} from "../../shared/types/types";
+import { parentNodePath } from "../utils/fileUtils";
+import { basename, dirname, join } from "../utils/pathUtils";
+import { getNode } from "./FileWatcher";
+import {
+	getProjectByRootPath,
 	getProjectForNode,
 	getSlateForNode,
 	isDescendantPath,
 	isProjectRoot,
-	getProjectByRootPath,
 } from "./files";
-
-import {
-	type Accessor,
-	type JSX,
-	For,
-	Match,
-	Show,
-	Switch,
-	createEffect,
-	createMemo,
-	createSignal,
-	createResource,
-} from "solid-js";
-import { produce, unwrap } from "solid-js/store";
-import type {
-	DomEventWithTarget,
-	PostMessageShowContextMenu,
-	CachedFileType,
-	PreviewFileTreeType,
-	PreviewFileNodeType,
-} from "../../shared/types/types";
-
-import { getNode } from "./FileWatcher";
-
+import { electrobun } from "./init";
 import {
 	type AppState,
 	editNodeSettings,
@@ -39,17 +36,12 @@ import {
 	openFileAt,
 	openNewTabForNode,
 	openNewTerminalTab,
+	removeOpenFile,
 	setNodeExpanded,
 	setState,
 	state,
 	updateSyncedState,
-	removeOpenFile,
 } from "./store";
-
-import { electrobun } from "./init";
-import { parentNodePath } from "../utils/fileUtils";
-
-import { join, basename, dirname } from "../utils/pathUtils";
 
 // Type for plugin file decorations
 interface FileDecoration {
@@ -90,7 +82,7 @@ async function getFileDecoration(
 	}
 }
 
-const makeSafeSerializer = () => {
+const _makeSafeSerializer = () => {
 	const seen = new WeakSet();
 
 	return (key, value) => {
@@ -1119,7 +1111,7 @@ const NodeName = ({
 	};
 
 	const [isHovered, setIsHovered] = createSignal(false);
-	const [isDragging, setIsDragging] = createSignal(false);
+	const [_isDragging, setIsDragging] = createSignal(false);
 	const [isExpandHovered, setIsExpandHovered] = createSignal(false);
 
 	// Fetch file decoration from plugins
@@ -1612,7 +1604,7 @@ const NodeName = ({
 		showContextMenu();
 	};
 
-	const onLiDblClick = (e: MouseEvent) => {
+	const onLiDblClick = (_e: MouseEvent) => {
 		console.info("double click");
 	};
 
@@ -1670,7 +1662,7 @@ const NodeName = ({
 	return (
 		<span
 			draggable={true}
-			onDragStart={(e) => {
+			onDragStart={(_e) => {
 				const _nodeToRender = nodeToRender();
 
 				if (!_nodeToRender) {
@@ -1747,7 +1739,7 @@ const NodeName = ({
 					}
 				}
 			}}
-			onDragEnd={async (e) => {
+			onDragEnd={async (_e) => {
 				setIsDragging(false);
 				if (state.dragState) {
 					if (state.dragState.type !== "node") {
@@ -1780,7 +1772,6 @@ const NodeName = ({
 								win.currentPaneId = targetPaneId || "";
 							}),
 						);
-						debugger;
 						// Check if it's a folder without a slate OR a project node - if so, open terminal
 						const slate = getSlateForNode(node);
 						if (node.type === "dir" && (!slate || slate.type === "project")) {
@@ -1947,7 +1938,12 @@ const NodeName = ({
 						"align-items": "center",
 					}}
 				>
-					<img src={getIconForNode(nodeToRender())} alt="" width="16" height="16" />
+					<img
+						src={getIconForNode(nodeToRender())}
+						alt=""
+						width="16"
+						height="16"
+					/>
 				</div>
 
 				<span
@@ -1968,12 +1964,7 @@ const NodeName = ({
 							const node = nodeToRender();
 
 							// If we're hovering and it's a slate with a different display name, show folder name
-							if (
-								isHovered() &&
-								slate &&
-								slate.name &&
-								slate.name !== node.name
-							) {
+							if (isHovered() && slate?.name && slate.name !== node.name) {
 								return slate?.name || node.name;
 							}
 

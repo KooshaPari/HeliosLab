@@ -1,72 +1,72 @@
+import { spawn } from "node:child_process";
 import { spawnSync } from "bun";
-import { spawn } from "child_process";
 
 export type SandboxRule = {
-  action: string;
-  resource: string;
-  path?: string;
-  ip?: string;
-  regex?: string;
+	action: string;
+	resource: string;
+	path?: string;
+	ip?: string;
+	regex?: string;
 };
 
 export type SandboxProfile = {
-  version: number;
-  default_rule: string;
-  rules: SandboxRule[];
+	version: number;
+	default_rule: string;
+	rules: SandboxRule[];
 };
 
 export const jsonToSBPL = (profile: SandboxProfile): string => {
-  //   let sbpl = `(version ${profile.version})\n(${profile.default_rule} default)\n`;
-  let sbpl = `(version ${profile.version})\n\n(${profile.default_rule} (with message "co(lab): default deny, see prev line in log") default)\n`;
+	//   let sbpl = `(version ${profile.version})\n(${profile.default_rule} default)\n`;
+	let sbpl = `(version ${profile.version})\n\n(${profile.default_rule} (with message "co(lab): default deny, see prev line in log") default)\n`;
 
-  profile.rules.forEach((rule) => {
-    // Note: if you run this in another terminal window
-    // `log stream --style compact --info --debug  --predicate '(((processID == 0) AND (senderImagePath CONTAINS "/Sandbox")) OR (subsystem == "com.apple.sandbox.reporting"))'
-    // and use (with message "some message") then you'll see the messages in the terminal
-    // assuming you allow all and deny specific things with a message
-    // let ruleStr = `(${rule.action} (with message "${rule.resource}") ${rule.resource}`;
-    // let ruleStr = `(${rule.action} (with message "co(lab): ${rule.resource}") (with telemetry) ${rule.resource}`;
-    let ruleStr = `(${rule.action} (with message "co(lab): deny ${rule.resource}") ${rule.resource}`;
-    if (rule.path) {
-      ruleStr += ` (subpath "${rule.path}"))`;
-    } else if (rule.ip) {
-      ruleStr += ` (remote ip "${rule.ip}"))`;
-    } else if (rule.regex) {
-      ruleStr += ` (regex "${rule.regex}"))`;
-    } else {
-      ruleStr += `)`;
-    }
-    sbpl += ruleStr + "\n";
-  });
+	profile.rules.forEach((rule) => {
+		// Note: if you run this in another terminal window
+		// `log stream --style compact --info --debug  --predicate '(((processID == 0) AND (senderImagePath CONTAINS "/Sandbox")) OR (subsystem == "com.apple.sandbox.reporting"))'
+		// and use (with message "some message") then you'll see the messages in the terminal
+		// assuming you allow all and deny specific things with a message
+		// let ruleStr = `(${rule.action} (with message "${rule.resource}") ${rule.resource}`;
+		// let ruleStr = `(${rule.action} (with message "co(lab): ${rule.resource}") (with telemetry) ${rule.resource}`;
+		let ruleStr = `(${rule.action} (with message "co(lab): deny ${rule.resource}") ${rule.resource}`;
+		if (rule.path) {
+			ruleStr += ` (subpath "${rule.path}"))`;
+		} else if (rule.ip) {
+			ruleStr += ` (remote ip "${rule.ip}"))`;
+		} else if (rule.regex) {
+			ruleStr += ` (regex "${rule.regex}"))`;
+		} else {
+			ruleStr += `)`;
+		}
+		sbpl += `${ruleStr}\n`;
+	});
 
-  return sbpl;
+	return sbpl;
 };
 
 export const runCommandWithSandbox = (
-  profile: SandboxProfile,
-  command: string,
-  args: string[]
+	profile: SandboxProfile,
+	command: string,
+	args: string[],
 ): void => {
-  const sbpl = jsonToSBPL(profile);
-  const sandboxCommand = ["sandbox-exec", "-p", sbpl, command, ...args];
+	const sbpl = jsonToSBPL(profile);
+	const sandboxCommand = ["sandbox-exec", "-p", sbpl, command, ...args];
 
-  const result = spawnSync(sandboxCommand);
+	const result = spawnSync(sandboxCommand);
 
-  console.log(result.stdout.toString());
-  console.error(result.stderr.toString());
+	console.log(result.stdout.toString());
+	console.error(result.stderr.toString());
 };
 
 export const sandboxSpawn = (
-  profile: SandboxProfile,
-  command: string,
-  args: string[],
-  options: any = {}
+	profile: SandboxProfile,
+	command: string,
+	args: string[],
+	options: any = {},
 ) => {
-  const sbpl = jsonToSBPL(profile);
+	const sbpl = jsonToSBPL(profile);
 
-  const sandboxCommandArgs = ["-p", sbpl, command, ...args];
+	const sandboxCommandArgs = ["-p", sbpl, command, ...args];
 
-  return spawn("sandbox-exec", sandboxCommandArgs, options);
+	return spawn("sandbox-exec", sandboxCommandArgs, options);
 };
 
 /**

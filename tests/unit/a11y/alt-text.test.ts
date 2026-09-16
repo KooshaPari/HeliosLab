@@ -7,9 +7,9 @@
  * (we don't have a TSX parser available in unit tests), and assert each
  * <img> tag has an alt attribute.
  */
-import { describe, it, expect } from "bun:test";
+import { describe, expect, it } from "bun:test";
 import { readdirSync, readFileSync, statSync } from "node:fs";
-import { join, extname } from "node:path";
+import { extname, join } from "node:path";
 
 const SRC_ROOT = join(import.meta.dir, "..", "..", "..", "src");
 

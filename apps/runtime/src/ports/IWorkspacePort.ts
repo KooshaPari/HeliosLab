@@ -13,12 +13,12 @@
 import type { Workspace, WorkspaceState } from "../../src/runtime/types.js";
 
 export interface WorkspaceCreateOptions {
-  readonly name: string;
-  readonly rootPath: string;
+	readonly name: string;
+	readonly rootPath: string;
 }
 
 export interface WorkspaceQuery {
-  readonly state?: WorkspaceState;
+	readonly state?: WorkspaceState;
 }
 
 /**
@@ -27,18 +27,18 @@ export interface WorkspaceQuery {
  * @see apps/runtime/src/workspace/workspace.ts — default adapter
  */
 export interface IWorkspacePort {
-  /** Create a new workspace; throws if name already exists. */
-  create(opts: WorkspaceCreateOptions): Promise<Workspace>;
+	/** Create a new workspace; throws if name already exists. */
+	create(opts: WorkspaceCreateOptions): Promise<Workspace>;
 
-  /** Find a workspace by ID; returns null if not found. */
-  findById(id: string): Promise<Workspace | null>;
+	/** Find a workspace by ID; returns null if not found. */
+	findById(id: string): Promise<Workspace | null>;
 
-  /** List workspaces, optionally filtered by state. */
-  list(query?: WorkspaceQuery): Promise<readonly Workspace[]>;
+	/** List workspaces, optionally filtered by state. */
+	list(query?: WorkspaceQuery): Promise<readonly Workspace[]>;
 
-  /** Mark a workspace closed; rejects if active sessions remain. */
-  close(id: string): Promise<void>;
+	/** Mark a workspace closed; rejects if active sessions remain. */
+	close(id: string): Promise<void>;
 
-  /** Permanently delete a closed workspace. */
-  delete(id: string): Promise<void>;
+	/** Permanently delete a closed workspace. */
+	delete(id: string): Promise<void>;
 }

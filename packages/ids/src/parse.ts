@@ -1,5 +1,5 @@
 // ID parsing — extracts entity type, timestamp, and ULID body
-import { type EntityType, REVERSE_PREFIX_MAP } from "./prefixes.js";
+import type { EntityType } from "./prefixes.js";
 import { decodeTime } from "./ulid.js";
 import { validateId } from "./validate.js";
 

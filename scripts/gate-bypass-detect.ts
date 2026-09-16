@@ -4,13 +4,13 @@
  * Detects and reports all forms of quality gate suppression directives
  */
 
-import { readdirSync, readFileSync, existsSync } from "fs";
-import { join } from "path";
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import {
 	createGateReport,
-	writeGateReport,
 	formatGateReport,
 	type GateFinding,
+	writeGateReport,
 } from "./gate-report";
 
 const REPORT_OUTPUT = ".gate-reports/gate-bypass-detect.json";
@@ -27,11 +27,11 @@ const SUPPRESSION_PATTERNS = [
 	{ regex: new RegExp(suppName1), name: suppName1 },
 	{ regex: new RegExp(suppName2), name: suppName2 },
 	{ regex: new RegExp(suppName3), name: suppName3 },
-	{ regex: new RegExp(suppName4 + "(-line|-next-line)?"), name: suppName4 },
+	{ regex: new RegExp(`${suppName4}(-line|-next-line)?`), name: suppName4 },
 	{ regex: new RegExp(suppName5), name: suppName5 },
 ];
 
-const TEST_MARKERS = [
+const _TEST_MARKERS = [
 	{ regex: /\.skip\s*\(/, name: ".skip()" },
 	{ regex: /\.only\s*\(/, name: ".only()" },
 	{ regex: /\.todo\s*\(/, name: ".todo()" },
@@ -69,7 +69,7 @@ export function scanBypassDirectives(
 			const files = readdirSync(dir);
 			files.forEach((file) => {
 				const fullPath = join(dir, file);
-				const stat = require("fs").statSync(fullPath);
+				const stat = require("node:fs").statSync(fullPath);
 
 				if (stat.isDirectory()) {
 					scanDir(fullPath);
@@ -77,12 +77,12 @@ export function scanBypassDirectives(
 					scanFile(fullPath, file);
 				}
 			});
-		} catch (e) {
+		} catch (_e) {
 			// Silently skip unreadable directories
 		}
 	}
 
-	function scanFile(filePath: string, fileName: string) {
+	function scanFile(filePath: string, _fileName: string) {
 		if (shouldExclude(filePath)) return;
 		const content = readFileSync(filePath, "utf-8");
 		const lines = content.split("\n");

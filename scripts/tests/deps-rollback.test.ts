@@ -1,7 +1,7 @@
-import { expect, test, describe, beforeEach, afterEach } from "bun:test";
-import { readFileSync, writeFileSync, rmSync, existsSync } from "fs";
-import { join } from "path";
-import type { DepsRegistry, DepsChangelog } from "../deps-types";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import type { DepsChangelog, DepsRegistry } from "../deps-types";
 
 const REPO_ROOT = process.cwd();
 const REGISTRY_PATH = join(REPO_ROOT, "deps-registry.json");
@@ -20,7 +20,7 @@ describe("Dependency Rollback Integration", () => {
 				recursive: true,
 				force: true,
 			});
-		} catch (e) {
+		} catch (_e) {
 			// Ignore
 		}
 	});
@@ -32,7 +32,7 @@ describe("Dependency Rollback Integration", () => {
 				recursive: true,
 				force: true,
 			});
-		} catch (e) {
+		} catch (_e) {
 			// Ignore
 		}
 	});

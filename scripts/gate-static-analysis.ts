@@ -4,12 +4,12 @@
  * Analyzes code for excessive complexity and length violations.
  */
 
-import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import {
-	type GateFinding,
 	createGateReport,
 	formatGateReport,
+	type GateFinding,
 	writeGateReport,
 } from "./gate-report";
 

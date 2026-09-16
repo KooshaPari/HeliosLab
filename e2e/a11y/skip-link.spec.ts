@@ -7,7 +7,7 @@
  *  - "Skip to file tree"     → #file-tree (left pane)
  *  - "Skip to editor"        → #editor-pane (center)
  */
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 const BASE_URL = process.env.HELIOSLAB_RENDERER_URL ?? "http://localhost:5173";
 
@@ -28,7 +28,9 @@ test.describe("Skip links", () => {
 		expect(activeId).toBe("skip-to-main");
 	});
 
-	test("skip-to-file-tree is the second focusable element", async ({ page }) => {
+	test("skip-to-file-tree is the second focusable element", async ({
+		page,
+	}) => {
 		await page.evaluate(() => (document.activeElement as HTMLElement)?.blur());
 		await page.keyboard.press("Tab");
 		await page.keyboard.press("Tab");
@@ -51,7 +53,9 @@ test.describe("Skip links", () => {
 		expect(activeId).toBe("skip-to-editor");
 	});
 
-	test("activating skip-to-main moves focus to the <main> region", async ({ page }) => {
+	test("activating skip-to-main moves focus to the <main> region", async ({
+		page,
+	}) => {
 		await page.evaluate(() => (document.activeElement as HTMLElement)?.blur());
 		await page.keyboard.press("Tab");
 		await page.keyboard.press("Enter");

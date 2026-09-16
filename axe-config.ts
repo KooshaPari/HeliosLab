@@ -10,12 +10,7 @@
  *  - `color-contrast`: Monaco's syntax-highlight tokens have non-text
  *      contrast; this is verified by a separate monaco-theme audit.
  */
-export const AXE_TAGS = [
-	"wcag2a",
-	"wcag2aa",
-	"wcag21a",
-	"wcag21aa",
-] as const;
+export const AXE_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"] as const;
 
 export const AXE_DISABLED_RULES = [
 	"bypass",
@@ -41,9 +36,9 @@ export const AXE_OPTIONS = {
 export type AxeImpact = "minor" | "moderate" | "serious" | "critical";
 
 /** Filter helper — kept in one place so all spec files agree. */
-export function blockingViolations(
-	results: { violations: Array<{ impact?: string | null; id: string; nodes: unknown[] }> },
-) {
+export function blockingViolations(results: {
+	violations: Array<{ impact?: string | null; id: string; nodes: unknown[] }>;
+}) {
 	return results.violations.filter(
 		(v) => v.impact === "critical" || v.impact === "serious",
 	);

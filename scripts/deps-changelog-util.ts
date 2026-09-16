@@ -3,10 +3,10 @@
  * Handles validation, atomic writes, and schema enforcement.
  */
 
-import { readFileSync, writeFileSync, existsSync } from "fs";
-import { join } from "path";
-import { tmpdir } from "os";
-import type { DepsChangelog, ChangelogEntry } from "./deps-types";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import type { ChangelogEntry, DepsChangelog } from "./deps-types";
 
 const REPO_ROOT = process.cwd();
 const CHANGELOG_PATH = join(REPO_ROOT, "deps-changelog.json");
@@ -83,13 +83,13 @@ export function appendChangelogEntry(entry: ChangelogEntry): void {
 	try {
 		writeFileSync(tempFile, JSON.stringify(changelog, null, 2));
 		// Atomic rename (move temp file to final location)
-		require("fs").renameSync(tempFile, CHANGELOG_PATH);
+		require("node:fs").renameSync(tempFile, CHANGELOG_PATH);
 	} catch (e) {
 		// Clean up temp file if it exists
 		if (existsSync(tempFile)) {
 			try {
-				require("fs").unlinkSync(tempFile);
-			} catch (unlinkErr) {
+				require("node:fs").unlinkSync(tempFile);
+			} catch (_unlinkErr) {
 				// Ignore cleanup errors
 			}
 		}

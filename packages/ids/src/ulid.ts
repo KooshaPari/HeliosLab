@@ -90,4 +90,4 @@ function decodeTime(encoded: string): number {
 	return timestamp;
 }
 
-export { generateUlid, encodeTime, decodeTime, CROCKFORD_BASE32 };
+export { CROCKFORD_BASE32, decodeTime, encodeTime, generateUlid };

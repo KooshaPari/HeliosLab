@@ -1,5 +1,5 @@
-import { readFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 
 const threshold = Number(process.env.COVERAGE_MIN ?? "85");
 const fixturePath = process.env.COVERAGE_REPORT_PATH;

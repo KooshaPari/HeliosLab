@@ -4,11 +4,16 @@
  * Uses @solid-primitives/i18n with createResource for async locale loading.
  * Falls back to English if a locale file fails to load or a key is missing.
  */
-import { createMemo, createResource, type Accessor } from "solid-js";
-import { I18nContext, type PrimitiveDict, flatten } from "@solid-primitives/i18n";
+
+import {
+	flatten,
+	I18nContext,
+	type PrimitiveDict,
+} from "@solid-primitives/i18n";
+import { type Accessor, createMemo, createResource } from "solid-js";
+import { applyDocumentLocale } from "./dir";
 import enDict from "./en.json";
 import esDict from "./es.json";
-import { applyDocumentLocale } from "./dir";
 
 export type Locale = "en" | "es";
 

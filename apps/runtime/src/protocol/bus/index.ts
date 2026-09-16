@@ -1,30 +1,32 @@
 // Re-export all bus module types and implementations
+
+export { CommandBusImpl, createBus, InMemoryLocalBus } from "./emitter.js";
+export {
+	isStartTopic,
+	isTerminalTopic,
+	LIFECYCLE_SEQUENCES,
+	publishLifecycleEvent,
+	resolveExpectedStartTopic,
+	START_TOPICS,
+	TERMINAL_TOPICS,
+} from "./lifecycle.js";
+export { MetricsRecorder } from "./metrics.js";
 export type {
-  LocalBus,
-  AuditRecord,
-  MetricSample,
-  MetricSummary,
-  MetricsReport,
-  BusState,
-  CommandBusOptions,
-  CommandEnvelope,
-  EventEnvelope,
-  ResponseEnvelope,
-  LocalBusEnvelopeWithSequence,
+	AuditRecord,
+	BusState,
+	CommandBusOptions,
+	CommandEnvelope,
+	EventEnvelope,
+	LocalBus,
+	LocalBusEnvelopeWithSequence,
+	MetricSample,
+	MetricSummary,
+	MetricsReport,
+	ResponseEnvelope,
 } from "./types.js";
 
-export { InMemoryLocalBus, CommandBusImpl, createBus } from "./emitter.js";
-
 export {
-  LIFECYCLE_SEQUENCES,
-  TERMINAL_TOPICS,
-  START_TOPICS,
-  isTerminalTopic,
-  isStartTopic,
-  resolveExpectedStartTopic,
-  publishLifecycleEvent,
-} from "./lifecycle.js";
-
-export { MetricsRecorder } from "./metrics.js";
-
-export { isCommandEnvelope, isEventEnvelope, hasTopLevelDataField } from "./validation.js";
+	hasTopLevelDataField,
+	isCommandEnvelope,
+	isEventEnvelope,
+} from "./validation.js";

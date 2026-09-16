@@ -8,19 +8,19 @@
  */
 
 import type { RendererAdapter } from "./adapter.js";
-import type { SwitchBuffer } from "./stream_binding.js";
-import type { RendererEventBus } from "./index.js";
 import type { TerminalContext } from "./hot_swap.js";
+import type { RendererEventBus } from "./index.js";
+import type { SwitchBuffer } from "./stream_binding.js";
 
 // ---------------------------------------------------------------------------
 // Errors
 // ---------------------------------------------------------------------------
 
 export class RollbackError extends Error {
-  constructor(message: string) {
-    super(`Rollback failed: ${message}`);
-    this.name = "RollbackError";
-  }
+	constructor(message: string) {
+		super(`Rollback failed: ${message}`);
+		this.name = "RollbackError";
+	}
 }
 
 // ---------------------------------------------------------------------------
@@ -29,19 +29,19 @@ export class RollbackError extends Error {
 
 /** Per-terminal rollback status. */
 export interface RollbackTerminalStatus {
-  ptyId: string;
-  restored: boolean;
-  degraded: boolean;
-  error?: Error;
+	ptyId: string;
+	restored: boolean;
+	degraded: boolean;
+	error?: Error;
 }
 
 /** Result of rollback execution. */
 export interface RollbackResult {
-  success: boolean;
-  durationMs: number;
-  terminalStatuses: RollbackTerminalStatus[];
-  failureReason?: string;
-  error?: Error;
+	success: boolean;
+	durationMs: number;
+	terminalStatuses: RollbackTerminalStatus[];
+	failureReason?: string;
+	error?: Error;
 }
 
 // ---------------------------------------------------------------------------
@@ -68,94 +68,95 @@ export interface RollbackResult {
  * @returns Rollback result with per-terminal status.
  */
 export async function executeRollback(
-  originalAdapter: RendererAdapter,
-  targetAdapter: RendererAdapter,
-  terminals: Map<string, TerminalContext>,
-  streamBuffer: SwitchBuffer,
-  failureReason: string,
-  eventBus?: RendererEventBus
+	originalAdapter: RendererAdapter,
+	targetAdapter: RendererAdapter,
+	terminals: Map<string, TerminalContext>,
+	streamBuffer: SwitchBuffer,
+	failureReason: string,
+	eventBus?: RendererEventBus,
 ): Promise<RollbackResult> {
-  const startTime = Date.now();
-  const terminalStatuses: RollbackTerminalStatus[] = [];
+	const startTime = Date.now();
+	const terminalStatuses: RollbackTerminalStatus[] = [];
 
-  try {
-    // ===== Phase 1: Transition to rolling-back =====
-    // (state machine transition handled by caller)
+	try {
+		// ===== Phase 1: Transition to rolling-back =====
+		// (state machine transition handled by caller)
 
-    // ===== Phase 2: Teardown partial target =====
-    try {
-      await targetAdapter.stop();
-    } catch {
-      // Best effort, continue with rollback
-    }
+		// ===== Phase 2: Teardown partial target =====
+		try {
+			await targetAdapter.stop();
+		} catch {
+			// Best effort, continue with rollback
+		}
 
-    // ===== Phase 3: Re-attach original renderer =====
-    for (const [ptyId, _context] of terminals) {
-      try {
-        // In real implementation, would restore full context:
-        // - scrollback history
-        // - cursor position
-        // - environment variables
-        // - working directory
+		// ===== Phase 3: Re-attach original renderer =====
+		for (const [ptyId, _context] of terminals) {
+			try {
+				// In real implementation, would restore full context:
+				// - scrollback history
+				// - cursor position
+				// - environment variables
+				// - working directory
 
-        // Bind stream back to original renderer
-        originalAdapter.bindStream(ptyId, new ReadableStream());
+				// Bind stream back to original renderer
+				originalAdapter.bindStream(ptyId, new ReadableStream());
 
-        terminalStatuses.push({
-          ptyId,
-          restored: true,
-          degraded: false,
-        });
-      } catch (error) {
-        terminalStatuses.push({
-          ptyId,
-          restored: false,
-          degraded: true,
-          error: error instanceof Error ? error : new Error(String(error)),
-        });
-      }
-    }
+				terminalStatuses.push({
+					ptyId,
+					restored: true,
+					degraded: false,
+				});
+			} catch (error) {
+				terminalStatuses.push({
+					ptyId,
+					restored: false,
+					degraded: true,
+					error: error instanceof Error ? error : new Error(String(error)),
+				});
+			}
+		}
 
-    // ===== Phase 4: Abort buffers =====
-    streamBuffer.startBuffering(); // Re-enable to ensure clean state
-    streamBuffer.stopBuffering(originalAdapter); // Discard and restore
+		// ===== Phase 4: Abort buffers =====
+		streamBuffer.startBuffering(); // Re-enable to ensure clean state
+		streamBuffer.stopBuffering(originalAdapter); // Discard and restore
 
-    // ===== Phase 5: Verify functionality =====
-    const allRestored = terminalStatuses.every(s => s.restored);
-    const anyDegraded = terminalStatuses.some(s => s.degraded);
+		// ===== Phase 5: Verify functionality =====
+		const allRestored = terminalStatuses.every((s) => s.restored);
+		const anyDegraded = terminalStatuses.some((s) => s.degraded);
 
-    // ===== Phase 6: Transition to rolled-back =====
-    // (state machine transition handled by caller)
+		// ===== Phase 6: Transition to rolled-back =====
+		// (state machine transition handled by caller)
 
-    // Emit event if bus available
-    eventBus?.publish({
-      type: "renderer.switch_failed",
-      rendererId: originalAdapter.id,
-      fromState: "switching",
-      toState: "running",
-      timestamp: Date.now(),
-      correlationId: crypto.randomUUID(),
-      fromRenderer: targetAdapter.id,
-      toRenderer: originalAdapter.id,
-      switchDurationMs: Date.now() - startTime,
-      error: new Error(failureReason),
-    });
+		// Emit event if bus available
+		eventBus?.publish({
+			type: "renderer.switch_failed",
+			rendererId: originalAdapter.id,
+			fromState: "switching",
+			toState: "running",
+			timestamp: Date.now(),
+			correlationId: crypto.randomUUID(),
+			fromRenderer: targetAdapter.id,
+			toRenderer: originalAdapter.id,
+			switchDurationMs: Date.now() - startTime,
+			error: new Error(failureReason),
+		});
 
-    return {
-      success: allRestored && !anyDegraded,
-      durationMs: Date.now() - startTime,
-      terminalStatuses,
-      failureReason,
-    };
-  } catch (error) {
-    const rollbackError = error instanceof RollbackError ? error : new RollbackError(String(error));
+		return {
+			success: allRestored && !anyDegraded,
+			durationMs: Date.now() - startTime,
+			terminalStatuses,
+			failureReason,
+		};
+	} catch (error) {
+		const rollbackError =
+			error instanceof RollbackError ? error : new RollbackError(String(error));
 
-    return {
-      success: false,
-      durationMs: Date.now() - startTime,
-      terminalStatuses,
-      failureReason,
-      error: rollbackError,
-    };
-  }
+		return {
+			success: false,
+			durationMs: Date.now() - startTime,
+			terminalStatuses,
+			failureReason,
+			error: rollbackError,
+		};
+	}
 }

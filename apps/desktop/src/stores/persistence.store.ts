@@ -10,17 +10,17 @@ let conversationsCache: Conversation[] = [];
  * @returns Array of conversations
  */
 export function loadPersistedConversations(): Conversation[] {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      const data = JSON.parse(stored) as Conversation[];
-      conversationsCache = data;
-      return data;
-    }
-  } catch {
-    /* ignore parsing errors */
-  }
-  return [];
+	try {
+		const stored = localStorage.getItem(STORAGE_KEY);
+		if (stored) {
+			const data = JSON.parse(stored) as Conversation[];
+			conversationsCache = data;
+			return data;
+		}
+	} catch {
+		/* ignore parsing errors */
+	}
+	return [];
 }
 
 /**
@@ -28,12 +28,12 @@ export function loadPersistedConversations(): Conversation[] {
  * @param convs Array of conversations to persist
  */
 export function persistConversations(convs: Conversation[]): void {
-  conversationsCache = convs;
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(convs));
-  } catch {
-    /* quota exceeded or unavailable */
-  }
+	conversationsCache = convs;
+	try {
+		localStorage.setItem(STORAGE_KEY, JSON.stringify(convs));
+	} catch {
+		/* quota exceeded or unavailable */
+	}
 }
 
 /**
@@ -41,11 +41,13 @@ export function persistConversations(convs: Conversation[]): void {
  * @param conv Conversation to persist
  */
 export function persistConversation(conv: Conversation): void {
-  const current = conversationsCache;
-  const idx = current.findIndex((c: Conversation) => c.id === conv.id);
-  const updated =
-    idx >= 0 ? current.map((c: Conversation) => (c.id === conv.id ? conv : c)) : [conv, ...current];
-  persistConversations(updated);
+	const current = conversationsCache;
+	const idx = current.findIndex((c: Conversation) => c.id === conv.id);
+	const updated =
+		idx >= 0
+			? current.map((c: Conversation) => (c.id === conv.id ? conv : c))
+			: [conv, ...current];
+	persistConversations(updated);
 }
 
 /**
@@ -53,7 +55,9 @@ export function persistConversation(conv: Conversation): void {
  * @param id Conversation ID to delete
  */
 export function deletePersistedConversation(id: string): void {
-  persistConversations(conversationsCache.filter((c: Conversation) => c.id !== id));
+	persistConversations(
+		conversationsCache.filter((c: Conversation) => c.id !== id),
+	);
 }
 
 /**
@@ -61,5 +65,5 @@ export function deletePersistedConversation(id: string): void {
  * @returns Array of conversations
  */
 export function getPersistedConversations(): Conversation[] {
-  return conversationsCache;
+	return conversationsCache;
 }

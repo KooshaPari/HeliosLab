@@ -11,13 +11,25 @@
  *   IAuditPort, IProviderPort
  */
 
-export type { ILocalBusPort, CommandHandler, EventSubscriber } from "./ILocalBusPort.js";
-export type { IWorkspacePort, WorkspaceCreateOptions, WorkspaceQuery } from "./IWorkspacePort.js";
-export type { IAuditPort, AuditQuery } from "./IAuditPort.js";
-export type { ISessionPort, SessionCreateOptions, SessionCheckpoint } from "./ISessionPort.js";
+export type { AuditQuery, IAuditPort } from "./IAuditPort.js";
 export type {
-  IProviderPort,
-  ProviderCapabilities,
-  InferenceRequest,
-  InferenceResponse,
+	CommandHandler,
+	EventSubscriber,
+	ILocalBusPort,
+} from "./ILocalBusPort.js";
+export type {
+	InferenceRequest,
+	InferenceResponse,
+	IProviderPort,
+	ProviderCapabilities,
 } from "./IProviderPort.js";
+export type {
+	ISessionPort,
+	SessionCheckpoint,
+	SessionCreateOptions,
+} from "./ISessionPort.js";
+export type {
+	IWorkspacePort,
+	WorkspaceCreateOptions,
+	WorkspaceQuery,
+} from "./IWorkspacePort.js";

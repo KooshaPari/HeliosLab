@@ -1,4 +1,4 @@
-import { expect, test, describe } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { scanBypassDirectives } from "../gate-bypass-detect";
 
 describe("Bypass Detection Scanner", () => {
@@ -10,7 +10,7 @@ describe("Bypass Detection Scanner", () => {
 
 	test("detects @ts-expect-error directive", () => {
 		// Test detection logic
-		const patterns = [
+		const _patterns = [
 			{ regex: new RegExp("@" + "ts-ignore"), name: "@ts-ignore" },
 			{ regex: new RegExp("@" + "ts-expect-error"), name: "@ts-expect-error" },
 			{ regex: new RegExp("@" + "ts-nocheck"), name: "@ts-nocheck" },

@@ -1,56 +1,56 @@
 export { ZellijCli } from "./cli.js";
-export { ZellijSessionManager, sessionNameForLane } from "./session.js";
-export { MuxRegistry } from "./registry.js";
+export {
+	DuplicateBindingError,
+	PaneNotFoundError,
+	PaneTooSmallError,
+	PtyBindingError,
+	SessionAlreadyExistsError,
+	SessionNotFoundError,
+	TabNotFoundError,
+	ZellijCliError,
+	ZellijNotFoundError,
+	ZellijTimeoutError,
+	ZellijVersionError,
+} from "./errors.js";
+export {
+	type EventBus,
+	generateCorrelationId,
+	type MuxEvent,
+	type MuxEventBase,
+	MuxEventEmitter,
+	MuxEventType,
+	type PaneAddedEvent,
+	type PaneClosedEvent,
+	type PaneDimensionRejectedEvent,
+	type PanePtyBoundEvent,
+	type PaneResizedEvent,
+	type SessionCreatedEvent,
+	type SessionReattachedEvent,
+	type SessionTerminatedEvent,
+	type TabClosedEvent,
+	type TabCreatedEvent,
+	type TabSwitchedEvent,
+} from "./events.js";
 export { ZellijPaneManager } from "./panes.js";
+export { type ReconciliationResult, reconcile } from "./reconciliation.js";
+export { MuxRegistry } from "./registry.js";
+export { sessionNameForLane, ZellijSessionManager } from "./session.js";
 export { ZellijTabManager } from "./tabs.js";
 export { TopologyTracker } from "./topology.js";
-export {
-  MuxEventEmitter,
-  MuxEventType,
-  generateCorrelationId,
-  type EventBus,
-  type MuxEvent,
-  type MuxEventBase,
-  type SessionCreatedEvent,
-  type SessionReattachedEvent,
-  type SessionTerminatedEvent,
-  type PaneAddedEvent,
-  type PaneClosedEvent,
-  type PaneResizedEvent,
-  type PanePtyBoundEvent,
-  type PaneDimensionRejectedEvent,
-  type TabCreatedEvent,
-  type TabClosedEvent,
-  type TabSwitchedEvent,
-} from "./events.js";
-export { reconcile, type ReconciliationResult } from "./reconciliation.js";
 export type {
-  ZellijSession,
-  SessionOptions,
-  MuxSession,
-  MuxBinding,
-  PaneRecord,
-  TabRecord,
-  CliResult,
-  AvailabilityResult,
-  PaneDimensions,
-  CreatePaneOptions,
-  MinPaneDimensions,
-  PaneTopology,
-  TabTopology,
-  LayoutTopology,
-  PtyManagerInterface,
+	AvailabilityResult,
+	CliResult,
+	CreatePaneOptions,
+	LayoutTopology,
+	MinPaneDimensions,
+	MuxBinding,
+	MuxSession,
+	PaneDimensions,
+	PaneRecord,
+	PaneTopology,
+	PtyManagerInterface,
+	SessionOptions,
+	TabRecord,
+	TabTopology,
+	ZellijSession,
 } from "./types.js";
-export {
-  ZellijNotFoundError,
-  ZellijVersionError,
-  ZellijCliError,
-  ZellijTimeoutError,
-  SessionNotFoundError,
-  SessionAlreadyExistsError,
-  DuplicateBindingError,
-  PaneTooSmallError,
-  PaneNotFoundError,
-  TabNotFoundError,
-  PtyBindingError,
-} from "./errors.js";

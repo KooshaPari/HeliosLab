@@ -12,8 +12,8 @@ import type { RendererCapabilities } from "../capabilities.js";
 // ---------------------------------------------------------------------------
 
 interface GpuInfo {
-  available: boolean;
-  driverVersion: string | undefined;
+	available: boolean;
+	driverVersion: string | undefined;
 }
 
 /**
@@ -23,32 +23,32 @@ interface GpuInfo {
  * OpenGL/Vulkan.  Falls back to `{ available: false }` on failure.
  */
 export async function detectGpu(): Promise<GpuInfo> {
-  try {
-    if (process.platform === "darwin") {
-      // macOS always has Metal on supported hardware
-      const proc = Bun.spawn(["system_profiler", "SPDisplaysDataType"], {
-        stdout: "pipe",
-        stderr: "ignore",
-      });
-      const text = await new Response(proc.stdout).text();
-      const hasMetal = text.includes("Metal");
-      return {
-        available: hasMetal,
-        driverVersion: hasMetal ? "metal" : undefined,
-      };
-    }
+	try {
+		if (process.platform === "darwin") {
+			// macOS always has Metal on supported hardware
+			const proc = Bun.spawn(["system_profiler", "SPDisplaysDataType"], {
+				stdout: "pipe",
+				stderr: "ignore",
+			});
+			const text = await new Response(proc.stdout).text();
+			const hasMetal = text.includes("Metal");
+			return {
+				available: hasMetal,
+				driverVersion: hasMetal ? "metal" : undefined,
+			};
+		}
 
-    // Linux: probe for OpenGL
-    const proc = Bun.spawn(["glxinfo"], { stdout: "pipe", stderr: "ignore" });
-    const text = await new Response(proc.stdout).text();
-    const versionMatch = text.match(/OpenGL version string:\s*(.+)/);
-    return {
-      available: versionMatch !== null,
-      driverVersion: versionMatch?.[1]?.trim(),
-    };
-  } catch {
-    return { available: false, driverVersion: undefined };
-  }
+		// Linux: probe for OpenGL
+		const proc = Bun.spawn(["glxinfo"], { stdout: "pipe", stderr: "ignore" });
+		const text = await new Response(proc.stdout).text();
+		const versionMatch = text.match(/OpenGL version string:\s*(.+)/);
+		return {
+			available: versionMatch !== null,
+			driverVersion: versionMatch?.[1]?.trim(),
+		};
+	} catch {
+		return { available: false, driverVersion: undefined };
+	}
 }
 
 // ---------------------------------------------------------------------------
@@ -65,26 +65,28 @@ let cachedCapabilities: RendererCapabilities | undefined;
  *
  * @param forceRefresh - If true, discard the cache and re-detect.
  */
-export async function detectCapabilities(forceRefresh = false): Promise<RendererCapabilities> {
-  if (cachedCapabilities !== undefined && !forceRefresh) {
-    return cachedCapabilities;
-  }
+export async function detectCapabilities(
+	forceRefresh = false,
+): Promise<RendererCapabilities> {
+	if (cachedCapabilities !== undefined && !forceRefresh) {
+		return cachedCapabilities;
+	}
 
-  const gpu = await detectGpu();
+	const gpu = await detectGpu();
 
-  const capabilities: RendererCapabilities = {
-    gpuAccelerated: gpu.available,
-    colorDepth: 24,
-    ligatureSupport: true, // ghostty supports ligatures natively
-    maxDimensions: { cols: 500, rows: 200 },
-    inputModes: ["raw", "cooked", "application"],
-    sixelSupport: true, // ghostty supports Sixel graphics
-    italicSupport: true,
-    strikethroughSupport: true,
-  };
+	const capabilities: RendererCapabilities = {
+		gpuAccelerated: gpu.available,
+		colorDepth: 24,
+		ligatureSupport: true, // ghostty supports ligatures natively
+		maxDimensions: { cols: 500, rows: 200 },
+		inputModes: ["raw", "cooked", "application"],
+		sixelSupport: true, // ghostty supports Sixel graphics
+		italicSupport: true,
+		strikethroughSupport: true,
+	};
 
-  cachedCapabilities = capabilities;
-  return capabilities;
+	cachedCapabilities = capabilities;
+	return capabilities;
 }
 
 /**
@@ -93,26 +95,26 @@ export async function detectCapabilities(forceRefresh = false): Promise<Renderer
  * Returns a sensible default if capabilities have not been detected yet.
  */
 export function getCachedCapabilities(): RendererCapabilities {
-  if (cachedCapabilities !== undefined) {
-    return cachedCapabilities;
-  }
+	if (cachedCapabilities !== undefined) {
+		return cachedCapabilities;
+	}
 
-  // Pre-detection defaults (conservative)
-  return {
-    gpuAccelerated: false,
-    colorDepth: 24,
-    ligatureSupport: true,
-    maxDimensions: { cols: 500, rows: 200 },
-    inputModes: ["raw", "cooked", "application"],
-    sixelSupport: true,
-    italicSupport: true,
-    strikethroughSupport: true,
-  };
+	// Pre-detection defaults (conservative)
+	return {
+		gpuAccelerated: false,
+		colorDepth: 24,
+		ligatureSupport: true,
+		maxDimensions: { cols: 500, rows: 200 },
+		inputModes: ["raw", "cooked", "application"],
+		sixelSupport: true,
+		italicSupport: true,
+		strikethroughSupport: true,
+	};
 }
 
 /**
  * Clear the cached capabilities (useful for testing).
  */
 export function clearCapabilityCache(): void {
-  cachedCapabilities = undefined;
+	cachedCapabilities = undefined;
 }

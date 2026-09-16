@@ -6,8 +6,13 @@
  * document's lang/dir attributes and re-renders all `t()` calls under the
  * provider. Combine with `useAnnounce` for status messages in translated form.
  */
-import { createContext, createSignal, useContext, type JSX } from "solid-js";
-import { createI18n, detectLocale, setLocale as persistLocale, type Locale } from "../i18n";
+import { createContext, createSignal, type JSX, useContext } from "solid-js";
+import {
+	createI18n,
+	detectLocale,
+	type Locale,
+	setLocale as persistLocale,
+} from "../i18n";
 import { applyDocumentLocale } from "../i18n/dir";
 
 export interface I18nContextValue {

@@ -2,34 +2,29 @@
 // import { DidNavigateEvent, DidNavigateInPageEvent } from "electron";
 type DidNavigateEvent = any;
 type DidNavigateInPageEvent = any;
-import {
-	type AppState,
-	type WebTabType,
-	focusTabWithId,
-	updateSyncedState,
-	openNewTabForNode,
-	getCurrentPane,
-	getPaneWithId,
-	setNodeExpanded,
-} from "../store";
+
+import { createEffect, createMemo, createSignal, Show } from "solid-js";
+import { produce } from "solid-js/store";
 import type {
 	CachedFileType,
-	PreviewFileTreeType,
+	DomEventWithTarget,
 } from "../../../shared/types/types";
-import { state, setState } from "../store";
-import { produce } from "solid-js/store";
-import { electrobun as electrobunImport } from "../init";
-import { getWindow } from "../store";
-
-import { getSlateForNode, getProjectForNodePath } from "../files";
-
-import { type DomEventWithTarget } from "../../../shared/types/types";
-import { Show, createEffect, createSignal, createMemo } from "solid-js";
-import { electrobun } from "../init";
-
+import { createBrowserProfileFolderName } from "../../utils/browserProfileUtils";
 import { join } from "../../utils/pathUtils";
 import { getNode } from "../FileWatcher";
-import { createBrowserProfileFolderName } from "../../utils/browserProfileUtils";
+import { getProjectForNodePath, getSlateForNode } from "../files";
+import { electrobun, electrobun as electrobunImport } from "../init";
+import {
+	type AppState,
+	getPaneWithId,
+	getWindow,
+	openNewTabForNode,
+	setNodeExpanded,
+	setState,
+	state,
+	updateSyncedState,
+	type WebTabType,
+} from "../store";
 
 // Give the window layout 1 second to settle (sidebar animation, pane sizing, etc.)
 // before revealing any web slates. All WebSlate instances share this signal so
@@ -392,7 +387,7 @@ console.log('Preload script loaded for:', window.location.href);
 					try {
 						const url = new URL(newUrl);
 						_tab.title = url.hostname;
-					} catch (err) {
+					} catch (_err) {
 						_tab.title = newUrl;
 					}
 				}),
@@ -415,9 +410,9 @@ console.log('Preload script loaded for:', window.location.href);
 	} | null>(null);
 
 	// Track loading state for timeout-based error detection
-	const [isLoading, setIsLoading] = createSignal(true);
+	const [_isLoading, setIsLoading] = createSignal(true);
 	let loadTimeoutId: ReturnType<typeof setTimeout> | null = null;
-	const LOAD_TIMEOUT_MS = 7000; // 7 seconds timeout
+	const _LOAD_TIMEOUT_MS = 7000; // 7 seconds timeout
 
 	const startLoadTimeout = (_url: string) => {
 		// Disabled: timeout-based error detection is unreliable
@@ -589,8 +584,8 @@ console.log('Preload script loaded for:', window.location.href);
 				pageTitle,
 				currentUrl,
 				parentFolderPath,
-				electrobun.rpc!.request.makeFileNameSafe,
-				electrobun.rpc!.request.getUniqueNewName,
+				electrobun.rpc?.request.makeFileNameSafe,
+				electrobun.rpc?.request.getUniqueNewName,
 			);
 			const browserProfilePath = join(parentFolderPath, nodeName);
 
@@ -729,8 +724,8 @@ console.log('Preload script loaded for:', window.location.href);
 				pageTitle,
 				currentUrl,
 				selectedPath,
-				electrobun.rpc!.request.makeFileNameSafe,
-				electrobun.rpc!.request.getUniqueNewName,
+				electrobun.rpc?.request.makeFileNameSafe,
+				electrobun.rpc?.request.getUniqueNewName,
 			);
 			const browserProfilePath = join(selectedPath, nodeName);
 
@@ -867,7 +862,7 @@ console.log('Preload script loaded for:', window.location.href);
 					setPreloadLoaded(true);
 					return;
 				}
-			} catch (err) {
+			} catch (_err) {
 				// File doesn't exist or can't be read, ignore error
 			}
 
@@ -968,7 +963,13 @@ console.log('Preload script loaded for:', window.location.href);
 						src={`views://assets/file-icons/browser-forward.svg`}
 					/>
 				</button>
-				<button class="browser-btn" type="button" onClick={onClickReload} aria-label="Reload" title="Reload">
+				<button
+					class="browser-btn"
+					type="button"
+					onClick={onClickReload}
+					aria-label="Reload"
+					title="Reload"
+				>
 					<img
 						width="12"
 						height="12"
@@ -977,7 +978,13 @@ console.log('Preload script loaded for:', window.location.href);
 					/>
 				</button>
 
-				<button class="browser-btn" type="button" onClick={onClickHome} aria-label="Home" title="Home">
+				<button
+					class="browser-btn"
+					type="button"
+					onClick={onClickHome}
+					aria-label="Home"
+					title="Home"
+				>
 					<img
 						width="12"
 						height="12"
@@ -1502,7 +1509,7 @@ console.log('Preload script loaded for:', window.location.href);
 						});
 
 						// YYYY - DidNavigateEvent
-						// @ts-ignore
+						// @ts-expect-error
 						webviewRef.on("did-navigate", async (e: DidNavigateEvent) => {
 							console.log("did-navigate event:", e.detail);
 
@@ -1537,7 +1544,7 @@ console.log('Preload script loaded for:', window.location.href);
 										try {
 											const url = new URL(e.detail);
 											_tab.title = url.hostname;
-										} catch (err) {
+										} catch (_err) {
 											// Invalid URL, don't set a title - wait for page-title-updated event
 											console.warn("Invalid URL in did-navigate:", e.detail);
 										}

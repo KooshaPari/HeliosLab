@@ -30,7 +30,10 @@ let alertEl: HTMLElement | null = null;
 // Track pending setTimeout handles per region so `cancel()` can flush them.
 // Without this, a `cancel()` between `writeRegion`'s `textContent = ""` and
 // the deferred write would still land the message after the cancel.
-const pendingTimers: WeakMap<HTMLElement, ReturnType<typeof setTimeout>> = new WeakMap();
+const pendingTimers: WeakMap<
+	HTMLElement,
+	ReturnType<typeof setTimeout>
+> = new WeakMap();
 
 function ensureRegions(): { live: HTMLElement; alert: HTMLElement } | null {
 	if (typeof document === "undefined") return null;

@@ -3,13 +3,13 @@
  * Aggregate gate reports into a pipeline summary.
  */
 
-import { readFileSync, existsSync, readdirSync, writeFileSync } from "fs";
-import { join } from "path";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import {
 	aggregateGateReports,
 	formatPipelineSummary,
-	writeGateReport,
 	type GateReport,
+	writeGateReport,
 } from "./gate-report";
 
 const REPORT_DIR = ".gate-reports";

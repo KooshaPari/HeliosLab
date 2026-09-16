@@ -3,9 +3,8 @@
  * Verifies all constitution violations are correctly detected.
  */
 
-import { test, expect, describe, beforeAll, afterAll } from "bun:test";
-import { promises as fs } from "fs";
-import * as path from "path";
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
+import { promises as fs } from "node:fs";
 import { runComplianceChecks } from "../compliance-checker";
 
 // Fixture directory for test files

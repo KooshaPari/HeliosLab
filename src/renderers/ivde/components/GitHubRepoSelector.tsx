@@ -1,10 +1,10 @@
 import {
-	For,
-	type JSXElement,
-	Show,
 	createEffect,
 	createSignal,
+	For,
+	type JSXElement,
 	onMount,
+	Show,
 } from "solid-js";
 import {
 	type GitHubOrganization,
@@ -52,14 +52,18 @@ export const GitHubRepoSelector = (
 	});
 
 	// Check if the search query is an owner/repo pattern
-	const isOwnerRepoPattern = (query: string): { owner: string; repo: string } | null => {
+	const isOwnerRepoPattern = (
+		query: string,
+	): { owner: string; repo: string } | null => {
 		const trimmed = query.trim();
 		// Match patterns like "owner/repo" or "https://github.com/owner/repo"
-		const urlMatch = trimmed.match(/(?:https?:\/\/)?(?:www\.)?github\.com\/([^\/\s]+)\/([^\/\s]+?)(?:\.git)?$/i);
+		const urlMatch = trimmed.match(
+			/(?:https?:\/\/)?(?:www\.)?github\.com\/([^/\s]+)\/([^/\s]+?)(?:\.git)?$/i,
+		);
 		if (urlMatch) {
 			return { owner: urlMatch[1], repo: urlMatch[2] };
 		}
-		const simpleMatch = trimmed.match(/^([^\/\s]+)\/([^\/\s]+)$/);
+		const simpleMatch = trimmed.match(/^([^/\s]+)\/([^/\s]+)$/);
 		if (simpleMatch) {
 			return { owner: simpleMatch[1], repo: simpleMatch[2] };
 		}
@@ -82,7 +86,10 @@ export const GitHubRepoSelector = (
 			const ownerRepo = isOwnerRepoPattern(searchQuery());
 			if (ownerRepo) {
 				try {
-					const repo = await githubService.fetchRepository(ownerRepo.owner, ownerRepo.repo);
+					const repo = await githubService.fetchRepository(
+						ownerRepo.owner,
+						ownerRepo.repo,
+					);
 					repos = [repo];
 				} catch (err) {
 					// If direct fetch fails, fall back to search

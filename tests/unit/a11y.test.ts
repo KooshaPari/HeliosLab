@@ -3,10 +3,14 @@
  * (useAnnounce, i18n dir resolution, editor config). These are framework-
  * independent and run under bun:test.
  */
-import { describe, it, expect } from "bun:test";
-import { dirFor, applyDocumentLocale } from "../../src/i18n/dir";
+import { describe, expect, it } from "bun:test";
+import {
+	AXE_DISABLED_RULES,
+	AXE_TAGS,
+	blockingViolations,
+} from "../../axe-config";
 import { ACCESSIBLE_EDITOR_OPTIONS } from "../../src/config/editor";
-import { AXE_TAGS, AXE_DISABLED_RULES, blockingViolations } from "../../axe-config";
+import { applyDocumentLocale, dirFor } from "../../src/i18n/dir";
 
 describe("a11y helpers", () => {
 	describe("dirFor()", () => {

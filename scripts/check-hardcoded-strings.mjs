@@ -11,13 +11,11 @@
  * Run from repo root. Exits non-zero on violations.
  */
 import { readdirSync, readFileSync, statSync } from "node:fs";
-import { join, extname, relative } from "node:path";
+import { extname, join, relative } from "node:path";
 
 const ROOT = process.cwd();
 const SRC = join(ROOT, "src");
-const EN_DICT = JSON.parse(
-	readFileSync(join(SRC, "i18n", "en.json"), "utf8"),
-);
+const EN_DICT = JSON.parse(readFileSync(join(SRC, "i18n", "en.json"), "utf8"));
 
 // Paths the new a11y PR owns — same scope as check-i18n-keys.mjs.
 const SCAN_ROOTS = [

@@ -14,13 +14,11 @@
  * Exits non-zero if any violation is found. Run from repo root.
  */
 import { readdirSync, readFileSync, statSync } from "node:fs";
-import { join, extname, relative } from "node:path";
+import { extname, join, relative } from "node:path";
 
 const ROOT = process.cwd();
 const SRC = join(ROOT, "src");
-const EN_DICT = JSON.parse(
-	readFileSync(join(SRC, "i18n", "en.json"), "utf8"),
-);
+const EN_DICT = JSON.parse(readFileSync(join(SRC, "i18n", "en.json"), "utf8"));
 
 // Flatten nested keys to dotted paths.
 function flatten(obj, prefix = "") {

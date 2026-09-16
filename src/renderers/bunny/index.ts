@@ -16,7 +16,8 @@ for (let i = 1; i <= DEPTH_LAYERS; i++) {
 	// Darken deeper layers to simulate shading on the edge
 	const brightness = Math.max(0.25, 1 - i * 0.06);
 	const computedFilter = getComputedStyle(frontImg).filter;
-	const baseFilter = computedFilter && computedFilter !== "none" ? computedFilter : "";
+	const baseFilter =
+		computedFilter && computedFilter !== "none" ? computedFilter : "";
 	layer.style.filter = `brightness(${brightness}) ${baseFilter}`;
 	layer.setAttribute("aria-hidden", "true");
 	bunny.insertBefore(layer, frontImg);
@@ -146,7 +147,11 @@ gl.useProgram(prog);
 // Fullscreen quad
 const buf = gl.createBuffer();
 gl.bindBuffer(gl.ARRAY_BUFFER, buf);
-gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+gl.bufferData(
+	gl.ARRAY_BUFFER,
+	new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]),
+	gl.STATIC_DRAW,
+);
 const aPos = gl.getAttribLocation(prog, "a_pos");
 gl.enableVertexAttribArray(aPos);
 gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
@@ -217,13 +222,16 @@ const rpc = Electroview.defineRPC<any>({
 	},
 });
 
-const electrobun = new Electrobun.Electroview({ rpc });
+const _electrobun = new Electrobun.Electroview({ rpc });
 
 // Click detection (distinguish from drag using screen coordinates)
 let downX = 0;
 let downY = 0;
 const scene = document.getElementById("scene")!;
-scene.addEventListener("mousedown", (e) => { downX = e.screenX; downY = e.screenY; });
+scene.addEventListener("mousedown", (e) => {
+	downX = e.screenX;
+	downY = e.screenY;
+});
 scene.addEventListener("mouseup", (e) => {
 	const dx = e.screenX - downX;
 	const dy = e.screenY - downY;
@@ -242,8 +250,7 @@ function animate() {
 	currentRotateX += velocityX;
 	currentRotateY += velocityY;
 
-	bunny.style.transform =
-		`rotateX(${currentRotateX}deg) rotateY(${currentRotateY}deg)`;
+	bunny.style.transform = `rotateX(${currentRotateX}deg) rotateY(${currentRotateY}deg)`;
 
 	// Drive electric spark shader with random bursts
 	if (performance.now() >= burstUntil) {

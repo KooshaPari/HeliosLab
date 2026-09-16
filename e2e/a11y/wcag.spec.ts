@@ -9,8 +9,9 @@
  * Excluded rules: see `axe-config.ts` (bypass, region). Monaco's complex
  * DOM doesn't satisfy those checks even when the underlying app is sound.
  */
-import { test, expect } from "@playwright/test";
+
 import AxeBuilder from "@axe-core/playwright";
+import { expect, test } from "@playwright/test";
 import { AXE_OPTIONS, blockingViolations } from "../../axe-config";
 
 const BASE_URL = process.env.HELIOSLAB_RENDERER_URL ?? "http://localhost:5173";
@@ -23,7 +24,9 @@ const ROUTES: Array<{ name: string; path: string }> = [
 
 test.describe("HeliosLab WCAG 2.1 AA", () => {
 	for (const route of ROUTES) {
-		test(`no critical/serious violations on ${route.name}`, async ({ page }) => {
+		test(`no critical/serious violations on ${route.name}`, async ({
+			page,
+		}) => {
 			await page.goto(`${BASE_URL}${route.path}`);
 			// Wait for the renderer root to mount.
 			await page.waitForSelector("#workbench-container", { timeout: 10_000 });
@@ -46,7 +49,9 @@ test.describe("HeliosLab WCAG 2.1 AA", () => {
 		});
 	}
 
-	test("all violations (including minor) are reported for visibility", async ({ page }) => {
+	test("all violations (including minor) are reported for visibility", async ({
+		page,
+	}) => {
 		await page.goto(`${BASE_URL}/`);
 		await page.waitForSelector("#workbench-container", { timeout: 10_000 });
 
@@ -62,7 +67,11 @@ test.describe("HeliosLab WCAG 2.1 AA", () => {
 		test.info().annotations.push({
 			type: "tracked-violations",
 			description: JSON.stringify(
-				tracked.map((v) => ({ id: v.id, count: v.nodes.length, impact: v.impact })),
+				tracked.map((v) => ({
+					id: v.id,
+					count: v.nodes.length,
+					impact: v.impact,
+				})),
 			),
 		});
 		expect(Array.isArray(tracked)).toBe(true);

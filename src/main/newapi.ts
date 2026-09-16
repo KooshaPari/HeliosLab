@@ -1,18 +1,18 @@
-import * as path from "path";
+import * as path from "node:path";
 // XXX - temp getAppPath
 export const getAppPath = () => {
-  return path.resolve("../Resources/");
+	return path.resolve("../Resources/");
 };
 // XXX - temp getVersion
 export const getVersion = () => {
-  return "1.0.0";
+	return "1.0.0";
 };
 
 export const getPath = (name: string) => {
-  if (name === "home") {
-    console.log("getPath", process.env["HOME"], path.resolve("~"));
-    return process.env["HOME"] || path.resolve("~");
-  } else {
-    return "";
-  }
+	if (name === "home") {
+		console.log("getPath", process.env.HOME, path.resolve("~"));
+		return process.env.HOME || path.resolve("~");
+	} else {
+		return "";
+	}
 };

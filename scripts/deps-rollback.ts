@@ -5,15 +5,15 @@
  */
 
 import {
-	readFileSync,
-	writeFileSync,
 	copyFileSync,
 	existsSync,
+	readFileSync,
 	unlinkSync,
-} from "fs";
-import { join } from "path";
-import type { DepsRegistry, ChangelogEntry } from "./deps-types";
+	writeFileSync,
+} from "node:fs";
+import { join } from "node:path";
 import { appendChangelogEntry } from "./deps-changelog-util";
+import type { ChangelogEntry, DepsRegistry } from "./deps-types";
 
 const REPO_ROOT = process.cwd();
 const REGISTRY_PATH = join(REPO_ROOT, "deps-registry.json");
@@ -33,7 +33,7 @@ function createBackup(): BackupFiles {
 	const backup: BackupFiles = {};
 
 	try {
-		require("fs").mkdirSync(BACKUP_DIR, { recursive: true });
+		require("node:fs").mkdirSync(BACKUP_DIR, { recursive: true });
 
 		if (existsSync(LOCKFILE_PATH)) {
 			backup.lockfile = join(BACKUP_DIR, `bun.lockb.${Date.now()}`);
@@ -79,7 +79,7 @@ function cleanupBackup(backup: BackupFiles): void {
 		if (backup.packageJson && existsSync(backup.packageJson)) {
 			unlinkSync(backup.packageJson);
 		}
-	} catch (e) {
+	} catch (_e) {
 		// Ignore cleanup errors
 	}
 }
@@ -135,12 +135,9 @@ async function rollback(packageName: string): Promise<void> {
 		}
 
 		// Update in dependencies or devDependencies
-		if (packageJson.dependencies && packageJson.dependencies[packageName]) {
+		if (packageJson.dependencies?.[packageName]) {
 			packageJson.dependencies[packageName] = rollbackVersion;
-		} else if (
-			packageJson.devDependencies &&
-			packageJson.devDependencies[packageName]
-		) {
+		} else if (packageJson.devDependencies?.[packageName]) {
 			packageJson.devDependencies[packageName] = rollbackVersion;
 		} else {
 			throw new Error(`Package '${packageName}' not found in package.json`);

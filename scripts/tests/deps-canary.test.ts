@@ -1,10 +1,10 @@
-import { expect, test, describe, beforeEach, afterEach } from "bun:test";
-import { readFileSync, writeFileSync, rmSync } from "fs";
-import { join } from "path";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { readFileSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 import type {
-	DepsRegistry,
-	DepsChangelog,
 	ChangelogEntry,
+	DepsChangelog,
+	DepsRegistry,
 } from "../deps-types";
 
 const REPO_ROOT = process.cwd();
@@ -253,7 +253,7 @@ describe("Dependency Canary Upgrade Process", () => {
 		const dep1Pin = dep1.currentPin;
 
 		// Simulate canary process targeting only one package
-		const targetPackage = registry.dependencies[1];
+		const _targetPackage = registry.dependencies[1];
 		// (would modify targetPackage but not dep1)
 
 		// Verify dep1 unchanged
@@ -272,7 +272,7 @@ describe("Dependency Canary Upgrade Process", () => {
 	test("registry cache is consulted before querying upstream", () => {
 		// The status command would have populated a cache
 		// Canary should use cached data when available
-		const cacheFile = join(REPO_ROOT, ".cache", "deps-status-cache.json");
+		const _cacheFile = join(REPO_ROOT, ".cache", "deps-status-cache.json");
 		// If cache exists, canary would use it
 		const useCache = true;
 		expect(useCache).toBe(true);

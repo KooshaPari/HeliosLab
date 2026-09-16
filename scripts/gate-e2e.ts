@@ -4,12 +4,12 @@
  * Parses Playwright output and generates structured JSON report
  */
 
-import { readFileSync, existsSync } from "fs";
+import { existsSync, readFileSync } from "node:fs";
 import {
 	createGateReport,
-	writeGateReport,
 	formatGateReport,
 	type GateFinding,
+	writeGateReport,
 } from "./gate-report";
 
 const REPORT_OUTPUT = ".gate-reports/gate-e2e.json";

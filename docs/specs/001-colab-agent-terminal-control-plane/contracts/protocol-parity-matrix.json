@@ -535,9 +535,7 @@
 		{
 			"name": "lane.attach.started",
 			"status": "implemented",
-			"contract_refs": [
-				"orchestration-envelope.schema.json#/allOf"
-			],
+			"contract_refs": ["orchestration-envelope.schema.json#/allOf"],
 			"runtime_refs": [
 				"apps/runtime/src/protocol/bus/request-handlers.ts",
 				"apps/runtime/tests/unit/protocol/protocol_bus.test.ts"
@@ -547,9 +545,7 @@
 		{
 			"name": "lane.attach.failed",
 			"status": "implemented",
-			"contract_refs": [
-				"orchestration-envelope.schema.json#/allOf"
-			],
+			"contract_refs": ["orchestration-envelope.schema.json#/allOf"],
 			"runtime_refs": [
 				"apps/runtime/src/protocol/bus/lifecycle.ts",
 				"apps/runtime/tests/unit/protocol/protocol_bus.test.ts"
@@ -559,9 +555,7 @@
 		{
 			"name": "lane.cleanup.started",
 			"status": "implemented",
-			"contract_refs": [
-				"orchestration-envelope.schema.json#/allOf"
-			],
+			"contract_refs": ["orchestration-envelope.schema.json#/allOf"],
 			"runtime_refs": [
 				"apps/runtime/src/protocol/bus/lifecycle.ts",
 				"apps/runtime/tests/unit/protocol/protocol_bus.test.ts"
@@ -571,9 +565,7 @@
 		{
 			"name": "lane.cleanup.failed",
 			"status": "implemented",
-			"contract_refs": [
-				"orchestration-envelope.schema.json#/allOf"
-			],
+			"contract_refs": ["orchestration-envelope.schema.json#/allOf"],
 			"runtime_refs": [
 				"apps/runtime/src/protocol/bus/lifecycle.ts",
 				"apps/runtime/tests/unit/protocol/protocol_bus.test.ts"

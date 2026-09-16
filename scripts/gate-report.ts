@@ -93,8 +93,8 @@ export function createGateReport(
  * Write a gate report to disk as JSON.
  */
 export function writeGateReport(report: GateReport, outputPath: string): void {
-	const fs = require("fs");
-	const dir = require("path").dirname(outputPath);
+	const fs = require("node:fs");
+	const dir = require("node:path").dirname(outputPath);
 
 	// Ensure directory exists
 	fs.mkdirSync(dir, { recursive: true });
@@ -125,7 +125,7 @@ export function aggregateGateReports(reports: GateReport[]): PipelineSummary {
  * Read a gate report from disk.
  */
 export function readGateReport(filePath: string): GateReport {
-	const fs = require("fs");
+	const fs = require("node:fs");
 	const data = JSON.parse(fs.readFileSync(filePath, "utf-8"));
 	return data as GateReport;
 }

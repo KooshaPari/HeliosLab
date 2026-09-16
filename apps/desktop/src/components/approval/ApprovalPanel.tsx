@@ -7,108 +7,117 @@ import { createSignal, For } from "solid-js";
 import type { ApprovalRequest } from "../../types/approval";
 
 interface ApprovalPanelProps {
-  requests: ApprovalRequest[];
-  onApprove: (id: string) => void;
-  onReject: (id: string, reason: string) => void;
+	requests: ApprovalRequest[];
+	onApprove: (id: string) => void;
+	onReject: (id: string, reason: string) => void;
 }
 
 export function ApprovalPanel(props: ApprovalPanelProps) {
-  const [selectedId, setSelectedId] = createSignal<string | null>(null);
-  const [rejectReason, setRejectReason] = createSignal("");
+	const [selectedId, setSelectedId] = createSignal<string | null>(null);
+	const [rejectReason, setRejectReason] = createSignal("");
 
-  const selectedRequest = () => {
-    const id = selectedId();
-    return id ? props.requests.find(r => r.id === id) : null;
-  };
+	const selectedRequest = () => {
+		const id = selectedId();
+		return id ? props.requests.find((r) => r.id === id) : null;
+	};
 
-  const handleApprove = (id: string) => {
-    props.onApprove(id);
-    setSelectedId(null);
-  };
+	const handleApprove = (id: string) => {
+		props.onApprove(id);
+		setSelectedId(null);
+	};
 
-  const handleReject = () => {
-    const id = selectedId();
-    if (id && rejectReason()) {
-      props.onReject(id, rejectReason());
-      setSelectedId(null);
-      setRejectReason("");
-    }
-  };
+	const handleReject = () => {
+		const id = selectedId();
+		if (id && rejectReason()) {
+			props.onReject(id, rejectReason());
+			setSelectedId(null);
+			setRejectReason("");
+		}
+	};
 
-  return (
-    <div class="approval-panel">
-      <h2>Pending Approvals ({props.requests.length})</h2>
+	return (
+		<div class="approval-panel">
+			<h2>Pending Approvals ({props.requests.length})</h2>
 
-      {props.requests.length === 0 ? (
-        <p class="empty-state">No pending approval requests</p>
-      ) : (
-        <div class="requests-list">
-          <For each={props.requests}>
-            {request => (
-              <div
-                class={`request-item ${selectedId() === request.id ? "selected" : ""}`}
-                onclick={() => setSelectedId(request.id)}
-              >
-                <div class="request-header">
-                  <code class="command">{request.command}</code>
-                  <span class="agent">{request.agentId}</span>
-                </div>
-                <div class="request-meta">
-                  <span>{request.requesterName}</span>
-                  <span class="time">{new Date(request.createdAt).toLocaleString()}</span>
-                </div>
-              </div>
-            )}
-          </For>
-        </div>
-      )}
+			{props.requests.length === 0 ? (
+				<p class="empty-state">No pending approval requests</p>
+			) : (
+				<div class="requests-list">
+					<For each={props.requests}>
+						{(request) => (
+							<div
+								class={`request-item ${selectedId() === request.id ? "selected" : ""}`}
+								onclick={() => setSelectedId(request.id)}
+							>
+								<div class="request-header">
+									<code class="command">{request.command}</code>
+									<span class="agent">{request.agentId}</span>
+								</div>
+								<div class="request-meta">
+									<span>{request.requesterName}</span>
+									<span class="time">
+										{new Date(request.createdAt).toLocaleString()}
+									</span>
+								</div>
+							</div>
+						)}
+					</For>
+				</div>
+			)}
 
-      {selectedRequest() && (
-        <div class="approval-details">
-          <h3>Review Request</h3>
-          <div class="detail-group">
-            <span aria-label="Command">Command:</span>
-            <code>{selectedRequest()?.command}</code>
-          </div>
-          <div class="detail-group">
-            <span aria-label="Requested by">Requested by:</span>
-            <span>{selectedRequest()?.requesterName}</span>
-          </div>
-          <div class="detail-group">
-            <span aria-label="Workspace">Workspace:</span>
-            <span>{selectedRequest()?.workspaceId}</span>
-          </div>
+			{selectedRequest() && (
+				<div class="approval-details">
+					<h3>Review Request</h3>
+					<div class="detail-group">
+						<span aria-label="Command">Command:</span>
+						<code>{selectedRequest()?.command}</code>
+					</div>
+					<div class="detail-group">
+						<span aria-label="Requested by">Requested by:</span>
+						<span>{selectedRequest()?.requesterName}</span>
+					</div>
+					<div class="detail-group">
+						<span aria-label="Workspace">Workspace:</span>
+						<span>{selectedRequest()?.workspaceId}</span>
+					</div>
 
-          <div class="approval-actions">
-            <button class="approve-btn" onclick={() => handleApprove(selectedRequest()?.id ?? "")}>
-              Approve
-            </button>
-            <button type="button" class="reject-btn" onclick={() => setRejectReason("focused")}>
-              Reject
-            </button>
-          </div>
+					<div class="approval-actions">
+						<button
+							class="approve-btn"
+							onclick={() => handleApprove(selectedRequest()?.id ?? "")}
+						>
+							Approve
+						</button>
+						<button
+							type="button"
+							class="reject-btn"
+							onclick={() => setRejectReason("focused")}
+						>
+							Reject
+						</button>
+					</div>
 
-          {rejectReason() === "focused" && (
-            <div class="reject-form">
-              <textarea
-                placeholder="Reason for rejection..."
-                value={rejectReason()}
-                oninput={e => setRejectReason(e.currentTarget.value)}
-              />
-              <div class="reject-actions">
-                <button type="button" onclick={handleReject}>
-                  Confirm Reject
-                </button>
-                <button type="button" onclick={() => setRejectReason("")}>
-                  Cancel
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
+					{rejectReason() === "focused" && (
+						<div class="reject-form">
+							<textarea
+								placeholder="Reason for rejection..."
+								value={rejectReason()}
+								oninput={(e) => setRejectReason(e.currentTarget.value)}
+							/>
+							<div class="reject-actions">
+								<button type="button" onclick={handleReject}>
+									Confirm Reject
+								</button>
+								<button type="button" onclick={() => setRejectReason("")}>
+									Cancel
+								</button>
+							</div>
+						</div>
+					)}
+				</div>
+			)}
 
-      <style>{`
+			<style>{`
         .approval-panel {
           display: flex;
           flex-direction: column;
@@ -230,6 +239,6 @@ export function ApprovalPanel(props: ApprovalPanelProps) {
           padding: 2rem;
         }
       `}</style>
-    </div>
-  );
+		</div>
+	);
 }

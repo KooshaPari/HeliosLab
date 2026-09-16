@@ -1,10 +1,10 @@
-import { expect, test, describe, beforeEach, afterEach } from "bun:test";
-import { rmSync, existsSync, readFileSync, writeFileSync } from "fs";
-import { join } from "path";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { existsSync, rmSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 import {
-	validateChangelogEntry,
-	loadChangelog,
 	appendChangelogEntry,
+	loadChangelog,
+	validateChangelogEntry,
 } from "../deps-changelog-util";
 import type { ChangelogEntry, DepsChangelog } from "../deps-types";
 
@@ -23,7 +23,7 @@ describe("Dependency Changelog Utility", () => {
 		// Clean up test changelog
 		try {
 			rmSync(CHANGELOG_PATH, { force: true });
-		} catch (e) {
+		} catch (_e) {
 			// Ignore
 		}
 	});

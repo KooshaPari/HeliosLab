@@ -1,111 +1,59 @@
 import {
 	type Accessor,
+	createEffect,
+	createMemo,
+	createSignal,
 	For,
 	type JSX,
 	Match,
+	onMount,
 	Show,
 	Switch,
-	createEffect,
-	createMemo,
-	createRenderEffect,
-	createSignal,
-	onMount,
 } from "solid-js";
-import { produce, reconcile, unwrap } from "solid-js/store";
+import { produce } from "solid-js/store";
 import { render, untrack } from "solid-js/web";
 import "./FileWatcher";
+
+import { makeFileNameSafe } from "../../shared/utils/files";
+
+import {
+	findPluginSlateForFile,
+	getProjectByRootPath,
+	getSlateForNode,
+	isProjectRoot,
+	loadPluginSlates,
+	type PluginSlateInfo,
+	writeSlateConfigFile,
+} from "./files";
 // import { Electroview } from "electrobun/view";
 // import { type WorkspaceRPC } from "./rpc";
 import { electrobun } from "./init";
-
-import {
-	//   createDevlinkFiles,
-	getProjectForNode,
-	getSlateForNode,
-	isDescendantPath,
-	isProjectRoot,
-	getProjectByRootPath,
-	writeSlateConfigFile,
-	findPluginSlateForFile,
-	loadPluginSlates,
-	type PluginSlateInfo,
-} from "./files";
-
-import { makeFileNameSafe } from "../../shared/utils/files";
 import "./index.css";
-import {
-	type AppState,
-	type FileTabType,
-	type LayoutContainerType,
-	type LayoutPaneType,
-	type PaneLayoutType,
-	type TabType,
-	type TerminalTabType,
-	type WebTabType,
-	type WindowType,
-	addOpenFile,
-	closeTab,
-	editNodeSettings,
-	focusTabWithId,
-	getCurrentPane,
-	getCurrentTab,
-	getPane,
-	getPaneWithId,
-	getRootPane,
-	getUniqueId,
-	getWindow,
-	openFileAt,
-	openNewTab,
-	openNewTabForNode,
-	removeOpenFile,
-	removeProjectFromColab,
-	setNodeExpanded,
-	setPreviewNode,
-	setPreviewNodeSlateConfig,
-	setPreviewNodeSlateIcon,
-	setPreviewNodeSlateName,
-	setPreviewNodeSlateToken,
-	setPreviewNodeSlateUrl,
-	setState,
-	// fullyDeleteNode,
-	splitPane,
-	state,
-	updateSyncedAppSettings,
-	updateSyncedState,
-	walkPanesForId,
-} from "./store";
-
 
 import type {
-	CachedFileType,
 	DomEventWithTarget,
-	FileNodeType,
-	PostMessageShowContextMenu,
-	PreviewFileTreeType,
 	ProjectType,
 	SlateType,
 } from "../../shared/types/types";
-
+import { parentNodePath } from "../utils/fileUtils";
+import { join } from "../utils/pathUtils";
+import { Editor } from "./CodeEditor";
+import { BlackboardAnimation } from "./components/BlackboardAnimation";
+import { Dialog } from "./components/Dialog";
+import { GitHubRepoSelector } from "./components/GitHubRepoSelector";
+import { StatusBar } from "./components/StatusBar";
+import { TopBar } from "./components/TopBar";
 import {
+	createContextMenuAction,
 	FindAllResultsTree,
+	getIconForNode,
 	OpenFilesTree,
 	ProjectsTree,
 	TemplateNodes,
-	createContextMenuAction,
-	getIconForNode,
 } from "./FileTree";
 import { getNode } from "./FileWatcher";
-import { BlackboardAnimation } from "./components/BlackboardAnimation";
-import { GitHubRepoSelector } from "./components/GitHubRepoSelector";
-import { StatusBar } from "./components/StatusBar";
-import { Dialog } from "./components/Dialog";
-import { TopBar } from "./components/TopBar";
 import { type GitHubRepository, githubService } from "./services/githubService";
 import { ColabCloudSettings } from "./settings/ColabCloudSettings";
-import { GitHubSettings } from "./settings/GitHubSettings";
-import { LlamaSettings } from "./settings/LlamaSettings";
-import { PluginMarketplace } from "./settings/PluginMarketplace";
-import { PluginSettings } from "./settings/PluginSettings";
 import {
 	SettingsInputField,
 	SettingsPaneField,
@@ -113,18 +61,50 @@ import {
 	SettingsPaneSaveClose,
 	SettingsReadonlyField,
 } from "./settings/forms";
-
-import { parentNodePath } from "../utils/fileUtils";
-
-import { join } from "../utils/pathUtils";
-
-import { Editor } from "./CodeEditor";
+import { GitHubSettings } from "./settings/GitHubSettings";
+import { LlamaSettings } from "./settings/LlamaSettings";
+import { PluginMarketplace } from "./settings/PluginMarketplace";
+import { PluginSettings } from "./settings/PluginSettings";
 import { AgentSlate } from "./slates/AgentSlate";
 import { GitSlate } from "./slates/GitSlate";
 import { PluginSlate } from "./slates/PluginSlate";
 // XXX - terminal slate
 import { TerminalSlate } from "./slates/TerminalSlate";
 import { WebSlate } from "./slates/WebSlate";
+import {
+	type AppState,
+	addOpenFile,
+	closeTab,
+	type FileTabType,
+	getCurrentPane,
+	getCurrentTab,
+	getPane,
+	getPaneWithId,
+	getRootPane,
+	getWindow,
+	type LayoutContainerType,
+	type LayoutPaneType,
+	openFileAt,
+	openNewTabForNode,
+	type PaneLayoutType,
+	removeOpenFile,
+	setNodeExpanded,
+	setPreviewNode,
+	setPreviewNodeSlateConfig,
+	setPreviewNodeSlateIcon,
+	setPreviewNodeSlateName,
+	setPreviewNodeSlateUrl,
+	setState,
+	// fullyDeleteNode,
+	splitPane,
+	state,
+	type TabType,
+	updateSyncedAppSettings,
+	updateSyncedState,
+	type WebTabType,
+	type WindowType,
+	walkPanesForId,
+} from "./store";
 
 // todo (yoav): download this somewhere and move them to files.ts or something
 const defaultWebFaviconUrl = () => "views://assets/file-icons/bookmark.svg";
@@ -169,7 +149,7 @@ const confirmCloseWindow = () => {
 };
 
 // Listen for close window dialog event from init.ts closeCurrentWindow handler
-window.addEventListener('showCloseWindowDialog', () => {
+window.addEventListener("showCloseWindowDialog", () => {
 	setCloseWindowDialogOpen(true);
 });
 
@@ -217,9 +197,9 @@ document.addEventListener(
 			e.preventDefault();
 			e.stopImmediatePropagation();
 			setState("ui", "showCommandPalette", true);
-		// cmd+t handled by application menu via newBrowserTab RPC
-		// cmd+w handled by application menu via closeCurrentTab RPC
-		// cmd+shift+w handled by application menu via closeCurrentWindow RPC
+			// cmd+t handled by application menu via newBrowserTab RPC
+			// cmd+w handled by application menu via closeCurrentTab RPC
+			// cmd+shift+w handled by application menu via closeCurrentWindow RPC
 		} else if (e.key === "r" && e.metaKey === true) {
 			// refresh the current tab
 			const currentTab = getCurrentTab();
@@ -254,7 +234,7 @@ document.addEventListener(
 						return;
 					}
 					const currentPane = getCurrentPane(_state) as LayoutPaneType;
-					if (!currentPane || !currentPane.currentTabId) {
+					if (!currentPane?.currentTabId) {
 						return;
 					}
 
@@ -262,7 +242,8 @@ document.addEventListener(
 						currentPane.currentTabId,
 					);
 					const nextTabIndex =
-						(currentTabIndex - 1 + currentPane.tabIds.length) % currentPane.tabIds.length;
+						(currentTabIndex - 1 + currentPane.tabIds.length) %
+						currentPane.tabIds.length;
 					const nextTabId = currentPane.tabIds[nextTabIndex];
 					currentPane.currentTabId = nextTabId;
 				}),
@@ -277,7 +258,7 @@ document.addEventListener(
 						return;
 					}
 					const currentPane = getCurrentPane(_state) as LayoutPaneType;
-					if (!currentPane || !currentPane.currentTabId) {
+					if (!currentPane?.currentTabId) {
 						return;
 					}
 
@@ -296,7 +277,7 @@ document.addEventListener(
 		}
 
 		// Check plugin keybindings (global context)
-		checkPluginKeybindings(e, 'global');
+		checkPluginKeybindings(e, "global");
 	},
 	true,
 );
@@ -305,7 +286,7 @@ document.addEventListener(
 let pluginKeybindingsCache: Array<{
 	key: string;
 	command: string;
-	when?: 'editor' | 'terminal' | 'global';
+	when?: "editor" | "terminal" | "global";
 }> = [];
 let keybindingsCacheTime = 0;
 const KEYBINDINGS_CACHE_TTL = 5000; // 5 seconds
@@ -318,20 +299,26 @@ async function refreshPluginKeybindings() {
 			keybindingsCacheTime = Date.now();
 		}
 	} catch (err) {
-		console.warn('Failed to fetch plugin keybindings:', err);
+		console.warn("Failed to fetch plugin keybindings:", err);
 	}
 }
 
 // Helper to parse a key string like "ctrl+shift+m" into modifiers
-function parseKeyString(keyStr: string): { key: string; ctrl: boolean; shift: boolean; alt: boolean; meta: boolean } {
-	const parts = keyStr.toLowerCase().split('+');
+function parseKeyString(keyStr: string): {
+	key: string;
+	ctrl: boolean;
+	shift: boolean;
+	alt: boolean;
+	meta: boolean;
+} {
+	const parts = keyStr.toLowerCase().split("+");
 	const key = parts[parts.length - 1];
 	return {
 		key,
-		ctrl: parts.includes('ctrl'),
-		shift: parts.includes('shift'),
-		alt: parts.includes('alt'),
-		meta: parts.includes('meta') || parts.includes('cmd'),
+		ctrl: parts.includes("ctrl"),
+		shift: parts.includes("shift"),
+		alt: parts.includes("alt"),
+		meta: parts.includes("meta") || parts.includes("cmd"),
 	};
 }
 
@@ -348,7 +335,10 @@ function matchesKeybinding(e: KeyboardEvent, keyStr: string): boolean {
 }
 
 // Check and execute plugin keybindings
-async function checkPluginKeybindings(e: KeyboardEvent, context: 'editor' | 'terminal' | 'global') {
+async function checkPluginKeybindings(
+	e: KeyboardEvent,
+	context: "editor" | "terminal" | "global",
+) {
 	// Refresh cache if stale
 	if (Date.now() - keybindingsCacheTime > KEYBINDINGS_CACHE_TTL) {
 		await refreshPluginKeybindings();
@@ -356,7 +346,11 @@ async function checkPluginKeybindings(e: KeyboardEvent, context: 'editor' | 'ter
 
 	for (const keybinding of pluginKeybindingsCache) {
 		// Check if the keybinding matches the current context
-		if (keybinding.when && keybinding.when !== context && keybinding.when !== 'global') {
+		if (
+			keybinding.when &&
+			keybinding.when !== context &&
+			keybinding.when !== "global"
+		) {
 			continue;
 		}
 
@@ -371,7 +365,7 @@ async function checkPluginKeybindings(e: KeyboardEvent, context: 'editor' | 'ter
 					args: [],
 				});
 			} catch (err) {
-				console.error('Failed to execute plugin command:', err);
+				console.error("Failed to execute plugin command:", err);
 			}
 			break;
 		}
@@ -558,7 +552,7 @@ const App = () => {
 	const githubAuthUrl = () => state.githubAuth.authUrl || "";
 
 	// YYY - Electron.WebviewTag;
-	let githubAuthWebview: any; //
+	let _githubAuthWebview: any; //
 
 	let shadowHost: HTMLDivElement | undefined;
 	let shadowRoot: ShadowRoot;
@@ -580,14 +574,17 @@ const App = () => {
 		}
 
 		// Listen for openFileInEditor events from the main process
-		const handleOpenFileInEditor = async (e: CustomEvent<{ filePath: string; createIfNotExists?: boolean }>) => {
+		const handleOpenFileInEditor = async (
+			e: CustomEvent<{ filePath: string; createIfNotExists?: boolean }>,
+		) => {
 			const { filePath } = e.detail;
-			const fileName = filePath.split('/').pop() || filePath;
+			const fileName = filePath.split("/").pop() || filePath;
 
 			// Check if file is within a project
 			const projects = Object.values(state.projects);
-			const isInProject = projects.some(project =>
-				filePath.startsWith(project.path + '/') || filePath === project.path
+			const isInProject = projects.some(
+				(project) =>
+					filePath.startsWith(`${project.path}/`) || filePath === project.path,
 			);
 
 			// For non-project files, we need to fetch the node and cache it first
@@ -598,14 +595,14 @@ const App = () => {
 					setState("fileCache", filePath, node);
 				} else {
 					// File doesn't exist or couldn't be accessed
-					console.error('Could not get node for file:', filePath);
+					console.error("Could not get node for file:", filePath);
 					return;
 				}
 			}
 
 			if (!isInProject) {
 				// Add to open files list
-				addOpenFile(filePath, fileName, 'file');
+				addOpenFile(filePath, fileName, "file");
 			}
 
 			// Defer opening the file to ensure state updates have propagated
@@ -616,14 +613,18 @@ const App = () => {
 		};
 
 		// Listen for openFolderAsProject events from the main process
-		const handleOpenFolderAsProject = async (e: CustomEvent<{ folderPath: string }>) => {
+		const handleOpenFolderAsProject = async (
+			e: CustomEvent<{ folderPath: string }>,
+		) => {
 			const { folderPath } = e.detail;
-			const folderName = folderPath.split('/').pop() || folderPath;
+			const folderName = folderPath.split("/").pop() || folderPath;
 
 			// Check if project already exists
-			const existingProject = Object.values(state.projects).find(p => p.path === folderPath);
+			const existingProject = Object.values(state.projects).find(
+				(p) => p.path === folderPath,
+			);
 			if (existingProject) {
-				console.log('Project already exists:', folderPath);
+				console.log("Project already exists:", folderPath);
 				return;
 			}
 
@@ -634,7 +635,7 @@ const App = () => {
 					path: folderPath,
 				});
 			} catch (err) {
-				console.error('Failed to add project:', err);
+				console.error("Failed to add project:", err);
 			}
 		};
 
@@ -644,9 +645,18 @@ const App = () => {
 			removeOpenFile(filePath);
 		};
 
-		window.addEventListener('openFileInEditor', handleOpenFileInEditor as EventListener);
-		window.addEventListener('openFolderAsProject', handleOpenFolderAsProject as EventListener);
-		window.addEventListener('removeOpenFile', handleRemoveOpenFile as EventListener);
+		window.addEventListener(
+			"openFileInEditor",
+			handleOpenFileInEditor as EventListener,
+		);
+		window.addEventListener(
+			"openFolderAsProject",
+			handleOpenFolderAsProject as EventListener,
+		);
+		window.addEventListener(
+			"removeOpenFile",
+			handleRemoveOpenFile as EventListener,
+		);
 	});
 
 	const [isLoaded, setIsLoaded] = createSignal(false);
@@ -681,7 +691,7 @@ const App = () => {
 		e.preventDefault();
 		e.stopPropagation();
 		if (e.dataTransfer) {
-			e.dataTransfer.dropEffect = 'copy';
+			e.dataTransfer.dropEffect = "copy";
 		}
 	};
 
@@ -816,10 +826,14 @@ const App = () => {
 									<Match when={state.settingsPane.type === "github-settings"}>
 										<GitHubSettings />
 									</Match>
-									<Match when={state.settingsPane.type === "colab-cloud-settings"}>
+									<Match
+										when={state.settingsPane.type === "colab-cloud-settings"}
+									>
 										<ColabCloudSettings />
 									</Match>
-									<Match when={state.settingsPane.type === "plugin-marketplace"}>
+									<Match
+										when={state.settingsPane.type === "plugin-marketplace"}
+									>
 										<PluginMarketplace />
 									</Match>
 									<Match when={state.settingsPane.type === "plugin-settings"}>
@@ -834,7 +848,7 @@ const App = () => {
 							// nodeintegration={false}
 							ref={(el) => {
 								// YYY - el was Electron.WebviewTag type
-								githubAuthWebview = el; // as Electron.WebviewTag;
+								_githubAuthWebview = el; // as Electron.WebviewTag;
 								el.addEventListener(
 									"did-navigate",
 									githubAuthWebviewWillNavigate,
@@ -1164,7 +1178,7 @@ const AnalyticsSettingsSection = ({
 	setAnalyticsEnabled: (value: boolean) => void;
 	analyticsStatus: Accessor<any>;
 }): JSXElement => {
-	const [hasBeenPrompted, setHasBeenPrompted] = createSignal(false);
+	const [hasBeenPrompted, _setHasBeenPrompted] = createSignal(false);
 
 	return (
 		<SettingsPaneFormSection label="Privacy & Analytics">
@@ -1246,13 +1260,13 @@ const getContainerCSS = (container: LayoutContainerType, index: number) => {
 				"flex-grow": 1,
 				width: value,
 				height: "100%",
-		  }
+			}
 		: {
 				display: "flex",
 				"flex-grow": 1,
 				width: "100%",
 				height: value,
-		  };
+			};
 };
 
 const PaneContainerComponent = ({
@@ -1627,15 +1641,15 @@ const Pane = ({
 				? "horizontal-join-right"
 				: "horizontal-join-left"
 			: paneSiblingIndex === 0
-			  ? "vertical-join-down"
-			  : "vertical-join-up";
+				? "vertical-join-down"
+				: "vertical-join-up";
 
 	// Removed isDroppingTabAtEnd - was only used by the new tab button
 
 	return (
 		<div
 			ref={paneRef}
-			onDragEnter={(e) => {
+			onDragEnter={(_e) => {
 				if (!isDropTarget()) {
 					if (!state.dragState?.type) {
 						return;
@@ -1794,12 +1808,17 @@ const Pane = ({
 				>
 					<For each={pane.tabIds}>
 						{(tabId) => (
-							<div style={{
-								position: "absolute",
-								inset: "0",
-								display: tabId === pane.currentTabId ? "block" : "none",
-								"pointer-events": tabId === pane.currentTabId && !renderDropTarget() ? "auto" : "none",
-							}}>
+							<div
+								style={{
+									position: "absolute",
+									inset: "0",
+									display: tabId === pane.currentTabId ? "block" : "none",
+									"pointer-events":
+										tabId === pane.currentTabId && !renderDropTarget()
+											? "auto"
+											: "none",
+								}}
+							>
 								<slot name={`paneslot-${tabId}`} />
 							</div>
 						)}
@@ -1917,16 +1936,23 @@ const TabContent = ({ tabId }: { tabId: string }) => {
 				</Match>
 
 				{/* Force editor - bypass slate rendering when forceEditor is true */}
-				<Match when={(tab() as FileTabType)?.forceEditor && getNode(tab()?.path)?.type === "file"}>
+				<Match
+					when={
+						(tab() as FileTabType)?.forceEditor &&
+						getNode(tab()?.path)?.type === "file"
+					}
+				>
 					<Editor currentTabId={(tab() as FileTabType)?.id} />
 				</Match>
 
 				{/* Plugin slates - check plugin-registered slates before built-in slates */}
-				<Match when={(() => {
-					const node = getNode(tab()?.path);
-					if (!node?.path) return null;
-					return findPluginSlateForFile(node.path);
-				})()}>
+				<Match
+					when={(() => {
+						const node = getNode(tab()?.path);
+						if (!node?.path) return null;
+						return findPluginSlateForFile(node.path);
+					})()}
+				>
 					{(pluginSlate) => (
 						<PluginSlate
 							node={getNode(tab()?.path)}
@@ -1993,7 +2019,7 @@ const PaneTab = ({
 	pathToPane: PanePathType;
 	paneId: string;
 }) => {
-	const [isDragging, setIsDragging] = createSignal(false);
+	const [_isDragging, setIsDragging] = createSignal(false);
 	const [hideWileDragging, setHideWhileDragging] = createSignal(false);
 	const tab = () => {
 		return getWindow()?.tabs[tabId];
@@ -2233,7 +2259,7 @@ const PaneTab = ({
 	const [isHovered, setIsHovered] = createSignal(false);
 	const [isHoveredOnX, setIsHoveredOnX] = createSignal(false);
 
-	const onContextMenu = (e: DomEventWithTarget<MouseEvent>) => {
+	const onContextMenu = (_e: DomEventWithTarget<MouseEvent>) => {
 		console.info("right click context menu tab");
 	};
 
@@ -2244,131 +2270,127 @@ const PaneTab = ({
 					// display: "none",
 					// width: "10px",
 					// overflow: "hidden",
-			  }
+				}
 			: {};
 	};
 
 	return (
-		<>
-			<div
-				// ref={tabRef}
-				data-isdragging={hideWileDragging()}
-				onMouseEnter={() => setIsHovered(true)}
-				onMouseLeave={() => setIsHovered(false)}
-				draggable={true}
-				data-tabId={tabId}
-				onDragStart={(e) => {
-					setIsDragging(true);
+		<div
+			// ref={tabRef}
+			data-isdragging={hideWileDragging()}
+			onMouseEnter={() => setIsHovered(true)}
+			onMouseLeave={() => setIsHovered(false)}
+			draggable={true}
+			data-tabId={tabId}
+			onDragStart={(_e) => {
+				setIsDragging(true);
 
-					setState("dragState", {
-						type: "tab",
-						id: tabId,
-						targetTabIndex: index(),
-						targetPaneId: paneId,
-					});
-				}}
-				onDragOver={(e) => {
-					console.log("onDragOVer Tab");
-					// This removes the animation when dragging is finished where the
-					// drag preview slowly animates back to the original location
-					e.preventDefault();
+				setState("dragState", {
+					type: "tab",
+					id: tabId,
+					targetTabIndex: index(),
+					targetPaneId: paneId,
+				});
+			}}
+			onDragOver={(e) => {
+				console.log("onDragOVer Tab");
+				// This removes the animation when dragging is finished where the
+				// drag preview slowly animates back to the original location
+				e.preventDefault();
 
-					if (state.dragState) {
-						const { type } = state.dragState;
-						// todo (yoav): add a util for determining if a node can be opened in a new tab
+				if (state.dragState) {
+					const { type } = state.dragState;
+					// todo (yoav): add a util for determining if a node can be opened in a new tab
+					if (type === "tab" || canOpenNodeInNewTab(state.dragState.nodePath)) {
+						const { targetPaneId, targetTabIndex } = state.dragState;
+
 						if (
-							type === "tab" ||
-							canOpenNodeInNewTab(state.dragState.nodePath)
+							targetPaneId &&
+							targetPaneId === paneId &&
+							targetTabIndex !== index()
 						) {
-							const { targetPaneId, targetTabIndex } = state.dragState;
+							setState("dragState", "targetTabIndex", index());
+						}
+					}
+				}
+			}}
+			onDragEnd={(_e) => {
+				setIsDragging(false);
+				setHideWhileDragging(false);
+				if (state.dragState?.type === "tab") {
+					const { targetPaneId, targetTabIndex, id } = state.dragState;
 
-							if (
-								targetPaneId &&
-								targetPaneId === paneId &&
-								targetTabIndex !== index()
-							) {
-								setState("dragState", "targetTabIndex", index());
+					if (!targetPaneId) {
+						return;
+					}
+
+					setState(
+						produce((_state: AppState) => {
+							const win = getWindow(_state);
+							if (!win) {
+								return;
 							}
-						}
-					}
-				}}
-				onDragEnd={(e) => {
-					setIsDragging(false);
-					setHideWhileDragging(false);
-					if (state.dragState?.type === "tab") {
-						const { targetPaneId, targetTabIndex, id } = state.dragState;
+							win.currentPaneId = targetPaneId || "";
+						}),
+					);
 
-						if (!targetPaneId) {
-							return;
-						}
+					moveTabToPane(id, targetPaneId, targetTabIndex);
+					setState("dragState", null);
+				}
+			}}
+			style={{
+				background: isDroppingTabLeftOfThisTab()
+					? "#105460"
+					: isCurrentTab()
+						? "#1e1e1e"
+						: isHovered()
+							? "#303030"
+							: "#292929",
+				color: isCurrentTab() ? "#e2e2e2" : "#bbb",
+				opacity: isCurrentTab() ? 1 : 0.75,
+				padding: "6px 20px 6px 14px",
+				// "margin-left": isDroppingTabLeftOfThisTab() ? "150px" : "",
+				"line-height": "16px",
+				"font-size": "15px",
+				cursor: "pointer",
+				"border-top": isCurrentTab() ? "2px solid blue" : "2px solid grey",
+				"box-shadow": isCurrentTab()
+					? "0px 0px 5px 0px #000"
+					: "inset 0px 3px 6px -3px rgba(0, 0, 0, 0.4)",
+				"z-index": isCurrentTab() ? 1 : "",
+				position: "relative",
+				"user-select": "none",
 
-						setState(
-							produce((_state: AppState) => {
-								const win = getWindow(_state);
-								if (!win) {
-									return;
-								}
-								win.currentPaneId = targetPaneId || "";
-							}),
-						);
-
-						moveTabToPane(id, targetPaneId, targetTabIndex);
-						setState("dragState", null);
-					}
-				}}
+				...isDraggingStyles(),
+				...dropIndicatorStyles(),
+				...previewStyles(),
+				transition: "opacity 100ms, margin 100ms",
+				"white-space": "nowrap",
+				"border-radius": "2px",
+				"border-left": "1px solid #000",
+				"border-right": "1px solid #000",
+				display: "flex",
+				"align-items": "center",
+			}}
+			onClick={onClick}
+			onContextMenu={onContextMenu}
+		>
+			<div
 				style={{
-					background: isDroppingTabLeftOfThisTab()
-						? "#105460"
-						: isCurrentTab()
-						  ? "#1e1e1e"
-						  : isHovered()
-							  ? "#303030"
-							  : "#292929",
-					color: isCurrentTab() ? "#e2e2e2" : "#bbb",
-					opacity: isCurrentTab() ? 1 : 0.75,
-					padding: "6px 20px 6px 14px",
-					// "margin-left": isDroppingTabLeftOfThisTab() ? "150px" : "",
-					"line-height": "16px",
-					"font-size": "15px",
-					cursor: "pointer",
-					"border-top": isCurrentTab() ? "2px solid blue" : "2px solid grey",
-					"box-shadow": isCurrentTab()
-						? "0px 0px 5px 0px #000"
-						: "inset 0px 3px 6px -3px rgba(0, 0, 0, 0.4)",
-					"z-index": isCurrentTab() ? 1 : "",
-					position: "relative",
-					"user-select": "none",
-
-					...isDraggingStyles(),
-					...dropIndicatorStyles(),
-					...previewStyles(),
-					transition: "opacity 100ms, margin 100ms",
-					"white-space": "nowrap",
-					"border-radius": "2px",
-					"border-left": "1px solid #000",
-					"border-right": "1px solid #000",
+					width: "20px",
+					height: "20px",
 					display: "flex",
+					"padding-top": "1px",
+					"margin-right": "6px",
 					"align-items": "center",
 				}}
-				onClick={onClick}
-				onContextMenu={onContextMenu}
 			>
+				<img src={icon()} alt="" width="20" height="20" />
+			</div>
+			<span style={{}}>{title()}</span>
+			<Show when={file()?.isDirty && !isHovered()}>
 				<div
-					style={{
-						width: "20px",
-						height: "20px",
-						display: "flex",
-						"padding-top": "1px",
-						"margin-right": "6px",
-						"align-items": "center",
-					}}
-				>
-					<img src={icon()} alt="" width="20" height="20" />
-				</div>
-				<span style={{}}>{title()}</span>
-				<Show when={file()?.isDirty && !isHovered()}>
-					<div
-						style={`position: absolute; top: 7px; right: 3px; ;
+					style={`position: absolute; top: 7px; right: 3px; ;
           font-size: 20px;
           width: 14px;
           height: 14px;
@@ -2376,17 +2398,17 @@ const PaneTab = ({
           text-align: center;
           font-style: normal;
           line-height: 11px; `}
-					>
-						•
-					</div>
-				</Show>
-				<Show when={isHovered()}>
-					<div
-						onMouseEnter={() => setIsHoveredOnX(true)}
-						onMouseLeave={() => setIsHoveredOnX(false)}
-						style={`position: absolute; top: 7px; right: 3px; background: ${
-							isHoveredOnX() ? "#555" : "transparent"
-						};
+				>
+					•
+				</div>
+			</Show>
+			<Show when={isHovered()}>
+				<div
+					onMouseEnter={() => setIsHoveredOnX(true)}
+					onMouseLeave={() => setIsHoveredOnX(false)}
+					style={`position: absolute; top: 7px; right: 3px; background: ${
+						isHoveredOnX() ? "#555" : "transparent"
+					};
           font-size: 11px;
           width: 14px;
           height: 14px;
@@ -2394,13 +2416,12 @@ const PaneTab = ({
           text-align: center;
           font-style: normal;
           line-height: 11px; `}
-						onClick={onCloseClick}
-					>
-						x
-					</div>
-				</Show>
-			</div>
-		</>
+					onClick={onCloseClick}
+				>
+					x
+				</div>
+			</Show>
+		</div>
 	);
 };
 
@@ -2492,7 +2513,7 @@ const NodeSettings = () => {
 			}
 
 			return cleanHostname;
-		} catch (e) {
+		} catch (_e) {
 			// If URL parsing fails, try to extract something useful from the raw input
 			const cleanVal = val.replace(/^https?:\/\//, "").replace(/^www\./, "");
 			const firstPart = cleanVal.split(".")[0].split("/")[0];
@@ -2615,7 +2636,11 @@ const NodeSettings = () => {
 		}
 
 		// For new projects being added with a slate, use the slate name
-		if (projectNameRef && "name" in previewSlate && previewSlate.type === "project") {
+		if (
+			projectNameRef &&
+			"name" in previewSlate &&
+			previewSlate.type === "project"
+		) {
 			projectNameRef.value = previewSlate.name;
 		}
 
@@ -2665,8 +2690,7 @@ const NodeSettings = () => {
 	});
 
 	const isOkToChooseExisitingPath = () =>
-		isProjectNode() &&
-		state.settingsPane.type === "add-node";
+		isProjectNode() && state.settingsPane.type === "add-node";
 
 	const isProjectConflict = () => {
 		const _previewNode = previewNode();
@@ -2691,7 +2715,7 @@ const NodeSettings = () => {
 			const newPath = _previewNode.path;
 
 			const existingDuplicateProject = Object.values(state.projects).find(
-				(project) => project.path && newPath === project.path
+				(project) => project.path && newPath === project.path,
 			);
 
 			if (existingDuplicateProject) {
@@ -2769,7 +2793,7 @@ const NodeSettings = () => {
 						await electrobun.rpc?.request.mkdir({ path: _previewNode.path });
 					} else if (_previewNode.type === "file") {
 						// save your file here
-						const result = electrobun.rpc?.request.writeFile({
+						const _result = electrobun.rpc?.request.writeFile({
 							path: _previewNode.path,
 							value: "",
 						});
@@ -3010,7 +3034,7 @@ const NodeSettings = () => {
 					error: result?.error || "Invalid repository URL",
 				});
 			}
-		} catch (error) {
+		} catch (_error) {
 			setGitUrlValidation({
 				status: "invalid",
 				error: "Failed to validate URL",
@@ -3308,7 +3332,7 @@ const NodeSettings = () => {
 		let hostname = "";
 		try {
 			hostname = new URL(urlForFavicon).origin;
-		} catch (e) {
+		} catch (_e) {
 			// If still invalid, user might be typing and it's not complete yet
 		}
 
@@ -3341,7 +3365,7 @@ const NodeSettings = () => {
 	});
 
 	const isEditingNode = () => state.settingsPane.type === "edit-node";
-	const isAddingNode = () => state.settingsPane.type === "add-node";
+	const _isAddingNode = () => state.settingsPane.type === "add-node";
 	const isProjectNode = () => {
 		const settingsPaneData = state.settingsPane.data;
 		if ("previewNode" in settingsPaneData) {
@@ -3515,8 +3539,12 @@ const NodeSettings = () => {
 		const isFile = nodeType === "file";
 		setFolderInputLabel(
 			state.settingsPane.type === "add-node"
-				? isFile ? "Create file" : "Create folder"
-				: isFile ? "Rename file" : "Rename folder",
+				? isFile
+					? "Create file"
+					: "Create folder"
+				: isFile
+					? "Rename file"
+					: "Rename folder",
 		);
 	});
 
@@ -3676,9 +3704,7 @@ const NodeSettings = () => {
 										</Show>
 									</SettingsPaneFormSection>
 
-									<Show
-										when={isProjectNode()}
-									>
+									<Show when={isProjectNode()}>
 										<SettingsPaneFormSection label={"Project Settings"}>
 											<SettingsPaneField label="Project Name">
 												<input
@@ -3988,8 +4014,7 @@ const NodeSettings = () => {
 											</Show>
 										</SettingsPaneFormSection>
 									</Show>
-
-									</div>
+								</div>
 							</div>
 						</div>
 					</div>
@@ -4000,7 +4025,7 @@ const NodeSettings = () => {
 };
 
 const Sidebar = () => {
-	const [isDraggingResize, setIsDraggingResize] = createSignal(false);
+	const [_isDraggingResize, setIsDraggingResize] = createSignal(false);
 	const [isHoveredResize, setIsHoveredResize] = createSignal(false);
 
 	const width = () => {

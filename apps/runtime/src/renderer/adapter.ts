@@ -13,14 +13,14 @@ import type { RendererCapabilities } from "./capabilities.js";
 // ---------------------------------------------------------------------------
 
 export interface RendererConfig {
-  gpuAcceleration: boolean;
-  colorDepth: number;
-  maxDimensions: { cols: number; rows: number };
+	gpuAcceleration: boolean;
+	colorDepth: number;
+	maxDimensions: { cols: number; rows: number };
 }
 
 export interface RenderSurface {
-  windowId: string;
-  bounds: { x: number; y: number; width: number; height: number };
+	windowId: string;
+	bounds: { x: number; y: number; width: number; height: number };
 }
 
 // ---------------------------------------------------------------------------
@@ -28,32 +28,32 @@ export interface RenderSurface {
 // ---------------------------------------------------------------------------
 
 export type RendererState =
-  | "uninitialized"
-  | "initializing"
-  | "running"
-  | "switching"
-  | "stopping"
-  | "stopped"
-  | "errored";
+	| "uninitialized"
+	| "initializing"
+	| "running"
+	| "switching"
+	| "stopping"
+	| "stopped"
+	| "errored";
 
 // ---------------------------------------------------------------------------
 // Abstract adapter interface
 // ---------------------------------------------------------------------------
 
 export interface RendererAdapter {
-  readonly id: string;
-  readonly version: string;
+	readonly id: string;
+	readonly version: string;
 
-  init(config: RendererConfig): Promise<void>;
-  start(surface: RenderSurface): Promise<void>;
-  stop(): Promise<void>;
+	init(config: RendererConfig): Promise<void>;
+	start(surface: RenderSurface): Promise<void>;
+	stop(): Promise<void>;
 
-  bindStream(ptyId: string, stream: ReadableStream<Uint8Array>): void;
-  unbindStream(ptyId: string): void;
-  handleInput(ptyId: string, data: Uint8Array): void;
-  resize(ptyId: string, cols: number, rows: number): void;
+	bindStream(ptyId: string, stream: ReadableStream<Uint8Array>): void;
+	unbindStream(ptyId: string): void;
+	handleInput(ptyId: string, data: Uint8Array): void;
+	resize(ptyId: string, cols: number, rows: number): void;
 
-  queryCapabilities(): RendererCapabilities;
-  getState(): RendererState;
-  onCrash(handler: (error: Error) => void): void;
+	queryCapabilities(): RendererCapabilities;
+	getState(): RendererState;
+	onCrash(handler: (error: Error) => void): void;
 }

@@ -6,25 +6,25 @@
  * On recovery, persisted bindings are re-validated against current state.
  */
 
-import { promises as fs } from "fs";
-import { createHash } from "crypto";
-import { homedir } from "os";
-import { dirname, join } from "path";
+import { createHash } from "node:crypto";
+import { promises as fs } from "node:fs";
+import { homedir } from "node:os";
+import { dirname, join } from "node:path";
 import type { TerminalBinding } from "./binding_triple.js";
 import { isTerminalBinding } from "./binding_triple.js";
 
 export interface PersistenceStore {
-  save(bindings: TerminalBinding[]): Promise<void>;
-  load(): Promise<TerminalBinding[]>;
-  clear(): Promise<void>;
-  flush(): Promise<void>;
+	save(bindings: TerminalBinding[]): Promise<void>;
+	load(): Promise<TerminalBinding[]>;
+	clear(): Promise<void>;
+	flush(): Promise<void>;
 }
 
 interface PersistenceData {
-  version: number;
-  timestamp: string;
-  bindings: TerminalBinding[];
-  checksum: string;
+	version: number;
+	timestamp: string;
+	bindings: TerminalBinding[];
+	checksum: string;
 }
 
 /**
@@ -37,165 +37,173 @@ interface PersistenceData {
  * - Checksum validation on load for corruption detection
  */
 export class JsonFilePersistence implements PersistenceStore {
-  private storePath: string;
-  private writeDebounceMs = 500;
-  private writeTimeoutId: NodeJS.Timeout | null = null;
-  private pendingBindings: TerminalBinding[] | null = null;
-  private readonly version = 1;
+	private storePath: string;
+	private writeDebounceMs = 500;
+	private writeTimeoutId: NodeJS.Timeout | null = null;
+	private pendingBindings: TerminalBinding[] | null = null;
+	private readonly version = 1;
 
-  constructor(storePath?: string) {
-    if (storePath) {
-      this.storePath = storePath;
-    } else {
-      // Default: ~/.helios/data/binding_registry.json
-      const dataDir = join(homedir(), ".helios", "data");
-      this.storePath = join(dataDir, "binding_registry.json");
-    }
-  }
+	constructor(storePath?: string) {
+		if (storePath) {
+			this.storePath = storePath;
+		} else {
+			// Default: ~/.helios/data/binding_registry.json
+			const dataDir = join(homedir(), ".helios", "data");
+			this.storePath = join(dataDir, "binding_registry.json");
+		}
+	}
 
-  /**
-   * Schedule an async write with debouncing.
-   *
-   * Subsequent calls within the debounce window replace the pending write.
-   */
-  async save(bindings: TerminalBinding[]): Promise<void> {
-    this.pendingBindings = bindings;
+	/**
+	 * Schedule an async write with debouncing.
+	 *
+	 * Subsequent calls within the debounce window replace the pending write.
+	 */
+	async save(bindings: TerminalBinding[]): Promise<void> {
+		this.pendingBindings = bindings;
 
-    // Clear existing timeout
-    if (this.writeTimeoutId) {
-      clearTimeout(this.writeTimeoutId);
-    }
+		// Clear existing timeout
+		if (this.writeTimeoutId) {
+			clearTimeout(this.writeTimeoutId);
+		}
 
-    // Schedule new write
-    this.writeTimeoutId = setTimeout(async () => {
-      try {
-        await this.doWrite(bindings);
-        this.writeTimeoutId = null;
-        this.pendingBindings = null;
-      } catch (error) {
-        console.error("Failed to persist bindings:", error);
-      }
-    }, this.writeDebounceMs);
-  }
+		// Schedule new write
+		this.writeTimeoutId = setTimeout(async () => {
+			try {
+				await this.doWrite(bindings);
+				this.writeTimeoutId = null;
+				this.pendingBindings = null;
+			} catch (error) {
+				console.error("Failed to persist bindings:", error);
+			}
+		}, this.writeDebounceMs);
+	}
 
-  /**
-   * Load persisted bindings from disk.
-   *
-   * Returns empty array if file doesn't exist or is corrupt.
-   * Validates checksum; discards if corrupt with warning.
-   */
-  async load(): Promise<TerminalBinding[]> {
-    try {
-      const content = await fs.readFile(this.storePath, "utf-8");
-      const parsed: unknown = JSON.parse(content);
+	/**
+	 * Load persisted bindings from disk.
+	 *
+	 * Returns empty array if file doesn't exist or is corrupt.
+	 * Validates checksum; discards if corrupt with warning.
+	 */
+	async load(): Promise<TerminalBinding[]> {
+		try {
+			const content = await fs.readFile(this.storePath, "utf-8");
+			const parsed: unknown = JSON.parse(content);
 
-      // Verify structure
-      if (!this.isPersistenceData(parsed)) {
-        console.warn("Invalid persistence format or binding schema");
-        return [];
-      }
-      const data = parsed;
+			// Verify structure
+			if (!this.isPersistenceData(parsed)) {
+				console.warn("Invalid persistence format or binding schema");
+				return [];
+			}
+			const data = parsed;
 
-      // Verify checksum
-      const expectedChecksum = this.computeChecksum(data.bindings, data.timestamp);
-      if (data.checksum !== expectedChecksum) {
-        console.warn("Persistence file is corrupt (checksum mismatch); starting fresh");
-        return [];
-      }
+			// Verify checksum
+			const expectedChecksum = this.computeChecksum(
+				data.bindings,
+				data.timestamp,
+			);
+			if (data.checksum !== expectedChecksum) {
+				console.warn(
+					"Persistence file is corrupt (checksum mismatch); starting fresh",
+				);
+				return [];
+			}
 
-      return data.bindings;
-    } catch (error) {
-      if ((error as any).code === "ENOENT") {
-        // File doesn't exist; expected on first run
-        return [];
-      }
-      console.warn("Failed to load persisted bindings:", error);
-      return [];
-    }
-  }
+			return data.bindings;
+		} catch (error) {
+			if ((error as any).code === "ENOENT") {
+				// File doesn't exist; expected on first run
+				return [];
+			}
+			console.warn("Failed to load persisted bindings:", error);
+			return [];
+		}
+	}
 
-  /**
-   * Immediately flush pending writes to disk.
-   *
-   * Called during shutdown or explicit save requests.
-   */
-  async flush(): Promise<void> {
-    if (this.writeTimeoutId) {
-      clearTimeout(this.writeTimeoutId);
-      this.writeTimeoutId = null;
-    }
+	/**
+	 * Immediately flush pending writes to disk.
+	 *
+	 * Called during shutdown or explicit save requests.
+	 */
+	async flush(): Promise<void> {
+		if (this.writeTimeoutId) {
+			clearTimeout(this.writeTimeoutId);
+			this.writeTimeoutId = null;
+		}
 
-    if (this.pendingBindings) {
-      await this.doWrite(this.pendingBindings);
-      this.pendingBindings = null;
-    }
-  }
+		if (this.pendingBindings) {
+			await this.doWrite(this.pendingBindings);
+			this.pendingBindings = null;
+		}
+	}
 
-  /**
-   * Clear all persisted data.
-   */
-  async clear(): Promise<void> {
-    try {
-      await fs.unlink(this.storePath);
-    } catch (error) {
-      if ((error as any).code !== "ENOENT") {
-        console.error("Failed to clear persistence:", error);
-      }
-    }
-  }
+	/**
+	 * Clear all persisted data.
+	 */
+	async clear(): Promise<void> {
+		try {
+			await fs.unlink(this.storePath);
+		} catch (error) {
+			if ((error as any).code !== "ENOENT") {
+				console.error("Failed to clear persistence:", error);
+			}
+		}
+	}
 
-  /**
-   * Perform the actual write operation.
-   */
-  private async doWrite(bindings: TerminalBinding[]): Promise<void> {
-    const timestamp = new Date().toISOString();
-    const checksum = this.computeChecksum(bindings, timestamp);
+	/**
+	 * Perform the actual write operation.
+	 */
+	private async doWrite(bindings: TerminalBinding[]): Promise<void> {
+		const timestamp = new Date().toISOString();
+		const checksum = this.computeChecksum(bindings, timestamp);
 
-    const data: PersistenceData = {
-      version: this.version,
-      timestamp,
-      bindings,
-      checksum,
-    };
+		const data: PersistenceData = {
+			version: this.version,
+			timestamp,
+			bindings,
+			checksum,
+		};
 
-    // Ensure directory exists
-    await fs.mkdir(dirname(this.storePath), { recursive: true });
+		// Ensure directory exists
+		await fs.mkdir(dirname(this.storePath), { recursive: true });
 
-    // Write atomically using temp file
-    const tempPath = `${this.storePath}.tmp`;
-    try {
-      await fs.writeFile(tempPath, JSON.stringify(data, null, 2), "utf-8");
-      await fs.rename(tempPath, this.storePath);
-    } catch (error) {
-      // Clean up temp file on error
-      try {
-        await fs.unlink(tempPath);
-      } catch {}
-      throw error;
-    }
-  }
+		// Write atomically using temp file
+		const tempPath = `${this.storePath}.tmp`;
+		try {
+			await fs.writeFile(tempPath, JSON.stringify(data, null, 2), "utf-8");
+			await fs.rename(tempPath, this.storePath);
+		} catch (error) {
+			// Clean up temp file on error
+			try {
+				await fs.unlink(tempPath);
+			} catch {}
+			throw error;
+		}
+	}
 
-  /**
-   * Compute checksum for persistence data integrity.
-   */
-  private computeChecksum(bindings: TerminalBinding[], timestamp: string): string {
-    const data = JSON.stringify({ bindings, timestamp });
-    return createHash("sha256").update(data).digest("hex");
-  }
+	/**
+	 * Compute checksum for persistence data integrity.
+	 */
+	private computeChecksum(
+		bindings: TerminalBinding[],
+		timestamp: string,
+	): string {
+		const data = JSON.stringify({ bindings, timestamp });
+		return createHash("sha256").update(data).digest("hex");
+	}
 
-  private isPersistenceData(value: unknown): value is PersistenceData {
-    if (typeof value !== "object" || value === null) return false;
+	private isPersistenceData(value: unknown): value is PersistenceData {
+		if (typeof value !== "object" || value === null) return false;
 
-    const data = value as Partial<PersistenceData>;
-    return (
-      data.version === this.version &&
-      typeof data.timestamp === "string" &&
-      !Number.isNaN(Date.parse(data.timestamp)) &&
-      typeof data.checksum === "string" &&
-      Array.isArray(data.bindings) &&
-      data.bindings.every(isTerminalBinding)
-    );
-  }
+		const data = value as Partial<PersistenceData>;
+		return (
+			data.version === this.version &&
+			typeof data.timestamp === "string" &&
+			!Number.isNaN(Date.parse(data.timestamp)) &&
+			typeof data.checksum === "string" &&
+			Array.isArray(data.bindings) &&
+			data.bindings.every(isTerminalBinding)
+		);
+	}
 }
 
 /**
@@ -205,21 +213,21 @@ export class JsonFilePersistence implements PersistenceStore {
  * where persistence is not needed.
  */
 export class InMemoryPersistence implements PersistenceStore {
-  private data: TerminalBinding[] = [];
+	private data: TerminalBinding[] = [];
 
-  async save(bindings: TerminalBinding[]): Promise<void> {
-    this.data = [...bindings];
-  }
+	async save(bindings: TerminalBinding[]): Promise<void> {
+		this.data = [...bindings];
+	}
 
-  async load(): Promise<TerminalBinding[]> {
-    return [...this.data];
-  }
+	async load(): Promise<TerminalBinding[]> {
+		return [...this.data];
+	}
 
-  async clear(): Promise<void> {
-    this.data = [];
-  }
+	async clear(): Promise<void> {
+		this.data = [];
+	}
 
-  async flush(): Promise<void> {
-    // No-op for in-memory
-  }
+	async flush(): Promise<void> {
+		// No-op for in-memory
+	}
 }

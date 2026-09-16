@@ -1,12 +1,12 @@
-import { join, resolve } from "path";
+import { existsSync, mkdirSync } from "node:fs";
+import { join, resolve } from "node:path";
 import { Updater } from "electrobun";
-import { existsSync, mkdirSync } from "fs";
 import { getAppPath, getPath } from "../newapi";
 
 const channel = await Updater.localInfo.channel();
 
 const COLAB_HOME_FOLDER_NAME =
-  channel === "stable" ? ".colab" : `.colab-${channel}`;
+	channel === "stable" ? ".colab" : `.colab-${channel}`;
 
 // colab
 export const APP_PATH = getAppPath();
@@ -14,30 +14,33 @@ export const BUNDLED_BIN_PATH = resolve("./");
 
 export const COLAB_HOME_FOLDER = join(getPath("home"), COLAB_HOME_FOLDER_NAME);
 if (!existsSync(COLAB_HOME_FOLDER)) {
-  mkdirSync(COLAB_HOME_FOLDER, { recursive: true });
+	mkdirSync(COLAB_HOME_FOLDER, { recursive: true });
 }
 export const COLAB_PROJECTS_FOLDER = join(COLAB_HOME_FOLDER, "projects");
 if (!existsSync(COLAB_PROJECTS_FOLDER)) {
-  mkdirSync(COLAB_PROJECTS_FOLDER, { recursive: true });
+	mkdirSync(COLAB_PROJECTS_FOLDER, { recursive: true });
 }
 
 export const COLAB_GOLDFISHDB_PATH = join(COLAB_HOME_FOLDER, ".goldfishdb");
 export const COLAB_DEPS_PATH = join(COLAB_HOME_FOLDER, ".deps");
 export const COLAB_MODELS_PATH = join(COLAB_HOME_FOLDER, "models");
 export const COLAB_PLUGINS_PATH = join(COLAB_HOME_FOLDER, "plugins");
-export const COLAB_PLUGINS_REGISTRY_PATH = join(COLAB_PLUGINS_PATH, "registry.json");
+export const COLAB_PLUGINS_REGISTRY_PATH = join(
+	COLAB_PLUGINS_PATH,
+	"registry.json",
+);
 
 mkdirSync(COLAB_DEPS_PATH, { recursive: true });
 mkdirSync(COLAB_PLUGINS_PATH, { recursive: true });
 
 // Create models directory lazily to avoid startup issues
 try {
-  if (!existsSync(COLAB_MODELS_PATH)) {
-    mkdirSync(COLAB_MODELS_PATH, { recursive: true });
-  }
-} catch (error) {
-  // Silently ignore directory creation errors to prevent startup crashes
-  // The directory will be created later when needed
+	if (!existsSync(COLAB_MODELS_PATH)) {
+		mkdirSync(COLAB_MODELS_PATH, { recursive: true });
+	}
+} catch (_error) {
+	// Silently ignore directory creation errors to prevent startup crashes
+	// The directory will be created later when needed
 }
 
 export const COLAB_ENV_PATH = `${COLAB_DEPS_PATH}`;
@@ -59,7 +62,7 @@ export const RG_BINARY_PATH = join(BUNDLED_BIN_PATH, "vendor", "rg");
 export const BUN_PATH = join(COLAB_HOME_FOLDER, ".bun");
 export const BUN_DEPS_FOLDER = join(BUN_PATH, "node_modules");
 if (!existsSync(BUN_DEPS_FOLDER)) {
-  mkdirSync(BUN_DEPS_FOLDER, { recursive: true });
+	mkdirSync(BUN_DEPS_FOLDER, { recursive: true });
 }
 
 // node (needed for tsserver)

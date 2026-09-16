@@ -4,8 +4,8 @@
  * Creates a structured coverage report for per-package and aggregate metrics
  */
 
-import { writeFileSync } from "fs";
-import { join } from "path";
+import { writeFileSync } from "node:fs";
+import { join } from "node:path";
 
 interface PackageCoverage {
 	name: string;
@@ -92,8 +92,8 @@ async function main(): Promise<void> {
 	);
 
 	// Ensure directory exists
-	const fs = require("fs");
-	const dir = require("path").dirname(outputPath);
+	const fs = require("node:fs");
+	const dir = require("node:path").dirname(outputPath);
 	fs.mkdirSync(dir, { recursive: true });
 
 	writeFileSync(outputPath, JSON.stringify(manifest, null, 2));

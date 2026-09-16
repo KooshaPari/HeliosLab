@@ -5,8 +5,8 @@
  */
 
 import {
-	createGateReport,
 	aggregateGateReports,
+	createGateReport,
 	formatPipelineSummary,
 	type GateReport,
 } from "./gate-report";
@@ -52,7 +52,7 @@ async function runGate(gateName: string): Promise<GateReport> {
 async function main(): Promise<void> {
 	const args = process.argv.slice(2);
 	const jsonFlag = args.includes("--json");
-	const gateFlag = args.includes("--gate");
+	const _gateFlag = args.includes("--gate");
 	const gateIndex = args.indexOf("--gate");
 	const specificGate = gateIndex >= 0 ? args[gateIndex + 1] : null;
 

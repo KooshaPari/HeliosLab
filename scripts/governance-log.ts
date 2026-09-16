@@ -3,12 +3,12 @@
  * Provides append-only logging and querying for merge governance records.
  */
 
-import { promises as fs } from "fs";
-import * as path from "path";
+import { promises as fs } from "node:fs";
+import * as path from "node:path";
 import type {
 	GovernanceLogEntry,
-	ValidationResult,
 	GovernanceLogQueryResult,
+	ValidationResult,
 } from "./governance-types";
 
 const GOVERNANCE_LOG_PATH = path.join(
@@ -99,7 +99,7 @@ function validateEntry(entry: GovernanceLogEntry): void {
 	if (!entry.mergeCommitSha || !/^[a-f0-9]{40}$/.test(entry.mergeCommitSha)) {
 		errors.push("mergeCommitSha must be a valid 40-char SHA");
 	}
-	if (!entry.timestamp || isNaN(Date.parse(entry.timestamp))) {
+	if (!entry.timestamp || Number.isNaN(Date.parse(entry.timestamp))) {
 		errors.push("timestamp must be a valid ISO 8601 string");
 	}
 
@@ -240,13 +240,14 @@ if (import.meta.main) {
 
 	const run = async () => {
 		switch (command) {
-			case "validate":
+			case "validate": {
 				const result = await validateGovernanceLog();
 				console.log(JSON.stringify(result, null, 2));
 				process.exit(result.valid ? 0 : 1);
 				break;
+			}
 
-			case "self-merges":
+			case "self-merges": {
 				const days = parseInt(args[1] || "7", 10);
 				const selfMerges = await getSelfMerges(days);
 				console.log(`Self-merges in last ${days} days:`, selfMerges.count);
@@ -254,16 +255,18 @@ if (import.meta.main) {
 					console.log(`  PR #${e.prNumber}: ${e.author}`),
 				);
 				break;
+			}
 
-			case "exceptions":
+			case "exceptions": {
 				const exceptions = await getExceptionADRs();
 				console.log(`Merges with exceptions: ${exceptions.count}`);
 				exceptions.entries.forEach((e) => {
 					console.log(`  PR #${e.prNumber}: ${e.exceptionADRs.join(", ")}`);
 				});
 				break;
+			}
 
-			case "by-author":
+			case "by-author": {
 				const author = args[1];
 				if (!author) {
 					console.error("Usage: governance-log.ts by-author <author>");
@@ -275,6 +278,7 @@ if (import.meta.main) {
 					console.log(`  PR #${e.prNumber}: ${e.title}`),
 				);
 				break;
+			}
 
 			default:
 				console.error(`Unknown command: ${command}`);

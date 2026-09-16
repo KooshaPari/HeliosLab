@@ -1,9 +1,9 @@
-import { describe, it, expect } from "bun:test";
+import { describe, expect, it } from "bun:test";
 import {
-	generateUlid,
-	encodeTime,
-	decodeTime,
 	CROCKFORD_BASE32,
+	decodeTime,
+	encodeTime,
+	generateUlid,
 } from "../src/ulid.js";
 
 // FR-001: ULID generation

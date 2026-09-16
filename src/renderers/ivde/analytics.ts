@@ -1,14 +1,14 @@
-import { electrobun } from "./init";
 import type { track } from "../../main/utils/analytics";
+import { electrobun } from "./init";
 
 export const trackFrontend = <T extends keyof typeof track>(
-  event: T,
-  properties: Parameters<(typeof track)[T]>[0]
+	event: T,
+	properties: Parameters<(typeof track)[T]>[0],
 ) => {
-  electrobun.rpc?.send("track", {
-    event,
-    properties,
-  });
+	electrobun.rpc?.send("track", {
+		event,
+		properties,
+	});
 };
 
 // todo: add app settings with tracking level toggle

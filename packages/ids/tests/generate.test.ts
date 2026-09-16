@@ -1,11 +1,11 @@
 // FR-003: Workspace Isolation (ws_ IDs generated here are assigned to workspaces)
 // FR-002: Command Correlation Guarantee (cor_ IDs generated here track command correlation)
 // Traces to: IWorkspacePort (ws_ prefix), ILocalBusPort (cor_ correlation_id)
-import { describe, it, expect } from "bun:test";
+import { describe, expect, it } from "bun:test";
 import {
-	generateId,
-	generateCorrelationId,
 	type EntityType,
+	generateCorrelationId,
+	generateId,
 } from "../src/index.js";
 
 const FORMAT_REGEX = /^[a-z]{2,3}_[0-9A-HJKMNP-TV-Z]{26}$/;

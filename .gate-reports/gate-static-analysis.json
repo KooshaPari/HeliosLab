@@ -1,12 +1,12 @@
 {
-  "gateName": "static-analysis",
-  "status": "pass",
-  "findings": [],
-  "duration": 253,
-  "timestamp": "2026-03-24T12:58:49.932Z",
-  "summary": {
-    "errors": 0,
-    "warnings": 0,
-    "infos": 0
-  }
+	"gateName": "static-analysis",
+	"status": "pass",
+	"findings": [],
+	"duration": 253,
+	"timestamp": "2026-03-24T12:58:49.932Z",
+	"summary": {
+		"errors": 0,
+		"warnings": 0,
+		"infos": 0
+	}
 }

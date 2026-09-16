@@ -3,7 +3,7 @@
  * Monaco keyboard behaviour (Tab inserts a tab character; Ctrl+M moves
  * focus out of the editor surface).
  */
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 const BASE_URL = process.env.HELIOSLAB_RENDERER_URL ?? "http://localhost:5173";
 
@@ -13,12 +13,16 @@ test.describe("Tab order", () => {
 		await page.waitForSelector("#workbench-container", { timeout: 10_000 });
 	});
 
-	test("document order is skip-links → topbar → sidebar → main → statusbar", async ({ page }) => {
+	test("document order is skip-links → topbar → sidebar → main → statusbar", async ({
+		page,
+	}) => {
 		// Walk the DOM and collect all focusable ancestors of the workbench.
 		const focusableOrder = await page.evaluate(() => {
 			const selector =
 				'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])';
-			const all = Array.from(document.querySelectorAll(selector)) as HTMLElement[];
+			const all = Array.from(
+				document.querySelectorAll(selector),
+			) as HTMLElement[];
 			// Only keep the first 5 we expect in the canonical order.
 			return all.slice(0, 5).map((el) => ({
 				tag: el.tagName.toLowerCase(),
@@ -34,7 +38,9 @@ test.describe("Tab order", () => {
 		expect(focusableOrder[2]?.id).toBe("skip-to-editor");
 	});
 
-	test("Monaco editor receives focus via Tab and Ctrl+M returns focus to the toolbar", async ({ page }) => {
+	test("Monaco editor receives focus via Tab and Ctrl+M returns focus to the toolbar", async ({
+		page,
+	}) => {
 		// Click into the editor area to focus it.
 		const editor = page.locator(".monaco-editor").first();
 		await editor.click();
@@ -68,6 +74,8 @@ test.describe("Tab order", () => {
 		expect(outline).not.toBeNull();
 		// Focus ring must be solid (not "none") and at least 2px wide.
 		expect(outline?.outlineStyle).not.toBe("none");
-		expect(parseInt(outline?.outlineWidth ?? "0", 10)).toBeGreaterThanOrEqual(2);
+		expect(parseInt(outline?.outlineWidth ?? "0", 10)).toBeGreaterThanOrEqual(
+			2,
+		);
 	});
 });

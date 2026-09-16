@@ -6,8 +6,9 @@
  *
  * Usage: bun run scripts/serve-fixture.mjs [--port 5173] [--root tests/fixtures]
  */
-import { createServer } from "node:http";
+
 import { readFile, stat } from "node:fs/promises";
+import { createServer } from "node:http";
 import { extname, join, normalize, resolve } from "node:path";
 
 const args = process.argv.slice(2);
@@ -44,7 +45,7 @@ const server = createServer(async (req, res) => {
 			return;
 		}
 		const st = await stat(full).catch(() => null);
-		if (!st || !st.isFile()) {
+		if (!st?.isFile()) {
 			res.writeHead(404);
 			res.end("Not Found");
 			return;

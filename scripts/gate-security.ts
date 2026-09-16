@@ -4,12 +4,11 @@
  * Scans dependencies for known vulnerabilities using npm audit
  */
 
-import { readFileSync, existsSync } from "fs";
 import {
 	createGateReport,
-	writeGateReport,
 	formatGateReport,
 	type GateFinding,
+	writeGateReport,
 } from "./gate-report";
 
 const REPORT_OUTPUT = ".gate-reports/gate-security.json";

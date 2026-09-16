@@ -7,10 +7,14 @@
  * @see FR-010-010, SC-010-003
  */
 
-import type { RendererAdapter, RendererConfig, RenderSurface } from "./adapter.js";
-import type { SwitchBuffer } from "./stream_binding.js";
-import type { RendererEventBus } from "./index.js";
+import type {
+	RendererAdapter,
+	RendererConfig,
+	RenderSurface,
+} from "./adapter.js";
 import type { TerminalContext } from "./hot_swap.js";
+import type { RendererEventBus } from "./index.js";
+import type { SwitchBuffer } from "./stream_binding.js";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -18,23 +22,23 @@ import type { TerminalContext } from "./hot_swap.js";
 
 /** zmx checkpoint snapshot for a single terminal. */
 export interface ZmxCheckpoint {
-  ptyId: string;
-  scrollbackLines: Uint8Array[];
-  cursorX: number;
-  cursorY: number;
-  dimensions: { cols: number; rows: number };
-  environment: Record<string, string>;
-  workingDirectory: string;
-  timestamp: number;
+	ptyId: string;
+	scrollbackLines: Uint8Array[];
+	cursorX: number;
+	cursorY: number;
+	dimensions: { cols: number; rows: number };
+	environment: Record<string, string>;
+	workingDirectory: string;
+	timestamp: number;
 }
 
 /** Result of restart-with-restore execution. */
 export interface RestartRestoreResult {
-  success: boolean;
-  phase: string;
-  durationMs: number;
-  checkpoints: ZmxCheckpoint[];
-  error?: Error;
+	success: boolean;
+	phase: string;
+	durationMs: number;
+	checkpoints: ZmxCheckpoint[];
+	error?: Error;
 }
 
 // ---------------------------------------------------------------------------
@@ -42,13 +46,13 @@ export interface RestartRestoreResult {
 // ---------------------------------------------------------------------------
 
 export class RestartRestoreError extends Error {
-  constructor(
-    public readonly phase: string,
-    message: string
-  ) {
-    super(`Restart-with-restore failed during ${phase}: ${message}`);
-    this.name = "RestartRestoreError";
-  }
+	constructor(
+		public readonly phase: string,
+		message: string,
+	) {
+		super(`Restart-with-restore failed during ${phase}: ${message}`);
+		this.name = "RestartRestoreError";
+	}
 }
 
 // ---------------------------------------------------------------------------
@@ -64,23 +68,25 @@ export class RestartRestoreError extends Error {
  * @param terminals - Terminals to checkpoint.
  * @returns Array of checkpoint snapshots.
  */
-function takeCheckpoints(terminals: Map<string, TerminalContext>): ZmxCheckpoint[] {
-  const checkpoints: ZmxCheckpoint[] = [];
+function takeCheckpoints(
+	terminals: Map<string, TerminalContext>,
+): ZmxCheckpoint[] {
+	const checkpoints: ZmxCheckpoint[] = [];
 
-  for (const [ptyId, context] of terminals) {
-    checkpoints.push({
-      ptyId,
-      scrollbackLines: context.scrollback,
-      cursorX: context.cursorX,
-      cursorY: context.cursorY,
-      dimensions: { cols: 80, rows: 24 }, // Would be queried from real terminal
-      environment: context.env,
-      workingDirectory: context.cwd,
-      timestamp: Date.now(),
-    });
-  }
+	for (const [ptyId, context] of terminals) {
+		checkpoints.push({
+			ptyId,
+			scrollbackLines: context.scrollback,
+			cursorX: context.cursorX,
+			cursorY: context.cursorY,
+			dimensions: { cols: 80, rows: 24 }, // Would be queried from real terminal
+			environment: context.env,
+			workingDirectory: context.cwd,
+			timestamp: Date.now(),
+		});
+	}
 
-  return checkpoints;
+	return checkpoints;
 }
 
 /**
@@ -92,14 +98,17 @@ function takeCheckpoints(terminals: Map<string, TerminalContext>): ZmxCheckpoint
  * @param checkpoint - The checkpoint to restore from.
  * @param adapter - The target renderer adapter.
  */
-function restoreCheckpoint(checkpoint: ZmxCheckpoint, adapter: RendererAdapter): void {
-  // In real implementation:
-  // - Use zmx API to restore scrollback lines
-  // - Restore cursor position via escape sequences
-  // - Set environment variables
-  // - Change working directory
-  // For now, just bind a placeholder stream
-  adapter.bindStream(checkpoint.ptyId, new ReadableStream());
+function restoreCheckpoint(
+	checkpoint: ZmxCheckpoint,
+	adapter: RendererAdapter,
+): void {
+	// In real implementation:
+	// - Use zmx API to restore scrollback lines
+	// - Restore cursor position via escape sequences
+	// - Set environment variables
+	// - Change working directory
+	// For now, just bind a placeholder stream
+	adapter.bindStream(checkpoint.ptyId, new ReadableStream());
 }
 
 // ---------------------------------------------------------------------------
@@ -126,104 +135,104 @@ function restoreCheckpoint(checkpoint: ZmxCheckpoint, adapter: RendererAdapter):
  * @returns Restart-restore result with checkpoint data and status.
  */
 export async function executeRestartWithRestore(
-  sourceAdapter: RendererAdapter,
-  targetAdapter: RendererAdapter,
-  terminals: Map<string, TerminalContext>,
-  streamBuffer: SwitchBuffer,
-  config: RendererConfig,
-  surface: RenderSurface,
-  onRollback: (error: Error) => Promise<void>,
-  _eventBus?: RendererEventBus
+	sourceAdapter: RendererAdapter,
+	targetAdapter: RendererAdapter,
+	terminals: Map<string, TerminalContext>,
+	streamBuffer: SwitchBuffer,
+	config: RendererConfig,
+	surface: RenderSurface,
+	onRollback: (error: Error) => Promise<void>,
+	_eventBus?: RendererEventBus,
 ): Promise<RestartRestoreResult> {
-  const startTime = Date.now();
-  let currentPhase = "checkpoint";
-  let checkpoints: ZmxCheckpoint[] = [];
+	const startTime = Date.now();
+	let currentPhase = "checkpoint";
+	let checkpoints: ZmxCheckpoint[] = [];
 
-  try {
-    // ===== Phase 1: Checkpoint =====
-    if (terminals.size === 0) {
-      throw new RestartRestoreError(currentPhase, "no active terminals");
-    }
+	try {
+		// ===== Phase 1: Checkpoint =====
+		if (terminals.size === 0) {
+			throw new RestartRestoreError(currentPhase, "no active terminals");
+		}
 
-    checkpoints = takeCheckpoints(terminals);
-    streamBuffer.startBuffering();
+		checkpoints = takeCheckpoints(terminals);
+		streamBuffer.startBuffering();
 
-    // ===== Phase 2: Teardown =====
-    currentPhase = "teardown";
+		// ===== Phase 2: Teardown =====
+		currentPhase = "teardown";
 
-    try {
-      await sourceAdapter.stop();
-    } catch (e: unknown) {
-      throw new RestartRestoreError(
-        currentPhase,
-        `source stop failed: ${e instanceof Error ? e.message : String(e)}`
-      );
-    }
+		try {
+			await sourceAdapter.stop();
+		} catch (e: unknown) {
+			throw new RestartRestoreError(
+				currentPhase,
+				`source stop failed: ${e instanceof Error ? e.message : String(e)}`,
+			);
+		}
 
-    // ===== Phase 3: Start and restore =====
-    currentPhase = "start-and-restore";
+		// ===== Phase 3: Start and restore =====
+		currentPhase = "start-and-restore";
 
-    // Initialize target renderer
-    try {
-      await targetAdapter.init(config);
-      await targetAdapter.start(surface);
-    } catch (e: unknown) {
-      throw new RestartRestoreError(
-        currentPhase,
-        `target init failed: ${e instanceof Error ? e.message : String(e)}`
-      );
-    }
+		// Initialize target renderer
+		try {
+			await targetAdapter.init(config);
+			await targetAdapter.start(surface);
+		} catch (e: unknown) {
+			throw new RestartRestoreError(
+				currentPhase,
+				`target init failed: ${e instanceof Error ? e.message : String(e)}`,
+			);
+		}
 
-    // Restore terminal state from checkpoints
-    try {
-      for (const checkpoint of checkpoints) {
-        restoreCheckpoint(checkpoint, targetAdapter);
-      }
-    } catch (e: unknown) {
-      throw new RestartRestoreError(
-        currentPhase,
-        `restore failed: ${e instanceof Error ? e.message : String(e)}`
-      );
-    }
+		// Restore terminal state from checkpoints
+		try {
+			for (const checkpoint of checkpoints) {
+				restoreCheckpoint(checkpoint, targetAdapter);
+			}
+		} catch (e: unknown) {
+			throw new RestartRestoreError(
+				currentPhase,
+				`restore failed: ${e instanceof Error ? e.message : String(e)}`,
+			);
+		}
 
-    // Replay PTY buffers
-    try {
-      streamBuffer.stopBuffering(targetAdapter);
-    } catch (e: unknown) {
-      throw new RestartRestoreError(
-        currentPhase,
-        `replay failed: ${e instanceof Error ? e.message : String(e)}`
-      );
-    }
+		// Replay PTY buffers
+		try {
+			streamBuffer.stopBuffering(targetAdapter);
+		} catch (e: unknown) {
+			throw new RestartRestoreError(
+				currentPhase,
+				`replay failed: ${e instanceof Error ? e.message : String(e)}`,
+			);
+		}
 
-    // ===== Phase 4: Commit =====
-    currentPhase = "commit";
+		// ===== Phase 4: Commit =====
+		currentPhase = "commit";
 
-    return {
-      success: true,
-      phase: "committed",
-      durationMs: Date.now() - startTime,
-      checkpoints,
-    };
-  } catch (error) {
-    const restartError =
-      error instanceof RestartRestoreError
-        ? error
-        : new RestartRestoreError(currentPhase, String(error));
+		return {
+			success: true,
+			phase: "committed",
+			durationMs: Date.now() - startTime,
+			checkpoints,
+		};
+	} catch (error) {
+		const restartError =
+			error instanceof RestartRestoreError
+				? error
+				: new RestartRestoreError(currentPhase, String(error));
 
-    // Trigger rollback
-    try {
-      await onRollback(restartError);
-    } catch {
-      // Rollback error will be handled separately
-    }
+		// Trigger rollback
+		try {
+			await onRollback(restartError);
+		} catch {
+			// Rollback error will be handled separately
+		}
 
-    return {
-      success: false,
-      phase: currentPhase,
-      durationMs: Date.now() - startTime,
-      checkpoints,
-      error: restartError,
-    };
-  }
+		return {
+			success: false,
+			phase: currentPhase,
+			durationMs: Date.now() - startTime,
+			checkpoints,
+			error: restartError,
+		};
+	}
 }

@@ -12,15 +12,16 @@
  */
 import type { editor } from "monaco-editor";
 
-export const ACCESSIBLE_EDITOR_OPTIONS: editor.IStandaloneEditorConstructionOptions = {
-	accessibilitySupport: "on",
-	ariaLabel: "Code editor. Use arrow keys to navigate, type to edit.",
-	tabFocusMode: false, // Tab inserts a tab character; Ctrl+M moves focus out
-	formatOnPaste: false,
-	automaticLayout: true,
-	// Visual contrast — minimum 4.5:1 against #1e1e1e (the default theme bg)
-	// is achieved by the dark+ token theme shipped with HeliosLab.
-	theme: "vs-dark",
-	fontSize: 14,
-	lineNumbers: "on",
-};
+export const ACCESSIBLE_EDITOR_OPTIONS: editor.IStandaloneEditorConstructionOptions =
+	{
+		accessibilitySupport: "on",
+		ariaLabel: "Code editor. Use arrow keys to navigate, type to edit.",
+		tabFocusMode: false, // Tab inserts a tab character; Ctrl+M moves focus out
+		formatOnPaste: false,
+		automaticLayout: true,
+		// Visual contrast — minimum 4.5:1 against #1e1e1e (the default theme bg)
+		// is achieved by the dark+ token theme shipped with HeliosLab.
+		theme: "vs-dark",
+		fontSize: 14,
+		lineNumbers: "on",
+	};
