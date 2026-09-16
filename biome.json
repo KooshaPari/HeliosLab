@@ -6,11 +6,32 @@
 		"useIgnoreFile": true
 	},
 	"files": {
-		"ignoreUnknown": true
+		"ignoreUnknown": true,
+		"includes": [
+			"**",
+			"!.vitepress/cache/**",
+			"!assets/*.js",
+			"!.archive/**"
+		]
 	},
 	"javascript": {
 		"formatter": {
 			"quoteStyle": "double"
+		}
+	},
+	"linter": {
+		"rules": {
+			"suspicious": {
+				"noExplicitAny": "off",
+				"useIterableCallbackReturn": "off"
+			},
+			"style": {
+				"useNamingConvention": "off",
+				"noNonNullAssertion": "off"
+			},
+			"complexity": {
+				"noBannedTypes": "off"
+			}
 		}
 	}
 }
