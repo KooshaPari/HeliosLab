@@ -999,7 +999,7 @@ const WorkspaceSettings = () => {
 		//         <div>url: {token.url}</div>
 		//         <div>endpoint: {token.endpoint}</div>
 		//         <div>token: {token.token}</div>
-		//         <button onClick={() => onDeleteClick(token.id)}>delete</button>
+		//         <button type="button" onClick={() => onDeleteClick(token.id)}>delete</button>
 		//         <span>
 		//           This will delete it from Colab, but you may still need to revoke
 		//           it in Webflow's settings
@@ -1112,7 +1112,7 @@ const GlobalSettings = () => {
 															label="token"
 															value={token.token}
 														/>
-														<button
+														<button type="button"
 															style="cursor: pointer;background: #dd4444;color: white;font-weight: bold;border: none;padding: 10px;margin: 4px 0 8px;"
 															onClick={() => onDeleteClick(token.id)}
 														>
@@ -1157,7 +1157,7 @@ const GlobalSettings = () => {
 		//         <div>url: {token.url}</div>
 		//         <div>endpoint: {token.endpoint}</div>
 		//         <div>token: {token.token}</div>
-		//         <button onClick={() => onDeleteClick(token.id)}>delete</button>
+		//         <button type="button" onClick={() => onDeleteClick(token.id)}>delete</button>
 		//         <span>
 		//           This will delete it from Colab, but you may still need to revoke
 		//           it in Webflow's settings
@@ -1753,7 +1753,7 @@ const Pane = ({
 						style="display:flex; align-items:center; box-shadow: -2px 0px 4px 2px #222; z-index: 1;"
 					>
 						<Show when={getRootPane()?.type === "container"}>
-							<button
+							<button type="button"
 								onClick={onCloseSplitClick}
 								aria-label="Close pane"
 								title="Close pane"
@@ -1767,7 +1767,7 @@ const Pane = ({
 								/>
 							</button>
 						</Show>
-						<button
+						<button type="button"
 							onClick={onHorizontalSplitClick}
 							aria-label="Split pane horizontally"
 							title="Split pane horizontally"
@@ -1780,7 +1780,7 @@ const Pane = ({
 								src={"views://assets/file-icons/horizontal-split-right.svg"}
 							/>
 						</button>
-						<button
+						<button type="button"
 							onClick={onVerticalSplitClick}
 							aria-label="Split pane vertically"
 							title="Split pane vertically"

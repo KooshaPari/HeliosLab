@@ -1425,7 +1425,7 @@ const DevLinkSlateContent = (props: {
 						>
 							<For each={props.sites}>
 								{(site) => (
-									<button
+									<button type="button"
 										onClick={() => props.onChangeSite(site)}
 										style={{
 											background: "#1e1e1e",
@@ -1563,7 +1563,7 @@ const DevLinkSlateContent = (props: {
 							</div>
 						</div>
 						<Show when={props.sites.length > 1}>
-							<button
+							<button type="button"
 								onClick={() => setShowSitePicker(!showSitePicker())}
 								style={{
 									background: "#333",
@@ -1612,7 +1612,7 @@ const DevLinkSlateContent = (props: {
 									)}
 								>
 									{(site) => (
-										<button
+										<button type="button"
 											onClick={() => {
 												props.onChangeSite(site);
 												setShowSitePicker(false);
@@ -1795,7 +1795,7 @@ const DevLinkSlateContent = (props: {
 									Syncing Components
 								</span>
 							</div>
-							<button
+							<button type="button"
 								onClick={stopTerminal}
 								style={{
 									background: "#333",
@@ -2161,7 +2161,7 @@ const CodeComponentsSlateContent = (props: {
 										: "Development Server"}
 								</span>
 							</div>
-							<button
+							<button type="button"
 								onClick={stopTerminal}
 								style={{
 									background: "#333",
@@ -2413,7 +2413,7 @@ const CloudSlateContent = (props: {
 							>
 								<For each={props.sites}>
 									{(site) => (
-										<button
+										<button type="button"
 											onClick={() => props.onChangeSite(site)}
 											style={{
 												background: "#1e1e1e",
@@ -2485,7 +2485,7 @@ const CloudSlateContent = (props: {
 							>
 								Deployment Target
 							</h3>
-							<button
+							<button type="button"
 								onClick={() => setShowSitePicker(!showSitePicker())}
 								style={{
 									background: "transparent",
@@ -2543,7 +2543,7 @@ const CloudSlateContent = (props: {
 							>
 								<For each={props.sites}>
 									{(site) => (
-										<button
+										<button type="button"
 											onClick={() => {
 												props.onChangeSite(site);
 												setShowSitePicker(false);
@@ -2713,7 +2713,7 @@ const CloudSlateContent = (props: {
 										: "Development Server"}
 								</span>
 							</div>
-							<button
+							<button type="button"
 								onClick={stopTerminal}
 								style={{
 									background: "#333",
@@ -2853,7 +2853,7 @@ const ConnectPrompt = (props: {
 		>
 			Add your Webflow API token to access your sites and sync components.
 		</p>
-		<button
+		<button type="button"
 			onClick={props.onOpenSettings}
 			style={{
 				background: "#4353ff",
@@ -3030,7 +3030,7 @@ const EditableConfigField = (props: {
 							}}
 						/>
 					</Show>
-					<button
+					<button type="button"
 						onClick={handleSave}
 						style={{
 							background: "#4353ff",
@@ -3072,7 +3072,7 @@ const ActionButton = (props: {
 	};
 
 	return (
-		<button
+		<button type="button"
 			onClick={props.onClick}
 			disabled={props.loading}
 			style={{

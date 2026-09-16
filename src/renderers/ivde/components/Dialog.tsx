@@ -103,7 +103,7 @@ export const Dialog = ({
 							"justify-content": "flex-end",
 						}}
 					>
-						<button
+						<button type="button"
 							onClick={onCancel}
 							style={{
 								background: "transparent",

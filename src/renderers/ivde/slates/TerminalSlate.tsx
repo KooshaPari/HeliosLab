@@ -441,7 +441,7 @@ export const TerminalSlate = ({ tabId }: { tabId: string }) => {
 							outline: "none",
 						}}
 					/>
-					<button
+					<button type="button"
 						onClick={() =>
 							searchAddon?.findPrevious(searchQuery(), {
 								caseSensitive: false,
@@ -459,7 +459,7 @@ export const TerminalSlate = ({ tabId }: { tabId: string }) => {
 					>
 						↑
 					</button>
-					<button
+					<button type="button"
 						onClick={() =>
 							searchAddon?.findNext(searchQuery(), {
 								caseSensitive: false,
@@ -477,7 +477,7 @@ export const TerminalSlate = ({ tabId }: { tabId: string }) => {
 					>
 						↓
 					</button>
-					<button
+					<button type="button"
 						onClick={() => {
 							setShowSearch(false);
 							setSearchQuery("");

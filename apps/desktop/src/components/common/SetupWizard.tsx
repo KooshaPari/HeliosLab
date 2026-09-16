@@ -47,7 +47,7 @@ export const SetupWizard: Component<SetupWizardProps> = (props) => {
 							An agent-first desktop IDE. Chat with AI to write code, run
 							commands, and build projects.
 						</p>
-						<button
+						<button type="button"
 							onClick={() => setStep(1)}
 							style={{
 								background: "#89b4fa",
@@ -100,7 +100,7 @@ export const SetupWizard: Component<SetupWizardProps> = (props) => {
 								"justify-content": "flex-end",
 							}}
 						>
-							<button
+							<button type="button"
 								onClick={() => props.onSkip()}
 								style={{
 									background: "none",
@@ -113,7 +113,7 @@ export const SetupWizard: Component<SetupWizardProps> = (props) => {
 							>
 								Skip
 							</button>
-							<button
+							<button type="button"
 								onClick={() => props.onComplete(apiKey())}
 								style={{
 									background: "#89b4fa",

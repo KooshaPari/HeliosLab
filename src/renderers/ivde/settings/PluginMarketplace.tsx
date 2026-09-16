@@ -281,7 +281,7 @@ export const PluginMarketplace = (): JSXElement => {
 					background: "#2b2b2b",
 				}}
 			>
-				<button
+				<button type="button"
 					onClick={() => setActiveTab("browse")}
 					style={{
 						padding: "10px 20px",
@@ -298,7 +298,7 @@ export const PluginMarketplace = (): JSXElement => {
 				>
 					Browse
 				</button>
-				<button
+				<button type="button"
 					onClick={() => setActiveTab("installed")}
 					style={{
 						padding: "10px 20px",
@@ -316,7 +316,7 @@ export const PluginMarketplace = (): JSXElement => {
 					Installed ({installedPlugins().length})
 				</button>
 				<div style={{ "flex-grow": "1" }} />
-				<button
+				<button type="button"
 					onClick={handleInstallFromFolder}
 					disabled={installing() !== null}
 					style={{
@@ -403,7 +403,7 @@ export const PluginMarketplace = (): JSXElement => {
 					}}
 				>
 					<span>{error()}</span>
-					<button
+					<button type="button"
 						onClick={() => setError(null)}
 						style={{
 							background: "transparent",
@@ -489,7 +489,7 @@ export const PluginMarketplace = (): JSXElement => {
 											v{ext.version}
 										</span>
 										<Show when={isInstalled(ext.name)}>
-											<button
+											<button type="button"
 												onClick={() => handleUninstall(ext.name)}
 												disabled={installing() === ext.name}
 												style={{
@@ -508,7 +508,7 @@ export const PluginMarketplace = (): JSXElement => {
 											</button>
 										</Show>
 										<Show when={!isInstalled(ext.name)}>
-											<button
+											<button type="button"
 												onClick={() => handleInstall(ext.name)}
 												disabled={installing() === ext.name}
 												style={{
@@ -711,7 +711,7 @@ export const PluginMarketplace = (): JSXElement => {
 												(pluginEntitlements()[plugin.name]?.length || 0) > 3
 											}
 										>
-											<button
+											<button type="button"
 												onClick={() =>
 													setExpandedEntitlements(
 														expandedEntitlements() === plugin.name
@@ -768,7 +768,7 @@ export const PluginMarketplace = (): JSXElement => {
 										Enabled
 									</label>
 									<div style={{ flex: "1" }} />
-									<button
+									<button type="button"
 										onClick={() =>
 											setState("settingsPane", {
 												type: "plugin-settings",
@@ -787,7 +787,7 @@ export const PluginMarketplace = (): JSXElement => {
 									>
 										Settings
 									</button>
-									<button
+									<button type="button"
 										onClick={() => handleUninstall(plugin.name)}
 										disabled={installing() === plugin.name}
 										style={{

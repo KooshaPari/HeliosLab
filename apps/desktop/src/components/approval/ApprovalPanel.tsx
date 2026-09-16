@@ -82,7 +82,7 @@ export function ApprovalPanel(props: ApprovalPanelProps) {
 					</div>
 
 					<div class="approval-actions">
-						<button
+						<button type="button"
 							class="approve-btn"
 							onclick={() => handleApprove(selectedRequest()?.id ?? "")}
 						>

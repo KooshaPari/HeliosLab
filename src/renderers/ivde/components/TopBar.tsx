@@ -675,7 +675,7 @@ const CommandPalette = ({ setOpen }: { setOpen: (value: boolean) => void }) => {
       pointer-events: none;
     `}
 		>
-			<button
+			<button type="button"
 				onClick={() => setOpen(!open())}
 				style={`
         pointer-events: auto;
