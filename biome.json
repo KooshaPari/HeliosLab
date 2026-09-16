@@ -10,7 +10,7 @@
 		"includes": [
 			"**",
 			"!.vitepress/cache/**",
-			"!assets/*.js",
+			"!assets/**",
 			"!.archive/**"
 		]
 	},
