@@ -21,7 +21,6 @@ export { HealthMonitoringCoordinator } from "./health-monitor.js";
 /**
  * A2A endpoint configuration.
  */
-// biome-ignore lint/style/useNamingConvention: A2A acronym is part of the external provider protocol name.
 export interface A2AEndpoint {
 	id: string;
 	url: string;
@@ -33,7 +32,6 @@ export interface A2AEndpoint {
 /**
  * A2A delegation context.
  */
-// biome-ignore lint/style/useNamingConvention: A2A acronym is part of the external provider protocol name.
 export interface A2ADelegation {
 	taskDescription: string;
 	requiredCapabilities: string[];
@@ -43,7 +41,6 @@ export interface A2ADelegation {
 /**
  * A2A delegation result.
  */
-// biome-ignore lint/style/useNamingConvention: A2A acronym is part of the external provider protocol name.
 export interface A2AResult {
 	endpointId: string;
 	result: unknown;
@@ -54,7 +51,6 @@ export interface A2AResult {
 /**
  * A2A Router Configuration.
  */
-// biome-ignore lint/style/useNamingConvention: A2A acronym is part of the external provider protocol name.
 export interface A2ARouterConfig extends A2AConfig {
 	endpoints?: Array<{
 		id: string;
@@ -75,7 +71,6 @@ export interface A2ARouterConfig extends A2AConfig {
  *
  * FR-025-005: A2A federation with external agent delegation.
  */
-// biome-ignore lint/style/useNamingConvention: A2A acronym is part of the external provider protocol name.
 export class A2ARouterAdapter
 	implements
 		ProviderAdapter<

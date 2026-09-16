@@ -22,7 +22,6 @@ function makeErrorResponse(
 		type: "response",
 		ts: new Date().toISOString(),
 		status: "error",
-		// biome-ignore lint/style/useNamingConvention: Protocol response fields use snake_case.
 		correlation_id: command.correlation_id,
 		error: {
 			code,
@@ -88,17 +87,12 @@ export async function handleInMemoryRequest(
 				ts: new Date().toISOString(),
 				status: "ok",
 				result: {
-					// biome-ignore lint/style/useNamingConvention: Protocol response fields use snake_case.
 					lane_id: resultId,
 					state: ctx.getState(),
 					diagnostics: {
-						// biome-ignore lint/style/useNamingConvention: Protocol diagnostics fields use snake_case.
 						preferred_transport: preferredTransport,
-						// biome-ignore lint/style/useNamingConvention: Protocol diagnostics fields use snake_case.
 						resolved_transport: resolvedTransport,
-						// biome-ignore lint/style/useNamingConvention: Protocol diagnostics fields use snake_case.
 						degraded_reason: degradedReason,
-						// biome-ignore lint/style/useNamingConvention: Protocol diagnostics fields use snake_case.
 						degraded_at: degraded ? new Date().toISOString() : null,
 					},
 				},
@@ -114,7 +108,6 @@ export async function handleInMemoryRequest(
 				ts: new Date().toISOString(),
 				status: "ok",
 				result: {
-					// biome-ignore lint/style/useNamingConvention: Protocol response fields use snake_case.
 					lane_id: laneResultId,
 					state: ctx.getState(),
 				},
@@ -180,17 +173,12 @@ export async function handleInMemoryRequest(
 				ts: new Date().toISOString(),
 				status: "ok",
 				result: {
-					// biome-ignore lint/style/useNamingConvention: Protocol response fields use snake_case.
 					session_id: sessionResultId,
 					state: ctx.getState(),
 					diagnostics: {
-						// biome-ignore lint/style/useNamingConvention: Protocol diagnostics fields use snake_case.
 						preferred_transport: "cliproxy_harness",
-						// biome-ignore lint/style/useNamingConvention: Protocol diagnostics fields use snake_case.
 						resolved_transport: "cliproxy_harness",
-						// biome-ignore lint/style/useNamingConvention: Protocol diagnostics fields use snake_case.
 						degraded_reason: null,
-						// biome-ignore lint/style/useNamingConvention: Protocol diagnostics fields use snake_case.
 						degraded_at: null,
 					},
 				},
@@ -241,17 +229,12 @@ export async function handleInMemoryRequest(
 				ts: new Date().toISOString(),
 				status: "ok",
 				result: {
-					// biome-ignore lint/style/useNamingConvention: Protocol response fields use snake_case.
 					terminal_id: terminalResultId,
 					state: ctx.getState(),
 					diagnostics: {
-						// biome-ignore lint/style/useNamingConvention: Protocol diagnostics fields use snake_case.
 						preferred_transport: "cliproxy_harness",
-						// biome-ignore lint/style/useNamingConvention: Protocol diagnostics fields use snake_case.
 						resolved_transport: "cliproxy_harness",
-						// biome-ignore lint/style/useNamingConvention: Protocol diagnostics fields use snake_case.
 						degraded_reason: null,
-						// biome-ignore lint/style/useNamingConvention: Protocol diagnostics fields use snake_case.
 						degraded_at: null,
 					},
 				},
@@ -286,11 +269,8 @@ export async function handleInMemoryRequest(
 				ts: new Date().toISOString(),
 				status: "ok",
 				result: {
-					// biome-ignore lint/style/useNamingConvention: Protocol response fields use snake_case.
 					active_engine: ctx.getRendererEngine() ?? "ghostty",
-					// biome-ignore lint/style/useNamingConvention: Protocol response fields use snake_case.
 					available_engines: ["ghostty", "rio"],
-					// biome-ignore lint/style/useNamingConvention: Protocol response fields use snake_case.
 					hot_swap_supported: true,
 				},
 			};
@@ -313,9 +293,7 @@ export async function handleInMemoryRequest(
 						retryable: false,
 					},
 					result: {
-						// biome-ignore lint/style/useNamingConvention: Protocol response fields use snake_case.
 						active_engine: previousEngine,
-						// biome-ignore lint/style/useNamingConvention: Protocol response fields use snake_case.
 						previous_engine: previousEngine,
 					},
 				};
@@ -328,9 +306,7 @@ export async function handleInMemoryRequest(
 				ts: new Date().toISOString(),
 				status: "ok",
 				result: {
-					// biome-ignore lint/style/useNamingConvention: Protocol response fields use snake_case.
 					active_engine: ctx.getRendererEngine(),
-					// biome-ignore lint/style/useNamingConvention: Protocol response fields use snake_case.
 					previous_engine: previousEngine,
 				},
 			};

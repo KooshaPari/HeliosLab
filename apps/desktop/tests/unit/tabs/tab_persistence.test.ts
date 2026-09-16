@@ -131,7 +131,6 @@ describe("TabPersistence", () => {
 				writeCount++;
 				return (originalWriteFile as Function).apply(fs, args);
 			};
-			// biome-ignore lint/suspicious/noExplicitAny: test mock override
 			(fs as any).writeFile = countingWriteFile;
 
 			const testState: TabPersistedState = {

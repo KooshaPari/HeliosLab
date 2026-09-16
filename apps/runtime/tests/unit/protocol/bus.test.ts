@@ -86,7 +86,6 @@ describe("LocalBus — command dispatch", () => {
 	it("returns VALIDATION_ERROR when sending a non-command envelope", async () => {
 		const event = {
 			id: "evt_123",
-			// biome-ignore lint/style/useNamingConvention: Protocol event fixtures follow wire-schema naming.
 			correlation_id: "cor_123",
 			timestamp: 1,
 			type: "event",

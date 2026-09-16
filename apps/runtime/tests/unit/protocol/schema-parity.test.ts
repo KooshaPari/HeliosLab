@@ -36,7 +36,6 @@ interface ValidationError {
 	message: string;
 }
 
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Validator is a compact test helper for protocol parity.
 function validateSchema(
 	data: unknown,
 	schema: JsonSchema,
@@ -191,7 +190,6 @@ describe("JSON Schema parity — runtime envelopes match canonical schema", () =
 
 	it("rejects envelope with missing id", () => {
 		const bad = {
-			// biome-ignore lint/style/useNamingConvention: Protocol fixtures use snake_case keys required by schema.
 			correlation_id: "cor_123",
 			timestamp: 1,
 			type: "command",
@@ -206,7 +204,6 @@ describe("JSON Schema parity — runtime envelopes match canonical schema", () =
 	it("rejects envelope with empty id", () => {
 		const bad = {
 			id: "",
-			// biome-ignore lint/style/useNamingConvention: Protocol fixtures use snake_case keys required by schema.
 			correlation_id: "cor_123",
 			timestamp: 1,
 			type: "command",
@@ -220,7 +217,6 @@ describe("JSON Schema parity — runtime envelopes match canonical schema", () =
 	it("rejects envelope with invalid type", () => {
 		const bad = {
 			id: "cmd_123",
-			// biome-ignore lint/style/useNamingConvention: Protocol fixtures use snake_case keys required by schema.
 			correlation_id: "cor_123",
 			timestamp: 1,
 			type: "invalid",
@@ -234,7 +230,6 @@ describe("JSON Schema parity — runtime envelopes match canonical schema", () =
 	it("rejects event without sequence", () => {
 		const bad = {
 			id: "evt_123",
-			// biome-ignore lint/style/useNamingConvention: Protocol fixtures use snake_case keys required by schema.
 			correlation_id: "cor_123",
 			timestamp: 1,
 			type: "event",
@@ -248,7 +243,6 @@ describe("JSON Schema parity — runtime envelopes match canonical schema", () =
 	it("rejects event without topic", () => {
 		const bad = {
 			id: "evt_123",
-			// biome-ignore lint/style/useNamingConvention: Protocol fixtures use snake_case keys required by schema.
 			correlation_id: "cor_123",
 			timestamp: 1,
 			type: "event",

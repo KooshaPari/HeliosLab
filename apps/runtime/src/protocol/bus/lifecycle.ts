@@ -85,21 +85,16 @@ export function publishLifecycleEvent(
 		type: "event",
 		ts: new Date().toISOString(),
 		topic,
-		// biome-ignore lint/style/useNamingConvention: Protocol event envelope fields use protocol-defined snake_case.
 		...(envelope.workspace_id !== undefined
 			? { workspace_id: envelope.workspace_id }
 			: {}),
-		// biome-ignore lint/style/useNamingConvention: Protocol event envelope fields use protocol-defined snake_case.
 		...(envelope.lane_id !== undefined ? { lane_id: envelope.lane_id } : {}),
-		// biome-ignore lint/style/useNamingConvention: Protocol event envelope fields use protocol-defined snake_case.
 		...(envelope.session_id !== undefined
 			? { session_id: envelope.session_id }
 			: {}),
-		// biome-ignore lint/style/useNamingConvention: Protocol event envelope fields use protocol-defined snake_case.
 		...(envelope.terminal_id !== undefined
 			? { terminal_id: envelope.terminal_id }
 			: {}),
-		// biome-ignore lint/style/useNamingConvention: Protocol event envelope fields use protocol-defined snake_case.
 		...(envelope.correlation_id !== undefined
 			? { correlation_id: envelope.correlation_id }
 			: {}),

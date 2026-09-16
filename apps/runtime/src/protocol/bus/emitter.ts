@@ -74,7 +74,6 @@ export class InMemoryLocalBus implements LocalBus {
 		return this.eventLog.filter((e) => e.type === "event").length;
 	}
 
-	// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Publish behavior intentionally mirrors protocol lifecycle matrix.
 	async publish(event: LocalBusEnvelope): Promise<void> {
 		await Promise.resolve();
 		// Validate the envelope
@@ -210,7 +209,6 @@ export class InMemoryLocalBus implements LocalBus {
 		};
 	}
 
-	// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Request semantics require explicit branch coverage.
 	async request(command: LocalBusEnvelope): Promise<LocalBusEnvelope> {
 		await Promise.resolve();
 		if (command.method) {

@@ -9,9 +9,9 @@
 		"ignoreUnknown": true,
 		"includes": [
 			"**",
-			"!.vitepress/cache/**",
-			"!assets/**",
-			"!.archive/**"
+			"!.vitepress/cache",
+			"!assets",
+			"!.archive"
 		]
 	},
 	"javascript": {

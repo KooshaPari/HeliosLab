@@ -24,7 +24,6 @@ function makeErrorResponse(
 ): ResponseEnvelope {
 	return {
 		id: `res_${Date.now()}`,
-		// biome-ignore lint/style/useNamingConvention: Protocol field names intentionally use snake_case.
 		correlation_id: correlationId,
 		ts: new Date().toISOString(),
 		type: "response",
@@ -62,7 +61,6 @@ export class CommandBusImpl implements LocalBus {
 		this.methods.set(method, handler);
 	}
 
-	// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Command dispatch intentionally models protocol branching in one place.
 	async send(envelope: unknown): Promise<ResponseEnvelope> {
 		// Guard destroyed state
 		if (this.destroyed) {

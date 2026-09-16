@@ -155,7 +155,6 @@ export class OrphanWatchdog {
 
 			// Warn if cycle took too long
 			if (this.lastDetectionDuration > 2000) {
-				// biome-ignore lint/suspicious/noConsole: High-latency detection cycles are intentionally surfaced for triage.
 				console.warn(
 					`[Watchdog] Detection cycle took ${this.lastDetectionDuration}ms (exceeds 2s target)`,
 				);
@@ -240,7 +239,6 @@ export class OrphanWatchdog {
 				`[Watchdog] Cycle ${this.cycleNumber} completed: ${this.lastDetectionDuration}ms, ${this.lastClassifiedOrphans.length} orphans found`,
 			);
 		} catch (error) {
-			// biome-ignore lint/suspicious/noConsole: Checkpoint save failures are intentionally emitted for operational visibility.
 			console.error("Orphan watchdog detection cycle failed", error);
 		}
 	}

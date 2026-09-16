@@ -143,7 +143,6 @@ describe("LocalBus — event fan-out", () => {
 	it("silently discards non-event envelope passed to publish", async () => {
 		const cmd = {
 			id: "cmd_123",
-			// biome-ignore lint/style/useNamingConvention: Protocol fixture intentionally uses snake_case.
 			correlation_id: "cor_123",
 			timestamp: 1,
 			type: "command" as const,
