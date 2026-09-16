@@ -43,8 +43,8 @@ Success criteria:
 ## Context & Constraints
 
 - Constitution: `docs/reference/constitution.md`
-- Plan: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/020-prerelease-dependency-registry/plan.md`
-- Spec: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/020-prerelease-dependency-registry/spec.md`
+- Plan: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/020-prerelease-dependency-registry/plan.md`
+- Spec: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/020-prerelease-dependency-registry/spec.md`
 - WP01 artifacts: `deps-registry.json`, `deps-changelog.json`, `scripts/deps-changelog-util.ts`
 - Quality gates: spec 021 gate suite (`bun run gates`)
 
@@ -80,8 +80,8 @@ Implementation command:
   5. Exit with code 0 on success, code 1 on failure.
   6. Measure and log the total rollback duration.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/scripts/deps-rollback.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/package.json` (add script)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/scripts/deps-rollback.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/package.json` (add script)
 - Acceptance:
   - Rollback to known-good pin restores a passing `bun run gates` suite.
   - Rollback completes in under 60 seconds.
@@ -116,8 +116,8 @@ Implementation command:
   6. Log all actions to stdout with timestamps for observability.
   7. Ensure the canary process is safe to run concurrently with normal development (isolated branches).
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/scripts/deps-canary.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/package.json` (add script)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/scripts/deps-canary.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/package.json` (add script)
 - Acceptance:
   - Canary detects available upgrades and tests them in isolation.
   - Passing upgrades are auto-merged with changelog entries.
@@ -137,10 +137,10 @@ Implementation command:
   6. Verify that the changelog correctly reflects the sequence of events for a full canary cycle.
   7. Add a `bun run deps:log` convenience command that pretty-prints the changelog for human review.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/scripts/deps-rollback.ts` (integrate changelog)
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/scripts/deps-canary.ts` (integrate changelog)
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/scripts/deps-log.ts` (new convenience script)
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/package.json` (add deps:log script)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/scripts/deps-rollback.ts` (integrate changelog)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/scripts/deps-canary.ts` (integrate changelog)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/scripts/deps-log.ts` (new convenience script)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/package.json` (add deps:log script)
 - Acceptance:
   - Every rollback and canary action produces a changelog entry.
   - `bun run deps:log` displays a readable history of all dependency management events.
@@ -172,9 +172,9 @@ Implementation command:
   4. Mock `bun install`, `bun run gates`, and GitHub API calls for deterministic testing.
   5. Use temp directories for lockfile operations to avoid polluting the real workspace.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/scripts/tests/deps-rollback.test.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/scripts/tests/deps-canary.test.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/scripts/tests/deps-log.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/scripts/tests/deps-rollback.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/scripts/tests/deps-canary.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/scripts/tests/deps-log.test.ts`
 - Acceptance:
   - All tests pass with `bun test`.
   - Tests cover happy path, error paths, atomicity, and edge cases.

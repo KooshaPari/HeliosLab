@@ -42,12 +42,12 @@ Success criteria:
 ## Context & Constraints
 
 - Constitution: `docs/reference/constitution.md`
-- Plan: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/001-colab-agent-terminal-control-plane/plan.md`
-- Contracts: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/001-colab-agent-terminal-control-plane/contracts/`
+- Plan: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/001-colab-agent-terminal-control-plane/plan.md`
+- Contracts: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/001-colab-agent-terminal-control-plane/contracts/`
 - Existing protocol code:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/protocol/bus.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/protocol/types.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/specs/protocol/v1/`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/protocol/bus.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/protocol/types.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/specs/protocol/v1/`
 
 Constraints:
 - Fail-fast behavior in protocol core (no silent fallback).
@@ -66,8 +66,8 @@ Implementation command:
   2. Update `specs/protocol/v1/topics.json` and `specs/protocol/v1/methods.json` for lane/session/terminal/harness flows.
   3. Preserve naming stability for future compatibility.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/specs/protocol/v1/topics.json`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/specs/protocol/v1/methods.json`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/specs/protocol/v1/topics.json`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/specs/protocol/v1/methods.json`
 - Parallel: No.
 
 ### Subtask T002 - Implement envelope validator and typed helpers
@@ -77,8 +77,8 @@ Implementation command:
   2. Implement validation function(s) in `bus.ts` or a focused protocol validator module.
   3. Enforce required fields (`correlation_id`, `topic`, context IDs as applicable).
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/protocol/types.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/protocol/bus.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/protocol/types.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/protocol/bus.ts`
 - Parallel: No.
 
 ### Subtask T003 - Add deterministic sequencing and correlation guardrails
@@ -88,7 +88,7 @@ Implementation command:
   2. Reject or quarantine envelopes that violate required ordering assumptions.
   3. Emit explicit errors for missing/invalid correlation IDs.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/protocol/bus.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/protocol/bus.ts`
 - Parallel: No.
 
 ### Subtask T004 - Add audit sink scaffolding
@@ -98,8 +98,8 @@ Implementation command:
   2. Wire bus publish success/failure hooks to audit sink.
   3. Keep implementation lightweight; full audit fidelity arrives later.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/audit/`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/index.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/audit/`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/index.ts`
 - Parallel: Yes (after T002 contract surface stabilizes).
 
 ### Subtask T005 - Add protocol unit tests
@@ -109,7 +109,7 @@ Implementation command:
   2. Add event ordering tests using synthetic lane/session/terminal topics.
   3. Add regression tests for correlation-id requirement.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/protocol/`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/protocol/`
 - Parallel: Yes.
 
 ## Test Strategy

@@ -44,8 +44,8 @@ Success criteria:
 ## Context & Constraints
 
 - Constitution: `docs/reference/constitution.md`
-- Plan: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/013-renderer-switch-transaction/plan.md`
-- Spec: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/013-renderer-switch-transaction/spec.md`
+- Plan: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/013-renderer-switch-transaction/plan.md`
+- Spec: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/013-renderer-switch-transaction/spec.md`
 - Switch transaction state machine: `apps/runtime/src/renderer/switch_transaction.ts` (WP01)
 - PTY stream proxy: `apps/runtime/src/renderer/pty_stream_proxy.ts` (WP01)
 - Capability matrix: `apps/runtime/src/renderer/capability_matrix.ts` (WP01)
@@ -85,7 +85,7 @@ Implementation command:
   6. Handle session context preservation: scrollback history, cursor position, env vars, cwd.
   7. Export `executeHotSwap` for use by the switch transaction orchestrator.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/renderer/hot_swap.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/renderer/hot_swap.ts`
 - Validation:
   - Integration test: hot-swap with 3 active terminals, verify all streams continuous.
   - Integration test: verify scrollback and cursor position match pre-swap state.
@@ -108,7 +108,7 @@ Implementation command:
   5. Preserve complete session context during rollback (scrollback, cursor, env, cwd).
   6. Return rollback result with per-terminal status.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/renderer/rollback.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/renderer/rollback.ts`
 - Validation:
   - Integration test: inject failure during target init, verify rollback restores original state.
   - Integration test: inject failure during replay, verify rollback restores original state.
@@ -126,7 +126,7 @@ Implementation command:
   3. Wire the guard into the public `startSwitch()` entry point.
   4. Add terminal creation queueing awareness: new terminals created during a switch are queued (implemented fully in WP03 T013, but the rejection signal is defined here).
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/renderer/switch_transaction.ts` (guard addition)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/renderer/switch_transaction.ts` (guard addition)
 - Validation:
   - Unit test: start a transaction, attempt second start, assert rejection error with transaction details.
   - Unit test: after first transaction completes, second start succeeds.
@@ -146,9 +146,9 @@ Implementation command:
   3. Expose the orchestrator as the public API for triggering renderer switches.
   4. Add user notification callback interface for switch progress, success, and failure.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/renderer/switch_transaction.ts` (orchestrator integration)
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/renderer/hot_swap.ts` (wiring)
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/renderer/rollback.ts` (wiring)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/renderer/switch_transaction.ts` (orchestrator integration)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/renderer/hot_swap.ts` (wiring)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/renderer/rollback.ts` (wiring)
 - Validation:
   - Integration test: full happy-path hot-swap through orchestrator.
   - Integration test: hot-swap failure triggers rollback through orchestrator.
@@ -174,9 +174,9 @@ Implementation command:
   4. Use mock renderer adapters that simulate real init/teardown timing.
   5. Aim for >=85% line coverage across hot-swap and rollback modules.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/integration/renderer/hot_swap.test.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/integration/renderer/rollback.test.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/integration/renderer/concurrent_switch.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/integration/renderer/hot_swap.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/integration/renderer/rollback.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/integration/renderer/concurrent_switch.test.ts`
 - Parallel: Yes (after T006/T007/T009 are integrated).
 
 ## Test Strategy

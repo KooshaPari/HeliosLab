@@ -45,8 +45,8 @@ Success criteria:
 ## Context & Constraints
 
 - Constitution: `docs/reference/constitution.md`
-- Plan: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/019-ts7-and-bun-runtime-setup/plan.md`
-- Spec: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/019-ts7-and-bun-runtime-setup/spec.md`
+- Plan: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/019-ts7-and-bun-runtime-setup/plan.md`
+- Spec: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/019-ts7-and-bun-runtime-setup/spec.md`
 - WP01 artifacts: `package.json`, `bunfig.toml`, `tsconfig.base.json`, per-workspace configs
 
 Constraints:
@@ -74,9 +74,9 @@ Implementation command:
   7. Test hot-reload latency: measure from file save to visible change in the shell.
   8. Document the dev server startup in comments and ensure the script is self-explanatory.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/package.json` (update scripts)
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/package.json` (update scripts)
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/package.json` (update scripts)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/package.json` (update scripts)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/package.json` (update scripts)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/package.json` (update scripts)
 - Acceptance:
   - `bun dev` launches a functional terminal surface in the ElectroBun shell.
   - Editing a file in `apps/runtime/src/` triggers a visible reload within 2 seconds.
@@ -96,8 +96,8 @@ Implementation command:
   7. Verify the built artifact launches and renders a functional terminal surface.
   8. Measure build time and document it for performance baseline tracking.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/package.json` (update scripts)
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/package.json` (update scripts)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/package.json` (update scripts)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/package.json` (update scripts)
 - Acceptance:
   - `bun run build` exits 0 with zero TypeScript errors and zero warnings.
   - The build artifact is launchable and renders a terminal surface.
@@ -117,9 +117,9 @@ Implementation command:
   7. Measure typecheck time on the full monorepo and document the baseline.
   8. Ensure typecheck completes in under 15 seconds on 4-core/8GB reference hardware.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/package.json` (update scripts)
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/package.json` (update scripts)
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/package.json` (update scripts)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/package.json` (update scripts)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/package.json` (update scripts)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/package.json` (update scripts)
 - Acceptance:
   - `bun run typecheck` exits 0 on a correctly typed codebase.
   - Introducing `const x: number = "hello"` in any workspace fails the check with clear output.
@@ -139,9 +139,9 @@ Implementation command:
   7. Document the alias convention and any resolver configuration needed.
   8. If Bun does not natively resolve tsconfig paths, add the minimal resolver config needed in `bunfig.toml` or a Bun plugin.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/tsconfig.base.json` (update paths)
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tsconfig.json` (verify extends)
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tsconfig.json` (verify extends)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/tsconfig.base.json` (update paths)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tsconfig.json` (verify extends)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tsconfig.json` (verify extends)
 - Acceptance:
   - `import { version } from "@helios/runtime"` works in desktop entry point.
   - Alias resolves in `bun dev`, `bun run build`, and `bun test` contexts.
@@ -161,9 +161,9 @@ Implementation command:
   7. Add a test that validates the build output exists and is non-empty after `bun run build`.
   8. Ensure all tests run via `bun test` and are included in the Vitest config.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/setup/workspace.test.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/setup/typecheck.test.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/setup/build.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/setup/workspace.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/setup/typecheck.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/setup/build.test.ts`
 - Acceptance:
   - All validation tests pass with `bun test`.
   - Tests catch workspace resolution failures, alias misconfiguration, and typecheck regressions.

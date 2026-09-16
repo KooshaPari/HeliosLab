@@ -42,8 +42,8 @@ Success criteria:
 ## Context & Constraints
 
 - Constitution: `docs/reference/constitution.md`
-- Plan: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/024-audit-logging-and-session-replay/plan.md`
-- Spec: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/024-audit-logging-and-session-replay/spec.md`
+- Plan: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/024-audit-logging-and-session-replay/plan.md`
+- Spec: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/024-audit-logging-and-session-replay/spec.md`
 
 Constraints:
 - Async writes; never block the hot path.
@@ -60,7 +60,7 @@ Implementation command:
 
 - Purpose: Establish the immutable record format for all audit events, providing the foundation for the entire audit system.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/audit/event.ts`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/audit/event.ts`.
   2. Define `AuditEvent` interface with all required fields:
      - `id`: unique string (UUID v7 for time-ordered generation)
      - `eventType`: string categorization (e.g., `"command.executed"`, `"policy.evaluation"`, `"session.created"`, `"terminal.output"`, `"approval.resolved"`)
@@ -80,7 +80,7 @@ Implementation command:
   6. Define event type constants for all known event categories to prevent typos.
   7. Add JSDoc documentation for every field and type.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/audit/event.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/audit/event.ts`
 - Acceptance:
   - Schema covers all required fields per spec FR-024-001.
   - Factory function generates valid events.
@@ -92,7 +92,7 @@ Implementation command:
 
 - Purpose: Provide the write interface for audit events with guaranteed delivery and non-blocking behavior.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/audit/sink.ts`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/audit/sink.ts`.
   2. Define `AuditSink` interface:
      - `write(event: AuditEvent): Promise<void>` — async, non-blocking, never throws (buffers on failure).
      - `flush(): Promise<void>` — force-flush any buffered events.
@@ -108,7 +108,7 @@ Implementation command:
   6. The sink delegates actual persistence to a storage backend (provided by WP02); for now, use a no-op or in-memory storage placeholder.
   7. Export the sink for use by all audit producers.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/audit/sink.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/audit/sink.ts`
 - Acceptance:
   - `write()` is non-blocking (< 1ms).
   - Events are never dropped (buffer expands if needed).
@@ -120,7 +120,7 @@ Implementation command:
 
 - Purpose: Ensure all lifecycle events published on the local bus are automatically captured as audit events without manual instrumentation in every producer.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/audit/bus-subscriber.ts`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/audit/bus-subscriber.ts`.
   2. Define a mapping from bus event topics to audit event types:
      - `lane.*` events -> `"lane.lifecycle"` audit events
      - `session.*` events -> `"session.lifecycle"` audit events
@@ -134,8 +134,8 @@ Implementation command:
   7. Ensure the subscription does not block the bus event dispatch (async handler).
   8. Wire the subscriber into the runtime initialization so it starts capturing events from boot.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/audit/bus-subscriber.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/index.ts` (wire subscriber at startup)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/audit/bus-subscriber.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/index.ts` (wire subscriber at startup)
 - Acceptance:
   - Bus events are automatically captured as audit events.
   - Topic-to-event-type mapping covers all known topics.
@@ -147,28 +147,28 @@ Implementation command:
 
 - Purpose: Lock the audit foundation behavior before building higher-level features.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/audit/event.test.ts`:
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/audit/event.test.ts`:
      - Test: factory function creates valid events with all required fields.
      - Test: missing required fields (actor, action, target) are caught by validation.
      - Test: UUID v7 IDs are time-ordered (event created later has lexicographically greater ID).
      - Test: metadata field accepts arbitrary key-value pairs.
-  2. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/audit/sink.test.ts`:
+  2. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/audit/sink.test.ts`:
      - Test: `write()` returns in < 1ms (non-blocking).
      - Test: write 10,000 events, flush, verify all persisted (using mock storage).
      - Test: simulate storage failure, verify events buffered and not lost.
      - Test: simulate storage recovery, verify buffered events are persisted on retry.
      - Test: buffer high-water mark metric tracks correctly.
      - Test: p95 write latency < 5ms benchmark.
-  3. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/audit/bus-subscriber.test.ts`:
+  3. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/audit/bus-subscriber.test.ts`:
      - Test: bus event for `lane.created` topic produces a `lane.lifecycle` audit event.
      - Test: bus event for `policy.evaluation.completed` produces a `policy.evaluation` audit event.
      - Test: unknown bus topic produces warning log but no crash.
      - Test: correlation ID is preserved from bus event to audit event.
   4. Ensure all tests are deterministic and run via `bun test`.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/audit/event.test.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/audit/sink.test.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/audit/bus-subscriber.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/audit/event.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/audit/sink.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/audit/bus-subscriber.test.ts`
 - Acceptance:
   - All tests pass.
   - Coverage of happy path, error paths, and edge cases.

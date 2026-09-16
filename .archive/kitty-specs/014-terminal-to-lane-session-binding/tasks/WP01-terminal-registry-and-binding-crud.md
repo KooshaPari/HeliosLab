@@ -42,8 +42,8 @@ Success criteria:
 ## Context & Constraints
 
 - Constitution: `docs/reference/constitution.md`
-- Plan: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/014-terminal-to-lane-session-binding/plan.md`
-- Spec: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/014-terminal-to-lane-session-binding/spec.md`
+- Plan: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/014-terminal-to-lane-session-binding/plan.md`
+- Spec: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/014-terminal-to-lane-session-binding/spec.md`
 - Internal event bus: spec 001 (`apps/runtime/src/protocol/bus.ts`)
 - Workspace identity: spec 003
 - ID standards: spec 005
@@ -78,7 +78,7 @@ Implementation command:
   4. Implement `createBinding(terminalId, triple): TerminalBinding` factory function.
   5. Export all types and validation functions.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/registry/binding_triple.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/registry/binding_triple.ts`
 - Validation:
   - Unit test: create binding with valid triple, assert all fields populated.
   - Unit test: validate triple with invalid workspace ID format, assert validation failure.
@@ -108,7 +108,7 @@ Implementation command:
   5. Thread-safety: since Bun is single-threaded, use synchronous operations but guard against re-entrancy via state flags if needed.
   6. Export the registry class and error types.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/registry/terminal_registry.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/registry/terminal_registry.ts`
 - Validation:
   - Unit test: register 3 terminals, query by each key type, verify correct results.
   - Unit test: attempt duplicate terminal_id registration, assert rejection.
@@ -134,7 +134,7 @@ Implementation command:
   4. Measure validation overhead: the middleware must add less than 5ms at p95.
   5. Log validation failures for debugging (emit validation-failed event via bus in WP02).
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/registry/binding_middleware.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/registry/binding_middleware.ts`
 - Validation:
   - Unit test: validate operation on terminal with valid binding, assert pass.
   - Unit test: validate operation on terminal whose lane was cleaned up, assert rejection with `validation_failed`.
@@ -162,9 +162,9 @@ Implementation command:
   4. Use Vitest + a property-based testing library (e.g., fast-check).
   5. Aim for >=90% line coverage on registry modules.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/registry/binding_triple.test.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/registry/terminal_registry.test.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/registry/binding_middleware.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/registry/binding_triple.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/registry/terminal_registry.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/registry/binding_middleware.test.ts`
 - Parallel: Yes (after T001/T002/T003 interfaces are stable).
 
 ## Test Strategy

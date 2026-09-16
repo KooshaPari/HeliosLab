@@ -44,8 +44,8 @@ Success criteria:
 ## Context & Constraints
 
 - Constitution: `docs/reference/constitution.md`
-- Plan: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/024-audit-logging-and-session-replay/plan.md`
-- Spec: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/024-audit-logging-and-session-replay/spec.md`
+- Plan: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/024-audit-logging-and-session-replay/plan.md`
+- Spec: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/024-audit-logging-and-session-replay/spec.md`
 - WP01 output: AuditEvent schema, AuditSink interface.
 
 Constraints:
@@ -63,7 +63,7 @@ Implementation command:
 
 - Purpose: Provide fast read access to the most recent audit events for hot queries and real-time UI updates.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/audit/ring-buffer.ts`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/audit/ring-buffer.ts`.
   2. Implement `AuditRingBuffer` class with configurable capacity (default 10,000).
   3. Use a fixed-size array with head/tail pointers for O(1) append and O(1) random access by index.
   4. Implement `push(event: AuditEvent)`: append to buffer; if full, return the evicted event (oldest) for overflow handling.
@@ -74,7 +74,7 @@ Implementation command:
   9. The buffer must be thread-safe if concurrent access is possible (Bun is single-threaded for JS, but verify).
   10. Add capacity and current size metrics.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/audit/ring-buffer.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/audit/ring-buffer.ts`
 - Acceptance:
   - O(1) append and eviction.
   - < 1ms read for queries on full buffer.
@@ -86,7 +86,7 @@ Implementation command:
 
 - Purpose: Provide durable, indexed storage for audit events supporting 30+ days of retention.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/audit/sqlite-store.ts`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/audit/sqlite-store.ts`.
   2. Use `bun:sqlite` for the database connection.
   3. Create table schema: `audit_events` with columns matching `AuditEvent` fields. Use `id` as primary key.
   4. Create indexes on: `workspace_id`, `lane_id`, `session_id`, `actor`, `event_type`, `correlation_id`, `timestamp`.
@@ -99,7 +99,7 @@ Implementation command:
   11. Add database migration logic: create table and indexes on first run; versioned migrations for schema evolution.
   12. Handle database corruption gracefully: detect, log critical error, attempt recovery.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/audit/sqlite-store.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/audit/sqlite-store.ts`
 - Acceptance:
   - Batch inserts are efficient (> 1000 events/second).
   - Queries use indexes and return within 500ms for 1M events.
@@ -123,8 +123,8 @@ Implementation command:
   7. Test: fill ring buffer to capacity + 100, verify all 100 overflow events are in SQLite.
   8. Test: simulate SQLite failure during overflow, verify events are queued for retry.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/audit/sink.ts` (integrate storage)
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/audit/ring-buffer.ts` (overflow hook)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/audit/sink.ts` (integrate storage)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/audit/ring-buffer.ts` (overflow hook)
 - Acceptance:
   - Zero events lost during overflow.
   - SQLite failures handled with retry.
@@ -136,7 +136,7 @@ Implementation command:
 
 - Purpose: Validate zero event loss under crash and overflow scenarios using real SQLite operations.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/integration/audit/storage-chaos.test.ts`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/integration/audit/storage-chaos.test.ts`.
   2. Test: write 50,000 events, flush, restart (simulate by creating new sink instance with same SQLite DB), verify all 50,000 events recoverable from SQLite.
   3. Test: write events rapidly (1000/second), verify ring buffer overflow to SQLite loses zero events by comparing counts.
   4. Test: simulate SQLite write failure (e.g., read-only filesystem mock), verify events are buffered and persisted on recovery.
@@ -145,7 +145,7 @@ Implementation command:
   7. Test: verify storage size is within 500 MB for 3 million events (30 days at 100k/day).
   8. Use real SQLite (not mocked) for realistic chaos testing.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/integration/audit/storage-chaos.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/integration/audit/storage-chaos.test.ts`
 - Acceptance:
   - Zero event loss during normal overflow.
   - Bounded loss during hard crash documented.

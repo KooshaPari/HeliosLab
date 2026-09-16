@@ -7,7 +7,7 @@
 | Open PRs | 2 |
 | Focus | TS+Rust monorepo lab (journeys/contracts/desktop) |
 
-[![AI slop inside](https://sladge.net/badge.svg)](https://sladge.net) [![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/KooshaPari/HeliosLab/total)](https://github.com/KooshaPari/HeliosLab/releases)
+[![AI slop inside](https://sladge.net/badge.svg)](https://sladge.net) [![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/<REDACTED>/HeliosLab/total)](https://github.com/<REDACTED>/HeliosLab/releases)
 
 Progress: ████████░░ 80%
 
@@ -27,7 +27,7 @@ Progress: ████████░░ 80%
 
 **Status:** stable
 
-[![CI](https://github.com/KooshaPari/HeliosLab/actions/workflows/ci.yml/badge.svg)](https://github.com/KooshaPari/HeliosLab/actions/workflows/ci.yml)
+[![CI](https://github.com/<REDACTED>/HeliosLab/actions/workflows/ci.yml/badge.svg)](https://github.com/<REDACTED>/HeliosLab/actions/workflows/ci.yml)
 
 HeliosLab is a Rust workspace providing comprehensive configuration, feature flags, secrets, and version management for Phenotype projects. The workspace contains six core crates—`pheno-core`, `pheno-db`, `pheno-crypto`, `pheno-cli`, `pheno-ffi-python`, and `pheno-ffi-go`—unified around the `phenoctl` CLI binary (entrypoint: `pheno-cli/src/main.rs`).
 

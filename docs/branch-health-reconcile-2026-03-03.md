@@ -4,10 +4,10 @@ Date: 2026-03-03
 
 ## Current Snapshot
 
-- `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp-colab`
+- `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp-colab`
   - `HEAD` vs `origin/main`: ahead 1, behind 8
   - `HEAD` vs `upstream/main`: ahead 1, behind 0
-- `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp`
+- `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp`
   - `HEAD` (`heliosapp-upstream-recon`) vs `upstream/main`: ahead 9, behind 0
   - `HEAD` vs `origin/main`: ahead 13, behind 510
 
@@ -23,7 +23,7 @@ Date: 2026-03-03
 
 1. Create a safety branch from current state:
    ```bash
-   cd /Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp-colab
+   cd /Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp-colab
    git switch -c chore/branch-health-colab-20260303
    ```
 2. Update remotes:
@@ -56,7 +56,7 @@ git push -u origin chore/branch-health-colab-20260303
 
 1. Create an integration branch from `heliosapp-upstream-recon`:
    ```bash
-   cd /Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp
+   cd /Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp
    git switch heliosapp-upstream-recon
    git switch -c chore/branch-health-heliosapp-20260303
    ```

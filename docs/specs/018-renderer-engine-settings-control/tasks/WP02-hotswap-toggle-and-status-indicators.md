@@ -46,8 +46,8 @@ Success criteria:
 ## Context & Constraints
 
 - Constitution: `docs/reference/constitution.md`
-- Plan: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/018-renderer-engine-settings-control/plan.md`
-- Spec: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/018-renderer-engine-settings-control/spec.md`
+- Plan: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/018-renderer-engine-settings-control/plan.md`
+- Spec: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/018-renderer-engine-settings-control/spec.md`
 - Settings panel: `apps/desktop/src/settings/` (WP01)
 - Renderer preferences: `apps/desktop/src/settings/renderer_preferences.ts` (WP01)
 - Switch transaction: spec 013 (`apps/runtime/src/renderer/switch_transaction.ts`)
@@ -78,7 +78,7 @@ Implementation command:
   3. Position the toggle below the renderer options in the settings section.
   4. FR-018-006: provide hot-swap preference toggle.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/settings/hotswap_toggle.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/settings/hotswap_toggle.ts`
 - Validation:
   - Unit test: toggle on, verify preference saved as `hotSwapEnabled: true`.
   - Unit test: toggle off, verify preference saved as `hotSwapEnabled: false`.
@@ -104,7 +104,7 @@ Implementation command:
      a. If no event received for 15 seconds during an active transaction, show "Status unknown" warning.
   4. FR-018-005: display real-time status indicators during switch transactions.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/settings/switch_status.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/settings/switch_status.ts`
 - Validation:
   - Unit test: emit switch.started, verify progress indicator shown.
   - Unit test: emit switch.committed, verify success message shown.
@@ -130,7 +130,7 @@ Implementation command:
   3. Handle edge case: if lock persists beyond 30 seconds (transaction timeout), auto-unlock with warning.
   4. FR-018-008: lock settings during active switch transaction.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/settings/settings_lock.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/settings/settings_lock.ts`
 - Validation:
   - Unit test: emit switch.started, verify all settings inputs disabled.
   - Unit test: emit switch.committed, verify settings unlocked.
@@ -150,8 +150,8 @@ Implementation command:
   3. Integrate with the capability matrix:
      a. The confirmation dialog should show the actual switch method that will be used, considering both capability and preference.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/settings/switch_confirmation.ts` (preference integration)
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/renderer/switch_transaction.ts` (forceRestartRestore flag)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/settings/switch_confirmation.ts` (preference integration)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/renderer/switch_transaction.ts` (forceRestartRestore flag)
 - Validation:
   - Integration test: hot-swap enabled + capable renderers -> hot-swap used.
   - Integration test: hot-swap disabled + capable renderers -> restart-with-restore used.
@@ -182,10 +182,10 @@ Implementation command:
   5. Capture screenshots for visual regression baseline.
   6. Aim for >=85% line coverage across settings modules.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tests/e2e/settings/renderer_settings.test.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tests/e2e/settings/renderer_preferences.test.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tests/e2e/settings/renderer_lock.test.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tests/e2e/settings/renderer_performance.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tests/e2e/settings/renderer_settings.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tests/e2e/settings/renderer_preferences.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tests/e2e/settings/renderer_lock.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tests/e2e/settings/renderer_performance.test.ts`
 - Parallel: Yes (after T007-T010 are integrated).
 
 ## Test Strategy

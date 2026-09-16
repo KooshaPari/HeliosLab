@@ -47,8 +47,8 @@ Success criteria:
 ## Context & Constraints
 
 - Constitution: `docs/reference/constitution.md`
-- Plan: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/015-lane-orphan-detection-and-remediation/plan.md`
-- Spec: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/015-lane-orphan-detection-and-remediation/spec.md`
+- Plan: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/015-lane-orphan-detection-and-remediation/plan.md`
+- Spec: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/015-lane-orphan-detection-and-remediation/spec.md`
 - Watchdog and detectors: `apps/runtime/src/lanes/watchdog/` (WP01)
 - Resource classifier: `apps/runtime/src/lanes/watchdog/resource_classifier.ts` (WP01)
 - Internal event bus: `apps/runtime/src/protocol/bus.ts` (spec 001)
@@ -82,7 +82,7 @@ Implementation command:
      d. Stale suggestions (resource no longer orphaned) are auto-removed.
   3. Return structured results for each cleanup attempt (success, failure with reason).
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/lanes/watchdog/remediation.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/lanes/watchdog/remediation.ts`
 - Validation:
   - Unit test: generate suggestions from classified orphans, verify all have confirmation required.
   - Unit test: confirm cleanup, verify action executed.
@@ -111,7 +111,7 @@ Implementation command:
      c. Return per-resource results to the caller.
   5. All cleanup actions must be idempotent (safe to retry).
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/lanes/watchdog/remediation.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/lanes/watchdog/remediation.ts`
 - Validation:
   - Integration test: create orphaned worktree, confirm cleanup, verify worktree removed and snapshot saved.
   - Integration test: spawn orphaned PTY process, confirm cleanup, verify process terminated.
@@ -134,7 +134,7 @@ Implementation command:
      d. Persist cooldown map to disk for restart survival.
   3. Implement cooldown expiry: remove expired entries on each detection cycle.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/lanes/watchdog/remediation.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/lanes/watchdog/remediation.ts`
 - Validation:
   - Unit test: orphan with recovering lane owner, verify suppressed from suggestions.
   - Unit test: decline cleanup, verify resource excluded from next cycle suggestions.
@@ -156,8 +156,8 @@ Implementation command:
   3. Wire events into the watchdog, remediation engine, and cleanup actions.
   4. Register topics in the protocol topic registry.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/lanes/watchdog/orphan_watchdog.ts` (cycle events)
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/lanes/watchdog/remediation.ts` (remediation events)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/lanes/watchdog/orphan_watchdog.ts` (cycle events)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/lanes/watchdog/remediation.ts` (remediation events)
 - Validation:
   - Unit test: run detection cycle, verify `cycle_completed` event emitted with correct counts.
   - Unit test: confirm cleanup, verify `confirmed` and `completed` events emitted.
@@ -187,11 +187,11 @@ Implementation command:
      b. Measure detection cycle time, assert <2 seconds.
   6. Aim for >=85% line coverage across all watchdog modules.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/integration/lanes/watchdog/detection_accuracy.test.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/integration/lanes/watchdog/remediation_workflow.test.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/integration/lanes/watchdog/recovery_suppression.test.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/integration/lanes/watchdog/false_positive_rate.test.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/integration/lanes/watchdog/performance.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/integration/lanes/watchdog/detection_accuracy.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/integration/lanes/watchdog/remediation_workflow.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/integration/lanes/watchdog/recovery_suppression.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/integration/lanes/watchdog/false_positive_rate.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/integration/lanes/watchdog/performance.test.ts`
 - Parallel: Yes (after T007-T010 are implemented).
 
 ## Test Strategy

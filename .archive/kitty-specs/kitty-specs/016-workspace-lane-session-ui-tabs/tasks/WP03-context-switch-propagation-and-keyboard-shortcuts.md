@@ -46,8 +46,8 @@ Success criteria:
 ## Context & Constraints
 
 - Constitution: `docs/reference/constitution.md`
-- Plan: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/016-workspace-lane-session-ui-tabs/plan.md`
-- Spec: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/016-workspace-lane-session-ui-tabs/spec.md`
+- Plan: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/016-workspace-lane-session-ui-tabs/plan.md`
+- Spec: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/016-workspace-lane-session-ui-tabs/spec.md`
 - Tab surfaces: `apps/desktop/src/tabs/` (WP01/WP02)
 - Context store: `apps/desktop/src/tabs/context_switch.ts` (WP01)
 - Internal event bus: `apps/runtime/src/protocol/bus.ts` (spec 001)
@@ -82,7 +82,7 @@ Implementation command:
   4. FR-016-003: update all visible tabs when active lane/session changes.
   5. FR-016-005: display stale-context indicator on failed tabs.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/tabs/context_switch.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/tabs/context_switch.ts`
 - Validation:
   - Unit test: change context, verify all tabs receive new context.
   - Unit test: simulate tab update failure, verify stale indicator set.
@@ -110,7 +110,7 @@ Implementation command:
      a. If a user maps a shortcut that conflicts with a system shortcut, warn and reject.
   4. FR-016-004: provide configurable keyboard shortcuts for switching between tabs.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/tabs/keyboard_shortcuts.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/tabs/keyboard_shortcuts.ts`
 - Validation:
   - Unit test: register default shortcuts, verify each activates the correct tab.
   - Unit test: remap a shortcut, verify new mapping works.
@@ -132,8 +132,8 @@ Implementation command:
      b. If the retry action succeeds, clear the stale indicator.
   4. Emit `tab.context.stale` event on the bus for monitoring.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/tabs/tab_bar.ts` (header indicator)
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/tabs/tab_surface.ts` (content banner)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/tabs/tab_bar.ts` (header indicator)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/tabs/tab_surface.ts` (content banner)
 - Validation:
   - Unit test: set stale flag, verify warning icon and banner displayed.
   - Unit test: retry succeeds, verify stale indicator cleared.
@@ -158,9 +158,9 @@ Implementation command:
      b. Test: focus management (Tab/Shift-Tab within tab content, Escape to tab bar).
   4. Capture screenshots for visual regression baseline.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tests/e2e/tabs/tab_navigation.test.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tests/e2e/tabs/context_switch.test.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tests/e2e/tabs/keyboard_workflow.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tests/e2e/tabs/tab_navigation.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tests/e2e/tabs/context_switch.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tests/e2e/tabs/keyboard_workflow.test.ts`
 - Parallel: Yes (after T012-T014 are integrated).
 
 ### Subtask T016 - Add performance benchmarks
@@ -173,7 +173,7 @@ Implementation command:
   2. Record timing distributions for review.
   3. Verify input latency stays under 100ms during background data loading (NFR-016-003).
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tests/e2e/tabs/performance.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tests/e2e/tabs/performance.test.ts`
 - Parallel: Yes (after T012-T014 are integrated).
 
 ## Test Strategy

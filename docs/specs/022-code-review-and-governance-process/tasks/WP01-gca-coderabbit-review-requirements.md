@@ -45,8 +45,8 @@ Success criteria:
 ## Context & Constraints
 
 - Constitution: `docs/reference/constitution.md`
-- Plan: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/022-code-review-and-governance-process/plan.md`
-- Spec: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/022-code-review-and-governance-process/spec.md`
+- Plan: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/022-code-review-and-governance-process/plan.md`
+- Spec: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/022-code-review-and-governance-process/spec.md`
 
 Constraints:
 - No unreviewed merges to main (constitution requirement).
@@ -63,7 +63,7 @@ Implementation command:
 
 - Purpose: Enforce merge requirements at the GitHub level so they cannot be bypassed locally.
 - Steps:
-  1. Document the required branch protection settings in `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/.github/branch-protection.md`.
+  1. Document the required branch protection settings in `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/.github/branch-protection.md`.
   2. Settings must include:
      - Required status checks: `quality-gates` (from spec 021), `gca-review`, `coderabbit-review`, `compliance-check` (WP02).
      - Required pull request reviews: at least 1 approval from a designated reviewer (agent or human).
@@ -74,7 +74,7 @@ Implementation command:
   4. Include instructions for setting up branch protection in new forks or mirrors.
   5. Add a validation script or checklist that verifies branch protection is correctly configured.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/.github/branch-protection.md`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/.github/branch-protection.md`
 - Acceptance:
   - Branch protection settings documented and reproducible.
   - All required status checks listed.
@@ -94,8 +94,8 @@ Implementation command:
   7. Document the GCA configuration and failure handling in `.github/branch-protection.md`.
   8. Test: open a PR, verify GCA triggers within 5 minutes, verify merge is blocked until GCA passes.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/.github/gca.yml` (or equivalent config)
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/.github/branch-protection.md` (update)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/.github/gca.yml` (or equivalent config)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/.github/branch-protection.md` (update)
 - Acceptance:
   - GCA triggers on PR creation/update.
   - Rate-limiting handled with retry and author notification.
@@ -115,8 +115,8 @@ Implementation command:
   7. Document in `.github/branch-protection.md`.
   8. Test: open a PR, verify CodeRabbit triggers, verify merge is blocked until CodeRabbit passes.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/.coderabbit.yaml` (or equivalent config)
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/.github/branch-protection.md` (update)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/.coderabbit.yaml` (or equivalent config)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/.github/branch-protection.md` (update)
 - Acceptance:
   - CodeRabbit triggers on PR events.
   - Rate-limiting handled with retry.
@@ -135,7 +135,7 @@ Implementation command:
   6. Test: attempt self-merge with missing agent review, verify blocked.
   7. Test: attempt self-merge with all requirements met, verify allowed.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/.github/workflows/self-merge-gate.yml` (or integrated into existing workflow)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/.github/workflows/self-merge-gate.yml` (or integrated into existing workflow)
 - Acceptance:
   - Self-merge allowed only with full attestation.
   - Missing requirements produce clear messages.
@@ -146,7 +146,7 @@ Implementation command:
 
 - Purpose: Establish an append-only, version-controlled record of every merge to main for auditability.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/governance-log.jsonl` as an empty file.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/governance-log.jsonl` as an empty file.
   2. Define the log entry schema in TypeScript (`scripts/governance-types.ts`):
      - `prNumber`: number
      - `title`: string
@@ -162,8 +162,8 @@ Implementation command:
   4. Document the schema in code comments and in `.github/branch-protection.md`.
   5. Add the governance log to `.gitignore` exclusion (ensure it IS tracked, not ignored).
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/governance-log.jsonl`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/scripts/governance-types.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/governance-log.jsonl`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/scripts/governance-types.ts`
 - Acceptance:
   - JSONL file exists and is version-controlled.
   - Schema is complete and documented.
@@ -174,7 +174,7 @@ Implementation command:
 
 - Purpose: Provide a scriptable interface for appending entries and querying the governance log.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/scripts/governance-log.ts`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/scripts/governance-log.ts`.
   2. Implement `appendGovernanceEntry(entry)` that validates the entry against the schema and appends to `governance-log.jsonl`.
   3. Implement query functions: `getSelfMerges(days)`, `getExceptionADRs()`, `getEntriesByAuthor(name)`, `getEntriesInRange(from, to)`.
   4. Implement `validateGovernanceLog()` that reads all entries and confirms they conform to the schema (useful for CI).
@@ -183,8 +183,8 @@ Implementation command:
   7. Test: append a valid entry, query it back, verify fields.
   8. Test: append an invalid entry, verify rejection.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/scripts/governance-log.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/package.json` (governance:query script)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/scripts/governance-log.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/package.json` (governance:query script)
 - Acceptance:
   - Entries appended atomically with schema validation.
   - Query functions return correct results.

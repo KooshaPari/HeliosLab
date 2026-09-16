@@ -45,14 +45,14 @@ Success criteria:
 ## Context & Constraints
 
 - Constitution: `docs/reference/constitution.md`
-- Plan: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/025-provider-adapter-interface-and-lifecycle/plan.md`
-- Spec: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/025-provider-adapter-interface-and-lifecycle/spec.md`
+- Plan: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/025-provider-adapter-interface-and-lifecycle/plan.md`
+- Spec: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/025-provider-adapter-interface-and-lifecycle/spec.md`
 - WP01 outputs:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/adapter.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/registry.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/errors.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/adapter.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/registry.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/errors.ts`
 - Protocol bus:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/protocol/bus.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/protocol/bus.ts`
 
 Constraints:
 - TypeScript + Bun runtime.
@@ -70,7 +70,7 @@ Implementation command:
 
 - Purpose: Connect to MCP servers, discover available tools, and register their schemas for agent use.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/mcp-bridge.ts`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/mcp-bridge.ts`.
   2. Implement `MCPBridgeAdapter` class implementing `ProviderAdapter<MCPConfig, MCPToolInvocation, MCPToolResult>`.
   3. Define `MCPConfig` type: `endpoint: string`, `transport: 'stdio' | 'sse'`, `timeoutMs: number`, `maxRetries: number`, `reconnectBackoffMs: number`.
   4. Define `MCPToolInvocation` type: `toolName: string`, `arguments: Record<string, unknown>`, `timeout?: number`.
@@ -86,7 +86,7 @@ Implementation command:
      - `getToolSchema(name: string)` for downstream validation.
      - `listTools()` for catalog enumeration.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/mcp-bridge.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/mcp-bridge.ts`
 - Validation:
   - Bridge connects to mock MCP server and discovers tools.
   - Tool schemas are registered and queryable.
@@ -118,7 +118,7 @@ Implementation command:
      - Wait for exit to avoid zombie processes.
      - Close IPC channels.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/mcp-bridge.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/mcp-bridge.ts`
 - Validation:
   - Tool invocation runs in child process, not in host process.
   - Timeout kills child process and returns normalized error.
@@ -141,7 +141,7 @@ Implementation command:
      - Payload: added tools, removed tools, unchanged count.
   4. Ensure all bus events carry the originating correlation ID.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/mcp-bridge.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/mcp-bridge.ts`
 - Validation:
   - Bus events emitted for every tool invocation outcome.
   - Correlation IDs match between invocation input and bus event.
@@ -170,7 +170,7 @@ Implementation command:
      - Clean up all sandbox child processes.
      - Release tool catalog.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/mcp-bridge.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/mcp-bridge.ts`
 - Validation:
   - Disconnection is detected and health transitions to degraded.
   - Reconnection uses exponential backoff with correct timing.
@@ -184,7 +184,7 @@ Implementation command:
 
 - Purpose: Verify complete MCP lifecycle including connect, discover, invoke, disconnect, reconnect.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/__tests__/mcp-bridge.test.ts`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/__tests__/mcp-bridge.test.ts`.
   2. Implement mock MCP server:
      - Configurable tool list with schemas.
      - Configurable invocation behavior (success, error, timeout, crash).
@@ -208,7 +208,7 @@ Implementation command:
      - FR-025-009 (health checks): disconnection/reconnection tests.
      - FR-025-011 (error normalization): all error scenario tests.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/__tests__/mcp-bridge.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/__tests__/mcp-bridge.test.ts`
 - Validation:
   - All test scenarios pass.
   - Coverage >=85% on mcp-bridge.ts.

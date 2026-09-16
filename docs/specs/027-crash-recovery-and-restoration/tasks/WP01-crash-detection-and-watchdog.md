@@ -43,10 +43,10 @@ Success criteria:
 ## Context & Constraints
 
 - Constitution: `docs/reference/constitution.md`
-- Plan: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/027-crash-recovery-and-restoration/plan.md`
-- Spec: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/027-crash-recovery-and-restoration/spec.md`
+- Plan: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/027-crash-recovery-and-restoration/plan.md`
+- Spec: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/027-crash-recovery-and-restoration/spec.md`
 - Protocol bus:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/protocol/bus.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/protocol/bus.ts`
 
 Constraints:
 - TypeScript + Bun runtime.
@@ -65,7 +65,7 @@ Implementation command:
 
 - Purpose: Detect abnormal termination of critical processes via heartbeat timeout.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/recovery/watchdog.ts`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/recovery/watchdog.ts`.
   2. Implement `Watchdog` class:
      - `registerProcess(name: string, pid: number, heartbeatIntervalMs: number): void` -- register a process to monitor.
      - `receiveHeartbeat(name: string): void` -- reset timeout for the named process.
@@ -83,7 +83,7 @@ Implementation command:
   6. Ensure watchdog timer cleanup on unregister (no stale timers).
   7. Keep watchdog code minimal (target < 150 lines for core logic).
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/recovery/watchdog.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/recovery/watchdog.ts`
 - Validation:
   - Heartbeat timeout fires within 2x interval of last heartbeat.
   - Process-gone detection works (kill -0 check).
@@ -116,7 +116,7 @@ Implementation command:
      - Fall back to filesystem crash record only.
      - Recovery process reads crash record on next launch.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/recovery/watchdog.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/recovery/watchdog.ts`
 - Validation:
   - Exit code 0 is classified as graceful.
   - SIGKILL, SIGSEGV are classified as crash.
@@ -129,7 +129,7 @@ Implementation command:
 
 - Purpose: Prevent runaway crash-restart cycles by entering safe mode.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/recovery/safe-mode.ts`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/recovery/safe-mode.ts`.
   2. Implement `CrashLoopDetector` class:
      - `recordCrash(timestamp: number): void` -- record a crash occurrence.
      - `isLooping(): boolean` -- return true if 3+ crashes within 60s window.
@@ -153,7 +153,7 @@ Implementation command:
      - If `isLooping()`, call `SafeMode.enter()`.
   6. Safe mode UI: show a banner indicating safe mode with instructions to exit or report issue.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/recovery/safe-mode.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/recovery/safe-mode.ts`
 - Validation:
   - 3 crashes in 60s triggers safe mode.
   - 2 crashes in 60s does not trigger safe mode.
@@ -168,7 +168,7 @@ Implementation command:
 
 - Purpose: Lock crash detection behavior before recovery state machine is built.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/recovery/__tests__/`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/recovery/__tests__/`.
   2. Add `watchdog.test.ts`:
      - Test heartbeat timeout detection (use fake timers).
      - Test process-gone detection with mock PID check.
@@ -196,9 +196,9 @@ Implementation command:
      - FR-027-001 (crash detection): watchdog and exit code tests.
      - FR-027-009 (crash loop): safe mode tests.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/recovery/__tests__/watchdog.test.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/recovery/__tests__/exit-code.test.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/recovery/__tests__/safe-mode.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/recovery/__tests__/watchdog.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/recovery/__tests__/exit-code.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/recovery/__tests__/safe-mode.test.ts`
 - Validation:
   - All tests pass.
   - Coverage >=85% on watchdog.ts and safe-mode.ts.

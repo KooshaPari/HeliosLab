@@ -48,8 +48,8 @@ Success criteria:
 ## Context & Constraints
 
 - Constitution: `docs/reference/constitution.md`
-- Plan: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/017-lane-list-and-status-display/plan.md`
-- Spec: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/017-lane-list-and-status-display/spec.md`
+- Plan: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/017-lane-list-and-status-display/plan.md`
+- Spec: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/017-lane-list-and-status-display/spec.md`
 - Lane panel: `apps/desktop/src/panels/` (WP01)
 - Lane lifecycle API: spec 008
 - Orphan detection: spec 015
@@ -84,7 +84,7 @@ Implementation command:
      c. On failure: revert optimistic update and show error.
   4. Wire actions into `LaneListItem` click/menu handlers and keyboard navigation.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/panels/lane_actions.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/panels/lane_actions.ts`
 - Validation:
   - Unit test: create lane, verify provisioning item appears, then confirm via API mock.
   - Unit test: attach lane, verify context switch triggered.
@@ -108,7 +108,7 @@ Implementation command:
   3. Implement dialog animation: brief fade-in to avoid jarring appearance.
   4. FR-017-004: cleanup actions require user confirmation.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/panels/confirmation_dialog.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/panels/confirmation_dialog.ts`
 - Validation:
   - Unit test: open dialog, press confirm, verify callback called.
   - Unit test: open dialog, press cancel, verify callback NOT called.
@@ -134,7 +134,7 @@ Implementation command:
   4. Wire event handler into the lane panel lifecycle (subscribe on mount, unsubscribe on unmount).
   5. FR-017-005: update lane status badges in real time via bus events.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/panels/lane_event_handler.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/panels/lane_event_handler.ts`
 - Validation:
   - Unit test: emit state change event, verify badge updates.
   - Unit test: emit lane.created, verify new lane appears.
@@ -155,8 +155,8 @@ Implementation command:
   3. Subscribe to `orphan.detection.cycle_completed` events to refresh the orphan list.
   4. FR-017-006: integrate with orphan detection to flag orphaned lanes.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/panels/lane_event_handler.ts` (orphan subscription)
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/panels/lane_list_item.ts` (orphan display)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/panels/lane_event_handler.ts` (orphan subscription)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/panels/lane_list_item.ts` (orphan display)
 - Validation:
   - Unit test: lane flagged as orphaned, verify warning icon displayed.
   - Unit test: lane orphan status cleared, verify warning icon removed.
@@ -173,8 +173,8 @@ Implementation command:
   3. Auto-dismiss the banner when bus events resume.
   4. Implement visual distinction: use amber/yellow background to indicate warning without alarm.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/panels/lane_event_handler.ts` (connectivity monitoring)
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/panels/lane_panel.ts` (banner display)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/panels/lane_event_handler.ts` (connectivity monitoring)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/panels/lane_panel.ts` (banner display)
 - Validation:
   - Unit test: simulate bus silence for 30s, verify stale banner displayed.
   - Unit test: resume events after stale, verify banner dismissed.
@@ -200,9 +200,9 @@ Implementation command:
   4. Capture screenshots for visual regression baseline.
   5. Aim for >=85% line coverage across panel modules.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tests/e2e/panels/lane_panel.test.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tests/e2e/panels/lane_realtime.test.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tests/e2e/panels/lane_performance.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tests/e2e/panels/lane_panel.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tests/e2e/panels/lane_realtime.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tests/e2e/panels/lane_performance.test.ts`
 - Parallel: Yes (after T006-T010 are integrated).
 
 ## Test Strategy

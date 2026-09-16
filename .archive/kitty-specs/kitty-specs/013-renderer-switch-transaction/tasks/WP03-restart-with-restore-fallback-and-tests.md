@@ -47,8 +47,8 @@ Success criteria:
 ## Context & Constraints
 
 - Constitution: `docs/reference/constitution.md`
-- Plan: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/013-renderer-switch-transaction/plan.md`
-- Spec: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/013-renderer-switch-transaction/spec.md`
+- Plan: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/013-renderer-switch-transaction/plan.md`
+- Spec: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/013-renderer-switch-transaction/spec.md`
 - Switch transaction: `apps/runtime/src/renderer/switch_transaction.ts` (WP01/WP02)
 - Hot-swap: `apps/runtime/src/renderer/hot_swap.ts` (WP02)
 - Rollback: `apps/runtime/src/renderer/rollback.ts` (WP02)
@@ -89,8 +89,8 @@ Implementation command:
   6. On any failure during phases 2-3, trigger rollback to source renderer using checkpoint data.
   7. Wire into the switch orchestrator as the non-hot-swap path.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/renderer/restart_restore.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/renderer/switch_transaction.ts` (orchestrator wiring)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/renderer/restart_restore.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/renderer/switch_transaction.ts` (orchestrator wiring)
 - Validation:
   - Integration test: restart-with-restore with 3 terminals, verify full state recovery.
   - Integration test: verify session context (scrollback, cursor, env, cwd) matches pre-switch state.
@@ -112,8 +112,8 @@ Implementation command:
      a. Allow the user to attempt renderer re-initialization from the degraded state.
      b. On success, transition from `degraded` to `committed` with PTY replay.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/renderer/rollback.ts` (degraded mode)
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/renderer/switch_transaction.ts` (degraded state)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/renderer/rollback.ts` (degraded mode)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/renderer/switch_transaction.ts` (degraded state)
 - Validation:
   - Integration test: inject failure in both target init and rollback, verify degraded mode entered.
   - Integration test: verify PTY processes continue running in headless mode.
@@ -133,7 +133,7 @@ Implementation command:
   3. Add timeout for queued requests: if the transaction takes longer than a configurable timeout, reject queued requests with an explanatory error.
   4. Wire into the terminal spawn path (spec 007 integration point).
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/renderer/switch_transaction.ts` (queue logic)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/renderer/switch_transaction.ts` (queue logic)
 - Validation:
   - Unit test: queue a terminal creation during active transaction, verify it resolves after commit.
   - Unit test: queue during active transaction that rolls back, verify creation proceeds after rollback.
@@ -157,7 +157,7 @@ Implementation command:
      b. Degraded scenarios: all PTY processes alive, headless mode active.
   4. Verify correct lifecycle events emitted for each failure path.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/integration/renderer/fault_injection.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/integration/renderer/fault_injection.test.ts`
 - Validation:
   - All 7+ fault scenarios pass with correct post-failure state.
   - Lifecycle events verified for each scenario.
@@ -174,7 +174,7 @@ Implementation command:
   3. Test with varying terminal counts (1, 5, 10) to validate scaling behavior.
   4. Record timing distributions for review.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/integration/renderer/slo_validation.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/integration/renderer/slo_validation.test.ts`
 - Validation:
   - All three SLO assertions pass at p95.
   - Timing distributions are recorded and available for review.
@@ -194,8 +194,8 @@ Implementation command:
   3. Use Playwright to drive the ElectroBun UI and verify visual state.
   4. Capture screenshots at key points for visual regression baseline.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tests/e2e/renderer/switch_flow.test.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tests/e2e/renderer/switch_edge_cases.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tests/e2e/renderer/switch_flow.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tests/e2e/renderer/switch_edge_cases.test.ts`
 - Validation:
   - All Playwright tests pass.
   - Visual regression screenshots captured.

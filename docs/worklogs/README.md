@@ -2,7 +2,7 @@
 
 
 **Category: ARCHITECTURE**
-**Index:** See `/Users/kooshapari/CodeProjects/Phenotype/repos/worklogs/README.md`
+**Index:** See `/Users/<REDACTED>/CodeProjects/Phenotype/repos/worklogs/README.md`
 
 ## Purpose
 
@@ -56,4 +56,4 @@ Each entry should include:
 
 ---
 
-See parent worklog index at `/Users/kooshapari/CodeProjects/Phenotype/repos/worklogs/README.md` for aggregation tools and cross-project analysis.
+See parent worklog index at `/Users/<REDACTED>/CodeProjects/Phenotype/repos/worklogs/README.md` for aggregation tools and cross-project analysis.

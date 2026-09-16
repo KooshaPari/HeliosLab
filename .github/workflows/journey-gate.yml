@@ -42,7 +42,7 @@ jobs:
       - name: Install pinned journey verifier
         run: |
           cargo install \
-            --git https://github.com/KooshaPari/phenotype-journeys \
+            --git https://github.com/<REDACTED>/phenotype-journeys \
             --rev c90480645acd860a6fdbeb3404014c17f988bb72 \
             --locked \
             phenotype-journey

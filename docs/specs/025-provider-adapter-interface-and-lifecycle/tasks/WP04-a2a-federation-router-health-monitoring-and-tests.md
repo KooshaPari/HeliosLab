@@ -50,14 +50,14 @@ Success criteria:
 ## Context & Constraints
 
 - Constitution: `docs/reference/constitution.md`
-- Plan: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/025-provider-adapter-interface-and-lifecycle/plan.md`
-- Spec: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/025-provider-adapter-interface-and-lifecycle/spec.md`
+- Plan: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/025-provider-adapter-interface-and-lifecycle/plan.md`
+- Spec: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/025-provider-adapter-interface-and-lifecycle/spec.md`
 - WP01-WP03 outputs:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/adapter.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/registry.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/errors.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/acp-client.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/mcp-bridge.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/adapter.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/registry.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/errors.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/acp-client.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/mcp-bridge.ts`
 
 Constraints:
 - A2A router is slice-1 stub; full multi-endpoint failover deferred to slice-2.
@@ -74,7 +74,7 @@ Implementation command:
 
 - Purpose: Establish the A2A delegation boundary for external agent collaboration.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/a2a-router.ts`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/a2a-router.ts`.
   2. Implement `A2ARouterAdapter` class implementing `ProviderAdapter<A2AConfig, A2ADelegation, A2AResult>`.
   3. Define `A2AConfig` type: `endpoints: A2AEndpoint[]`, `timeoutMs: number`, `failoverEnabled: boolean`.
   4. Define `A2AEndpoint` type: `id: string`, `url: string`, `priority: number`, `capabilities: string[]`.
@@ -94,7 +94,7 @@ Implementation command:
      - Clear routing table.
   10. Mark slice-2 features with explicit TODO comments: multi-endpoint failover, dynamic endpoint discovery.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/a2a-router.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/a2a-router.ts`
 - Validation:
   - A2A stub routes delegation to mock endpoint with correlation.
   - Failure isolates to originating lane.
@@ -105,7 +105,7 @@ Implementation command:
 
 - Purpose: Centralize health tracking for all registered providers across ACP, MCP, and A2A.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/health.ts`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/health.ts`.
   2. Implement `HealthCoordinator` class:
      - `register(providerId: string, adapter: ProviderAdapter, intervalMs: number)` -- start periodic health checks.
      - `unregister(providerId: string)` -- stop health checks and remove from tracking.
@@ -123,7 +123,7 @@ Implementation command:
      - When all providers for a capability type are unhealthy, publish `provider.capability.unavailable` alert.
      - Tasks dispatched to unavailable capability are queued (up to configurable limit) rather than failed.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/health.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/health.ts`
 - Validation:
   - Health checks run at configured intervals for all registered providers.
   - State transitions are deterministic and bus-published.
@@ -148,7 +148,7 @@ Implementation command:
      - Routing table is recalculated on each transition (not on each request).
   4. Ensure failover is provider-level: in-flight requests to a crashing provider may fail (not retried automatically).
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/health.ts` (or new `failover.ts`)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/health.ts` (or new `failover.ts`)
 - Validation:
   - Failover selects healthy provider when primary is degraded.
   - Failover event is published on bus.
@@ -160,7 +160,7 @@ Implementation command:
 
 - Purpose: Prove that provider crash in one lane has zero effect on another lane (SC-025-002).
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/__tests__/chaos.test.ts`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/__tests__/chaos.test.ts`.
   2. Test scenario: **Cross-lane crash isolation**:
      - Register provider A in lane-1 and provider B in lane-2, both using process isolation.
      - Start concurrent execute calls on both providers.
@@ -179,7 +179,7 @@ Implementation command:
      - Verify: health check returns degraded/unavailable, does not hang.
   5. Run each scenario at least 10 times to verify 100% isolation rate.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/__tests__/chaos.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/__tests__/chaos.test.ts`
 - Validation:
   - 100% crash isolation across 10+ runs per scenario.
   - Zero orphan processes after each test.
@@ -190,7 +190,7 @@ Implementation command:
 
 - Purpose: Comprehensive integration tests for remaining success criteria.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/__tests__/integration.test.ts`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/__tests__/integration.test.ts`.
   2. **A2A delegation tests**:
      - Mock A2A endpoint receives delegation with correlation ID.
      - Delegation failure isolates to originating lane.
@@ -217,7 +217,7 @@ Implementation command:
      - Verify results on bus with correlation IDs.
   7. Map all tests to success criteria SC-025-001 through SC-025-005.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/__tests__/integration.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/__tests__/integration.test.ts`
 - Validation:
   - All test scenarios pass.
   - Each SC-025-* has at least one mapped test.

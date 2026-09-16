@@ -48,8 +48,8 @@ Success criteria:
 ## Context & Constraints
 
 - Constitution: `docs/reference/constitution.md`
-- Plan: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/022-code-review-and-governance-process/plan.md`
-- Spec: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/022-code-review-and-governance-process/spec.md`
+- Plan: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/022-code-review-and-governance-process/plan.md`
+- Spec: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/022-code-review-and-governance-process/spec.md`
 - WP01 output: branch protection, GCA/CodeRabbit configs, governance log.
 
 Constraints:
@@ -67,7 +67,7 @@ Implementation command:
 
 - Purpose: Validate every PR changeset against the full constitution review checklist to catch violations before merge.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/scripts/compliance-checker.ts`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/scripts/compliance-checker.ts`.
   2. Read the constitution from `docs/reference/constitution.md` at runtime (not hardcoded) so amendments are reflected immediately.
   3. Parse the review checklist sections from the constitution. Map each section to a programmable check:
      - **Correctness**: verify new functions have return type annotations; verify no unreachable code.
@@ -84,7 +84,7 @@ Implementation command:
   7. Exit 0 if all checks pass; exit 1 if any violations found.
   8. Support `--json` and table output modes.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/scripts/compliance-checker.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/scripts/compliance-checker.ts`
 - Acceptance:
   - All constitution review checklist items have corresponding checks.
   - Findings include constitution section references.
@@ -103,7 +103,7 @@ Implementation command:
   6. Test: verify each check produces a valid section reference.
   7. Test: rename a constitution section, verify the checker handles it gracefully.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/scripts/compliance-checker.ts` (integration)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/scripts/compliance-checker.ts` (integration)
 - Acceptance:
   - Every finding includes a constitution section reference.
   - References are formatted as clickable links.
@@ -114,7 +114,7 @@ Implementation command:
 
 - Purpose: Run the compliance checker automatically on every PR as a required status check.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/.github/workflows/compliance-check.yml`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/.github/workflows/compliance-check.yml`.
   2. Trigger on `pull_request` events (opened, synchronize, reopened).
   3. Check out the PR branch and the constitution file.
   4. Run the compliance checker against the PR diff.
@@ -125,7 +125,7 @@ Implementation command:
   9. Ensure the status check blocks merge on failure.
   10. Configure timeout: 2 minutes for the compliance check.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/.github/workflows/compliance-check.yml`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/.github/workflows/compliance-check.yml`
 - Acceptance:
   - Action triggers on PR events.
   - Findings posted as PR comment.
@@ -137,7 +137,7 @@ Implementation command:
 
 - Purpose: Provide a structured process for documenting and approving exceptions to constitution rules.
 - Steps:
-  1. Create the ADR directory: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/docs/adrs/`.
+  1. Create the ADR directory: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/docs/adrs/`.
   2. Create an ADR template at `docs/adrs/TEMPLATE.md` with required fields: title, status (proposed/accepted/superseded), date, constitution section being excepted, justification, sunset date or permanence justification, required approvers (3).
   3. Implement ADR validation logic in the compliance checker:
      - When a PR violates a constitution rule, check if a linked ADR exists in the PR that documents the exception.
@@ -150,8 +150,8 @@ Implementation command:
   7. Test: PR with violation + ADR missing sunset date -> compliance fails.
   8. Test: PR with violation + no ADR -> compliance fails.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/docs/adrs/TEMPLATE.md`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/scripts/compliance-checker.ts` (ADR integration)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/docs/adrs/TEMPLATE.md`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/scripts/compliance-checker.ts` (ADR integration)
 - Acceptance:
   - ADR template has all required fields.
   - Compliance checker validates ADR exceptions correctly.
@@ -163,7 +163,7 @@ Implementation command:
 
 - Purpose: Verify the compliance checker catches all constitution violation types correctly.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/scripts/tests/compliance-checker.test.ts`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/scripts/tests/compliance-checker.test.ts`.
   2. Test: file exceeding 500 lines is flagged with file size constitution reference.
   3. Test: new source file without corresponding test file is flagged.
   4. Test: `any` type usage is flagged with types constitution reference.
@@ -175,7 +175,7 @@ Implementation command:
   10. Test: dynamic constitution reading picks up simulated amendments.
   11. Use fixture files for each test case.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/scripts/tests/compliance-checker.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/scripts/tests/compliance-checker.test.ts`
 - Acceptance:
   - All violation types tested.
   - All tests pass.
@@ -186,7 +186,7 @@ Implementation command:
 
 - Purpose: Verify the ADR exception workflow enforces all requirements correctly.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/scripts/tests/adr-workflow.test.ts`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/scripts/tests/adr-workflow.test.ts`.
   2. Test: ADR with sunset date and 3 approvals is accepted as a valid exception.
   3. Test: ADR without sunset date (and no permanence justification) is rejected.
   4. Test: ADR with sunset date but only 2 approvals is rejected.
@@ -195,7 +195,7 @@ Implementation command:
   7. Test: expired ADR (past sunset date) is detected by the expiry tracker.
   8. Use fixture ADR files and simulated PR contexts.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/scripts/tests/adr-workflow.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/scripts/tests/adr-workflow.test.ts`
 - Acceptance:
   - All ADR scenarios covered.
   - Governance log integration verified.

@@ -44,8 +44,8 @@ Success criteria:
 ## Context & Constraints
 
 - Constitution: `docs/reference/constitution.md`
-- Plan: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/021-continuous-integration-and-quality-gates/plan.md`
-- Spec: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/021-continuous-integration-and-quality-gates/spec.md`
+- Plan: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/021-continuous-integration-and-quality-gates/plan.md`
+- Spec: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/021-continuous-integration-and-quality-gates/spec.md`
 - WP01 output: CI pipeline, gate report infrastructure, typecheck/lint/test gates.
 
 Constraints:
@@ -74,9 +74,9 @@ Implementation command:
   9. Test: remove tests from a package to drop coverage below 85%, verify the gate fails with specific package and percentage.
   10. Test: verify a zero-coverage package (new package with no tests) fails the gate.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/vitest.config.ts` (coverage config)
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/package.json` (test:coverage script)
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/.github/workflows/quality-gates.yml` (gate step)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/vitest.config.ts` (coverage config)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/package.json` (test:coverage script)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/.github/workflows/quality-gates.yml` (gate step)
 - Acceptance:
   - Per-package and aggregate coverage enforced at 85%.
   - Gate fails with specific package, metric, and percentage on violations.
@@ -97,8 +97,8 @@ Implementation command:
   8. Test: add a known-vulnerable dependency version (in a test fixture), verify the gate detects it.
   9. Handle edge case: scanner not available or network unreachable (fail the gate with a clear message, do not silently pass).
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/package.json` (security:scan script)
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/.github/workflows/quality-gates.yml` (gate step)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/package.json` (security:scan script)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/.github/workflows/quality-gates.yml` (gate step)
 - Acceptance:
   - High/critical vulnerabilities fail the gate.
   - Reports include vulnerability details and remediation.
@@ -119,8 +119,8 @@ Implementation command:
   8. Test: introduce a function with excessive cyclomatic complexity, verify the gate detects it.
   9. Test: add an unused export, verify dead code detection catches it.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/package.json` (analyze script)
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/.github/workflows/quality-gates.yml` (gate step)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/package.json` (analyze script)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/.github/workflows/quality-gates.yml` (gate step)
 - Acceptance:
   - Complexity violations detected and reported.
   - Dead code detected and reported.
@@ -140,7 +140,7 @@ Implementation command:
   6. Add a script `scripts/coverage-manifest.ts` that reads Vitest coverage output and produces the manifest.
   7. Test: verify the manifest correctly reflects coverage data from known fixtures.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/scripts/coverage-manifest.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/scripts/coverage-manifest.ts`
 - Acceptance:
   - Manifest accurately reflects per-package and aggregate coverage.
   - Manifest is valid JSON with all required fields.
@@ -150,7 +150,7 @@ Implementation command:
 
 - Purpose: Verify each gate produces correct pass/fail results for known inputs, catching gate regressions.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/scripts/tests/gates-integration.test.ts`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/scripts/tests/gates-integration.test.ts`.
   2. Test coverage gate: provide fixture with below-threshold coverage data, verify gate report shows failure with correct metrics.
   3. Test coverage gate: provide fixture with above-threshold data, verify gate report shows pass.
   4. Test security gate: mock scanner output with known vulnerability, verify gate report contains vulnerability details.
@@ -160,7 +160,7 @@ Implementation command:
   8. Verify all gate reports conform to the shared `GateReport` schema from WP01.
   9. Ensure tests are deterministic with mocked external tools.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/scripts/tests/gates-integration.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/scripts/tests/gates-integration.test.ts`
 - Acceptance:
   - All gate pass/fail scenarios covered.
   - Reports validated against schema.

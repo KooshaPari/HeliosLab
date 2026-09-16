@@ -44,8 +44,8 @@ Success criteria:
 ## Context & Constraints
 
 - Constitution: `docs/reference/constitution.md`
-- Plan: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/016-workspace-lane-session-ui-tabs/plan.md`
-- Spec: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/016-workspace-lane-session-ui-tabs/spec.md`
+- Plan: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/016-workspace-lane-session-ui-tabs/plan.md`
+- Spec: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/016-workspace-lane-session-ui-tabs/spec.md`
 - Internal event bus: `apps/runtime/src/protocol/bus.ts` (spec 001)
 - Terminal registry: spec 014
 - Lane/session lifecycle: specs 008, 009
@@ -81,7 +81,7 @@ Implementation command:
      b. If validation fails, reject the change and emit a `context.validation.failed` event.
   5. Export the store as a singleton for app-wide use.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/tabs/context_switch.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/tabs/context_switch.ts`
 - Validation:
   - Unit test: set context, assert change event emitted with correct previous/new values.
   - Unit test: rapid context changes, assert only final context is emitted.
@@ -109,7 +109,7 @@ Implementation command:
      b. Log the error and emit a tab error event.
   4. Export the base class for tab implementations (WP02).
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/tabs/tab_surface.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/tabs/tab_surface.ts`
 - Validation:
   - Unit test: create mock tab surface, change context, assert `onContextChange` called.
   - Unit test: simulate render error, assert error state displayed.
@@ -138,7 +138,7 @@ Implementation command:
      c. Arrow keys move between adjacent tabs.
   5. FR-016-007: support tab reordering and pinning as user preferences.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/tabs/tab_bar.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/tabs/tab_bar.ts`
 - Validation:
   - Unit test: render tab bar with 5 tabs, select each, verify selection state.
   - Unit test: reorder tabs, verify new order.
@@ -164,7 +164,7 @@ Implementation command:
      c. On graceful shutdown -> immediate flush.
   4. FR-016-006: tab selection state persists across runtime restarts.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/tabs/tab_persistence.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/tabs/tab_persistence.ts`
 - Validation:
   - Unit test: save tab state, reload, verify selection and order match.
   - Unit test: corrupt file, verify defaults loaded.
@@ -190,9 +190,9 @@ Implementation command:
      c. Test debounced saves.
   4. Aim for >=85% line coverage.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tests/unit/tabs/context_switch.test.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tests/unit/tabs/tab_bar.test.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tests/unit/tabs/tab_persistence.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tests/unit/tabs/context_switch.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tests/unit/tabs/tab_bar.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tests/unit/tabs/tab_persistence.test.ts`
 - Parallel: Yes (after T001-T004 interfaces are stable).
 
 ## Test Strategy

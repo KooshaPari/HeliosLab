@@ -45,8 +45,8 @@ Success criteria:
 ## Context & Constraints
 
 - Constitution: `docs/reference/constitution.md`
-- Plan: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/016-workspace-lane-session-ui-tabs/plan.md`
-- Spec: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/016-workspace-lane-session-ui-tabs/spec.md`
+- Plan: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/016-workspace-lane-session-ui-tabs/plan.md`
+- Spec: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/016-workspace-lane-session-ui-tabs/spec.md`
 - Tab surface base: `apps/desktop/src/tabs/tab_surface.ts` (WP01)
 - Context store: `apps/desktop/src/tabs/context_switch.ts` (WP01)
 - Terminal registry: spec 014 (`apps/runtime/src/registry/`)
@@ -78,7 +78,7 @@ Implementation command:
   3. Handle renderer switch: during active switch transaction (spec 013), show a brief loading indicator.
   4. Implement terminal output streaming: connect to the PTY output stream for live rendering.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/tabs/terminal_tab.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/tabs/terminal_tab.ts`
 - Validation:
   - Unit test: set context with active terminal, verify terminal content rendered.
   - Unit test: set context with no terminal, verify empty state message.
@@ -100,7 +100,7 @@ Implementation command:
   3. Handle agent errors: display error details in the tab rather than propagating.
   4. Provide action buttons: restart agent, view full log, copy output.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/tabs/agent_tab.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/tabs/agent_tab.ts`
 - Validation:
   - Unit test: set context with active agent, verify status and output rendered.
   - Unit test: agent error, verify error details shown in tab.
@@ -121,7 +121,7 @@ Implementation command:
   2. Show harness transport diagnostic: whether `cliproxy_harness` or `native_openai` is active and why.
   3. Display session timeline: key lifecycle events in chronological order.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/tabs/session_tab.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/tabs/session_tab.ts`
 - Validation:
   - Unit test: set context with active session, verify metadata rendered.
   - Unit test: session with degraded transport, verify diagnostic info shown.
@@ -143,7 +143,7 @@ Implementation command:
   3. Implement live message streaming: new agent messages appear in real time.
   4. Handle long messages with collapsible sections.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/tabs/chat_tab.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/tabs/chat_tab.ts`
 - Validation:
   - Unit test: set context with chat history, verify messages rendered.
   - Unit test: send message, verify it appears in the list.
@@ -165,7 +165,7 @@ Implementation command:
   3. Provide quick actions: create new lane, open workspace in file manager.
   4. Handle workspace unavailability (e.g., disconnected external drive) with error state.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/tabs/project_tab.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/tabs/project_tab.ts`
 - Validation:
   - Unit test: set context with active workspace, verify project info rendered.
   - Unit test: workspace unavailable, verify error state.
@@ -186,11 +186,11 @@ Implementation command:
      c. Tab state serialization/restoration works correctly.
   7. Aim for >=85% line coverage across all tab modules.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tests/unit/tabs/terminal_tab.test.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tests/unit/tabs/agent_tab.test.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tests/unit/tabs/session_tab.test.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tests/unit/tabs/chat_tab.test.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tests/unit/tabs/project_tab.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tests/unit/tabs/terminal_tab.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tests/unit/tabs/agent_tab.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tests/unit/tabs/session_tab.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tests/unit/tabs/chat_tab.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tests/unit/tabs/project_tab.test.ts`
 - Parallel: Yes (after T006-T010 are implemented).
 
 ## Test Strategy

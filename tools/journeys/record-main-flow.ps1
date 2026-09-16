@@ -41,7 +41,7 @@ Copy-Item -Force $ttydDownload $ttyd
 
 go install "github.com/charmbracelet/vhs@$VhsVersion"
 cargo install `
-    --git https://github.com/KooshaPari/phenotype-journeys `
+    --git https://github.com/<REDACTED>/phenotype-journeys `
     --rev $PhenotypeRevision `
     --locked `
     phenotype-journey

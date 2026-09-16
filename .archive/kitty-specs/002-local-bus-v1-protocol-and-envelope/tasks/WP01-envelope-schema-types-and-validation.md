@@ -34,12 +34,12 @@ Success criteria:
 ## Context & Constraints
 
 - Constitution: `docs/reference/constitution.md`
-- Plan: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/002-local-bus-v1-protocol-and-envelope/plan.md`
-- Spec: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/002-local-bus-v1-protocol-and-envelope/spec.md`
+- Plan: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/002-local-bus-v1-protocol-and-envelope/plan.md`
+- Spec: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/002-local-bus-v1-protocol-and-envelope/spec.md`
 - Existing protocol code:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/protocol/types.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/protocol/bus.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/specs/protocol/v1/`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/protocol/types.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/protocol/bus.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/specs/protocol/v1/`
 
 Constraints:
 - Fail-fast validation: no silent fallback or partial acceptance.
@@ -56,7 +56,7 @@ Implementation command:
 
 - Purpose: establish the core type contract that all bus consumers depend on.
 - Steps:
-  1. Open `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/protocol/types.ts`.
+  1. Open `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/protocol/types.ts`.
   2. Define a base `EnvelopeBase` interface with fields: `id: string`, `correlation_id: string`, `timestamp: number`, `sequence?: number`.
   3. Define `CommandEnvelope` extending base with `type: 'command'`, `method: string`, `payload: unknown`.
   4. Define `ResponseEnvelope` extending base with `type: 'response'`, `method: string`, `payload: unknown`, `error?: BusError`.
@@ -64,7 +64,7 @@ Implementation command:
   6. Export discriminated union `Envelope = CommandEnvelope | ResponseEnvelope | EventEnvelope`.
   7. Export type guards: `isCommand(e)`, `isResponse(e)`, `isEvent(e)`.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/protocol/types.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/protocol/types.ts`
 - Validation checklist:
   - [ ] All three envelope shapes compile under `strict: true`.
   - [ ] Type guards narrow correctly in conditional blocks.
@@ -78,14 +78,14 @@ Implementation command:
 
 - Purpose: provide structured error representation for all bus failure modes.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/protocol/errors.ts`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/protocol/errors.ts`.
   2. Define `BusErrorCode` string literal union: `'VALIDATION_ERROR' | 'METHOD_NOT_FOUND' | 'HANDLER_ERROR' | 'TIMEOUT' | 'BACKPRESSURE'`.
   3. Define `BusError` interface: `{ code: BusErrorCode; message: string; details?: unknown }`.
   4. Implement factory functions: `validationError(message, details?)`, `methodNotFound(method)`, `handlerError(method, cause)`, `timeoutError(method, timeoutMs)`, `backpressureError(topic)`.
   5. Each factory returns a frozen `BusError` object.
   6. Export all types and factories.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/protocol/errors.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/protocol/errors.ts`
 - Validation checklist:
   - [ ] All five error codes have corresponding factory functions.
   - [ ] Factory return types are `Readonly<BusError>`.
@@ -98,13 +98,13 @@ Implementation command:
 
 - Purpose: provide a single entry point for creating well-formed envelopes with auto-generated IDs and timestamps.
 - Steps:
-  1. Create or update `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/protocol/envelope.ts`.
+  1. Create or update `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/protocol/envelope.ts`.
   2. Implement `createCommand(method, payload, correlationId?)`: generates `id` (using spec 005 or stub), sets `correlation_id` (generate if not provided), sets `timestamp` from monotonic clock, returns `CommandEnvelope`.
   3. Implement `createResponse(command, payload, error?)`: copies `correlation_id` and `method` from originating command, generates new `id`, returns `ResponseEnvelope`.
   4. Implement `createEvent(topic, payload, correlationId?, sequence?)`: generates `id`, sets `correlation_id`, sets `timestamp`, returns `EventEnvelope`. Sequence is set by topic registry at publish time, not by caller.
   5. All helpers validate their inputs before constructing the envelope.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/protocol/envelope.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/protocol/envelope.ts`
 - Validation checklist:
   - [ ] `createCommand` without correlationId auto-generates one.
   - [ ] `createResponse` always carries the originating command's correlation_id.
@@ -118,7 +118,7 @@ Implementation command:
 
 - Purpose: gate all bus routing behind schema validation to prevent malformed messages from propagating.
 - Steps:
-  1. In `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/protocol/envelope.ts`, implement `validateEnvelope(envelope: unknown): { valid: true; envelope: Envelope } | { valid: false; error: BusError }`.
+  1. In `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/protocol/envelope.ts`, implement `validateEnvelope(envelope: unknown): { valid: true; envelope: Envelope } | { valid: false; error: BusError }`.
   2. Check required fields: `id` (non-empty string), `correlation_id` (non-empty string), `type` (one of 'command'|'response'|'event'), `timestamp` (positive number).
   3. For commands: require `method` (non-empty string) and `payload`.
   4. For events: require `topic` (non-empty string) and `payload`.
@@ -126,7 +126,7 @@ Implementation command:
   6. Return `validationError` from error taxonomy on any failure.
   7. Export `MAX_PAYLOAD_SIZE` as configurable constant.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/protocol/envelope.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/protocol/envelope.ts`
 - Validation checklist:
   - [ ] Missing `id` returns VALIDATION_ERROR.
   - [ ] Missing `correlation_id` returns VALIDATION_ERROR.
@@ -142,14 +142,14 @@ Implementation command:
 
 - Purpose: provide machine-readable schema for external tooling, documentation, and cross-repo validation.
 - Steps:
-  1. Create or update `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/specs/protocol/v1/envelope.schema.json`.
+  1. Create or update `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/specs/protocol/v1/envelope.schema.json`.
   2. Define JSON Schema draft-07 with `oneOf` for command, response, and event shapes.
   3. Include all required fields matching T001 type definitions exactly.
   4. Add `maxLength` constraint on payload matching `MAX_PAYLOAD_SIZE`.
   5. Include `enum` constraint for `type` field.
   6. Add schema `$id` and `title` metadata.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/specs/protocol/v1/envelope.schema.json`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/specs/protocol/v1/envelope.schema.json`
 - Validation checklist:
   - [ ] Schema validates all three envelope shapes.
   - [ ] Schema rejects payloads missing required fields.
@@ -162,17 +162,17 @@ Implementation command:
 
 - Purpose: lock envelope creation, validation, and error behavior before higher-level routing work.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/protocol/envelope.test.ts`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/protocol/envelope.test.ts`.
   2. Test `createCommand`: generates unique IDs, auto-generates correlation_id, sets timestamp.
   3. Test `createResponse`: carries originating correlation_id, references method.
   4. Test `createEvent`: sets type='event', topic, placeholder sequence.
   5. Test `validateEnvelope`: positive cases for all three shapes; negative cases for missing id, missing correlation_id, unknown type, oversized payload, circular payload.
-  6. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/protocol/errors.test.ts`.
+  6. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/protocol/errors.test.ts`.
   7. Test all five error factory functions: correct code, frozen object, message content.
   8. Add FR traceability comments: `// FR-001`, `// FR-006`, `// FR-007`.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/protocol/envelope.test.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/protocol/errors.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/protocol/envelope.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/protocol/errors.test.ts`
 - Validation checklist:
   - [ ] >= 20 test cases covering positive and negative paths.
   - [ ] Every FR referenced in at least one test comment.

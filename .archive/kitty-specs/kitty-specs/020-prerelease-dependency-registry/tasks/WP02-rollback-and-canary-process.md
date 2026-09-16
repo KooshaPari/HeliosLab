@@ -47,8 +47,8 @@ Success criteria:
 ## Context & Constraints
 
 - Constitution: `docs/reference/constitution.md`
-- Plan: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/020-prerelease-dependency-registry/plan.md`
-- Spec: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/020-prerelease-dependency-registry/spec.md`
+- Plan: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/020-prerelease-dependency-registry/plan.md`
+- Spec: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/020-prerelease-dependency-registry/spec.md`
 - WP01 output: `deps-registry.json`, `deps-changelog.json`, `scripts/deps-types.ts`, `scripts/deps-status.ts`, `scripts/deps-changelog-util.ts`.
 
 Constraints:
@@ -66,7 +66,7 @@ Implementation command:
 
 - Purpose: Provide a single command to safely revert a breaking prerelease dependency to the last known-good pin.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/scripts/deps-rollback.ts`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/scripts/deps-rollback.ts`.
   2. Accept a package name as a required CLI argument: `bun run deps:rollback <package>`.
   3. Read `deps-registry.json` and locate the target dependency entry.
   4. Extract the most recent entry from `knownGoodHistory` that is different from the current pin.
@@ -82,8 +82,8 @@ Implementation command:
   8. Add `deps:rollback` script entry to root `package.json`.
   9. Print a summary: rolled back from version X to version Y, gates passed/failed, changelog entry ID.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/scripts/deps-rollback.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/package.json` (script entry)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/scripts/deps-rollback.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/package.json` (script entry)
 - Acceptance:
   - Rollback reverts to known-good pin with passing typecheck.
   - Atomic: failure at any step restores original state.
@@ -95,7 +95,7 @@ Implementation command:
 
 - Purpose: Automate the testing of prerelease upgrades in isolation so safe upgrades are merged automatically and risky ones are flagged.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/scripts/deps-canary.ts`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/scripts/deps-canary.ts`.
   2. Accept optional package name argument; if omitted, check all tracked dependencies for available upgrades.
   3. For each dependency with an available upgrade:
      a. Create an isolated git branch: `canary/<package>-<version>-<timestamp>`.
@@ -116,8 +116,8 @@ Implementation command:
   7. Support a `--dry-run` flag that reports what would be upgraded without making changes.
   8. Handle edge cases: no upgrades available (exit 0 with message), git branch conflicts, CI timeout.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/scripts/deps-canary.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/package.json` (script entry)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/scripts/deps-canary.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/package.json` (script entry)
 - Acceptance:
   - Canary creates isolated branch, runs gates, merges on pass, opens issue on fail.
   - Structured changelog entries for all outcomes.
@@ -136,9 +136,9 @@ Implementation command:
   5. Verify changelog entries are appended atomically even when multiple canary runs execute concurrently.
   6. Add a `bun run deps:log` convenience command that pretty-prints the changelog.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/scripts/deps-canary.ts` (integration)
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/scripts/deps-changelog-util.ts` (may need updates)
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/package.json` (deps:log script entry)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/scripts/deps-canary.ts` (integration)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/scripts/deps-changelog-util.ts` (may need updates)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/package.json` (deps:log script entry)
 - Acceptance:
   - Every canary outcome produces a changelog entry.
   - Changelog entries are complete and valid per schema.
@@ -149,7 +149,7 @@ Implementation command:
 
 - Purpose: Validate the rollback workflow end-to-end with simulated dependency breakage.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/scripts/tests/deps-rollback.test.ts`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/scripts/tests/deps-rollback.test.ts`.
   2. Test: given a manifest with a known-good history, rollback to the previous pin updates the manifest and lockfile correctly.
   3. Test: given a rollback where lockfile regeneration fails, the original lockfile is restored and no manifest changes are persisted.
   4. Test: given a package not in the manifest, rollback exits with a clear error and no file changes.
@@ -159,7 +159,7 @@ Implementation command:
   8. Use fixture files and mocked `bun install` / `bun run typecheck` to make tests deterministic and fast.
   9. Ensure tests clean up any temporary files or backup copies.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/scripts/tests/deps-rollback.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/scripts/tests/deps-rollback.test.ts`
 - Acceptance:
   - All rollback scenarios covered (success, failure, edge cases).
   - Tests are deterministic and fast.
@@ -170,7 +170,7 @@ Implementation command:
 
 - Purpose: Validate the canary upgrade workflow end-to-end with simulated upgrade scenarios.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/scripts/tests/deps-canary.test.ts`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/scripts/tests/deps-canary.test.ts`.
   2. Test: given an available upgrade that passes all gates, the canary creates a branch, commits, and records a success changelog entry.
   3. Test: given an available upgrade that fails a gate, the canary does not merge, opens an issue, and records a failure changelog entry.
   4. Test: given no available upgrades, the canary exits cleanly with a skip changelog entry.
@@ -180,7 +180,7 @@ Implementation command:
   8. Mock git operations, CI gate execution, and GitHub API calls for deterministic testing.
   9. Verify the canary process does not modify the working directory of unrelated CI jobs.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/scripts/tests/deps-canary.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/scripts/tests/deps-canary.test.ts`
 - Acceptance:
   - All canary scenarios covered (pass, fail, skip, dry-run, errors).
   - Tests are deterministic via mocking.

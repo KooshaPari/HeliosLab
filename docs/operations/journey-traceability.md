@@ -1,8 +1,8 @@
 # Journey Traceability
 
 **Repo:** HeliosLab: Rust benchmarking framework  
-**Standard:** [phenotype-infra journey-traceability standard](https://github.com/kooshapari/phenotype-infra/blob/main/docs/governance/journey-traceability-standard.md)  
-**Schema:** [phenotype-journeys Manifest schema](https://github.com/kooshapari/phenotype-journeys/blob/main/schema/manifest.schema.json)
+**Standard:** [phenotype-infra journey-traceability standard](https://github.com/<REDACTED>/phenotype-infra/blob/main/docs/governance/journey-traceability-standard.md)  
+**Schema:** [phenotype-journeys Manifest schema](https://github.com/<REDACTED>/phenotype-journeys/blob/main/schema/manifest.schema.json)
 
 ## User-facing flows
 

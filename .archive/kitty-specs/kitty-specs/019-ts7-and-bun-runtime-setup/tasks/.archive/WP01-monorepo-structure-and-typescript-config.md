@@ -44,8 +44,8 @@ Success criteria:
 ## Context & Constraints
 
 - Constitution: `docs/reference/constitution.md`
-- Plan: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/019-ts7-and-bun-runtime-setup/plan.md`
-- Spec: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/019-ts7-and-bun-runtime-setup/spec.md`
+- Plan: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/019-ts7-and-bun-runtime-setup/plan.md`
+- Spec: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/019-ts7-and-bun-runtime-setup/spec.md`
 
 Constraints:
 - Bun >= 1.2 is the minimum supported runtime version.
@@ -70,7 +70,7 @@ Implementation command:
   5. Add placeholder scripts for `dev`, `build`, `typecheck` that will be fleshed out in WP02.
   6. Validate the file with `bun install --dry-run` to confirm workspace resolution.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/package.json`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/package.json`
 - Acceptance:
   - `bun install` resolves workspace packages without errors.
   - `package.json` is valid JSON and passes `bun pm ls` workspace listing.
@@ -87,7 +87,7 @@ Implementation command:
   5. Document each setting with inline comments explaining its purpose.
   6. Validate by running `bun install` and confirming the lockfile is generated correctly.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/bunfig.toml`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/bunfig.toml`
 - Acceptance:
   - `bunfig.toml` is valid TOML and Bun reads it without warnings.
   - Install behavior matches documented settings.
@@ -106,7 +106,7 @@ Implementation command:
   7. Ensure `"skipLibCheck": false` for maximum strictness.
   8. Validate by running `tsc --showConfig` and confirming all flags are active.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/tsconfig.base.json`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/tsconfig.base.json`
 - Acceptance:
   - All strict-mode flags are enabled and verified via `tsc --showConfig`.
   - No `@ts-ignore` or `@ts-expect-error` needed in any existing code.
@@ -124,9 +124,9 @@ Implementation command:
   6. The entry point should import from `@helios/runtime` to validate cross-workspace resolution.
   7. Validate: `bun run typecheck` passes for the desktop package in isolation.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/package.json`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tsconfig.json`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/index.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/package.json`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tsconfig.json`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/index.ts`
 - Acceptance:
   - Package resolves in workspace listing.
   - TypeScript config extends base without overriding strict flags.
@@ -144,9 +144,9 @@ Implementation command:
   5. Validate: `bun run typecheck` passes for the runtime package in isolation.
   6. Validate: `apps/desktop` can import from `@helios/runtime` via workspace resolution.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/package.json`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tsconfig.json`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/index.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/package.json`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tsconfig.json`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/index.ts`
 - Acceptance:
   - Package resolves in workspace listing.
   - Cross-workspace imports work from desktop to runtime.

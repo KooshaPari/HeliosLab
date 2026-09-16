@@ -55,10 +55,10 @@ jobs:
   #     - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.1.1
   #
   #     - name: Promote to staging
-  #       uses: KooshaPari/phenotypeActions/promote@main
+  #       uses: <REDACTED>/phenotypeActions/promote@main
   #       with:
   #         version: ${{ needs.release.outputs.version }}
   #         channel: beta
   #         registry: crates.io
-  # NOTE: promote job commented out -- KooshaPari/phenotypeActions/promote returns 404.
+  # NOTE: promote job commented out -- <REDACTED>/phenotypeActions/promote returns 404.
   # Uncomment and update to SHA pin once the action repo is available.

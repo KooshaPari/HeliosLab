@@ -45,10 +45,10 @@ Success criteria:
 ## Context & Constraints
 
 - Constitution: `docs/reference/constitution.md`
-- Plan: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/028-secrets-management-and-redaction/plan.md`
-- Spec: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/028-secrets-management-and-redaction/spec.md`
+- Plan: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/028-secrets-management-and-redaction/plan.md`
+- Spec: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/028-secrets-management-and-redaction/spec.md`
 - Protocol bus:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/protocol/bus.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/protocol/bus.ts`
 - Provider isolation (spec 025):
   - Credential scoping aligns with provider+workspace boundaries.
 
@@ -67,7 +67,7 @@ Implementation command:
 
 - Purpose: Provide the cryptographic foundation for credential storage.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/secrets/encryption.ts`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/secrets/encryption.ts`.
   2. Implement `EncryptionService` class:
      - `encrypt(plaintext: string): Promise<EncryptedPayload>`:
        - Generate random 12-byte IV per encryption.
@@ -89,7 +89,7 @@ Implementation command:
   5. Key derivation: use HKDF to derive per-provider keys from master key + provider ID salt.
   6. Ensure no plaintext key material is logged or exposed in error messages.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/secrets/encryption.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/secrets/encryption.ts`
 - Validation:
   - Encrypt/decrypt round-trip produces original plaintext.
   - Different IVs produce different ciphertexts for same plaintext.
@@ -103,7 +103,7 @@ Implementation command:
 
 - Purpose: Store credentials securely with provider+workspace scoping.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/secrets/credential-store.ts`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/secrets/credential-store.ts`.
   2. Implement `CredentialStore` class:
      - `store(providerId: string, workspaceId: string, credentialName: string, value: string): Promise<void>`:
        - Derive per-provider encryption key using HKDF.
@@ -128,7 +128,7 @@ Implementation command:
      - Read operations do not require locks (atomic write ensures consistency).
   5. Ensure credential files have restrictive permissions (0600).
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/secrets/credential-store.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/secrets/credential-store.ts`
 - Validation:
   - Store/retrieve round-trip produces original value.
   - Credential file on disk is encrypted (not plaintext).
@@ -161,7 +161,7 @@ Implementation command:
   3. All bus events pass through audit sink (spec 024) for persistence.
   4. Never include credential values in bus events, logs, or error messages.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/secrets/credential-store.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/secrets/credential-store.ts`
 - Validation:
   - Create stores credential and emits event.
   - Create rejects duplicate.
@@ -190,7 +190,7 @@ Implementation command:
      - Validate provider ID and workspace ID contain no path separators or special characters.
      - Reject IDs with `..`, `/`, `\`, or null bytes.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/secrets/credential-store.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/secrets/credential-store.ts`
 - Validation:
   - Credential for provider A is not accessible from provider B context.
   - Access denial emits bus event.
@@ -202,7 +202,7 @@ Implementation command:
 
 - Purpose: Lock credential security behavior before redaction engine is built.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/secrets/__tests__/`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/secrets/__tests__/`.
   2. Add `encryption.test.ts`:
      - Test encrypt/decrypt round-trip.
      - Test different IVs produce different ciphertexts.
@@ -238,10 +238,10 @@ Implementation command:
      - FR-028-003 (lifecycle): lifecycle tests.
      - FR-028-009 (access audit): access event tests.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/secrets/__tests__/encryption.test.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/secrets/__tests__/credential-store.test.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/secrets/__tests__/credential-lifecycle.test.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/secrets/__tests__/credential-isolation.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/secrets/__tests__/encryption.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/secrets/__tests__/credential-store.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/secrets/__tests__/credential-lifecycle.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/secrets/__tests__/credential-isolation.test.ts`
 - Validation:
   - All tests pass.
   - Coverage >=85% on encryption.ts and credential-store.ts.

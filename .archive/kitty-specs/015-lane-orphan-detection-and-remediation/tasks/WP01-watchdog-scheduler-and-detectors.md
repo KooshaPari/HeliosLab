@@ -45,8 +45,8 @@ Success criteria:
 ## Context & Constraints
 
 - Constitution: `docs/reference/constitution.md`
-- Plan: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/015-lane-orphan-detection-and-remediation/plan.md`
-- Spec: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/015-lane-orphan-detection-and-remediation/spec.md`
+- Plan: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/015-lane-orphan-detection-and-remediation/plan.md`
+- Spec: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/015-lane-orphan-detection-and-remediation/spec.md`
 - Lane lifecycle: spec 008
 - Session lifecycle: spec 009
 - Filesystem APIs for worktree enumeration
@@ -84,8 +84,8 @@ Implementation command:
   4. Implement CPU-awareness: measure cycle duration and log warnings if cycles exceed 2 seconds.
   5. Export the watchdog class for lifecycle management.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/lanes/watchdog/orphan_watchdog.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/lanes/watchdog/checkpoint.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/lanes/watchdog/orphan_watchdog.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/lanes/watchdog/checkpoint.ts`
 - Validation:
   - Unit test: start watchdog with short interval (100ms), verify detection cycles run.
   - Unit test: stop watchdog, verify no further cycles.
@@ -109,7 +109,7 @@ Implementation command:
      c. Worktree whose lane is in `recovering` state: do NOT classify as orphaned.
   3. Return structured `OrphanedResource` objects with type `worktree`.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/lanes/watchdog/worktree_detector.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/lanes/watchdog/worktree_detector.ts`
 - Validation:
   - Unit test: mock filesystem with 3 worktrees (2 active, 1 orphaned), verify only orphan detected.
   - Unit test: worktree with lane in `cleaning` state, verify NOT detected as orphan.
@@ -131,7 +131,7 @@ Implementation command:
      b. Zellij session whose lane is recovering: do NOT classify as orphaned.
   3. Return structured `OrphanedResource` objects with type `zellij_session`.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/lanes/watchdog/zellij_detector.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/lanes/watchdog/zellij_detector.ts`
 - Validation:
   - Unit test: mock zellij session list with 2 active + 1 stale, verify only stale detected.
   - Unit test: zellij session with recovering lane, verify NOT detected.
@@ -153,7 +153,7 @@ Implementation command:
      b. PTY processes that were just spawned (within last 5 seconds): skip to avoid race conditions.
   3. Return structured `OrphanedResource` objects with type `pty_process`.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/lanes/watchdog/pty_detector.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/lanes/watchdog/pty_detector.ts`
 - Validation:
   - Unit test: mock process table with 3 PTY processes (2 bound, 1 leaked), verify only leaked detected.
   - Unit test: system PTY process not owned by Helios, verify NOT detected.
@@ -175,7 +175,7 @@ Implementation command:
      b. Sort by risk level (high first) for presentation.
   3. Export types and classifier for use by remediation (WP02) and UI.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/lanes/watchdog/resource_classifier.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/lanes/watchdog/resource_classifier.ts`
 - Validation:
   - Unit test: classify resource aged 30 minutes with known owner, assert `low` risk.
   - Unit test: classify resource aged 12 hours with known owner, assert `medium` risk.
@@ -208,11 +208,11 @@ Implementation command:
      b. Run all detectors 100 times and assert zero false positives.
   7. Aim for >=90% line coverage on watchdog modules.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/lanes/watchdog/orphan_watchdog.test.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/lanes/watchdog/worktree_detector.test.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/lanes/watchdog/zellij_detector.test.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/lanes/watchdog/pty_detector.test.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/lanes/watchdog/resource_classifier.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/lanes/watchdog/orphan_watchdog.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/lanes/watchdog/worktree_detector.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/lanes/watchdog/zellij_detector.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/lanes/watchdog/pty_detector.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/lanes/watchdog/resource_classifier.test.ts`
 - Parallel: Yes (after T001-T005 interfaces are stable).
 
 ## Test Strategy

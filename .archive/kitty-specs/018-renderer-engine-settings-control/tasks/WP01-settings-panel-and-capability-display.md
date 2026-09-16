@@ -46,8 +46,8 @@ Success criteria:
 ## Context & Constraints
 
 - Constitution: `docs/reference/constitution.md`
-- Plan: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/018-renderer-engine-settings-control/plan.md`
-- Spec: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/018-renderer-engine-settings-control/spec.md`
+- Plan: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/018-renderer-engine-settings-control/plan.md`
+- Spec: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/018-renderer-engine-settings-control/spec.md`
 - Renderer capabilities: spec 010, `apps/runtime/src/renderer/capability_matrix.ts` (spec 013 WP01)
 - Feature flags: spec 004
 - Switch transaction: spec 013
@@ -75,7 +75,7 @@ Implementation command:
   3. Implement section loading state while capabilities are being fetched.
   4. Handle section error state if renderer data is unavailable.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/settings/renderer_settings.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/settings/renderer_settings.ts`
 - Validation:
   - Unit test: render section, verify header and description displayed.
   - Unit test: verify active renderer indicator shows current selection.
@@ -100,7 +100,7 @@ Implementation command:
      b. rio: available only when the `rio_renderer` feature flag is enabled.
   4. FR-018-002: display both renderers with availability status.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/settings/renderer_option.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/settings/renderer_option.ts`
 - Validation:
   - Unit test: render available renderer, verify clickable.
   - Unit test: render unavailable renderer, verify grayed out and not clickable.
@@ -123,7 +123,7 @@ Implementation command:
   3. Implement error state if capabilities unavailable: "Capability information unavailable."
   4. FR-018-002: display capabilities including hot-swap support.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/settings/capability_display.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/settings/capability_display.ts`
 - Validation:
   - Unit test: render capabilities for ghostty (hot-swap supported), verify green indicator.
   - Unit test: render capabilities for rio (hot-swap not supported), verify amber warning.
@@ -153,7 +153,7 @@ Implementation command:
   4. FR-018-003: require confirmation before triggering switch.
   5. FR-018-004: trigger the switch transaction on confirmation.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/settings/switch_confirmation.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/settings/switch_confirmation.ts`
 - Validation:
   - Unit test: confirm, verify `startSwitch` called with correct renderer ID.
   - Unit test: cancel, verify no switch triggered.
@@ -177,7 +177,7 @@ Implementation command:
      b. If the preferred renderer is unavailable, fall back to ghostty and warn.
   4. FR-018-007: persist preferences across sessions.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/settings/renderer_preferences.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/settings/renderer_preferences.ts`
 - Validation:
   - Unit test: save preferences, reload, verify values match.
   - Unit test: corrupt file, verify defaults loaded.
@@ -208,11 +208,11 @@ Implementation command:
      c. Test unavailable renderer fallback.
   6. Aim for >=85% line coverage.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tests/unit/settings/renderer_settings.test.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tests/unit/settings/renderer_option.test.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tests/unit/settings/capability_display.test.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tests/unit/settings/switch_confirmation.test.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tests/unit/settings/renderer_preferences.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tests/unit/settings/renderer_settings.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tests/unit/settings/renderer_option.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tests/unit/settings/capability_display.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tests/unit/settings/switch_confirmation.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tests/unit/settings/renderer_preferences.test.ts`
 - Parallel: Yes (after T001-T005 interfaces are stable).
 
 ## Test Strategy

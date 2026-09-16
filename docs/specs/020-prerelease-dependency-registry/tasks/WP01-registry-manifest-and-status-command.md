@@ -43,8 +43,8 @@ Success criteria:
 ## Context & Constraints
 
 - Constitution: `docs/reference/constitution.md`
-- Plan: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/020-prerelease-dependency-registry/plan.md`
-- Spec: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/020-prerelease-dependency-registry/spec.md`
+- Plan: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/020-prerelease-dependency-registry/plan.md`
+- Spec: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/020-prerelease-dependency-registry/spec.md`
 
 Constraints:
 - Manifest must be version-controlled in the repo (NFR-004).
@@ -61,7 +61,7 @@ Implementation command:
 
 - Purpose: Define the structured format for tracking prerelease dependencies with all metadata needed for safe upgrade management.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/deps-registry.json` with a well-defined JSON schema.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/deps-registry.json` with a well-defined JSON schema.
   2. Each dependency entry must include: `name` (package identifier), `currentPin` (exact version string), `channel` (one of: `alpha`, `beta`, `rc`, `stable`), `upstreamSource` (registry URL or GitHub release URL), `knownGoodHistory` (array of `{version, timestamp, gateResult}` objects), and `lastUpdated` (ISO 8601 timestamp).
   3. Include a top-level `schemaVersion` field for future schema evolution.
   4. Include a `metadata` section with `lastStatusCheck` timestamp and `registryCacheMaxAge` duration.
@@ -69,8 +69,8 @@ Implementation command:
   6. Define a TypeScript interface in `scripts/deps-types.ts` matching the JSON schema for compile-time safety.
   7. Add JSDoc comments to all interface fields documenting their purpose and constraints.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/deps-registry.json`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/scripts/deps-types.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/deps-registry.json`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/scripts/deps-types.ts`
 - Acceptance:
   - JSON schema is valid and parseable.
   - TypeScript interfaces match JSON structure exactly.
@@ -88,7 +88,7 @@ Implementation command:
   5. Verify the populated manifest parses correctly using the TypeScript interface from T001.
   6. Commit the manifest alongside the lockfile to establish the initial tracking baseline.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/deps-registry.json`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/deps-registry.json`
 - Acceptance:
   - All known prerelease dependencies have manifest entries.
   - Each entry has a complete and accurate set of fields.
@@ -99,7 +99,7 @@ Implementation command:
 
 - Purpose: Give developers and CI a single command to see the health of all tracked prerelease dependencies.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/scripts/deps-status.ts`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/scripts/deps-status.ts`.
   2. Read and parse `deps-registry.json` using the TypeScript interfaces from T001.
   3. For each tracked dependency, query the upstream source for the latest available version:
      - For npm packages: use `npm view <package> versions --json` or Bun's equivalent.
@@ -112,8 +112,8 @@ Implementation command:
   9. Add the `deps:status` script entry to root `package.json`.
   10. Handle edge cases: registry unreachable (warn and use cached data), dependency channel disappeared (alert), malformed manifest entry (error with specific field).
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/scripts/deps-status.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/package.json` (script entry)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/scripts/deps-status.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/package.json` (script entry)
 - Acceptance:
   - `bun run deps:status` produces a readable table of all tracked dependencies.
   - `--json` flag produces structured JSON output.
@@ -125,7 +125,7 @@ Implementation command:
 
 - Purpose: Establish a structured, append-only log of all dependency upgrade attempts for auditability.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/deps-changelog.json` with an initial empty array.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/deps-changelog.json` with an initial empty array.
   2. Define the changelog entry schema in `scripts/deps-types.ts`: `timestamp` (ISO 8601), `package` (name), `fromVersion`, `toVersion`, `channel`, `gateResults` (object with per-gate pass/fail), `outcome` (success/failure/rollback), `actor` (user/ci/canary), `branchRef` (optional, for canary runs).
   3. Implement an `appendChangelogEntry` function in a shared utility (`scripts/deps-changelog-util.ts`) that:
      - Reads the current changelog.
@@ -135,9 +135,9 @@ Implementation command:
   4. Ensure the utility is importable by both the rollback and canary scripts (WP02).
   5. Add the changelog file to version control alongside the manifest.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/deps-changelog.json`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/scripts/deps-types.ts` (changelog entry interface)
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/scripts/deps-changelog-util.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/deps-changelog.json`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/scripts/deps-types.ts` (changelog entry interface)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/scripts/deps-changelog-util.ts`
 - Acceptance:
   - Changelog entries are appended atomically.
   - Schema validation prevents malformed entries.
@@ -148,27 +148,27 @@ Implementation command:
 
 - Purpose: Lock the behavior of the manifest parser, status reporter, and changelog utility with deterministic tests.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/scripts/tests/deps-manifest.test.ts`:
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/scripts/tests/deps-manifest.test.ts`:
      - Test: valid manifest parses without errors.
      - Test: manifest with missing required fields throws with specific field name.
      - Test: manifest with invalid channel value throws.
      - Test: known-good history is ordered chronologically.
-  2. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/scripts/tests/deps-status.test.ts`:
+  2. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/scripts/tests/deps-status.test.ts`:
      - Test: status command produces correct table output for known fixture data.
      - Test: `--json` flag produces valid JSON matching expected schema.
      - Test: registry cache is used when available and fresh.
      - Test: stale cache triggers re-fetch.
      - Test: unreachable registry falls back to cached data with warning.
-  3. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/scripts/tests/deps-changelog.test.ts`:
+  3. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/scripts/tests/deps-changelog.test.ts`:
      - Test: valid entry appends successfully.
      - Test: invalid entry (missing field) is rejected.
      - Test: concurrent appends produce consistent results (no data loss).
      - Test: atomic write prevents partial file corruption.
   4. Ensure all tests run via `bun test scripts/tests/`.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/scripts/tests/deps-manifest.test.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/scripts/tests/deps-status.test.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/scripts/tests/deps-changelog.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/scripts/tests/deps-manifest.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/scripts/tests/deps-status.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/scripts/tests/deps-changelog.test.ts`
 - Acceptance:
   - All tests pass.
   - Tests cover positive, negative, and edge cases.

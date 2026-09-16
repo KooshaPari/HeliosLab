@@ -51,8 +51,8 @@ Success criteria:
 ## Context & Constraints
 
 - Constitution: `docs/reference/constitution.md`
-- Plan: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/024-audit-logging-and-session-replay/plan.md`
-- Spec: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/024-audit-logging-and-session-replay/spec.md`
+- Plan: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/024-audit-logging-and-session-replay/plan.md`
+- Spec: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/024-audit-logging-and-session-replay/spec.md`
 - WP01-03 output: AuditEvent schema, sink, ring buffer, SQLite store, ledger with filters.
 
 Constraints:
@@ -70,7 +70,7 @@ Implementation command:
 
 - Purpose: Capture periodic snapshots of terminal state for efficient replay reconstruction.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/audit/snapshot.ts`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/audit/snapshot.ts`.
   2. Define `SessionSnapshot` interface:
      - `id`: unique string (UUID)
      - `sessionId`: string
@@ -90,7 +90,7 @@ Implementation command:
   6. Optimize: diff-based compression between consecutive snapshots if buffer is large.
   7. Handle edge cases: terminal not yet ready (skip capture), session ended mid-capture (discard).
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/audit/snapshot.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/audit/snapshot.ts`
 - Acceptance:
   - Snapshots captured at configurable intervals.
   - On-demand capture available.
@@ -102,7 +102,7 @@ Implementation command:
 
 - Purpose: Reconstruct terminal output from snapshots and events for historical session review.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/audit/replay.ts`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/audit/replay.ts`.
   2. Define `ReplayStream` interface:
      - `sessionId`: string
      - `snapshots`: ordered array of `SessionSnapshot`
@@ -119,7 +119,7 @@ Implementation command:
   6. Optimize: cache recently reconstructed states for smooth scrubbing.
   7. Verify reconstruction accuracy by comparing replay output to actual terminal output for test sessions.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/audit/replay.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/audit/replay.ts`
 - Acceptance:
   - Session replay reconstructs terminal state from snapshots + events.
   - Time-indexed random access works (scrub to any timestamp).
@@ -131,7 +131,7 @@ Implementation command:
 
 - Purpose: Provide an interactive UI for operators to review historical terminal sessions.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/panels/session-replay.ts`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/panels/session-replay.ts`.
   2. UI layout:
      - Terminal render area showing the reconstructed terminal state.
      - Time-scrub slider spanning the session duration with tick marks at snapshot intervals.
@@ -149,7 +149,7 @@ Implementation command:
   6. Show loading indicator when reconstructing state at a new position.
   7. Handle sessions with no replay data: show "No replay data available" message.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/panels/session-replay.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/panels/session-replay.ts`
 - Acceptance:
   - Replay UI renders terminal state at any timestamp.
   - Time-scrub, play/pause, and speed controls work.
@@ -161,7 +161,7 @@ Implementation command:
 
 - Purpose: Define per-workspace retention policies that control how long audit events are kept.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/audit/retention.ts`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/audit/retention.ts`.
   2. Define `RetentionPolicy` interface:
      - `workspaceId`: string
      - `ttlDays`: number (default 30)
@@ -181,7 +181,7 @@ Implementation command:
   5. The hash chain provides verifiable proof that specific events were purged (not selectively deleted).
   6. Export types for use by the purge engine and UI.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/audit/retention.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/audit/retention.ts`
 - Acceptance:
   - Retention policies configurable per workspace.
   - Legal hold overrides TTL.
@@ -210,7 +210,7 @@ Implementation command:
   6. Test: create events older than TTL, run purge, verify deletion and valid proof.
   7. Test: create events with legal hold, run purge, verify events preserved.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/audit/retention.ts` (or new purge.ts)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/audit/retention.ts` (or new purge.ts)
 - Acceptance:
   - Expired events purged with valid deletion proofs.
   - Legal hold events preserved.
@@ -222,7 +222,7 @@ Implementation command:
 
 - Purpose: Produce exportable audit bundles with sensitive values redacted per spec 028 rules.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/audit/export.ts`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/audit/export.ts`.
   2. Implement `AuditExporter` class:
      - `exportWorkspace(workspaceId, filter?): ExportBundle`: query events matching the filter, apply redaction, produce JSON bundle.
      - `exportSession(sessionId): ExportBundle`: export all events and snapshots for a session.
@@ -236,7 +236,7 @@ Implementation command:
   7. Add export metadata: workspace ID, export timestamp, event count, redaction rules applied.
   8. Add `bun run audit:export` command.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/audit/export.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/audit/export.ts`
 - Acceptance:
   - Export produces valid JSON bundles.
   - Redaction hooks applied to all string fields.
@@ -248,7 +248,7 @@ Implementation command:
 
 - Purpose: Validate the complete audit system under stress with chaos scenarios, retention compliance, and export redaction.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/integration/audit/compliance.test.ts`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/integration/audit/compliance.test.ts`.
   2. Chaos test: write events for 1 hour (simulated), simulate crashes at random intervals, verify zero event loss by comparing written vs persisted counts.
   3. Retention test: create events with known timestamps, configure 7-day TTL, advance time simulation, run purge, verify only expired events deleted.
   4. Retention test: create events, set legal hold, run purge, verify events preserved despite TTL expiry.
@@ -258,7 +258,7 @@ Implementation command:
   8. Export test: verify export bundle contains all queried events (completeness check).
   9. Soak test: write 100k events over simulated 24 hours, verify audit completeness (every event has a corresponding record).
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/integration/audit/compliance.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/integration/audit/compliance.test.ts`
 - Acceptance:
   - Zero event loss in chaos scenarios.
   - Retention purge correct (expired only, legal hold respected).
@@ -270,7 +270,7 @@ Implementation command:
 
 - Purpose: Validate that session replay accurately reconstructs terminal output.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/integration/audit/replay-fidelity.test.ts`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/integration/audit/replay-fidelity.test.ts`.
   2. Record a test session: execute a series of known commands with known output, capturing snapshots at 30-second intervals.
   3. Replay the session and compare the reconstructed terminal buffer at specific timestamps against the known expected output.
   4. Test time-scrub: scrub to 5 specific timestamps, verify the terminal state matches within 200ms render time.
@@ -280,7 +280,7 @@ Implementation command:
   8. Test playback controls: verify play, pause, and speed changes work without skipping or repeating events.
   9. Measure scrub-to-render latency for various session lengths and assert < 200ms (p95).
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/integration/audit/replay-fidelity.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/integration/audit/replay-fidelity.test.ts`
 - Acceptance:
   - 95%+ visual accuracy for test sessions.
   - Scrub-to-render < 200ms (p95).

@@ -45,10 +45,10 @@ Success criteria:
 ## Context & Constraints
 
 - Constitution: `docs/reference/constitution.md`
-- Plan: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/026-share-session-workflows/plan.md`
-- Spec: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/026-share-session-workflows/spec.md`
+- Plan: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/026-share-session-workflows/plan.md`
+- Spec: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/026-share-session-workflows/spec.md`
 - Protocol bus:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/protocol/bus.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/protocol/bus.ts`
 - Zellij session integration (spec 009):
   - Share targets are zellij-managed terminal sessions.
 
@@ -69,7 +69,7 @@ Implementation command:
 
 - Purpose: Define the share session data model and manage worker process lifecycle.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/integrations/sharing/share-session.ts`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/integrations/sharing/share-session.ts`.
   2. Define `ShareSession` type with fields:
      - `id: string` -- unique share session identifier.
      - `terminalId: string` -- the terminal being shared.
@@ -86,7 +86,7 @@ Implementation command:
      - `get(sessionId: string): ShareSession | undefined`.
      - `listByTerminal(terminalId: string): ShareSession[]`.
      - Track all active sessions in memory.
-  4. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/integrations/sharing/share-worker.ts`.
+  4. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/integrations/sharing/share-worker.ts`.
   5. Implement `ShareWorker` class:
      - `spawn(backend: string, terminalId: string, config: ShareWorkerConfig): Promise<{ pid: number, link: string }>`.
      - Spawns a child process running the selected backend binary (upterm or tmate).
@@ -97,8 +97,8 @@ Implementation command:
   6. Emit lifecycle events on bus:
      - `share.session.created`, `share.session.active`, `share.session.terminated`, `share.session.failed`.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/integrations/sharing/share-session.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/integrations/sharing/share-worker.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/integrations/sharing/share-session.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/integrations/sharing/share-worker.ts`
 - Validation:
   - Share session creation spawns worker and captures link.
   - Worker heartbeat timeout triggers cleanup.
@@ -111,7 +111,7 @@ Implementation command:
 
 - Purpose: Deliver the upterm-specific share backend for terminal sharing.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/integrations/sharing/upterm-adapter.ts`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/integrations/sharing/upterm-adapter.ts`.
   2. Implement `UptermAdapter` class:
      - `checkAvailability(): Promise<boolean>` -- verify `upterm` binary exists on PATH.
      - `startShare(terminalId: string, zelijjSessionName: string): Promise<{ link: string, process: ChildProcess }>`:
@@ -129,7 +129,7 @@ Implementation command:
      - Server unreachable: retryable error.
      - Auth failure: non-retryable error with credential guidance.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/integrations/sharing/upterm-adapter.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/integrations/sharing/upterm-adapter.ts`
 - Validation:
   - Adapter checks binary availability before attempting share.
   - Share link is captured from upterm stdout.
@@ -141,7 +141,7 @@ Implementation command:
 
 - Purpose: Deliver the tmate-specific share backend as an alternative to upterm.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/integrations/sharing/tmate-adapter.ts`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/integrations/sharing/tmate-adapter.ts`.
   2. Implement `TmateAdapter` class:
      - `checkAvailability(): Promise<boolean>` -- verify `tmate` binary exists on PATH.
      - `startShare(terminalId: string, zelijjSessionName: string): Promise<{ link: string, process: ChildProcess }>`:
@@ -158,7 +158,7 @@ Implementation command:
      - Socket creation failure: retryable error.
      - Link capture timeout (link not output within 10s): timeout error.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/integrations/sharing/tmate-adapter.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/integrations/sharing/tmate-adapter.ts`
 - Validation:
   - Adapter checks binary availability.
   - Share link captured from tmate output.
@@ -180,7 +180,7 @@ Implementation command:
   3. Make policy gate injectable via constructor for testability.
   4. Log policy evaluation result in audit trail (via bus event).
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/integrations/sharing/share-session.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/integrations/sharing/share-session.ts`
 - Validation:
   - Default policy denies all shares (deny-by-default).
   - Denial prevents worker spawn and returns clear reason.
@@ -192,7 +192,7 @@ Implementation command:
 
 - Purpose: Lock share session contracts and adapter behavior before TTL and handoff features.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/integrations/sharing/__tests__/`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/integrations/sharing/__tests__/`.
   2. Add `share-session.test.ts`:
      - Test session creation with approved policy -> worker spawned, link returned.
      - Test session creation with denied policy -> error, no worker spawned.
@@ -219,10 +219,10 @@ Implementation command:
      - FR-026-002 (policy gate): policy tests.
      - FR-026-009 (on-demand workers): worker lifecycle tests.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/integrations/sharing/__tests__/share-session.test.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/integrations/sharing/__tests__/upterm-adapter.test.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/integrations/sharing/__tests__/tmate-adapter.test.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/integrations/sharing/__tests__/policy-gate.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/integrations/sharing/__tests__/share-session.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/integrations/sharing/__tests__/upterm-adapter.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/integrations/sharing/__tests__/tmate-adapter.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/integrations/sharing/__tests__/policy-gate.test.ts`
 - Validation:
   - All tests pass.
   - Coverage >=85% on share-session.ts, share-worker.ts, upterm-adapter.ts, tmate-adapter.ts.

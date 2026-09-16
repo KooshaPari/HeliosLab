@@ -45,14 +45,14 @@ Success criteria:
 ## Context & Constraints
 
 - Constitution: `docs/reference/constitution.md`
-- Plan: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/025-provider-adapter-interface-and-lifecycle/plan.md`
-- Spec: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/025-provider-adapter-interface-and-lifecycle/spec.md`
+- Plan: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/025-provider-adapter-interface-and-lifecycle/plan.md`
+- Spec: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/025-provider-adapter-interface-and-lifecycle/spec.md`
 - WP01 outputs:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/adapter.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/registry.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/errors.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/adapter.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/registry.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/errors.ts`
 - Protocol bus:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/protocol/bus.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/protocol/bus.ts`
 
 Constraints:
 - TypeScript + Bun runtime.
@@ -70,7 +70,7 @@ Implementation command:
 
 - Purpose: Deliver the primary AI provider integration for Claude task execution.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/acp-client.ts`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/acp-client.ts`.
   2. Implement `ACPClientAdapter` class implementing `ProviderAdapter<ACPConfig, ACPExecuteInput, ACPExecuteOutput>`.
   3. Define `ACPConfig` type with fields: `endpoint: string`, `apiKeyRef: string` (credential store reference), `model: string`, `timeoutMs: number`, `maxRetries: number`.
   4. Implement `init(config: ACPConfig)`:
@@ -93,7 +93,7 @@ Implementation command:
      - Cancel any in-flight requests with `PROVIDER_TERMINATED` error.
      - Release all resources.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/acp-client.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/acp-client.ts`
 - Validation:
   - ACP client compiles and implements `ProviderAdapter` interface.
   - Init succeeds with valid config, fails with normalized error on bad config.
@@ -119,7 +119,7 @@ Implementation command:
   4. Ensure all bus events use the originating correlation ID from the execute input.
   5. Import bus from `apps/runtime/src/protocol/bus.ts` and use existing publish primitives.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/acp-client.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/acp-client.ts`
 - Validation:
   - Bus events are emitted for every execute outcome (success, failure, cancel).
   - Correlation IDs match between execute input and bus event payload.
@@ -140,7 +140,7 @@ Implementation command:
   3. Make policy gate injectable via constructor for testability.
   4. Default policy gate should be a pass-through (allow-all) stub until spec 023 delivers the real implementation.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/acp-client.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/acp-client.ts`
 - Validation:
   - Policy denial prevents ACP endpoint contact (no network call).
   - Policy denial produces normalized error with reason.
@@ -164,7 +164,7 @@ Implementation command:
   3. Health check interval is configurable via `ACPConfig.healthCheckIntervalMs` (default 30000ms, minimum 5000ms).
   4. Health probe timeout should be separate from execute timeout (default 5s).
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/acp-client.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/acp-client.ts`
 - Validation:
   - Health transitions are deterministic (3 failures -> degraded, 5 -> unavailable, 1 success -> healthy).
   - Bus events emitted only on state transitions, not on every check.
@@ -176,7 +176,7 @@ Implementation command:
 
 - Purpose: Verify complete ACP lifecycle including init, execute, cancel, health, terminate against mock server.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/__tests__/acp-client.test.ts`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/__tests__/acp-client.test.ts`.
   2. Implement mock ACP server using Bun's HTTP server:
      - Configurable response behavior (success, error, timeout, slow response).
      - Request logging for correlation ID verification.
@@ -199,7 +199,7 @@ Implementation command:
      - FR-025-012 (policy gates): policy denied test.
   5. Ensure tests run via `bun test` or Vitest.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/__tests__/acp-client.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/__tests__/acp-client.test.ts`
 - Validation:
   - All test scenarios pass.
   - Coverage >=85% on acp-client.ts.

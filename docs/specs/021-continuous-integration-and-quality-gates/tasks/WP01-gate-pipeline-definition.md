@@ -44,8 +44,8 @@ Success criteria:
 ## Context & Constraints
 
 - Constitution: `docs/reference/constitution.md`
-- Plan: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/021-continuous-integration-and-quality-gates/plan.md`
-- Spec: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/021-continuous-integration-and-quality-gates/spec.md`
+- Plan: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/021-continuous-integration-and-quality-gates/plan.md`
+- Spec: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/021-continuous-integration-and-quality-gates/spec.md`
 
 Constraints:
 - All gates at maximum strictness; no ignores or skips (constitution requirement).
@@ -63,7 +63,7 @@ Implementation command:
 
 - Purpose: Establish the pipeline structure that all 8 gates will plug into, with proper triggering, artifact handling, and fail-fast behavior.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/.github/workflows/quality-gates.yml`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/.github/workflows/quality-gates.yml`.
   2. Configure triggers: `push` to all branches, `pull_request` to `main`.
   3. Define a single job `quality-gates` running on `ubuntu-latest` (or configured runner).
   4. Add setup steps: checkout, install Bun (pinned version from spec 019), `bun install`.
@@ -74,7 +74,7 @@ Implementation command:
   9. Configure timeout per step (e.g., 3 minutes per gate) and job-level timeout (10 minutes total).
   10. Add caching for Bun's global cache and `node_modules` to speed up subsequent runs.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/.github/workflows/quality-gates.yml`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/.github/workflows/quality-gates.yml`
 - Acceptance:
   - Workflow triggers on push and PR.
   - All 8 gate steps are defined (even if later gates are placeholder `echo` commands for now).
@@ -95,8 +95,8 @@ Implementation command:
   7. Ensure the gate uses the same tsconfig as spec 019 with all strict flags.
   8. Test locally: introduce a type error, run the gate step, verify the report contains the error details.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/.github/workflows/quality-gates.yml` (gate step)
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/scripts/gate-report.ts` (report generation utility)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/.github/workflows/quality-gates.yml` (gate step)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/scripts/gate-report.ts` (report generation utility)
 - Acceptance:
   - Gate fails on any type error with structured report.
   - Gate passes on clean code with empty findings.
@@ -107,7 +107,7 @@ Implementation command:
 
 - Purpose: Enforce code style and lint rules at maximum strictness.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/biome.json` with maximum strictness configuration.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/biome.json` with maximum strictness configuration.
   2. Enable all recommended and nursery rules that are stable.
   3. Configure formatting rules (indentation, line width, quote style) matching project conventions.
   4. Add Biome as a devDependency in root `package.json`.
@@ -118,9 +118,9 @@ Implementation command:
   9. Add `lint` script to root `package.json`.
   10. Test: introduce a lint violation, verify the gate fails with the specific rule and location.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/biome.json`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/package.json` (devDependency + script)
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/.github/workflows/quality-gates.yml` (gate step)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/biome.json`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/package.json` (devDependency + script)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/.github/workflows/quality-gates.yml` (gate step)
 - Acceptance:
   - Biome at max strictness with zero violations on clean codebase.
   - Gate fails on any lint violation with structured report.
@@ -141,9 +141,9 @@ Implementation command:
   8. Test: add a failing test, verify gate report contains the failure details.
   9. Test: add a `.skip` marker, verify the gate detects it and fails.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/vitest.config.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/package.json` (test script)
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/.github/workflows/quality-gates.yml` (gate step)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/vitest.config.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/package.json` (test script)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/.github/workflows/quality-gates.yml` (gate step)
 - Acceptance:
   - All unit tests execute; none skipped.
   - `.skip`, `.only`, `.todo` markers are detected and fail the gate.
@@ -164,9 +164,9 @@ Implementation command:
   7. Add retry count of 0 (no retries; flaky tests are failures per constitution).
   8. Test: create a minimal e2e test that verifies the desktop shell opens; verify it passes in CI.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/playwright.config.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/package.json` (test:e2e script)
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/.github/workflows/quality-gates.yml` (gate step)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/playwright.config.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/package.json` (test:e2e script)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/.github/workflows/quality-gates.yml` (gate step)
 - Acceptance:
   - Playwright tests run in headless mode on CI.
   - Gate produces structured report with test results.
@@ -177,7 +177,7 @@ Implementation command:
 
 - Purpose: Provide a shared utility for all gates to produce consistent, machine-readable JSON reports.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/scripts/gate-report.ts`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/scripts/gate-report.ts`.
   2. Define TypeScript interfaces for gate reports: `GateReport` with `gateName`, `status` ("pass" | "fail"), `findings` array, `duration` (ms), `timestamp` (ISO 8601).
   3. Define `GateFinding` with `file`, `line`, `column` (optional), `message`, `severity` ("error" | "warning" | "info"), `rule` (optional), `remediation` (optional hint).
   4. Implement `createGateReport(gateName, findings, durationMs)` function that constructs the report object.
@@ -186,8 +186,8 @@ Implementation command:
   7. Export all interfaces and functions for use by individual gate scripts.
   8. Add unit tests for the report generator in `scripts/tests/gate-report.test.ts`.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/scripts/gate-report.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/scripts/tests/gate-report.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/scripts/gate-report.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/scripts/tests/gate-report.test.ts`
 - Acceptance:
   - All gate reports conform to a single schema.
   - Aggregation produces a valid pipeline summary.

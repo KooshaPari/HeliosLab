@@ -42,9 +42,9 @@ Success criteria:
 
 ## Context & Constraints
 
-- Spec: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/001-colab-agent-terminal-control-plane/spec.md`
-- Plan: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/001-colab-agent-terminal-control-plane/plan.md`
-- Data model: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/001-colab-agent-terminal-control-plane/data-model.md`
+- Spec: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/001-colab-agent-terminal-control-plane/spec.md`
+- Plan: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/001-colab-agent-terminal-control-plane/plan.md`
+- Data model: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/001-colab-agent-terminal-control-plane/data-model.md`
 - Constitution: `docs/reference/constitution.md`
 
 Implementation command:
@@ -58,8 +58,8 @@ Implementation command:
   1. Update plan/data model with explicit durable store/checkpoint entities and scope notes.
   2. Ensure slice-1 vs slice-2 lines are unambiguous.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/001-colab-agent-terminal-control-plane/plan.md`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/001-colab-agent-terminal-control-plane/data-model.md`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/001-colab-agent-terminal-control-plane/plan.md`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/001-colab-agent-terminal-control-plane/data-model.md`
 
 ### Subtask T038 - Add checkpoint persistence interface stubs
 - Purpose: prepare interfaces for later durable implementation without enabling it now.
@@ -67,8 +67,8 @@ Implementation command:
   1. Add persistence/checkpoint interfaces and explicit TODO markers.
   2. Keep runtime behavior unchanged for slice-1.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/sessions/`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/audit/`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/sessions/`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/audit/`
 
 ### Subtask T039 - Implement retention policy model and hooks
 - Purpose: satisfy NFR-005 retention requirements.
@@ -76,8 +76,8 @@ Implementation command:
   1. Add retention configuration model with default >=30 days.
   2. Add enforcement hooks for policy-driven expiry while preserving auditability.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/audit/`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/config/`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/audit/`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/config/`
 
 ### Subtask T040 - Add retention compliance tests
 - Purpose: verify policy behavior across expiry and exception scenarios.
@@ -85,8 +85,8 @@ Implementation command:
   1. Add tests for TTL expiry and policy exceptions.
   2. Validate deletion proofs are emitted to audit trail.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/integration/recovery/`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/audit/`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/integration/recovery/`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/audit/`
 
 ### Subtask T041 - Add export completeness compliance tests
 - Purpose: guarantee required correlated fields are exported and sensitive fields redacted.
@@ -94,7 +94,7 @@ Implementation command:
   1. Define required export-field contract.
   2. Add tests for completeness and redaction correctness.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/audit/`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/audit/`
 
 ### Subtask T042 - Update quickstart and ops verification guidance
 - Purpose: document compliance and deferred durability workflow for implementers/reviewers.
@@ -102,7 +102,7 @@ Implementation command:
   1. Update quickstart with retention and compliance verification commands.
   2. Document slice-2 durability placeholders and non-goals clearly.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/001-colab-agent-terminal-control-plane/quickstart.md`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/001-colab-agent-terminal-control-plane/quickstart.md`
 
 ## Test Strategy
 

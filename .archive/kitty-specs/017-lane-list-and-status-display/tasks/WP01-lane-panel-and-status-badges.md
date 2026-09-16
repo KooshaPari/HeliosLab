@@ -44,8 +44,8 @@ Success criteria:
 ## Context & Constraints
 
 - Constitution: `docs/reference/constitution.md`
-- Plan: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/017-lane-list-and-status-display/plan.md`
-- Spec: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/017-lane-list-and-status-display/spec.md`
+- Plan: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/017-lane-list-and-status-display/plan.md`
+- Spec: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/017-lane-list-and-status-display/spec.md`
 - Lane lifecycle: spec 008
 - Session lifecycle: spec 009
 - Orphan detection: spec 015
@@ -77,7 +77,7 @@ Implementation command:
   4. Implement loading state during initial data fetch.
   5. Implement the panel's mount/unmount lifecycle to manage event subscriptions.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/panels/lane_panel.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/panels/lane_panel.ts`
 - Validation:
   - Unit test: render panel with 5 lanes, verify all displayed.
   - Unit test: render panel with 0 lanes, verify empty state.
@@ -108,7 +108,7 @@ Implementation command:
      a. Badge includes ARIA label describing the state.
      b. Color is not the only indicator (icon shape varies by state).
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/panels/status_badge.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/panels/status_badge.ts`
 - Validation:
   - Unit test: render badge for each state, verify correct color and icon.
   - Unit test: unknown state, verify fallback display.
@@ -129,7 +129,7 @@ Implementation command:
   4. Implement truncation for long lane names with tooltip showing full name.
   5. Export the component for use in the lane panel.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/panels/lane_list_item.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/panels/lane_list_item.ts`
 - Validation:
   - Unit test: render item for running lane, verify badge + label.
   - Unit test: render item for orphaned lane, verify warning icon.
@@ -152,7 +152,7 @@ Implementation command:
   3. Wire keyboard events into the lane panel component.
   4. FR-017-007: support keyboard navigation within the lane list.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/panels/keyboard_nav.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/panels/keyboard_nav.ts`
 - Validation:
   - Unit test: arrow down through 5 lanes, verify selection moves.
   - Unit test: Enter on selected lane, verify attach triggered.
@@ -183,10 +183,10 @@ Implementation command:
      a. Render 50 lanes, measure time, assert < 300ms.
   6. Aim for >=85% line coverage.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tests/unit/panels/lane_panel.test.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tests/unit/panels/status_badge.test.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tests/unit/panels/lane_list_item.test.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tests/unit/panels/keyboard_nav.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tests/unit/panels/lane_panel.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tests/unit/panels/status_badge.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tests/unit/panels/lane_list_item.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/tests/unit/panels/keyboard_nav.test.ts`
 - Parallel: Yes (after T001-T004 interfaces are stable).
 
 ## Test Strategy

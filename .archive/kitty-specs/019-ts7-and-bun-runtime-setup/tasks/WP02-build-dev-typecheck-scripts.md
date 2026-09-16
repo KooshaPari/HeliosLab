@@ -47,8 +47,8 @@ Success criteria:
 ## Context & Constraints
 
 - Constitution: `docs/reference/constitution.md`
-- Plan: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/019-ts7-and-bun-runtime-setup/plan.md`
-- Spec: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/019-ts7-and-bun-runtime-setup/spec.md`
+- Plan: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/019-ts7-and-bun-runtime-setup/plan.md`
+- Spec: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/019-ts7-and-bun-runtime-setup/spec.md`
 - WP01 output: Root configs, workspace packages, tsconfig files, path aliases.
 
 Constraints:
@@ -74,10 +74,10 @@ Implementation command:
   6. Test: edit a file in `apps/runtime/src/`, confirm the change is reflected in the running desktop shell within 2 seconds.
   7. Test: introduce a type error during dev, confirm the error is reported clearly without crashing the dev server.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/package.json` (script entries)
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/package.json` (dev script)
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/package.json` (dev script)
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/index.ts` (dev entry point)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/package.json` (script entries)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/package.json` (dev script)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/package.json` (dev script)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/index.ts` (dev entry point)
 - Acceptance:
   - `bun dev` from root starts both workspace dev processes.
   - Hot-reload works for cross-workspace changes.
@@ -97,9 +97,9 @@ Implementation command:
   7. Verify the build produces zero TypeScript errors and zero warnings.
   8. Document the build output location and how to launch the artifact.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/package.json` (build script)
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/package.json` (build script)
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/package.json` (build script)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/package.json` (build script)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/package.json` (build script)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/package.json` (build script)
 - Acceptance:
   - `bun run build` produces a launchable desktop artifact.
   - Zero TypeScript errors and zero build warnings.
@@ -119,9 +119,9 @@ Implementation command:
   7. Test: introduce a type error in each workspace package and confirm the typecheck catches all of them.
   8. Test: verify that `@ts-ignore` or `@ts-expect-error` directives (if any existed) would be caught by the strict config.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/package.json` (typecheck script)
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/package.json` (typecheck script)
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/package.json` (typecheck script)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/package.json` (typecheck script)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/package.json` (typecheck script)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/package.json` (typecheck script)
 - Acceptance:
   - `bun run typecheck` exits 0 on correct code, non-zero on any type error.
   - Covers all workspace packages.
@@ -141,9 +141,9 @@ Implementation command:
   6. Verify `bun run build` resolves the aliases in the production output (inspect bundle for unresolved alias references).
   7. Add a negative test: use a non-existent alias path and verify the typecheck catches it.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/alias-resolution.test.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/index.ts` (exports for testing)
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/index.ts` (alias imports)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/alias-resolution.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/index.ts` (exports for testing)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/index.ts` (alias imports)
 - Acceptance:
   - All alias resolution tests pass in Vitest.
   - Aliases resolve identically in typecheck, dev, and build contexts.
@@ -154,7 +154,7 @@ Implementation command:
 
 - Purpose: Add automated tests that validate the build infrastructure itself, catching regressions in scripts, configs, and workspace resolution.
 - Steps:
-  1. Create a test file at `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/build-infra.test.ts`.
+  1. Create a test file at `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/build-infra.test.ts`.
   2. Test: verify `bun install` succeeds by checking that workspace package `node_modules` links exist.
   3. Test: verify `tsconfig.base.json` has strict mode enabled by reading and parsing the config.
   4. Test: verify that each workspace `tsconfig.json` extends the base config.
@@ -164,7 +164,7 @@ Implementation command:
   8. Test: verify no `@ts-ignore`, `@ts-expect-error`, or lint suppression directives exist in any TypeScript source file (recursive scan).
   9. Ensure all tests are runnable via `bun test` or `bun run test`.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/build-infra.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/build-infra.test.ts`
 - Acceptance:
   - All build infrastructure tests pass.
   - Tests catch config regressions (e.g., removing strict mode).

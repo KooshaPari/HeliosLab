@@ -45,8 +45,8 @@ Success criteria:
 ## Context & Constraints
 
 - Constitution: `docs/reference/constitution.md`
-- Plan: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/023-command-policy-engine-and-approval-workflows/plan.md`
-- Spec: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/023-command-policy-engine-and-approval-workflows/spec.md`
+- Plan: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/023-command-policy-engine-and-approval-workflows/plan.md`
+- Spec: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/023-command-policy-engine-and-approval-workflows/spec.md`
 
 Constraints:
 - Policy evaluation < 50ms (p95) for up to 500 rules (NFR-023-001).
@@ -63,7 +63,7 @@ Implementation command:
 
 - Purpose: Establish the foundational data model for individual policy rules.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/policy/types.ts`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/policy/types.ts`.
   2. Define `PolicyClassification` enum: `"safe"`, `"needs-approval"`, `"blocked"`.
   3. Define `PolicyPatternType` enum: `"glob"`, `"regex"`.
   4. Define `PolicyRule` interface:
@@ -81,7 +81,7 @@ Implementation command:
   6. Add JSDoc comments explaining each field's purpose and constraints.
   7. Export all types for use by the engine and storage modules.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/policy/types.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/policy/types.ts`
 - Acceptance:
   - All types exported and documented.
   - Classification enum covers all three states.
@@ -92,7 +92,7 @@ Implementation command:
 
 - Purpose: Provide ordered rule evaluation with deterministic conflict resolution.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/policy/rules.ts`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/policy/rules.ts`.
   2. Implement `PolicyRuleSet` class that holds an ordered array of rules for a workspace.
   3. Implement `evaluate(command: string, context: CommandContext)` method that:
      a. Iterates rules in priority order.
@@ -106,7 +106,7 @@ Implementation command:
   6. Add `CommandContext` interface: `workspaceId`, `agentId`, `affectedPaths`, `isDirect` (operator vs agent).
   7. Implement `addRule`, `removeRule`, `updateRule` methods that maintain sorted order.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/policy/rules.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/policy/rules.ts`
 - Acceptance:
   - Denylist-wins conflict resolution works correctly.
   - Deny-by-default for unmatched commands.
@@ -118,7 +118,7 @@ Implementation command:
 
 - Purpose: Persist rules durably while maintaining fast in-memory evaluation.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/policy/storage.ts`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/policy/storage.ts`.
   2. Implement `PolicyStorage` class with:
      - In-memory cache of `PolicyRuleSet` per workspace.
      - File-backed persistence: rules stored as JSON in a configurable location (e.g., `~/.helios/policies/<workspaceId>.json`).
@@ -130,7 +130,7 @@ Implementation command:
   5. Add file watching for external policy edits.
   6. Validate rules on load: reject malformed entries with clear error messages.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/policy/storage.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/policy/storage.ts`
 - Acceptance:
   - Rules persist across process restarts.
   - In-memory cache is kept in sync with file.
@@ -150,7 +150,7 @@ Implementation command:
   6. Verify the update propagation time is < 1 second from file change to evaluation using new rules.
   7. Handle edge cases: malformed policy file update (reject and keep previous rules), concurrent file modifications.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/policy/storage.ts` (update)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/policy/storage.ts` (update)
 - Acceptance:
   - Rule updates take effect within 1 second.
   - Malformed updates rejected; previous rules preserved.
@@ -161,7 +161,7 @@ Implementation command:
 
 - Purpose: Lock the policy rule model behavior with comprehensive tests.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/policy/rules.test.ts`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/policy/rules.test.ts`.
   2. Test: glob pattern `git *` matches `git status` and `git push` but not `grep git`.
   3. Test: regex pattern `^rm\s+-rf` matches `rm -rf /tmp` but not `echo rm -rf`.
   4. Test: denylist-wins: `*.env` blocked + `cat *.env` safe -> result is blocked.
@@ -169,14 +169,14 @@ Implementation command:
   6. Test: priority ordering: higher-priority (lower number) rules evaluated first.
   7. Test: file target matching: rule targeting `*.env` matches command affecting `.env` files.
   8. Test: evaluation duration < 50ms for 500 rules (performance benchmark).
-  9. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/policy/storage.test.ts`.
+  9. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/policy/storage.test.ts`.
   10. Test: rules persist to file and reload correctly.
   11. Test: atomic write survives simulated crash (check temp file cleanup).
   12. Test: hot-swap: update file, verify new rules used within 1 second.
   13. Test: malformed file rejected; previous rules preserved.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/policy/rules.test.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/policy/storage.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/policy/rules.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/policy/storage.test.ts`
 - Acceptance:
   - All rule matching, conflict resolution, and storage scenarios tested.
   - Performance benchmark passes.

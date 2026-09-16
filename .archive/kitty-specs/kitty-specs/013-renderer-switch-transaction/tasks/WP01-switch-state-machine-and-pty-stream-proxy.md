@@ -44,8 +44,8 @@ Success criteria:
 ## Context & Constraints
 
 - Constitution: `docs/reference/constitution.md`
-- Plan: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/013-renderer-switch-transaction/plan.md`
-- Spec: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/013-renderer-switch-transaction/spec.md`
+- Plan: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/013-renderer-switch-transaction/plan.md`
+- Spec: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/013-renderer-switch-transaction/spec.md`
 - Renderer adapter interface: spec 010 (`apps/runtime/src/renderer/`)
 - Ghostty backend: spec 011
 - Rio backend: spec 012
@@ -75,7 +75,7 @@ Implementation command:
   4. Add explicit error types for `InvalidTransition` and `ConcurrentTransaction`.
   5. Export the transaction factory and state types for use by WP02/WP03 execution paths.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/renderer/switch_transaction.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/renderer/switch_transaction.ts`
 - Validation:
   - Unit test: instantiate transaction, walk through valid transition sequences, assert state at each step.
   - Unit test: attempt invalid transitions, assert `InvalidTransition` error.
@@ -94,7 +94,7 @@ Implementation command:
   3. Consume capability declarations from the renderer adapter interface (spec 010).
   4. Return explicit errors for unknown renderer IDs.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/renderer/capability_matrix.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/renderer/capability_matrix.ts`
 - Validation:
   - Unit test: register ghostty + rio capabilities, query `canHotSwap` for all permutations.
   - Unit test: query unknown renderer ID, assert clear error.
@@ -117,7 +117,7 @@ Implementation command:
   5. Implement per-terminal proxy instances (one proxy per active PTY during the switch).
   6. Export factory function for creating proxy instances.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/renderer/pty_stream_proxy.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/renderer/pty_stream_proxy.ts`
 - Validation:
   - Unit test: write N bytes in buffering mode, replay to mock target, assert all bytes received in order.
   - Unit test: exceed buffer capacity, assert overflow event and degraded flag.
@@ -134,8 +134,8 @@ Implementation command:
   4. Add correlation ID propagation from the switch request through all emitted events.
   5. Register event topics in the protocol topic registry if applicable.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/renderer/switch_transaction.ts` (wire events)
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/protocol/bus.ts` (topic registration if needed)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/renderer/switch_transaction.ts` (wire events)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/protocol/bus.ts` (topic registration if needed)
 - Validation:
   - Unit test: walk through a complete switch lifecycle, assert all four event types are emitted with correct payloads.
   - Unit test: verify correlation ID is consistent across all events in a single transaction.
@@ -164,9 +164,9 @@ Implementation command:
      e. Test abort (buffer discarded, original renderer restored).
   5. Use Vitest; aim for >=90% line coverage on these modules.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/renderer/switch_transaction.test.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/renderer/capability_matrix.test.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/renderer/pty_stream_proxy.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/renderer/switch_transaction.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/renderer/capability_matrix.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/renderer/pty_stream_proxy.test.ts`
 - Parallel: Yes (after T001/T002/T003 interfaces are stable).
 
 ## Test Strategy

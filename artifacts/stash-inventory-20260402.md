@@ -1,5 +1,5 @@
 # Stash Inventory 2026-04-02
-1. Ran `git stash show --stat stash@{0}` from `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp` to capture the high-level diff summary.
+1. Ran `git stash show --stat stash@{0}` from `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp` to capture the high-level diff summary.
 1. Captured the raw diff via `git stash show -p stash@{0}` for future reference (stored under `/tmp/heliosapp-stash.diff`).
 1. Inspected `deps-changelog.json` with `test -f deps-changelog.json && cat deps-changelog.json` to confirm it exists and currently contains an empty `entries` array; it is referenced by multiple scripts and should remain tracked.
 

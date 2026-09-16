@@ -44,8 +44,8 @@ Success criteria:
 ## Context & Constraints
 
 - Constitution: `docs/reference/constitution.md`
-- Plan: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/024-audit-logging-and-session-replay/plan.md`
-- Spec: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/024-audit-logging-and-session-replay/spec.md`
+- Plan: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/024-audit-logging-and-session-replay/plan.md`
+- Spec: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/024-audit-logging-and-session-replay/spec.md`
 - WP02 output: Ring buffer, SQLite store.
 
 Constraints:
@@ -63,7 +63,7 @@ Implementation command:
 
 - Purpose: Provide a high-level query interface over the audit storage that supports all spec-required filter dimensions.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/audit/ledger.ts`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/audit/ledger.ts`.
   2. Define `AuditFilter` interface:
      - `workspaceId`: optional string
      - `laneId`: optional string
@@ -84,7 +84,7 @@ Implementation command:
   6. Optimize query execution: use SQLite indexes for all filterable dimensions; skip SQLite for time-range queries where all results are within ring buffer window.
   7. Add query timing metrics.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/audit/ledger.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/audit/ledger.ts`
 - Acceptance:
   - All filter dimensions work correctly.
   - Results merged from ring buffer and SQLite with deduplication.
@@ -106,7 +106,7 @@ Implementation command:
   8. Test: create a chain of 10 correlated events across 3 lanes, traverse from the last event, verify all 10 returned in order.
   9. Test: broken chain (missing middle event) returns available events with warning.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/audit/ledger.ts` (add method)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/audit/ledger.ts` (add method)
 - Acceptance:
   - Complete chains returned for 99.9% of traced operations.
   - Circular references handled gracefully.
@@ -128,7 +128,7 @@ Implementation command:
   7. Handle high event throughput: batch notifications at configurable intervals (e.g., 100ms) to avoid overwhelming the UI.
   8. Test: subscribe with a workspace filter, emit matching and non-matching events, verify only matching events are delivered.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/audit/ledger.ts` (add subscription)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/audit/ledger.ts` (add subscription)
 - Acceptance:
   - Real-time updates for matching events.
   - Non-matching events not delivered.
@@ -152,7 +152,7 @@ Implementation command:
   6. Add rate limiting: max 100 queries/minute per client.
   7. Document the API endpoints with request/response schemas.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/audit/api.ts` (or integrated into existing API router)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/audit/api.ts` (or integrated into existing API router)
 - Acceptance:
   - All query endpoints return correct results.
   - WebSocket subscription delivers real-time updates.
@@ -164,7 +164,7 @@ Implementation command:
 
 - Purpose: Validate that ledger search meets the 500ms p95 target for large datasets and that correlation chain traversal is reliable.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/integration/audit/search-performance.test.ts`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/integration/audit/search-performance.test.ts`.
   2. Insert 1 million audit events into SQLite with realistic distribution across 10 workspaces, 50 lanes, 100 sessions.
   3. Benchmark filter queries:
      - Single workspace filter: measure p95 latency, assert < 500ms.
@@ -178,7 +178,7 @@ Implementation command:
   5. Verify real-time subscription delivery latency: emit event, measure time to callback invocation.
   6. Document all measurements.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/integration/audit/search-performance.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/integration/audit/search-performance.test.ts`
 - Acceptance:
   - All search queries < 500ms p95 for 1M events.
   - Correlation chain traversal 99.9% complete.

@@ -46,8 +46,8 @@ Success criteria:
 ## Context & Constraints
 
 - Constitution: `docs/reference/constitution.md`
-- Plan: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/023-command-policy-engine-and-approval-workflows/plan.md`
-- Spec: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/023-command-policy-engine-and-approval-workflows/spec.md`
+- Plan: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/023-command-policy-engine-and-approval-workflows/plan.md`
+- Spec: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/023-command-policy-engine-and-approval-workflows/spec.md`
 - WP01 output: PolicyRule, PolicyRuleSet, PolicyStorage.
 
 Constraints:
@@ -65,7 +65,7 @@ Implementation command:
 
 - Purpose: Centralize all policy evaluation logic into a single engine that consumes command context and returns a classification decision.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/policy/engine.ts`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/policy/engine.ts`.
   2. Implement `PolicyEvaluationEngine` class that:
      - Accepts `PolicyStorage` as a dependency (injected).
      - Exposes `evaluate(command: string, context: CommandContext): PolicyEvaluationResult`.
@@ -80,7 +80,7 @@ Implementation command:
   4. Export the engine for integration by lane execution and terminal dispatch modules.
   5. Add logging for denied commands at warn level, approved at debug level.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/policy/engine.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/policy/engine.ts`
 - Acceptance:
   - Engine correctly evaluates commands using workspace-scoped rules.
   - Fail-closed on storage unavailability.
@@ -102,8 +102,8 @@ Implementation command:
   8. Test: verify a safe command through lane execution has minimal added latency.
   9. Test: verify a blocked command through lane execution is rejected with clear diagnostics.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/integrations/exec.ts` (or equivalent)
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/policy/engine.ts` (integration)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/integrations/exec.ts` (or equivalent)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/policy/engine.ts` (integration)
 - Acceptance:
   - All lane-executed commands pass through policy evaluation.
   - Safe commands execute without perceptible delay.
@@ -123,8 +123,8 @@ Implementation command:
   7. Test: verify agent terminal command is policy-evaluated.
   8. Test: verify direct operator terminal command bypasses approval but is audit-logged.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/sessions/` (terminal dispatch module)
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/policy/engine.ts` (integration)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/sessions/` (terminal dispatch module)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/policy/engine.ts` (integration)
 - Acceptance:
   - Agent terminal commands are policy-evaluated.
   - Operator commands bypass approval.
@@ -151,8 +151,8 @@ Implementation command:
   5. Test: verify audit events are written for safe, blocked, and needs-approval evaluations.
   6. Test: verify audit events are written for operator-bypassed commands.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/policy/engine.ts` (audit integration)
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/audit/` (event type registration)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/policy/engine.ts` (audit integration)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/audit/` (event type registration)
 - Acceptance:
   - Every evaluation produces an audit event.
   - Audit writes are async and do not block evaluation.
@@ -163,19 +163,19 @@ Implementation command:
 
 - Purpose: Prove that deny-by-default holds under randomized inputs and that evaluation performance meets the 50ms p95 target.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/policy/deny-by-default.test.ts`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/policy/deny-by-default.test.ts`.
   2. Generate 1000 randomized command strings (using random words, paths, and special characters).
   3. Evaluate each against a workspace with known rules (10 safe, 10 needs-approval, 10 blocked).
   4. Verify that any command not matching a rule is classified as `"blocked"` with `denyByDefault: true`.
   5. Verify zero unclassified commands escape as `"safe"`.
-  6. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/policy/performance.test.ts`.
+  6. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/policy/performance.test.ts`.
   7. Generate a rule set with 500 rules (mix of glob and regex).
   8. Evaluate 1000 commands and measure p95 latency.
   9. Assert p95 < 50ms.
   10. If p95 exceeds target, profile and optimize (pre-compile patterns, reduce iteration).
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/policy/deny-by-default.test.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/policy/performance.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/policy/deny-by-default.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/policy/performance.test.ts`
 - Acceptance:
   - 1000/1000 unmatched commands denied.
   - p95 evaluation latency < 50ms with 500 rules.

@@ -44,8 +44,8 @@ Success criteria:
 ## Context & Constraints
 
 - Constitution: `docs/reference/constitution.md`
-- Plan: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/014-terminal-to-lane-session-binding/plan.md`
-- Spec: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/014-terminal-to-lane-session-binding/spec.md`
+- Plan: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/014-terminal-to-lane-session-binding/plan.md`
+- Spec: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/014-terminal-to-lane-session-binding/spec.md`
 - Terminal registry: `apps/runtime/src/registry/terminal_registry.ts` (WP01)
 - Binding middleware: `apps/runtime/src/registry/binding_middleware.ts` (WP01)
 - Internal event bus: `apps/runtime/src/protocol/bus.ts` (spec 001)
@@ -77,9 +77,9 @@ Implementation command:
   4. Include correlation ID from the originating operation (terminal creation, lane switch, etc.).
   5. Register event topics in protocol topic registry if applicable.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/registry/binding_events.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/registry/terminal_registry.ts` (wire events)
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/registry/binding_middleware.ts` (wire validation_failed event)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/registry/binding_events.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/registry/terminal_registry.ts` (wire events)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/registry/binding_middleware.ts` (wire validation_failed event)
 - Validation:
   - Unit test: register terminal, assert `bound` event emitted with correct payload.
   - Unit test: rebind terminal, assert `rebound` event includes previous and new binding.
@@ -106,7 +106,7 @@ Implementation command:
      b. On load, verify checksum; if corrupt, discard and start fresh with warning.
   5. File location: use the app's data directory (e.g., `~/.helios/data/binding_registry.json`).
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/registry/persistence.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/registry/persistence.ts`
 - Validation:
   - Integration test: register 10 bindings, flush, reload, assert all 10 restored.
   - Integration test: corrupt the persistence file, reload, assert graceful recovery with warning.
@@ -130,8 +130,8 @@ Implementation command:
   4. Wire subscriptions in the registry initialization path.
   5. Log invalidation actions for debugging.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/registry/terminal_registry.ts` (lifecycle subscriptions)
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/registry/binding_events.ts` (event emission)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/registry/terminal_registry.ts` (lifecycle subscriptions)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/registry/binding_events.ts` (event emission)
 - Validation:
   - Integration test: emit lane.cleaned_up event, verify all terminals for that lane are unregistered.
   - Integration test: emit session.terminated event, verify affected terminals unregistered.
@@ -161,10 +161,10 @@ Implementation command:
      d. Benchmark validation middleware: assert p95 < 5ms.
   5. Aim for >=85% line coverage across all registry modules.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/integration/registry/binding_lifecycle.test.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/integration/registry/persistence.test.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/integration/registry/lane_session_integration.test.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/integration/registry/latency_benchmarks.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/integration/registry/binding_lifecycle.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/integration/registry/persistence.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/integration/registry/lane_session_integration.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/integration/registry/latency_benchmarks.test.ts`
 - Parallel: Yes (after T005/T006/T007 are implemented).
 
 ## Test Strategy

@@ -44,11 +44,11 @@ Success criteria:
 ## Context & Constraints
 
 - Constitution: `docs/reference/constitution.md`
-- Plan: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/025-provider-adapter-interface-and-lifecycle/plan.md`
-- Spec: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/025-provider-adapter-interface-and-lifecycle/spec.md`
+- Plan: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/025-provider-adapter-interface-and-lifecycle/plan.md`
+- Spec: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/025-provider-adapter-interface-and-lifecycle/spec.md`
 - Existing protocol code:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/protocol/bus.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/protocol/types.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/protocol/bus.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/protocol/types.ts`
 
 Constraints:
 - TypeScript + Bun runtime.
@@ -67,7 +67,7 @@ Implementation command:
 
 - Purpose: Establish the contract all providers (ACP, MCP, A2A) must implement.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/adapter.ts`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/adapter.ts`.
   2. Define `ProviderAdapter<TConfig, TExecuteInput, TExecuteOutput>` interface with generic type parameters for protocol-specific extensibility.
   3. Define lifecycle methods:
      - `init(config: TConfig): Promise<void>` -- initialize provider with validated config, must complete within 5s or throw timeout error.
@@ -78,7 +78,7 @@ Implementation command:
   5. Define `ProviderRegistration<TConfig>` type with fields: `id: string`, `type: 'acp' | 'mcp' | 'a2a'`, `config: TConfig`, `workspaceId: string`, `concurrencyLimit: number`, `healthCheckIntervalMs: number`.
   6. Export all types and the interface.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/adapter.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/adapter.ts`
 - Validation:
   - TypeScript compilation passes with strict mode.
   - Interface is usable by a mock implementation in tests.
@@ -89,7 +89,7 @@ Implementation command:
 
 - Purpose: Manage provider registrations with validation, credential binding, and lifecycle tracking.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/registry.ts`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/registry.ts`.
   2. Implement `ProviderRegistry` class with:
      - `register(registration: ProviderRegistration): Promise<void>` -- validate config schema, bind credentials (delegate to spec 028 store interface or stub), call `adapter.init()`, add to active registry.
      - `unregister(providerId: string): Promise<void>` -- call `adapter.terminate()`, remove from registry, clean up credential bindings.
@@ -105,7 +105,7 @@ Implementation command:
      - Reject execute calls that exceed the configured concurrency limit with a normalized error.
   5. Emit lifecycle events on the protocol bus: `provider.registered`, `provider.unregistered`, `provider.init.failed`.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/registry.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/registry.ts`
 - Validation:
   - Registry accepts valid registrations and rejects invalid ones with specific error codes.
   - Concurrency limits are enforced under load.
@@ -116,7 +116,7 @@ Implementation command:
 
 - Purpose: Map all provider error types (ACP, MCP, A2A, internal) to a common error code system.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/errors.ts`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/errors.ts`.
   2. Define `NormalizedProviderError` class extending `Error` with fields:
      - `code: string` -- e.g., `PROVIDER_INIT_FAILED`, `PROVIDER_TIMEOUT`, `PROVIDER_CRASHED`, `PROVIDER_POLICY_DENIED`, `PROVIDER_CONCURRENCY_EXCEEDED`, `PROVIDER_UNAVAILABLE`, `PROVIDER_EXECUTE_FAILED`, `PROVIDER_UNKNOWN`.
      - `providerSource: 'acp' | 'mcp' | 'a2a' | 'internal'`.
@@ -129,7 +129,7 @@ Implementation command:
   6. Ensure every error code has a human-readable message template.
   7. Add JSDoc documentation for each error code explaining when it is used.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/errors.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/errors.ts`
 - Validation:
   - All known error scenarios map to a specific code (no `UNKNOWN` fallthrough for expected cases).
   - `normalizeError` handles null, undefined, string, Error, and custom error inputs.
@@ -140,7 +140,7 @@ Implementation command:
 
 - Purpose: Ensure provider execution runs in child processes scoped to lanes, preventing cross-lane resource leaks on crash.
 - Steps:
-  1. Add process isolation utilities to `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/adapter.ts` or a new `isolation.ts` file.
+  1. Add process isolation utilities to `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/adapter.ts` or a new `isolation.ts` file.
   2. Implement `IsolatedProviderHost` class that:
      - Spawns a child process per provider-lane binding using Bun's `spawn` API.
      - Forwards init/health/execute/terminate calls to the child process via IPC (structured clone or JSON serialization).
@@ -154,7 +154,7 @@ Implementation command:
   4. Bind isolation host to lane ID so that lane termination triggers provider terminate for all providers in that lane.
   5. Ensure provider crash in one lane does not affect providers in other lanes.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/adapter.ts` (or new `isolation.ts`)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/adapter.ts` (or new `isolation.ts`)
 - Validation:
   - Child process spawn and IPC communication work end-to-end.
   - Crash in child process produces normalized error without host process impact.
@@ -166,7 +166,7 @@ Implementation command:
 
 - Purpose: Lock interface contracts and error behavior before protocol-specific adapters are built.
 - Steps:
-  1. Create test directory `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/__tests__/`.
+  1. Create test directory `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/__tests__/`.
   2. Add `adapter.test.ts`:
      - Test that a mock provider implementing `ProviderAdapter` compiles and can be used through the interface.
      - Test generic type parameter specialization for different config/input/output types.
@@ -189,10 +189,10 @@ Implementation command:
      - Test cleanup on terminate (no orphan processes).
   6. Ensure all tests run via `bun test` or Vitest.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/__tests__/adapter.test.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/__tests__/registry.test.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/__tests__/errors.test.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/__tests__/isolation.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/__tests__/adapter.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/__tests__/registry.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/__tests__/errors.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/providers/__tests__/isolation.test.ts`
 - Validation:
   - All tests pass.
   - Coverage >=85% on adapter.ts, registry.ts, errors.ts.

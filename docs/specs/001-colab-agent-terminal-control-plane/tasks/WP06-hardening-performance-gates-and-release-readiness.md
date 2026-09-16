@@ -43,8 +43,8 @@ Success criteria:
 ## Context & Constraints
 
 Reference docs:
-- `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/001-colab-agent-terminal-control-plane/quickstart.md`
-- `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/001-colab-agent-terminal-control-plane/plan.md`
+- `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/001-colab-agent-terminal-control-plane/quickstart.md`
+- `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/001-colab-agent-terminal-control-plane/plan.md`
 - `docs/reference/constitution.md`
 
 Constraints:
@@ -64,7 +64,7 @@ Implementation command:
   2. Emit metrics in lightweight structured format.
   3. Integrate metrics with diagnostics surface where applicable.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/`
 
 ### Subtask T027 - Add soak/performance harness scenarios
 - Purpose: validate behavior under sustained multi-session usage.
@@ -73,8 +73,8 @@ Implementation command:
   2. Capture trend metrics and establish baseline thresholds.
   3. Document failure criteria and triage notes.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/docs/` (if baseline notes are added)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/docs/` (if baseline notes are added)
 
 ### Subtask T028 - Enforce strict quality/security gates
 - Purpose: guarantee constitution-level gate strictness.
@@ -83,7 +83,7 @@ Implementation command:
   2. Ensure CI/local command paths fail on violations.
   3. Remove any bypass or ignore patterns discovered in this feature scope.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/` (tooling config files in scope)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/` (tooling config files in scope)
 
 ### Subtask T029 - Validate quickstart and ops flows end-to-end
 - Purpose: ensure documentation matches working behavior.
@@ -92,8 +92,8 @@ Implementation command:
   2. Update quickstart with exact validated commands and expected outputs.
   3. Confirm fallback and diagnostics guidance are explicit.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/001-colab-agent-terminal-control-plane/quickstart.md`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/001-colab-agent-terminal-control-plane/plan.md` (only if alignment updates needed)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/001-colab-agent-terminal-control-plane/quickstart.md`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/001-colab-agent-terminal-control-plane/plan.md` (only if alignment updates needed)
 - Parallel: Yes.
 
 ### Subtask T030 - Publish MVP boundary checklist
@@ -103,8 +103,8 @@ Implementation command:
   2. Cross-check against spec FRs and success criteria.
   3. Add release-readiness checklist to feature docs.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/001-colab-agent-terminal-control-plane/tasks.md`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/001-colab-agent-terminal-control-plane/quickstart.md`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/001-colab-agent-terminal-control-plane/tasks.md`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/001-colab-agent-terminal-control-plane/quickstart.md`
 - Parallel: Yes.
 
 ## Test Strategy

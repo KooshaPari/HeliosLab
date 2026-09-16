@@ -1,0 +1,17 @@
+{
+  "kind": "finding",
+  "schema_version": "1.0.0",
+  "id": "F-HL-01",
+  "record_status": "OPERATIONAL",
+  "title": "Testing gap in small library",
+  "description": "6 crates with 3K LOC but only 2 test files. Even for a small library, this is insufficient — especially for crypto operations.",
+  "severity": "MEDIUM",
+  "category": "TESTING",
+  "evidence_basis": "find . -name *test*.rs = 2 files; wc -l = 3,055",
+  "scope": "Rust workspace",
+  "owner": "HeliosLab maintainers",
+  "action_class": "INVESTIGATE",
+  "remediation": "Add unit tests for pheno-crypto (critical for security) and pheno-core.",
+  "dependencies": [],
+  "created_at": "2026-09-16T21:49:00-07:00"
+}

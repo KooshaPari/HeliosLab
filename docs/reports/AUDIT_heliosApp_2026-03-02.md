@@ -1,7 +1,7 @@
 # heliosApp Repository Audit Report
 
 **Date:** 2026-03-02  
-**Repository:** `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp`  
+**Repository:** `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp`  
 **Scope:** TypeScript/TSX source code (excluding node_modules, .worktrees, .git)
 
 ---

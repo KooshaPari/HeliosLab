@@ -1,7 +1,7 @@
 name: Alert sync issues (disabled)
 
 # Alert synchronization previously depended on a reusable workflow in the
-# deleted KooshaPari/phenoShared repository. Keep a manual, non-mutating notice
+# deleted <REDACTED>/phenoShared repository. Keep a manual, non-mutating notice
 # until a supported local implementation is reviewed and restored.
 on:
   workflow_dispatch:

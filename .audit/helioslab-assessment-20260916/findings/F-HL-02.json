@@ -1,0 +1,17 @@
+{
+  "kind": "finding",
+  "schema_version": "1.0.0",
+  "id": "F-HL-02",
+  "record_status": "OPERATIONAL",
+  "title": "CI workflow count disproportionate to codebase size",
+  "description": "53 CI workflows for 3K LOC (17.7 workflows per 1K LOC). This is the highest ratio in the portfolio and may indicate over-automation or unused workflows.",
+  "severity": "LOW",
+  "category": "CI_CD_EFFICIENCY",
+  "evidence_basis": "ls .github/workflows/ | wc -l = 53; LOC = 3,055",
+  "scope": "Repository",
+  "owner": "HeliosLab maintainers",
+  "action_class": "REVIEW",
+  "remediation": "Audit workflow utilization. Consolidate or remove unused workflows.",
+  "dependencies": [],
+  "created_at": "2026-09-16T21:49:00-07:00"
+}

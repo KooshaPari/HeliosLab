@@ -42,9 +42,9 @@ Success criteria:
 
 ## Context & Constraints
 
-- Spec: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/001-colab-agent-terminal-control-plane/spec.md`
-- Plan: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/001-colab-agent-terminal-control-plane/plan.md`
-- Tasks: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/001-colab-agent-terminal-control-plane/tasks.md`
+- Spec: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/001-colab-agent-terminal-control-plane/spec.md`
+- Plan: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/001-colab-agent-terminal-control-plane/plan.md`
+- Tasks: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/001-colab-agent-terminal-control-plane/tasks.md`
 - Constitution: `docs/reference/constitution.md`
 
 Implementation command:
@@ -58,9 +58,9 @@ Implementation command:
   1. Update protocol methods/topics and spec references for boundary naming.
   2. Ensure each boundary has canonical command/event coverage.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/specs/protocol/v1/methods.json`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/specs/protocol/v1/topics.json`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/001-colab-agent-terminal-control-plane/spec.md`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/specs/protocol/v1/methods.json`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/specs/protocol/v1/topics.json`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/001-colab-agent-terminal-control-plane/spec.md`
 
 ### Subtask T032 - Implement protocol boundary adapter dispatch
 - Purpose: route requests through explicit boundary adapter paths.
@@ -68,8 +68,8 @@ Implementation command:
   1. Implement boundary adapter module and typed dispatch discriminants.
   2. Wire dispatch to runtime execution integration points.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/protocol/boundary_adapter.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/integrations/exec.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/protocol/boundary_adapter.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/integrations/exec.ts`
 
 ### Subtask T033 - Add delegation routing and normalization tests
 - Purpose: verify deterministic routing and stable error handling by boundary.
@@ -77,8 +77,8 @@ Implementation command:
   1. Add unit tests for dispatch selection.
   2. Add integration tests for local/tool/A2A boundary behavior and errors.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/protocol/`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/integration/protocol/`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/unit/protocol/`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/integration/protocol/`
 
 ### Subtask T034 - Enforce coverage threshold gate
 - Purpose: operationalize constitution minimum coverage target.
@@ -86,8 +86,8 @@ Implementation command:
   1. Configure coverage thresholds (`>=85%` baseline).
   2. Fail CI/local checks when threshold is not met.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/package.json`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/vitest.config.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/package.json`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/vitest.config.ts`
 
 ### Subtask T035 - Enforce requirement traceability gate
 - Purpose: guarantee requirement-to-test linkage exists.
@@ -95,8 +95,8 @@ Implementation command:
   1. Add trace matrix validator for FR/NFR mapping.
   2. Integrate validator into quality gate command chain.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/001-colab-agent-terminal-control-plane/`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/001-colab-agent-terminal-control-plane/`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/`
 
 ### Subtask T036 - Add fail-closed validation fixtures
 - Purpose: prove gates fail when requirements are violated.
@@ -104,7 +104,7 @@ Implementation command:
   1. Add fixtures/scenarios that intentionally violate coverage/traceability.
   2. Assert gate command exits non-zero as expected.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/`
 
 ## Test Strategy
 

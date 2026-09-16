@@ -44,8 +44,8 @@ Success criteria:
 ## Context & Constraints
 
 - Constitution: `docs/reference/constitution.md`
-- Plan: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/021-continuous-integration-and-quality-gates/plan.md`
-- Spec: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/021-continuous-integration-and-quality-gates/spec.md`
+- Plan: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/021-continuous-integration-and-quality-gates/plan.md`
+- Spec: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/021-continuous-integration-and-quality-gates/spec.md`
 - WP01/WP02 output: CI pipeline with 7 gates, gate report infrastructure.
 
 Constraints:
@@ -77,7 +77,7 @@ Implementation command:
   7. Test: add each suppression type, verify it is detected.
   8. Test: verify suppression-like text inside a string literal is handled appropriately.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/.github/workflows/quality-gates.yml` (gate step)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/.github/workflows/quality-gates.yml` (gate step)
 - Acceptance:
   - All suppression directive types detected.
   - Exclusion paths respected.
@@ -88,7 +88,7 @@ Implementation command:
 
 - Purpose: Provide a reusable script that scans source files for suppression directives, usable by both CI and `bun run gates`.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/scripts/gate-bypass-detect.ts`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/scripts/gate-bypass-detect.ts`.
   2. Accept command-line arguments: `--root <dir>` (default: repo root), `--exclude <glob>` (repeatable), `--json` (output JSON report).
   3. Recursively scan all `.ts`, `.tsx`, `.js`, `.jsx` files under root, excluding configured paths.
   4. For each file, scan line by line for suppression patterns. Track: file path, line number, column, matched pattern, and the full line content for context.
@@ -99,7 +99,7 @@ Implementation command:
   9. Handle large codebases efficiently: stream file reads, avoid loading entire files into memory.
   10. Add the scanner as a named export so it can be imported by `scripts/gates.ts`.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/scripts/gate-bypass-detect.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/scripts/gate-bypass-detect.ts`
 - Acceptance:
   - Scanner detects all defined suppression patterns.
   - Exclusion paths work correctly.
@@ -111,7 +111,7 @@ Implementation command:
 
 - Purpose: Provide a single local command that runs the identical 8-gate suite as CI, so developers catch failures before pushing.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/scripts/gates.ts`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/scripts/gates.ts`.
   2. Import or invoke each gate in the same order as CI: typecheck, lint, test, e2e, coverage, security, static analysis, bypass detection.
   3. Use the same configurations, thresholds, and tools as CI.
   4. Collect results from each gate into an aggregated report.
@@ -123,8 +123,8 @@ Implementation command:
   10. Add `gates` script to root `package.json`.
   11. Ensure the local gates script shares configuration with CI (read from the same biome.json, vitest.config.ts, etc.).
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/scripts/gates.ts`
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/package.json` (gates script)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/scripts/gates.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/package.json` (gates script)
 - Acceptance:
   - `bun run gates` runs all 8 gates in order.
   - Results match what CI would produce for the same code.
@@ -136,7 +136,7 @@ Implementation command:
 
 - Purpose: Verify the bypass detection scanner catches all suppression directive types and handles edge cases correctly.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/scripts/tests/gate-bypass-detect.test.ts`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/scripts/tests/gate-bypass-detect.test.ts`.
   2. Create fixture files in a temp directory for each test case.
   3. Test: file with `@ts-ignore` is detected with correct file and line.
   4. Test: file with `@ts-expect-error` is detected.
@@ -151,7 +151,7 @@ Implementation command:
   13. Test: JSON output conforms to GateReport schema.
   14. Clean up temp fixture files after tests.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/scripts/tests/gate-bypass-detect.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/scripts/tests/gate-bypass-detect.test.ts`
 - Acceptance:
   - All suppression types covered.
   - Edge cases documented and tested.
@@ -162,7 +162,7 @@ Implementation command:
 
 - Purpose: Verify that `bun run gates` produces identical results to the CI pipeline for the same codebase state.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/scripts/tests/gates-parity.test.ts`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/scripts/tests/gates-parity.test.ts`.
   2. Test: run `bun run gates` on a clean codebase, verify all 8 gates pass.
   3. Test: introduce a type error, run `bun run gates`, verify the typecheck gate fails with the same diagnostics CI would produce.
   4. Test: introduce a lint violation, run `bun run gates`, verify the lint gate fails.
@@ -171,7 +171,7 @@ Implementation command:
   7. Test: verify `--json` produces valid aggregated report.
   8. Compare gate configurations: verify `bun run gates` reads the same biome.json, vitest.config.ts, and thresholds as CI.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/scripts/tests/gates-parity.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/scripts/tests/gates-parity.test.ts`
 - Acceptance:
   - Local and CI produce identical results.
   - Gate order verified.

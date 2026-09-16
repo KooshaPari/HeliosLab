@@ -48,8 +48,8 @@ Success criteria:
 ## Context & Constraints
 
 - Constitution: `docs/reference/constitution.md`
-- Plan: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/023-command-policy-engine-and-approval-workflows/plan.md`
-- Spec: `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/023-command-policy-engine-and-approval-workflows/spec.md`
+- Plan: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/023-command-policy-engine-and-approval-workflows/plan.md`
+- Spec: `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/kitty-specs/023-command-policy-engine-and-approval-workflows/spec.md`
 - WP02 output: PolicyEvaluationEngine integrated into lane/terminal execution.
 
 Constraints:
@@ -67,7 +67,7 @@ Implementation command:
 
 - Purpose: Define the data model for approval requests with full command context.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/policy/approval.ts`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/policy/approval.ts`.
   2. Define `ApprovalRequestStatus` enum: `"pending"`, `"approved"`, `"denied"`, `"timed-out"`.
   3. Define `ApprovalRequest` interface:
      - `id`: unique string (UUID)
@@ -87,7 +87,7 @@ Implementation command:
   4. Define `ApprovalAction` type: `{ type: "approve" | "deny", operatorReason: string }`.
   5. Export all types.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/policy/approval.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/policy/approval.ts`
 - Acceptance:
   - All fields documented with JSDoc.
   - Types are complete for the full lifecycle.
@@ -98,7 +98,7 @@ Implementation command:
 
 - Purpose: Store pending approval requests in SQLite so they survive process restart and support concurrent access.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/policy/queue.ts`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/policy/queue.ts`.
   2. Use `bun:sqlite` for the database connection.
   3. Create table schema: `approval_requests` with columns matching the `ApprovalRequest` interface.
   4. Implement `enqueue(request: ApprovalRequest)`: insert into SQLite and publish `approval.request.created` on the bus.
@@ -110,7 +110,7 @@ Implementation command:
   10. Handle edge cases: duplicate enqueue (idempotent via unique ID), dequeue of already-resolved request (no-op with warning).
   11. Test: enqueue a request, kill the process, restart, verify the request is still pending.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/policy/queue.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/policy/queue.ts`
 - Acceptance:
   - Requests persist in SQLite across restarts.
   - Concurrent access works without deadlocks (WAL mode).
@@ -133,7 +133,7 @@ Implementation command:
   6. Run `processTimeouts()` on a periodic timer (e.g., every 5 seconds).
   7. Handle edge cases: approve/deny of already-resolved request (return error, do not double-process).
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/policy/queue.ts` (or new handler file)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/policy/queue.ts` (or new handler file)
 - Acceptance:
   - Approve/deny/timeout correctly update request status.
   - Bus events emitted for each action.
@@ -145,7 +145,7 @@ Implementation command:
 
 - Purpose: Give operators visibility into pending approval requests and controls to approve or deny.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/panels/approval-queue.ts`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/panels/approval-queue.ts`.
   2. The panel must display a list of pending approval requests with:
      - Command text (syntax highlighted if possible)
      - Affected paths
@@ -161,7 +161,7 @@ Implementation command:
   7. Handle empty state: "No pending approval requests" message.
   8. Ensure the panel is responsive and does not block the main UI thread.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/panels/approval-queue.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/desktop/src/panels/approval-queue.ts`
 - Acceptance:
   - Pending requests displayed with full context.
   - Approve/deny actions work from the UI.
@@ -185,8 +185,8 @@ Implementation command:
   5. Test: deny a pending request, verify the agent receives the denial reason.
   6. Test: let a request timeout, verify the timeout action is applied.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/integrations/exec.ts` (or equivalent)
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/sessions/` (terminal dispatch)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/integrations/exec.ts` (or equivalent)
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/src/sessions/` (terminal dispatch)
 - Acceptance:
   - Approval-to-execution latency < 500ms.
   - Denial returns structured error to agent.
@@ -197,7 +197,7 @@ Implementation command:
 
 - Purpose: Prove that the approval queue survives crashes with zero request loss.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/integration/policy/queue-chaos.test.ts`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/integration/policy/queue-chaos.test.ts`.
   2. Test: enqueue 10 requests, simulate process kill (SIGKILL equivalent), restart, verify all 10 are still pending.
   3. Test: enqueue 50 requests concurrently from multiple lanes, verify all 50 are persisted without duplicates or losses.
   4. Test: enqueue and immediately approve in rapid succession, verify no race conditions between enqueue and resolve.
@@ -206,7 +206,7 @@ Implementation command:
   7. Use actual SQLite operations (not mocked) for realistic chaos testing.
   8. Verify via audit trail that every request has a corresponding create event and (if resolved) a resolve event.
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/integration/policy/queue-chaos.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/integration/policy/queue-chaos.test.ts`
 - Acceptance:
   - Zero request loss across all crash scenarios.
   - Concurrent access handled correctly.
@@ -217,7 +217,7 @@ Implementation command:
 
 - Purpose: Validate the complete approval workflow from request creation through command execution or denial.
 - Steps:
-  1. Create `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/integration/policy/approval-lifecycle.test.ts`.
+  1. Create `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/integration/policy/approval-lifecycle.test.ts`.
   2. Test: full approve flow: agent issues command -> policy evaluates as needs-approval -> request created -> operator approves -> command executes -> audit trail complete.
   3. Test: full deny flow: agent issues command -> policy evaluates as needs-approval -> request created -> operator denies -> agent receives denial -> audit trail complete.
   4. Test: timeout flow: request created -> timeout expires -> default deny action applied -> agent receives timeout error -> audit trail complete.
@@ -226,7 +226,7 @@ Implementation command:
   7. Test: audit trail contains events for every stage of the lifecycle.
   8. Test: UI panel reflects state changes in real time (subscribe to bus events and verify).
 - Files:
-  - `/Users/kooshapari/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/integration/policy/approval-lifecycle.test.ts`
+  - `/Users/<REDACTED>/CodeProjects/Phenotype/repos/heliosApp/apps/runtime/tests/integration/policy/approval-lifecycle.test.ts`
 - Acceptance:
   - All lifecycle flows tested end-to-end.
   - Audit trail complete for every scenario.
