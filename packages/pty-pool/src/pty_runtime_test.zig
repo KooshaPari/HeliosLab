@@ -99,16 +99,21 @@ test "child exit is reported through the lifecycle API" {
 
     _ = pool.pty_pool_write(handle, "exit 7\n", 7);
 
-    // Wait for the child to die, then confirm the status is visible.
+    // Wait until the status is known, then confirm its value.
+    //
+    // This deliberately does not assert on pty_pool_reap's return value. Either
+    // pump can reap at EOF or reap can do it, and both are correct; what
+    // matters is that the status becomes observable and is not lost.
     var attempts: usize = 0;
-    var reaped = false;
-    while (attempts < 400 and !reaped) : (attempts += 1) {
+    var known = false;
+    while (attempts < 400 and !known) : (attempts += 1) {
         _ = pool.pty_pool_pump(handle);
-        if (pool.pty_pool_reap(handle) == 1) reaped = true;
+        _ = pool.pty_pool_reap(handle);
+        if (pool.pty_pool_exit_code(handle) != -2) known = true;
         pause();
     }
 
-    try testing.expect(reaped);
+    try testing.expect(known);
     try testing.expectEqual(@as(i32, 7), pool.pty_pool_exit_code(handle));
     try testing.expectEqual(@as(i32, 2), pool.pty_pool_state(handle)); // exited
 }
