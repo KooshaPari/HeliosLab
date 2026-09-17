@@ -16,6 +16,7 @@
 		"dev": "bun setup && electrobun dev",
 		"build:canary": "electrobun build --env=canary",
 		"build:stable": "electrobun build --env=stable",
+		"build:native": "bun tools/build-native.ts",
 		"docs:dev": "cd docs && npm install --no-audit --no-fund && npm start",
 		"docs:build": "cd docs && npm install --no-audit --no-fund && npm run docs:build",
 		"docs:serve": "cd docs && npm run docs:serve",
