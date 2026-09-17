@@ -15,7 +15,24 @@ import { existsSync } from "node:fs";
 import { join } from "node:path";
 
 type Symbols = Record<string, FFIFunction>;
-type Library = ReturnType<typeof dlopen>;
+
+/**
+ * Bun infers a precise call signature per symbol only when the symbol table is
+ * inferred from a literal. Annotating the table as `Record<string, FFIFunction>`
+ * erases that, and every symbol then typechecks as callable with `never[]`,
+ * which rejects every real call.
+ *
+ * So calls go through this loosely-typed view. The symbol tables are still
+ * checked against `FFIFunction`, which is where argument arity and types are
+ * actually declared, but the compiler no longer verifies call sites. Fixing
+ * that properly means threading a generic `NativeLib<T>` through the loader, the
+ * cache, and every class field; worth doing, not done here.
+ */
+type Library = {
+  // biome-ignore lint/suspicious/noExplicitAny: see note above
+  symbols: Record<string, (...args: any[]) => any>;
+  close: () => void;
+};
 
 /** Everything the bridge can fail to find. */
 export type NativeComponent = "pty" | "persistence" | "orchestrator" | "device";
@@ -83,7 +100,7 @@ function tryLoad(component: NativeComponent, symbols: Symbols): Library | null {
   }
 
   try {
-    const lib = dlopen(path, symbols);
+    const lib = dlopen(path, symbols) as unknown as Library;
     loaded.set(component, lib);
     loadState.set(component, { ok: true, path });
     return lib;
@@ -127,10 +144,21 @@ function require_(component: NativeComponent, lib: Library | null): Library {
   return lib;
 }
 
-/** Read a `char *` returned by native code and free a JS-side copy. */
+type BunPointer = ConstructorParameters<typeof CString>[0];
+
+/**
+ * Read a `char *` returned by native code.
+ *
+ * `CString` is a class, not a function: calling it without `new` throws. This
+ * is easy to get wrong because it only fails when a native library is actually
+ * loaded, so tests that run without one will not catch it.
+ *
+ * FFI returns pointers as plain numbers, so the cast to Bun's branded
+ * `Pointer` type is required.
+ */
 function readCString(ptr: number | null): string {
   if (ptr === null || ptr === 0) return "";
-  return CString(ptr);
+  return new CString(ptr as unknown as BunPointer).toString();
 }
 
 // ---------------------------------------------------------------------------
