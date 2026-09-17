@@ -181,6 +181,16 @@ bun run build:native
   `TerminalPanel.tsx` subscribes to PTY output and reports resizes, and the store
   is tested, but the Electrobun UI has not been launched, so no shell output has
   been seen on screen. Everything below the UI is proven; the last step is visual.
+
+  A render test for the panel was written and then removed, because it cannot
+  run in this repo as configured. Bun's transpiler compiles JSX with React's
+  transform regardless of the pragma, since the root `tsconfig.json` sets
+  `"jsx": "preserve"`, so the component throws `React is not defined` before any
+  assertion executes. No test in this repo has ever rendered a Solid component,
+  so there was no working pattern to follow, and making one work means changing
+  the root tsconfig or adding a `bunfig.toml` - not a change to make
+  unilaterally for a test. What would unblock it: a `bunfig.toml` JSX setting, or
+  rendering through the same esbuild+solid pipeline the app build uses.
 - The CI workflow has never run on a runner.
 
 **A caution about this file.** Every defect found this session came from running
