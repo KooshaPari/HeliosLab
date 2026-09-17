@@ -287,7 +287,11 @@ pub extern "C" fn helios_db_get_token_stats(
     let conn = unsafe { &*db };
     let session_str = unsafe { CStr::from_ptr(session_id).to_str().unwrap_or("") };
 
-    let mut stmt = match conn.prepare(
+    // An earlier edit spliced this together with the previous function: it
+    // referenced `stmt` inside its own initializer and left `stats` undefined.
+    // Nothing could have caught that without a compiler, and there was no Rust
+    // toolchain on the development host until this was first run.
+    let stats = match conn.prepare(
         "SELECT session_id,
                 COALESCE(SUM(prompt_tokens), 0) as total_prompt,
                 COALESCE(SUM(completion_tokens), 0) as total_completion,
@@ -295,8 +299,8 @@ pub extern "C" fn helios_db_get_token_stats(
                 COUNT(*) as count
          FROM token_usage WHERE session_id = ?1 GROUP BY session_id"
     ) {
-        Ok(s) => stmt
-            .query_row(params![s], |row| {
+        Ok(mut stmt) => stmt
+            .query_row(params![session_str], |row| {
                 Ok(TokenStats {
                     session_id: row.get(0)?,
                     total_prompt_tokens: row.get(1)?,
