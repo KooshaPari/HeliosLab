@@ -89,6 +89,32 @@ fn init_db(conn: &Connection) -> rusqlite::Result<()> {
 }
 
 // ============================================================================
+// String marshalling helpers
+// ============================================================================
+
+/// Move a Rust `String` across the FFI boundary.
+///
+/// Interior NUL bytes would make `CString::new` fail and, on the old code path,
+/// panic. Terminal output and pasted text can contain NULs, so they are
+/// stripped rather than allowed to abort the process.
+fn to_c_string(s: String) -> *mut c_char {
+    let cleaned: String = s.replace('\0', "");
+    CString::new(cleaned)
+        .unwrap_or_else(|_| CString::new("[]").expect("literal has no NUL"))
+        .into_raw()
+}
+
+/// Serialise `value` to JSON for the caller, falling back to `fallback` when
+/// serialisation fails. The returned pointer must be released with
+/// [`helios_db_free_string`].
+fn to_json_cstring<T: Serialize>(value: &T, fallback: &str) -> *mut c_char {
+    match serde_json::to_string(value) {
+        Ok(json) => to_c_string(json),
+        Err(_) => to_c_string(fallback.to_string()),
+    }
+}
+
+// ============================================================================
 // C ABI exports for Bun FFI
 // ============================================================================
 
@@ -174,15 +200,11 @@ pub extern "C" fn helios_db_get_messages(
     let conn = unsafe { &*db };
     let conv_str = unsafe { CStr::from_ptr(conv_id).to_str().unwrap_or("") };
 
-    let mut stmt = match conn.prepare(
-        "SELECT id, conversation_id, role, content, timestamp FROM messages WHERE conversation_id = ?1 ORDER BY timestamp ASC LIMIT ?2 OFFSET ?3"
-    ) {
-        Ok(s) => s,
-        Err(_) => return CString::new("[]").unwrap().into_raw(),
-    };
-
-    let messages: Vec<Message> = stmt
-        .query_map(params![conv_str, limit, offset], |row| {
+    let messages = (|| -> rusqlite::Result<Vec<Message>> {
+        let mut stmt = conn.prepare(
+            "SELECT id, conversation_id, role, content, timestamp FROM messages WHERE conversation_id = ?1 ORDER BY timestamp ASC LIMIT ?2 OFFSET ?3"
+        )?;
+        let rows = stmt.query_map(params![conv_str, limit, offset], |row| {
             Ok(Message {
                 id: row.get(0)?,
                 conversation_id: row.get(1)?,
@@ -190,33 +212,12 @@ pub extern "C" fn helios_db_get_messages(
                 content: row.get(3)?,
                 timestamp: row.get(4)?,
             })
-        })
-        .unwrap_or_else(|_| {
-            // Return empty iterator
-            rusqlite::Statement::query_row(
-                &mut stmt,
-                params![conv_str, limit, offset],
-                |row| row.get::<_, String>(0),
-            )
-            .err();
-            return rusqlite::MappedRows::new(
-                std::iter::empty(),
-                |row| {
-                    Ok(Message {
-                        id: String::new(),
-                        conversation_id: String::new(),
-                        role: String::new(),
-                        content: String::new(),
-                        timestamp: String::new(),
-                    })
-                },
-            );
-        })
-        .filter_map(|r| r.ok())
-        .collect();
+        })?;
+        rows.collect()
+    })()
+    .unwrap_or_default();
 
-    let json = serde_json::to_string(&messages).unwrap_or_else(|_| "[]".to_string());
-    CString::new(json).unwrap().into_raw()
+    to_json_cstring(&messages, "[]")
 }
 
 /// Search messages (FTS5). Returns JSON array.
@@ -229,20 +230,16 @@ pub extern "C" fn helios_db_search_messages(
     let conn = unsafe { &*db };
     let query_str = unsafe { CStr::from_ptr(query).to_str().unwrap_or("") };
 
-    let mut stmt = match conn.prepare(
-        "SELECT m.id, m.conversation_id, m.role, m.content, m.timestamp
-         FROM messages_fts f
-         JOIN messages m ON m.rowid = f.rowid
-         WHERE messages_fts MATCH ?1
-         ORDER BY rank
-         LIMIT ?2"
-    ) {
-        Ok(s) => s,
-        Err(_) => return CString::new("[]").unwrap().into_raw(),
-    };
-
-    let messages: Vec<Message> = stmt
-        .query_map(params![query_str, limit], |row| {
+    let messages = (|| -> rusqlite::Result<Vec<Message>> {
+        let mut stmt = conn.prepare(
+            "SELECT m.id, m.conversation_id, m.role, m.content, m.timestamp
+             FROM messages_fts f
+             JOIN messages m ON m.rowid = f.rowid
+             WHERE messages_fts MATCH ?1
+             ORDER BY rank
+             LIMIT ?2",
+        )?;
+        let rows = stmt.query_map(params![query_str, limit], |row| {
             Ok(Message {
                 id: row.get(0)?,
                 conversation_id: row.get(1)?,
@@ -250,26 +247,12 @@ pub extern "C" fn helios_db_search_messages(
                 content: row.get(3)?,
                 timestamp: row.get(4)?,
             })
-        })
-        .unwrap_or_else(|_| {
-            rusqlite::MappedRows::new(
-                std::iter::empty(),
-                |row| {
-                    Ok(Message {
-                        id: String::new(),
-                        conversation_id: String::new(),
-                        role: String::new(),
-                        content: String::new(),
-                        timestamp: String::new(),
-                    })
-                },
-            )
-        })
-        .filter_map(|r| r.ok())
-        .collect();
+        })?;
+        rows.collect()
+    })()
+    .unwrap_or_default();
 
-    let json = serde_json::to_string(&messages).unwrap_or_else(|_| "[]".to_string());
-    CString::new(json).unwrap().into_raw()
+    to_json_cstring(&messages, "[]")
 }
 
 /// Record token usage for a session.
@@ -312,28 +295,23 @@ pub extern "C" fn helios_db_get_token_stats(
                 COUNT(*) as count
          FROM token_usage WHERE session_id = ?1 GROUP BY session_id"
     ) {
-        Ok(s) => s,
-        Err(_) => return CString::new("{}").unwrap().into_raw(),
+        Ok(s) => stmt
+            .query_row(params![s], |row| {
+                Ok(TokenStats {
+                    session_id: row.get(0)?,
+                    total_prompt_tokens: row.get(1)?,
+                    total_completion_tokens: row.get(2)?,
+                    total_cost_cents: row.get(3)?,
+                    usage_count: row.get(4)?,
+                })
+            })
+            .ok(),
+        Err(_) => None,
     };
 
-    let stats = stmt
-        .query_row(params![session_str], |row| {
-            Ok(TokenStats {
-                session_id: row.get(0)?,
-                total_prompt_tokens: row.get(1)?,
-                total_completion_tokens: row.get(2)?,
-                total_cost_cents: row.get(3)?,
-                usage_count: row.get(4)?,
-            })
-        })
-        .ok();
-
     match stats {
-        Some(s) => {
-            let json = serde_json::to_string(&s).unwrap_or_else(|_| "{}".to_string());
-            CString::new(json).unwrap().into_raw()
-        }
-        None => CString::new("{}").unwrap().into_raw(),
+        Some(s) => to_json_cstring(&s, "{}"),
+        None => to_c_string("{}".to_string()),
     }
 }
 

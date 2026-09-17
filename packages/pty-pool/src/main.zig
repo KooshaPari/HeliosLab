@@ -1,471 +1,249 @@
+//! C ABI surface consumed by the Bun FFI bridge.
+//!
+//! Ownership model: one process-wide pool. `pty_pool_create` initialises it and
+//! returns a pointer that must be passed back; the pointer is validated so a
+//! stale handle cannot address a reinitialised pool.
+
 const std = @import("std");
-const posix = std.posix;
-const linux = std.os.linux;
 const builtin = @import("builtin");
 
-/// HeliosLab PTY Pool - Zero-allocation terminal multiplexer
-/// 
-/// Design principles:
-/// - No heap allocations after init (all memory pre-allocated)
-/// - Comptime state machines for VTE parsing
-/// - io_uring on Linux, kqueue on macOS for async I/O
-/// - 1000 concurrent PTYs with O(1) lookup
-pub const PtyPool = struct {
-    /// Maximum concurrent PTYs (comptime for zero-allocation)
-    max_pty: comptime_int,
-    
-    /// Pre-allocated PTY slots
-    slots: []PtySlot,
-    
-    /// Free list for O(1) allocation
-    free_list: FreeList,
-    
-    /// Platform-specific async I/O
-    async_io: AsyncIO,
-    
-    /// VTE state machines (comptime-generated)
-    vte_machines: [max_pty]VteStateMachine,
-    
-    const PtySlot = struct {
-        fd: i32 = -1,
-        child_pid: i32 = -1,
-        cols: u16 = 80,
-        rows: u16 = 24,
-        state: State = .closed,
-        read_buf: [4096]u8 = undefined,
-        write_buf: [4096]u8 = undefined,
-        read_len: usize = 0,
-        write_len: usize = 0,
-        
-        const State = enum {
-            closed,
-            open,
-            reading,
-            writing,
-            error_state,
-        };
+const pool_mod = @import("pool.zig");
+const ring_mod = @import("ring.zig");
+const pty = @import("pty_unix.zig");
+
+/// Maximum simultaneous PTYs. One slot per concurrent terminal session.
+pub const CAPACITY: usize = 1024;
+
+/// Per-session output buffer. 1024 slots x 16 KiB = 16 MiB fixed.
+pub const RING_CAPACITY: usize = 16 * 1024;
+
+/// Scratch buffer used to move bytes from the fd into the ring.
+const PUMP_BUF: usize = 16 * 1024;
+
+const Pool = pool_mod.Pool(CAPACITY);
+const Ring = ring_mod.Ring(RING_CAPACITY);
+
+/// Handle values, kept distinct from valid handles (which are >= 0).
+pub const ERR_INVALID: i32 = -1;
+pub const ERR_STALE: i32 = -2;
+pub const ERR_IO: i32 = -3;
+pub const ERR_SPAWN: i32 = -4;
+pub const ERR_WOULD_BLOCK: i32 = -5;
+pub const ERR_EOF: i32 = -6;
+pub const ERR_EXHAUSTED: i32 = -7;
+pub const ERR_NOT_INIT: i32 = -8;
+
+var g_pool: Pool = undefined;
+var g_rings: [CAPACITY]Ring = undefined;
+var g_initialised: bool = false;
+
+fn poolPtr() ?*Pool {
+    return if (g_initialised) &g_pool else null;
+}
+
+fn mapError(e: anyerror) i32 {
+    return switch (e) {
+        error.PoolExhausted => ERR_EXHAUSTED,
+        error.StaleHandle => ERR_STALE,
+        else => ERR_INVALID,
     };
-    
-    const FreeList = struct {
-        stack: [max_pty]u32 = undefined,
-        top: u32 = 0,
-        
-        fn push(self: *FreeList, id: u32) void {
-            if (self.top < max_pty) {
-                self.stack[self.top] = id;
-                self.top += 1;
-            }
-        }
-        
-        fn pop(self: *FreeList) ?u32 {
-            if (self.top > 0) {
-                self.top -= 1;
-                return self.stack[self.top];
-            }
-            return null;
-        }
+}
+
+/// Initialise the process-wide pool. Returns 0 on success, an ERR_* otherwise.
+/// Calling it again reinitialises, which invalidates every outstanding handle.
+export fn pty_pool_create(max_pty: u32) i32 {
+    if (max_pty == 0 or max_pty > CAPACITY) return ERR_INVALID;
+    g_pool.init();
+    for (&g_rings) |*r| r.clear();
+    g_initialised = true;
+    return 0;
+}
+
+/// Spawn a shell in a new PTY. Returns a handle, or a negative ERR_*.
+export fn pty_pool_spawn(
+    shell: [*:0]const u8,
+    cwd: ?[*:0]const u8,
+    cols: u16,
+    rows: u16,
+) i32 {
+    if (!g_initialised) return ERR_NOT_INIT;
+    if (cols == 0 or rows == 0) return ERR_INVALID;
+
+    const handle = g_pool.acquire() catch |e| return mapError(e);
+    const idx: usize = @intCast(handle & 0xFFFFF);
+    g_rings[idx].clear();
+
+    const res = pty.spawn(shell, cwd, cols, rows) catch {
+        g_pool.release(handle) catch {};
+        return ERR_SPAWN;
     };
-    
-    const AsyncIO = struct {
-        epoll_fd: i32 = -1,  // Linux
-        kqueue_fd: i32 = -1, // macOS
-        
-        fn init() AsyncIO {
-            var aio = AsyncIO{};
-            if (builtin.os.tag == .linux) {
-                aio.epoll_fd = @intCast(linux.epoll_create1(0));
-            } else if (builtin.os.tag == .macos) {
-                aio.kqueue_fd = @intCast(posix.kqueue());
-            }
-            return aio;
-        }
-        
-        fn register(self: *AsyncIO, fd: i32, id: u32) void {
-            if (builtin.os.tag == .linux) {
-                var event = linux.epoll_event{
-                    .events = linux.EPOLL.IN | linux.EPOLL.OUT | linux.EPOLL.ET,
-                    .data = .{ .u32 = id },
-                };
-                linux.epoll_ctl(self.epoll_fd, linux.EPOLL.CTL_ADD, fd, &event);
-            }
-            // macOS kqueue registration would go here
-        }
-        
-        fn unregister(self: *AsyncIO, fd: i32) void {
-            if (builtin.os.tag == .linux) {
-                linux.epoll_ctl(self.epoll_fd, linux.EPOLL.CTL_DEL, fd, null);
-            }
-        }
+    pty.setNonBlocking(res.master_fd) catch {};
+
+    const slot = g_pool.get(handle) catch {
+        pty.close(res.master_fd);
+        pty.terminate(res.pid);
+        g_pool.release(handle) catch {};
+        return ERR_STALE;
     };
-    
-    /// Comptime-generated VTE state machine
-    const VteStateMachine = struct {
-        state: State = .ground,
-        buf: [256]u8 = undefined,
-        buf_len: u16 = 0,
-        
-        const State = enum {
-            ground,
-            escape,
-            csi_param,
-            csi_intermediate,
-            osc_string,
-            charset,
-        };
-        
-        inline fn feed(self: *VteStateMachine, byte: u8) Event {
-            return switch (self.state) {
-                .ground => switch (byte) {
-                    0x1b => {
-                        self.state = .escape;
-                        return .none;
-                    },
-                    0x08 => return .backspace,
-                    0x09 => return .tab,
-                    0x0a => return .newline,
-                    0x0d => return .carriage_return,
-                    else => return .printable,
-                },
-                .escape => switch (byte) {
-                    '[' => {
-                        self.state = .csi_param;
-                        self.buf_len = 0;
-                        return .none;
-                    },
-                    ']' => {
-                        self.state = .osc_string;
-                        self.buf_len = 0;
-                        return .none;
-                    },
-                    else => {
-                        self.state = .ground;
-                        return .escape_sequence;
-                    },
-                },
-                .csi_param => switch (byte) {
-                    '0'...'9' => {
-                        if (self.buf_len < 256) {
-                            self.buf[self.buf_len] = byte;
-                            self.buf_len += 1;
-                        }
-                        return .none;
-                    },
-                    ';' => {
-                        if (self.buf_len < 256) {
-                            self.buf[self.buf_len] = ';';
-                            self.buf_len += 1;
-                        }
-                        return .none;
-                    },
-                    'm' => {
-                        self.state = .ground;
-                        return .sgr;
-                    },
-                    'H' => {
-                        self.state = .ground;
-                        return .cursor_position;
-                    },
-                    'J' => {
-                        self.state = .ground;
-                        return .erase_display;
-                    },
-                    'K' => {
-                        self.state = .ground;
-                        return .erase_line;
-                    },
-                    else => {
-                        self.state = .ground;
-                        return .csi_sequence;
-                    },
-                },
-                .osc_string => switch (byte) {
-                    0x07 => {
-                        self.state = .ground;
-                        return .osc;
-                    },
-                    else => {
-                        if (self.buf_len < 256) {
-                            self.buf[self.buf_len] = byte;
-                            self.buf_len += 1;
-                        }
-                        return .none;
-                    },
-                },
-                else => {
-                    self.state = .ground;
-                    return .none;
-                },
-            };
-        }
-        
-        const Event = enum {
-            none,
-            printable,
-            backspace,
-            tab,
-            newline,
-            carriage_return,
-            escape_sequence,
-            csi_sequence,
-            sgr,
-            cursor_position,
-            erase_display,
-            erase_line,
-            osc,
-        };
-    };
-    
-    pub fn init(comptime max: comptime_int) PtyPool {
-        var pool = PtyPool{
-            .max_pty = max,
-            .slots = undefined,
-            .free_list = FreeList{},
-            .async_io = AsyncIO.init(),
-            .vte_machines = undefined,
-        };
-        
-        // Initialize free list
-        var i: u32 = 0;
-        while (i < max) : (i += 1) {
-            pool.free_list.push(i);
-        }
-        
-        return pool;
-    }
-    
-    pub fn spawn(self: *PtyPool, shell: [*:0]const u8, cwd: [*:0]const u8, cols: u16, rows: u16) i32 {
-        const id = self.free_list.pop() orelse return -1;
-        
-        var slot = &self.slots[id];
-        
-        // Create pseudo-terminal
-        const master_fd = posix.openpt(posix.O.RDWR | posix.O.NOCTTY) catch {
-            self.free_list.push(id);
-            return -1;
-        };
-        
-        posix.grantpt(master_fd) catch {
-            posix.close(master_fd);
-            self.free_list.push(id);
-            return -1;
-        };
-        
-        posix.unlockpt(master_fd) catch {
-            posix.close(master_fd);
-            self.free_list.push(id);
-            return -1;
-        };
-        
-        // Set window size
-        const winsize = posix.Winsize{
-            .ws_row = rows,
-            .ws_col = cols,
-            .ws_xpixel = 0,
-            .ws_ypixel = 0,
-        };
-        posix.ioctl(master_fd, posix.TIOCSWINSZ, &winsize) catch {};
-        
-        // Fork and exec
-        const pid = posix.fork() catch {
-            posix.close(master_fd);
-            self.free_list.push(id);
-            return -1;
-        };
-        
-        if (pid == 0) {
-            // Child process
-            posix.setsid() catch {};
-            
-            const slave_fd = posix.open(
-                posix(ptsname(master_fd) orelse @panic("ptsname failed")),
-                posix.O.RDWR | posix.O.NOCTTY,
-            ) catch @panic("open slave failed");
-            
-            posix.dup2(slave_fd, 0) catch {};
-            posix.dup2(slave_fd, 1) catch {};
-            posix.dup2(slave_fd, 2) catch {};
-            
-            if (slave_fd > 2) posix.close(slave_fd);
-            posix.close(master_fd);
-            
-            // Set environment
-            posix.setenv("TERM", "xterm-256color", true) catch {};
-            posix.setenv("COLORTERM", "truecolor", true) catch {};
-            
-            // Exec shell
-            const argv = [_:null]?[*:0]const u8{ shell, null };
-            const envp = [_:null]?[*:0]const u8{null};
-            posix.execvpe(shell, &argv, &envp) catch @panic("exec failed");
-            unreachable;
-        }
-        
-        // Parent process
-        posix.close(slave_fd);
-        
-        slot.fd = master_fd;
-        slot.child_pid = @intCast(pid);
-        slot.cols = cols;
-        slot.rows = rows;
-        slot.state = .open;
-        
-        // Register for async I/O
-        self.async_io.register(master_fd, id);
-        
-        return @intCast(id);
-    }
-    
-    pub fn write(self: *PtyPool, id: i32, data: [*]const u8, len: u32) i32 {
-        const uid: u32 = @intCast(id);
-        if (uid >= self.max_pty) return -1;
-        
-        var slot = &self.slots[uid];
-        if (slot.fd < 0) return -1;
-        
-        const written = posix.write(slot.fd, data[0..len]) catch return -1;
-        return @intCast(written.len);
-    }
-    
-    pub fn read(self: *PtyPool, id: i32, buf: [*]u8, buf_len: u32) i32 {
-        const uid: u32 = @intCast(id);
-        if (uid >= self.max_pty) return -1;
-        
-        var slot = &self.slots[uid];
-        if (slot.fd < 0) return -1;
-        
-        const n = posix.read(slot.fd, buf[0..buf_len]) catch return -1;
-        return @intCast(n);
-    }
-    
-    pub fn resize(self: *PtyPool, id: i32, cols: u16, rows: u16) void {
-        const uid: u32 = @intCast(id);
-        if (uid >= self.max_pty) return;
-        
-        var slot = &self.slots[uid];
-        if (slot.fd < 0) return;
-        
-        slot.cols = cols;
-        slot.rows = rows;
-        
-        const winsize = posix.Winsize{
-            .ws_row = rows,
-            .ws_col = cols,
-            .ws_xpixel = 0,
-            .ws_ypixel = 0,
-        };
-        posix.ioctl(slot.fd, posix.TIOCSWINSZ, &winsize) catch {};
-    }
-    
-    pub fn destroy(self: *PtyPool, id: i32) void {
-        const uid: u32 = @intCast(id);
-        if (uid >= self.max_pty) return;
-        
-        var slot = &self.slots[uid];
-        if (slot.fd < 0) return;
-        
-        // Send SIGHUP to child
-        if (slot.child_pid > 0) {
-            posix.kill(slot.child_pid, posix.SIG.HUP) catch {};
-            
-            // Wait for child to exit
-            _ = posix.waitpid(slot.child_pid, 0) catch {};
-        }
-        
-        self.async_io.unregister(slot.fd);
-        posix.close(slot.fd);
-        
-        slot.fd = -1;
-        slot.child_pid = -1;
-        slot.state = .closed;
-        
-        self.free_list.push(uid);
-    }
-    
-    pub fn destroyAll(self: *PtyPool) void {
-        var i: u32 = 0;
-        while (i < self.max_pty) : (i += 1) {
-            if (self.slots[i].state != .closed) {
-                self.destroy(@intCast(i));
-            }
+    slot.fd = res.master_fd;
+    slot.pid = res.pid;
+    slot.cols = cols;
+    slot.rows = rows;
+    slot.state = .running;
+    slot.exit_code = -2;
+    return handle;
+}
+
+/// Read available bytes from the PTY fd into the slot's ring buffer.
+/// Returns bytes buffered, 0 if nothing was ready, or a negative ERR_*.
+export fn pty_pool_pump(handle: i32) i32 {
+    if (!g_initialised) return ERR_NOT_INIT;
+
+    const slot = g_pool.get(handle) catch |e| return mapError(e);
+    if (slot.fd < 0) return ERR_INVALID;
+
+    const idx: usize = @intCast(handle & 0xFFFFF);
+    var buf: [PUMP_BUF]u8 = undefined;
+
+    var total: i32 = 0;
+    // Drain until the fd would block or the ring fills (backpressure).
+    while (g_rings[idx].writable() > 0) {
+        const room = @min(g_rings[idx].writable(), PUMP_BUF);
+        switch (pty.read(slot.fd, buf[0..room])) {
+            .data => |n| {
+                const wrote = g_rings[idx].write(buf[0..n]);
+                total += @intCast(wrote);
+                if (wrote < n) break; // ring full; stop and let the caller drain
+                if (n < room) break;
+            },
+            .would_block => break,
+            .eof => {
+                _ = pty.reap(slot.pid);
+                slot.state = .exited;
+                return total;
+            },
         }
     }
-};
-
-// ============================================================================
-// C ABI exports for Bun FFI
-// ============================================================================
-
-const MAX_PTY = 1000;
-var global_pool: ?PtyPool = null;
-
-export fn pty_pool_create(max_pty: u32) ?*PtyPool {
-    if (max_pty == 0 or max_pty > MAX_PTY) return null;
-    
-    var pool = PtyPool.init(max_pty);
-    global_pool = pool;
-    return &pool;
+    return total;
 }
 
-export fn pty_pool_spawn(pool: ?*PtyPool, shell: [*:0]const u8, cwd: [*:0]const u8, cols: u16, rows: u16) i32 {
-    return pool orelse return -1;
+/// Drain buffered bytes out of the ring into `out`.
+export fn pty_pool_read(handle: i32, out: [*]u8, out_len: u32) i32 {
+    if (!g_initialised) return ERR_NOT_INIT;
+    _ = g_pool.get(handle) catch |e| return mapError(e);
+    if (out_len == 0) return 0;
+
+    const idx: usize = @intCast(handle & 0xFFFFF);
+    return @intCast(g_rings[idx].read(out[0..out_len]));
 }
 
-export fn pty_pool_write(pool: ?*PtyPool, id: i32, data: [*]const u8, len: u32) i32 {
-    return pool orelse return -1;
+/// Bytes currently buffered for this session.
+export fn pty_pool_readable(handle: i32) i32 {
+    if (!g_initialised) return ERR_NOT_INIT;
+    _ = g_pool.get(handle) catch |e| return mapError(e);
+    const idx: usize = @intCast(handle & 0xFFFFF);
+    return @intCast(g_rings[idx].readable());
 }
 
-export fn pty_pool_read(pool: ?*PtyPool, id: i32, buf: [*]u8, buf_len: u32) i32 {
-    return pool orelse return -1;
+/// Send input to the child. Returns bytes written, or a negative ERR_*.
+export fn pty_pool_write(handle: i32, data: [*]const u8, len: u32) i32 {
+    if (!g_initialised) return ERR_NOT_INIT;
+
+    const slot = g_pool.get(handle) catch |e| return mapError(e);
+    if (slot.fd < 0) return ERR_INVALID;
+    if (len == 0) return 0;
+
+    const n = pty.write(slot.fd, data[0..len]);
+    if (n < 0) {
+        slot.state = .errored;
+        return ERR_IO;
+    }
+    return @intCast(n);
 }
 
-export fn pty_pool_resize(pool: ?*PtyPool, id: i32, cols: u16, rows: u16) void {
-    if (pool) |p| p.resize(id, cols, rows);
+/// Resize the PTY window. Returns 0 on success, a negative ERR_* otherwise.
+export fn pty_pool_resize(handle: i32, cols: u16, rows: u16) i32 {
+    if (!g_initialised) return ERR_NOT_INIT;
+    if (cols == 0 or rows == 0) return ERR_INVALID;
+
+    const slot = g_pool.get(handle) catch |e| return mapError(e);
+    if (slot.fd < 0) return ERR_INVALID;
+
+    if (!pty.resize(slot.fd, cols, rows)) return ERR_IO;
+    slot.cols = cols;
+    slot.rows = rows;
+    return 0;
 }
 
-export fn pty_pool_destroy(pool: ?*PtyPool, id: i32) void {
-    if (pool) |p| p.destroy(id);
+/// Lifecycle state: 0 closed, 1 running, 2 exited, 3 errored.
+export fn pty_pool_state(handle: i32) i32 {
+    if (!g_initialised) return ERR_NOT_INIT;
+    const slot = g_pool.get(handle) catch |e| return mapError(e);
+    return @intFromEnum(slot.state);
 }
 
-export fn pty_pool_destroy_all(pool: ?*PtyPool) void {
-    if (pool) |p| p.destroyAll();
+/// Child exit code. -2 means "not reaped yet"; signals are reported negative.
+export fn pty_pool_exit_code(handle: i32) i32 {
+    if (!g_initialised) return ERR_NOT_INIT;
+    const slot = g_pool.get(handle) catch |e| return mapError(e);
+    return slot.exit_code;
 }
 
-// ============================================================================
-// Tests
-// ============================================================================
+/// Non-blocking reap; updates state and exit code when the child has finished.
+export fn pty_pool_reap(handle: i32) i32 {
+    if (!g_initialised) return ERR_NOT_INIT;
+    const slot = g_pool.get(handle) catch |e| return mapError(e);
+    if (slot.state != .running) return 0;
 
-test "init" {
-    const pool = PtyPool.init(10);
-    try std.testing.expectEqual(@as(u32, 10), pool.free_list.top);
+    const r = pty.reap(slot.pid);
+    if (!r.reaped) return 0;
+    slot.exit_code = r.exit_code;
+    slot.state = .exited;
+    return 1;
 }
 
-test "free list" {
-    var fl = PtyPool.FreeList{};
-    fl.push(1);
-    fl.push(2);
-    fl.push(3);
-    
-    try std.testing.expectEqual(@as(u32, 3), fl.top);
-    try std.testing.expectEqual(@as(u32, 3), fl.pop().?);
-    try std.testing.expectEqual(@as(u32, 2), fl.pop().?);
-    try std.testing.expectEqual(@as(u32, 1), fl.pop().?);
-    try std.testing.expectEqual(@as(?u32, null), fl.pop());
+/// Terminate and release one session.
+export fn pty_pool_destroy(handle: i32) i32 {
+    if (!g_initialised) return ERR_NOT_INIT;
+
+    const slot = g_pool.get(handle) catch |e| return mapError(e);
+    if (slot.state == .running) {
+        pty.terminate(slot.pid);
+        _ = pty.reap(slot.pid);
+    }
+    if (slot.fd >= 0) pty.close(slot.fd);
+
+    const idx: usize = @intCast(handle & 0xFFFFF);
+    g_rings[idx].clear();
+    g_pool.release(handle) catch |e| return mapError(e);
+    return 0;
 }
 
-test "VTE state machine" {
-    var vte = PtyPool.VteStateMachine{};
-    
-    // ESC[
-    _ = vte.feed(0x1b);
-    try std.testing.expectEqual(PtyPool.VteStateMachine.State.escape, vte.state);
-    
-    _ = vte.feed('[');
-    try std.testing.expectEqual(PtyPool.VteStateMachine.State.csi_param, vte.state);
-    
-    // CSI sequence: ESC[1;2H (cursor position)
-    _ = vte.feed('1');
-    _ = vte.feed(';');
-    _ = vte.feed('2');
-    _ = vte.feed('H');
-    try std.testing.expectEqual(PtyPool.VteStateMachine.State.ground, vte.state);
-    try std.testing.expectEqual(@as(u16, 3), vte.buf_len);
+/// Terminate and release every session.
+export fn pty_pool_destroy_all() void {
+    if (!g_initialised) return;
+
+    var views: [CAPACITY]pool_mod.SlotView = undefined;
+    const n = g_pool.snapshot(&views);
+    for (views[0..n]) |v| {
+        const handle: i32 = @intCast((g_pool.slots[v.index].generation << 20) | v.index);
+        _ = pty_pool_destroy(handle);
+    }
+}
+
+/// Number of live sessions.
+export fn pty_pool_live_count() i32 {
+    if (!g_initialised) return ERR_NOT_INIT;
+    return @intCast(g_pool.liveCount());
+}
+
+/// Slots still available.
+export fn pty_pool_available() i32 {
+    if (!g_initialised) return ERR_NOT_INIT;
+    return @intCast(g_pool.available());
+}
+
+/// Build metadata, so the bridge can assert it loaded a compatible library.
+export fn pty_pool_abi_version() u32 {
+    return 2;
 }
