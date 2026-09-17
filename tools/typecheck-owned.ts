@@ -32,6 +32,8 @@ const OWNED_PREFIXES = [
   "packages/runtime-core/tests/unit/pty_session.test.ts",
   "apps/colab-renderer/src/stores/terminal.store.ts",
   "apps/colab-renderer/src/components/terminal/TerminalPanel.tsx",
+  "apps/colab-renderer/src/components/terminal/panel-wiring.ts",
+  "apps/colab-renderer/tests/unit/components/panel-wiring.test.ts",
   "apps/colab-renderer/tests/unit/stores/terminal.store.test.ts",
   "tools/check-abi.ts",
   "tools/typecheck-owned.ts",

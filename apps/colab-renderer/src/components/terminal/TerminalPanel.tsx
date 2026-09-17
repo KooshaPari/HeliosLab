@@ -7,6 +7,7 @@ import {
 	subscribeToTerminal,
 	writeToTerminal,
 } from "../../stores/terminal.store.ts";
+import { reportTerminalSize, wireTerminal } from "./panel-wiring.ts";
 
 export type TerminalPanelProps = {
 	terminalId: string;
@@ -48,26 +49,26 @@ export const TerminalPanel: Component<TerminalPanelProps> = (props) => {
 			fitAddon?.fit();
 		});
 
-		const inputDisposable = terminal.onData((data: string) => {
-			// Straight to the shell, so the panel works on its own. props.onData
-			// is kept as an observer for callers that also want keystrokes.
-			writeToTerminal(props.terminalId, data);
-			props.onData?.(data);
-		});
-		onCleanup(() => inputDisposable.dispose());
+		// The wiring lives in panel-wiring.ts so it can be tested; this is only
+		// the DOM glue. props.onData stays an observer rather than the input path,
+		// so the panel works on its own and existing callers keep working.
+		const deps = {
+			subscribeToTerminal,
+			writeToTerminal: (id: string, data: string) => {
+				writeToTerminal(id, data);
+				props.onData?.(data);
+			},
+			resizeTerminal,
+		};
 
-		// Output from the shell. Nothing rendered before this: the store could
-		// drive a PTY, but no UI surface consumed what came back.
-		const unsubscribe = subscribeToTerminal(props.terminalId, (chunk) => {
-			terminal?.write(chunk);
-		});
-		onCleanup(() => unsubscribe());
+		const wiring = wireTerminal(props.terminalId, terminal, deps);
+		onCleanup(() => wiring.dispose());
 
 		resizeObserver = new ResizeObserver(() => {
 			fitAddon?.fit();
 			// Tell the kernel, otherwise full-screen programs keep drawing at the
 			// old size. fit() alone only changes what xterm renders.
-			if (terminal) resizeTerminal(props.terminalId, terminal.cols, terminal.rows);
+			if (terminal) reportTerminalSize(props.terminalId, terminal, deps);
 		});
 		resizeObserver.observe(ref);
 	});
