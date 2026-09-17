@@ -106,6 +106,45 @@ bun run build:native
 
 ## Honest summary
 
-Verified by execution: Go orchestrator logic, Go device-manager logic, the TS
-FFI bridge contract.
+Verified by execution: Go orchestrator logic, Go device-manager logic including
+the SSH host-key path, the TS FFI bridge contract.
 Not verified: every line of Zig, Rust, and Mojo, and the cgo link step.
+
+---
+
+## Open questions (blocking verification, not code)
+
+These are decisions, not tasks. No further agent work changes them.
+
+### 1. Where should toolchains be installed?
+
+Zig is downloading to `agents/sandbox/toolchains/` (~1 MB/min on this link, so
+~45 min). Rust is worse: `cargo check` needs *both* rustup *and* a C compiler,
+because `rusqlite`'s bundled feature compiles SQLite from source. At this
+bandwidth a Rust toolchain is a multi-hour download, and a MinGW/MSVC compiler
+would be needed on top.
+
+`kooshas-laptop` (macOS 27, arm64) is reachable over Tailscale and is the real
+shipping target, since Electrobun is macOS-first. Installing Zig, Rust, and Bun
+there would verify Zig, Rust, *and* the cgo link step in one place, on the
+correct architecture. That is the cheaper and more meaningful option, but it
+means installing toolchains on a personal machine.
+
+### 2. Finish Mojo, or replace it with a TypeScript router?
+
+`packages/inference/mojo/inference_router.mojo` is a sketch with known defects
+listed in its header. There is no MAX toolchain to compile it with.
+
+The user has said they want exotic languages, so this is deliberately left in
+place rather than deleted. The alternative is a TypeScript router, which would
+be testable the same day and could still delegate to Mojo later once MAX is
+installed. This needs a product call, not a technical one.
+
+### Not a question
+
+The `.github/workflows/native.yml` workflow closes the verification gap for
+everything above without any local install. It has been written and its YAML
+validated, but it has never been observed running on a runner, so it is not
+counted as evidence yet. Pushing this branch is the cheapest way to find out
+whether Zig, Rust, and the cgo shims actually compile.
+
