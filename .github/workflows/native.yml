@@ -63,13 +63,13 @@ jobs:
       # Bun's test runner executes the bridge but does not typecheck it. The
       # CString misuse fixed on 2026-09-17 was invisible to the test suite
       # because no native library is loaded during it, and would have thrown at
-      # runtime on every string-returning call. Typechecking is the only thing
-      # that catches that class of defect before the library exists.
-      - name: Typecheck the FFI bridge
-        run: |
-          bunx tsc --noEmit --skipLibCheck --strict \
-            --target esnext --module esnext --moduleResolution bundler \
-            --types bun-types packages/runtime-core/src/ffi/index.ts
+      # runtime on every string-returning call.
+      #
+      # The repo baseline has ~1000 pre-existing typecheck errors, so this runs
+      # the project's own typecheck and fails only on errors inside the paths
+      # this work owns. Verified to exit 1 on a planted error.
+      - name: Typecheck the native integration surface
+        run: bun tools/typecheck-owned.ts
 
       - name: FFI bridge contract tests
         run: bun test packages/runtime-core/tests/unit/ffi_bridge.test.ts
