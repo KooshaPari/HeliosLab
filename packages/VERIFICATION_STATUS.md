@@ -147,8 +147,9 @@ bun run build:native
   store owns one PTY per terminal and the chain runs store -> `pty-session.ts` ->
   FFI bridge -> Zig -> kernel, with output published back to subscribers for
   xterm. Verified by `terminal.store.test.ts` (9/9 on macOS, 8 of which also run
-  on Windows), `pty_session.test.ts` (5/5) and `pty_live.test.ts` (3/3), all
-  against a real shell.
+  on Windows), `panel-wiring.test.ts` (6/6, which cover which callback goes where
+  without needing a DOM), `pty_session.test.ts` (5/5) and `pty_live.test.ts`
+  (3/3), all against a real shell.
 - Driving that layer found a **memory-corruption bug**: the handle's index mask
   had drifted from its bit layout, so reusing a slot indexed the ring array out
   of bounds. It only appeared on the second spawn in a process, which is why the
@@ -177,20 +178,19 @@ bun run build:native
 - Mojo is a sketch with its known defects named in the file header. There is no
   MAX toolchain, and the TypeScript bridge does not load it, so nothing shipped
   depends on it.
-- The renderer wiring is typechecked but has never been run in the actual app.
-  `TerminalPanel.tsx` subscribes to PTY output and reports resizes, and the store
-  is tested, but the Electrobun UI has not been launched, so no shell output has
-  been seen on screen. Everything below the UI is proven; the last step is visual.
+- The renderer's wiring is tested, but the component's DOM glue and the app
+  itself have never been run. `panel-wiring.ts` covers which callback goes where
+  (6 tests), and the store is covered (9), so the logic is exercised. What is
+  untested is constructing the xterm instance and registering the ResizeObserver
+  - both typechecked, neither where the bugs turned out to be. No shell output has
+  been seen on screen, because launching the Electrobun UI is the one step that
+  cannot be taken from here.
 
-  A render test for the panel was written and then removed, because it cannot
-  run in this repo as configured. Bun's transpiler compiles JSX with React's
-  transform regardless of the pragma, since the root `tsconfig.json` sets
-  `"jsx": "preserve"`, so the component throws `React is not defined` before any
-  assertion executes. No test in this repo has ever rendered a Solid component,
-  so there was no working pattern to follow, and making one work means changing
-  the root tsconfig or adding a `bunfig.toml` - not a change to make
-  unilaterally for a test. What would unblock it: a `bunfig.toml` JSX setting, or
-  rendering through the same esbuild+solid pipeline the app build uses.
+  A render test for the component was attempted first and cannot work in this
+  repo: Bun compiles JSX with React's transform because the root `tsconfig.json`
+  sets `"jsx": "preserve"`, so the component throws `React is not defined` before
+  any assertion runs. Extracting the logic was the way around it, rather than
+  changing repo-wide config to suit a test.
 - The CI workflow has never run on a runner.
 
 **A caution about this file.** Every defect found this session came from running
