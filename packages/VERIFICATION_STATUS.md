@@ -147,11 +147,11 @@ bun run build:native
   real shell on macOS, from TypeScript through Bun's `dlopen`, the C ABI, Zig,
   and the kernel. It loads the library, spawns `/bin/sh`, reads its output, and
   reports the exit status.
-- Rust persistence now **compiles**: `cargo check --release` finishes clean,
-  including `libsqlite3-sys` building its bundled SQLite. It had never been
-  compiled, and the first run found a spliced-together function referencing
-  `stmt` inside its own initializer. Toolchain installed into `/tmp/rust` on the
-  MacBook, so nothing was installed system-wide.
+- Rust persistence now **compiles and runs**: 9 tests pass against real SQLite,
+  covering schema creation, message ordering, FTS5 search and its no-match case,
+  token aggregation, NUL handling and null arguments. Toolchain installed into
+  `/tmp/rust` on the MacBook, so nothing was installed system-wide. Its first run
+  found a null-deref that would have segfaulted the host process.
 - Go orchestrator, device manager, and SSH transport: 65 tests, `go vet` clean,
   `gofmt` clean, cross-compiles for darwin/arm64. The SSH path was exercised
   against the real MacBook: 5/5, including host-key rejection and prompt
@@ -168,15 +168,13 @@ bun run build:native
 - The cgo link step: the Go shared libraries have never been linked. A C
   toolchain is needed, and the development host has none. Their logic is covered
   by 65 tests, but the cgo shims themselves are uncompiled.
-- Rust is compiled but not tested. `cargo check` proves it typechecks; nothing
-  has exercised the SQLite schema, the FTS5 triggers, or the C ABI at runtime.
 - The PTY pool is verified in isolation but not wired into the app. No terminal
   tab in the UI drives it yet.
 - The CI workflow has never run on a runner.
 
-**A caution about this file.** Every defect found this session (31 of them) came
-from running something that could disagree with the author. None came from the
-tests written first, and three were defects in the verification itself:
+**A caution about this file.** Every defect found this session came from running
+something that could disagree with the author. None came from the tests written
+first, and several were defects in the verification itself:
 
 1. A constant assertion compared a computed value against a literal derived the
    same way. It could not fail, and the constant it "proved" was used by an ioctl
@@ -185,6 +183,12 @@ tests written first, and three were defects in the verification itself:
    failed in a suite. Caught only by running it both ways.
 3. A root cause was asserted from two coincidentally equal failure durations and
    was disproved by one experiment.
+4. A test asserted that the helpers guard against a null pointer. They did not,
+   and the assertion was never checked - the real test segfaulted.
+5. A test tried to pass a string containing a NUL through the C ABI, which is
+   impossible by definition, so it panicked building its own input.
+6. Two packages were recorded as "cannot be tested on this host". Both could.
+   The claim was never tried.
 
 Treat any claim in this file as provisional until you have seen the command that
 could have contradicted it.
