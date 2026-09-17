@@ -55,6 +55,46 @@ fn runAndExpect(handle: i32, command: []const u8, needle: []const u8) !bool {
     return seen;
 }
 
+test "repeated spawn and destroy reuses slots safely" {
+    // Regression test for a memory-corruption bug. The index extracted from a
+    // handle used a stale 20-bit mask while the handle's own layout used 19
+    // bits, so on a *reused* slot (generation >= 1) the handle became
+    // (1 << 19) | idx, masking that with 20 bits gave 0x80000 | idx, and the
+    // ring array was indexed far out of bounds.
+    //
+    // Every earlier test created the pool once and spawned once, so the
+    // generation stayed 0 and the mask never mattered. Looping here walks it up.
+    try testing.expectEqual(@as(i32, 0), pool.pty_pool_create(8));
+
+    const marker = "echo REUSE_MARKER\n";
+    var round: usize = 0;
+    while (round < 4) : (round += 1) {
+        const handle = pool.pty_pool_spawn(POPEN_SHELL, null, 80, 24);
+        try testing.expect(handle >= 0);
+        // Each round must produce the same expected live count: a leaked slot
+        // would also show up here.
+        try testing.expectEqual(@as(i32, 1), pool.pty_pool_live_count());
+
+        _ = pool.pty_pool_write(handle, marker.ptr, @intCast(marker.len));
+
+        var saw = false;
+        var attempts: usize = 0;
+        var buf: [4096]u8 = undefined;
+        while (attempts < 300 and !saw) : (attempts += 1) {
+            _ = pool.pty_pool_pump(handle);
+            const n = pool.pty_pool_read(handle, &buf, @intCast(buf.len));
+            if (n > 0 and std.mem.indexOf(u8, buf[0..@intCast(n)], "REUSE_MARKER") != null) {
+                saw = true;
+            }
+            pause();
+        }
+        try testing.expect(saw);
+
+        try testing.expectEqual(@as(i32, 0), pool.pty_pool_destroy(handle));
+        try testing.expectEqual(@as(i32, 0), pool.pty_pool_live_count());
+    }
+}
+
 test "window size round-trips through the kernel" {
     // The one check here that can fail for a reason I might not have
     // anticipated. spawn sets the size with TIOCSWINSZ; this reads it back with

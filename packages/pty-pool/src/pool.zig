@@ -28,6 +28,18 @@ const GEN_BITS = 32 - INDEX_BITS - 1;
 const GEN_MASK: u32 = (1 << GEN_BITS) - 1;
 pub const MAX_CAPACITY: usize = INDEX_MASK;
 
+/// Extract the slot index from a handle.
+///
+/// Exported deliberately. `main.zig` used to hardcode `handle & 0xFFFFF` while
+/// the mask here was 19 bits, so the two drifted apart: on the second spawn of a
+/// slot the generation is non-zero, the handle becomes (1 << 19) | idx, and the
+/// stale 20-bit mask then yields 0x80000 | idx. That indexes far past the ring
+/// array, corrupting memory, which is what aborted the host process. Sharing one
+/// definition is the fix; a duplicated constant would drift again.
+pub fn slotIndex(handle: i32) usize {
+    return @intCast(@as(u32, @bitCast(handle)) & INDEX_MASK);
+}
+
 pub const NO_HANDLE: i32 = -1;
 
 pub const Error = error{

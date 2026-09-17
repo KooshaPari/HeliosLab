@@ -21,7 +21,15 @@ const OWNED_PREFIXES = [
   "packages/orchestrator/",
   "packages/device-manager/",
   "packages/runtime-core/src/ffi/",
+  "packages/runtime-core/src/terminal/",
+  // Listed individually rather than as all of tests/unit, because that
+  // directory predates this work and contains files with pre-existing errors.
+  // Widening to the whole directory would make the gate fail on somebody
+  // else's backlog, which is how a ratchet gets deleted instead of used.
   "packages/runtime-core/tests/unit/ffi_bridge.test.ts",
+  "packages/runtime-core/tests/unit/ffi_paths.test.ts",
+  "packages/runtime-core/tests/unit/pty_live.test.ts",
+  "packages/runtime-core/tests/unit/pty_session.test.ts",
   "tools/check-abi.ts",
   "tools/typecheck-owned.ts",
 ];

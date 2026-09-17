@@ -83,7 +83,7 @@ pub export fn pty_pool_spawn(
     if (cols == 0 or rows == 0) return ERR_INVALID;
 
     const handle = g_pool.acquire() catch |e| return mapError(e);
-    const idx: usize = @intCast(handle & 0xFFFFF);
+    const idx: usize = pool_mod.slotIndex(handle);
     g_rings[idx].clear();
 
     const res = pty.spawn(shell, cwd, cols, rows) catch |e| {
@@ -130,7 +130,7 @@ pub export fn pty_pool_pump(handle: i32) i32 {
     const slot = g_pool.get(handle) catch |e| return mapError(e);
     if (slot.fd < 0) return ERR_INVALID;
 
-    const idx: usize = @intCast(handle & 0xFFFFF);
+    const idx: usize = pool_mod.slotIndex(handle);
     var buf: [PUMP_BUF]u8 = undefined;
 
     var total: i32 = 0;
@@ -164,7 +164,7 @@ pub export fn pty_pool_read(handle: i32, out: [*]u8, out_len: u32) i32 {
     _ = g_pool.get(handle) catch |e| return mapError(e);
     if (out_len == 0) return 0;
 
-    const idx: usize = @intCast(handle & 0xFFFFF);
+    const idx: usize = pool_mod.slotIndex(handle);
     return @intCast(g_rings[idx].read(out[0..out_len]));
 }
 
@@ -172,7 +172,7 @@ pub export fn pty_pool_read(handle: i32, out: [*]u8, out_len: u32) i32 {
 pub export fn pty_pool_readable(handle: i32) i32 {
     if (!g_initialised) return ERR_NOT_INIT;
     _ = g_pool.get(handle) catch |e| return mapError(e);
-    const idx: usize = @intCast(handle & 0xFFFFF);
+    const idx: usize = pool_mod.slotIndex(handle);
     return @intCast(g_rings[idx].readable());
 }
 
@@ -248,7 +248,7 @@ pub export fn pty_pool_destroy(handle: i32) i32 {
     }
     if (slot.fd >= 0) pty.closeFd(slot.fd);
 
-    const idx: usize = @intCast(handle & 0xFFFFF);
+    const idx: usize = pool_mod.slotIndex(handle);
     g_rings[idx].clear();
     g_pool.release(handle) catch |e| return mapError(e);
     return 0;
