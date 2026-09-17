@@ -60,6 +60,14 @@ jobs:
       - name: FFI symbol contract
         run: bun tools/check-abi.ts
 
+      # Nothing else verifies the renderer bundles: the unit tests import
+      # modules directly, and the real app build needs macOS and Electrobun. So
+      # a broken import path - and the terminal store imports across package
+      # boundaries with a deep relative path - would surface only when somebody
+      # launched the app.
+      - name: Renderer bundle check
+        run: bun tools/check-renderer-bundle.ts
+
       # Bun's test runner executes the bridge but does not typecheck it. The
       # CString misuse fixed on 2026-09-17 was invisible to the test suite
       # because no native library is loaded during it, and would have thrown at

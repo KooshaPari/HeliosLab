@@ -36,6 +36,7 @@ const OWNED_PREFIXES = [
   "apps/colab-renderer/tests/unit/components/panel-wiring.test.ts",
   "apps/colab-renderer/tests/unit/stores/terminal.store.test.ts",
   "tools/check-abi.ts",
+  "tools/check-renderer-bundle.ts",
   "tools/typecheck-owned.ts",
 ];
 

@@ -162,4 +162,4 @@ export function closeAllTerminals(): void {
 
 export function isTerminalLive(id: string): boolean {
 	return manager?.has(id) ?? false;
-}
+}  
