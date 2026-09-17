@@ -58,14 +58,18 @@ describe.skipIf(process.platform === "win32")(
     expect(pool.liveCount).toBe(0);
   });
 
-  test("reports a child's exit status through the bridge", () => {
+  test("reports a child's exit status through the bridge", async () => {
     const pool = new PtyPool(8);
     const handle = pool.spawn({ shell: "/bin/sh" });
     pool.write(handle, "exit 9\n");
 
+    // The sleep matters. Without it the 400 iterations complete in about a
+    // millisecond and the loop gives up long before the shell processes the
+    // command, so the status is still unknown and the assertion sees -2.
     for (let i = 0; i < 400 && pool.exitCode(handle) === -2; i++) {
       pool.pump(handle);
       pool.reap(handle);
+      await Bun.sleep(5);
     }
 
     expect(pool.exitCode(handle)).toBe(9);

@@ -99,7 +99,10 @@ pub export fn pty_pool_spawn(
             error.WinsizeFailed => -14,
             error.FileActionsFailed => -15,
             error.AttrFailed => -16,
-            error.SpawnFailed => -17,
+            // Offset by the errno so the returned code identifies the cause.
+            // posix_spawn returns the errno directly, so e.g. ENOENT (2) arrives
+            // as -119 rather than an opaque -17.
+            error.SpawnFailed => -100 - pty.last_errno,
         };
     };
     pty.setNonBlocking(res.master_fd) catch {};

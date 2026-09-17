@@ -174,6 +174,13 @@ pub const ReapResult = struct {
 // Operations
 // ---------------------------------------------------------------------------
 
+/// Set when spawn() fails, so callers can report the underlying errno.
+///
+/// Zig errors carry no payload, and collapsing every failure into one code made
+/// this undiagnosable: spawning worked from a Zig binary but not from Bun, and
+/// the only symptom was a bare -17.
+pub var last_errno: c_int = 0;
+
 /// Open a PTY, start `shell` attached to it, and return the master fd.
 pub fn spawn(
     shell: [*:0]const u8,
@@ -236,7 +243,10 @@ pub fn spawn(
 
     const argv = [_:null]?[*:0]const u8{ shell, null };
     var pid: c_int = 0;
-    if (posix_spawn(&pid, shell, &actions, &attr, &argv, environ) != 0) {
+    const rc = posix_spawn(&pid, shell, &actions, &attr, &argv, environ);
+    if (rc != 0) {
+        // posix_spawn returns the errno directly rather than setting it.
+        last_errno = rc;
         return error.SpawnFailed;
     }
 

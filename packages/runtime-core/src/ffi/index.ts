@@ -278,7 +278,11 @@ export class PtyPool {
 
   spawn(options: PtySpawnOptions = {}): number {
     const shell = options.shell ?? "/bin/zsh";
-    const cwd = options.cwd ?? "";
+    // null, not "". The Zig side treats a non-null cwd as a real directory and
+    // calls posix_spawn_file_actions_addchdir_np with it, so an empty string
+    // becomes chdir("") and fails with ENOENT. This made every spawn from the
+    // bridge fail while the Zig-level tests passed, because those passed null.
+    const cwd = options.cwd ?? null;
     const cols = options.cols ?? 80;
     const rows = options.rows ?? 24;
 
