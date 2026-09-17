@@ -15,13 +15,22 @@ executed, and what has not.
 |-----------|---------|--------|
 | Go orchestrator | `go vet ./...` | clean (exit 0) |
 | Go orchestrator | `go test -count=1 ./...` | **14/14 pass** |
-| Go device manager | `go vet .` | clean (exit 0) |
-| Go device manager | `go test -count=1 .` | **33/33 pass** |
+| Go device manager | `go vet ./...` | clean (exit 0) |
+| Go device manager + SSH transport | `go test -count=1 ./...` | **51/51 pass** |
 | TS FFI bridge | `bun test packages/runtime-core/tests/unit/ffi_bridge.test.ts` | **3/3 pass** |
 
-A real bug was found and fixed by these tests: `ParseUptime` stopped at the
-first comma, so `up 3 days, 4:05` reported only 3 days of uptime. Three
-regression tests now cover it.
+Two real bugs were found and fixed by these tests:
+
+1. `ParseUptime` stopped at the first comma, so `up 3 days, 4:05` reported only
+   3 days of uptime. Three regression tests now cover it.
+2. The compiler rejected my correction to `ssh.ParseKnownHosts`, which returns
+   6 values, not 7. Reverted.
+
+The device-manager tests also cover the security-critical path: host key
+verification. The first draft used `ssh.InsecureIgnoreHostKey`, which accepts
+any key an attacker presents. It now fails closed, reports the presented
+fingerprint, and has OpenSSH-style pattern matching with `!` negation.
+
 
 The TS test also confirms the integration property that matters: importing the
 bridge never throws, and a missing native library produces an actionable
