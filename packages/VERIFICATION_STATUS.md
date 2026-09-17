@@ -15,9 +15,40 @@ executed, and what has not.
 |-----------|---------|--------|
 | Go orchestrator | `go vet ./...` | clean (exit 0) |
 | Go orchestrator | `go test -count=1 ./...` | **14/14 pass** |
-| Go device manager | `go vet ./...` | clean (exit 0) |
-| Go device manager + SSH transport | `go test -count=1 ./...` | **51/51 pass** |
-| TS FFI bridge | `bun test packages/runtime-core/tests/unit/ffi_bridge.test.ts` | **3/3 pass** |
+| Go device manager + SSH transport | `go test -count=1 ./...` | **53/53 pass** |
+| TS FFI bridge | `bun test .../ffi_bridge.test.ts` | **3/3 pass** |
+| TS FFI bridge | `tsc --noEmit --strict` | **clean** |
+| Go cross-compile | `GOOS=darwin GOARCH=arm64 go build` | **both modules OK** |
+| **Live SSH against kooshas-laptop** | `go test -tags integration -run TestRealSSHRoundTrip` | **5/5 pass** |
+
+### The live SSH test is the strongest evidence here
+
+`sshtransport/integration_test.go` dials the real MacBook over Tailscale and
+asserts: host key verification rejects a key absent from known_hosts, the remote
+platform is Darwin (confirming the shipping target), a non-zero exit status
+arrives as a result rather than a transport error, stderr is captured
+separately, and a cancelled command returns promptly instead of hanging.
+
+It found two bugs that the fake-dialer tests could not, because both depend on
+real `known_hosts` contents and a real address form:
+
+1. **Every connection would have been rejected.** The dialer hands the callback
+   `host:port`, while OpenSSH records port 22 as a bare hostname, so no entry
+   ever matched.
+2. **Verification aborted before finding the right key.** The callback returned
+   at the first hostname match. `known_hosts` routinely holds several entries per
+   host after a rotation, so a stale entry shadowed the valid one.
+
+It also revealed a missing design element: Go's SSH client does not read
+`~/.ssh/config`, so dialing the Tailscale alias reaches a host whose key is
+recorded under the FQDN. Added `Target.HostKeyAlias`, mirroring OpenSSH.
+
+Two further defects were found by checks that are not tests at all: `gofmt -l`
+flagged four Go files, and `tsc --strict` caught `CString` being called without
+`new`, which would have thrown on every string-returning native call. The bun
+test could not catch that one, since `readCString` is never reached unless a
+native library loads. `tsc` is now wired into CI for that reason.
+
 
 Two real bugs were found and fixed by these tests:
 

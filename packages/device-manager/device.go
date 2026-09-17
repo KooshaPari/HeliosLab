@@ -41,6 +41,23 @@ type Target struct {
 	Port    int    `json:"port"`
 	User    string `json:"user"`
 	KeyPath string `json:"key_path"`
+	// HostKeyAlias is the name to verify the server's host key against, when it
+	// differs from Host. OpenSSH calls this HostKeyAlias.
+	//
+	// It exists because the name used to dial is often an alias: dialing
+	// "kooshas-laptop" over Tailscale reaches a host whose key is recorded in
+	// known_hosts under "kooshas-laptop.tail2b570.ts.net". Go's SSH client does
+	// not read ~/.ssh/config, so without this the dial either fails
+	// verification or has to disable it, which is worse.
+	HostKeyAlias string `json:"host_key_alias,omitempty"`
+}
+
+// HostKeyName returns the name host key verification should use.
+func (t Target) HostKeyName() string {
+	if t.HostKeyAlias != "" {
+		return t.HostKeyAlias
+	}
+	return t.Addr()
 }
 
 // Addr returns the host:port pair, handling IPv6 literals correctly.

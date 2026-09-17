@@ -75,7 +75,7 @@ func (d *Dialer) Dial(ctx context.Context, t devices.Target) (devices.Conn, erro
 		return nil, fmt.Errorf("dial %s: %w", t.Addr(), err)
 	}
 
-	clientConn, chans, reqs, err := ssh.NewClientConn(netConn, t.Addr(), cfg)
+	clientConn, chans, reqs, err := ssh.NewClientConn(netConn, t.HostKeyName(), cfg)
 	if err != nil {
 		_ = netConn.Close()
 		return nil, fmt.Errorf("ssh handshake with %s: %w", t.Addr(), err)
@@ -164,19 +164,57 @@ func KnownHostsCallback(path string) (ssh.HostKeyCallback, error) {
 	}
 
 	return func(hostname string, _ net.Addr, key ssh.PublicKey) error {
+		matchedHost := false
+		// known_hosts commonly holds several entries for one host, for example
+		// after a key rotation or when different key types are recorded. Every
+		// entry has to be considered: returning at the first hostname match
+		// aborts before a later entry that actually holds the right key.
 		for _, e := range entries {
-			if !hostMatches(e.hosts, hostname) {
+			if !matchesAnyHost(e.hosts, hostname) {
 				continue
 			}
+			matchedHost = true
 			if bytes.Equal(e.key.Marshal(), key.Marshal()) {
 				return nil
 			}
 		}
+		if matchedHost {
+			return fmt.Errorf(
+				"host key mismatch for %s: presented %s is not in %s",
+				hostname, ssh.FingerprintSHA256(key), path,
+			)
+		}
 		return fmt.Errorf(
-			"host key mismatch for %s: presented %s is not in %s",
-			hostname, ssh.FingerprintSHA256(key), path,
+			"host key for %s is not in %s; presented %s",
+			hostname, path, ssh.FingerprintSHA256(key),
 		)
 	}, nil
+}
+
+// hostCandidates returns the names a host may be recorded under in
+// known_hosts.
+//
+// x/crypto/ssh passes whatever address form it was given to the host key
+// callback, which for us is "host:port". OpenSSH records port 22 as a bare
+// hostname, so a straight comparison never matches and every connection is
+// rejected. Both forms are therefore tried.
+func hostCandidates(hostname string) []string {
+	candidates := []string{hostname}
+	if host, _, err := net.SplitHostPort(hostname); err == nil && host != "" {
+		candidates = append(candidates, host)
+	}
+	return candidates
+}
+
+// matchesAnyHost reports whether any recorded pattern matches any candidate
+// form of the hostname.
+func matchesAnyHost(patterns []string, hostname string) bool {
+	for _, candidate := range hostCandidates(hostname) {
+		if hostMatches(patterns, candidate) {
+			return true
+		}
+	}
+	return false
 }
 
 // hostMatches implements the host pattern rules from sshd(8): exact names,

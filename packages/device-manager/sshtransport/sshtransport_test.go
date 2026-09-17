@@ -272,6 +272,40 @@ mWNd9Y7l0YQwZm3G3p2bTkPZ9p6u7pzZ7wAAAEQAXf9x7bqj0m0kqS3v8f1j0mQwZ2Z0
 	}
 }
 
+func TestKnownHostsCallbackMatchesBareHostWhenGivenHostPort(t *testing.T) {
+	key, line := generateHostKey(t, "kooshas-laptop.tail2b570.ts.net")
+	path := writeKnownHosts(t, line)
+
+	cb, err := KnownHostsCallback(path)
+	if err != nil {
+		t.Fatalf("KnownHostsCallback: %v", err)
+	}
+
+	// x/crypto/ssh hands the callback whatever address form it was given. The
+	// dialer passes "host:port", while known_hosts records port 22 as a bare
+	// hostname. Comparing them directly rejects every connection.
+	if err := cb("kooshas-laptop.tail2b570.ts.net:22", fakeAddr{}, key); err != nil {
+		t.Errorf("host:port form not matched against a bare hostname entry: %v", err)
+	}
+	if err := cb("kooshas-laptop.tail2b570.ts.net", fakeAddr{}, key); err != nil {
+		t.Errorf("bare hostname form rejected: %v", err)
+	}
+}
+
+func TestHostCandidates(t *testing.T) {
+	got := hostCandidates("host.example:2222")
+	if len(got) != 2 || got[0] != "host.example:2222" || got[1] != "host.example" {
+		t.Errorf("hostCandidates = %v, want both forms", got)
+	}
+	got = hostCandidates("[fe80::1]:22")
+	if len(got) != 2 || got[1] != "fe80::1" {
+		t.Errorf("hostCandidates(ipv6) = %v, want the bracketed host stripped", got)
+	}
+	if got := hostCandidates("laptop"); len(got) != 1 || got[0] != "laptop" {
+		t.Errorf("hostCandidates(bare) = %v, want [laptop]", got)
+	}
+}
+
 func TestDefaultKnownHostsPath(t *testing.T) {
 	got := DefaultKnownHostsPath()
 	if got == "" {
