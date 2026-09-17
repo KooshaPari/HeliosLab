@@ -143,6 +143,40 @@ Not verified: every line of Zig, Rust, and Mojo, and the cgo link step.
 
 ---
 
+## Toolchain acquisition: a correctly-sized corrupt archive
+
+The first Zig download produced a file of exactly the expected size
+(97,217,739 bytes) that was nonetheless **corrupt**. `tar` reported "ZIP
+decompression failed" on `zig.exe`, and running the extracted binary exited
+`-1073741819` (`0xC0000005`, access violation) instead of printing a version.
+
+Cause: the monitoring wrapper spawned a second `curl -C -` onto the same file
+while the first was still being written, so both asserted the same byte range
+and interleaved. The size matched; the contents did not. Earlier in the same
+session I had identified this exact hazard and moved to kill all writers first,
+but not before a 26-second overlap had already occurred.
+
+Two rules now enforced in `agents/sandbox/toolchains/fetch-zig-clean.cmd`:
+
+1. Delete any partial file before a fresh attempt. Never resume onto a file an
+   unverified writer may have touched.
+2. Exactly one `curl`, started once. The wrapper only monitors, so re-running it
+   cannot create a second writer.
+
+And one rule for the result: **file size is not integrity.** The archive is
+accepted only if `Get-FileHash -Algorithm SHA256` matches the official value
+from Zig's `index.json`:
+
+```
+68659eb5f1e4eb1437a722f1dd889c5a322c9954607f5edcf337bc3684a75a7e
+```
+
+This is the same lesson as the rest of the session, in a different domain: the
+check I designed (byte count) agreed with me while the artifact was unusable. A
+check is only worth something when it can disagree.
+
+---
+
 ## Open questions (blocking verification, not code)
 
 These are decisions, not tasks. No further agent work changes them.
