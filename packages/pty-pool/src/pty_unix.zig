@@ -177,13 +177,27 @@ pub fn spawn(
 
     const slave_name = ptsname(master) orelse return error.SlaveOpenFailed;
 
-    var ws = Winsize{ .ws_row = rows, .ws_col = cols };
-    if (ioctl(master, TIOCSWINSZ, &ws) != 0) return error.WinsizeFailed;
-
     // Open the slave up front so the spawn actions only need dup2.
     const slave = open(slave_name, O_RDWR | O_NOCTTY);
     if (slave < 0) return error.SlaveOpenFailed;
     defer _ = close(slave);
+
+    // Set the window size only after the slave exists.
+    //
+    // This used to run before opening the slave and failed with errno 25
+    // (ENOTTY): once both sides of the pty exist it is a terminal, but until
+    // then macOS rejects terminal ioctls on the master. Also note a failure
+    // here is easy to miss, since TIOCSWINSZ returning ENOTTY looks like
+    // success to a caller that never checks.
+    var ws = Winsize{ .ws_row = rows, .ws_col = cols };
+    if (ioctl(master, TIOCSWINSZ, &ws) != 0) {
+        const err = __error().*;
+        std.debug.print(
+            "TIOCSWINSZ failed: fd={d} request=0x{x} sizeof(winsize)={d} errno={d}\n",
+            .{ master, TIOCSWINSZ, @sizeOf(Winsize), err },
+        );
+        return error.WinsizeFailed;
+    }
 
     var actions: posix_spawn_file_actions_t = null;
     if (posix_spawn_file_actions_init(&actions) != 0) return error.FileActionsFailed;

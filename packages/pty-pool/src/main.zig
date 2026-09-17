@@ -143,7 +143,10 @@ pub export fn pty_pool_pump(handle: i32) i32 {
             },
             .would_block => break,
             .eof => {
-                _ = pty.reap(slot.pid);
+                // Keep the status. Discarding it here marked the slot exited
+                // while leaving exit_code at -2, and the child unreaped.
+                const r = pty.reap(slot.pid);
+                if (r.reaped and slot.exit_code == -2) slot.exit_code = r.exit_code;
                 slot.state = .exited;
                 return total;
             },
@@ -218,7 +221,11 @@ pub export fn pty_pool_exit_code(handle: i32) i32 {
 pub export fn pty_pool_reap(handle: i32) i32 {
     if (!g_initialised) return ERR_NOT_INIT;
     const slot = g_pool.get(handle) catch |e| return mapError(e);
-    if (slot.state != .running) return 0;
+    // Skip only when the status is already known. Keying off the slot state
+    // instead meant that once pump saw EOF and marked the slot exited, reap
+    // refused to run and the exit status was lost permanently, leaving a
+    // zombie behind.
+    if (slot.exit_code != -2) return 0;
 
     const r = pty.reap(slot.pid);
     if (!r.reaped) return 0;
