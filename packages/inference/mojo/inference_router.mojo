@@ -1,3 +1,29 @@
+# =============================================================================
+# UNVERIFIED - NOT COMPILED, NOT TESTED, NOT WIRED UP
+# =============================================================================
+#
+# There is no Mojo/MAX toolchain available on this machine or on the macOS
+# build host, so this file has never been compiled. Treat it as a sketch:
+#
+#   * `from utils.index import Variant` is almost certainly wrong. It was
+#     written from memory and does not correspond to a module that is known to
+#     exist in the Mojo standard library.
+#   * `_init_backends` reaches into `self.backends` with `self.backends["x"] = ...`
+#     on a `Dict`, which is not the Mojo assignment syntax.
+#   * `HardwareInfo.detect()` returns hardcoded values rather than probing the
+#     machine, so the routing decisions it drives are not meaningful yet.
+#
+# The TypeScript bridge does NOT load this file, so nothing in the shipped app
+# depends on it. It is kept as a design sketch only.
+#
+# Before this can be used it needs: a Mojo toolchain, a real hardware probe,
+# and a C ABI layer matching the pattern used by the Zig and Go packages.
+#
+# Decision needed from the user: either install MAX and finish this properly,
+# or delete it in favour of a TypeScript inference router, which would be
+# immediately testable.
+# =============================================================================
+
 # HeliosLab Inference Router - Multi-backend inference management
 # Routes to llama.cpp, MLX, vLLM, or Anthropic based on hardware topology
 

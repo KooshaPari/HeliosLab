@@ -1,0 +1,111 @@
+name: native
+
+# Runs the checks that cannot be executed on the Windows development machine.
+# Locally, Go's cgo link step has no C compiler and Zig/Rust/Mojo are absent, so
+# this workflow is the mechanism that actually verifies the native packages.
+#
+# It runs on macOS because that is the shipping target (Electrobun is
+# macOS-first) and because the cgo build genuinely needs a real toolchain.
+
+on:
+  push:
+    paths:
+      - "packages/**"
+      - "tools/build-native.ts"
+      - ".github/workflows/native.yml"
+  pull_request:
+    paths:
+      - "packages/**"
+      - "tools/build-native.ts"
+      - ".github/workflows/native.yml"
+  workflow_dispatch:
+
+jobs:
+  # Portable logic. Runs fast on Linux, no C toolchain required.
+  core-logic:
+    name: portable logic (go + zig core + bun)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23"
+
+      - name: Orchestrator tests
+        working-directory: packages/orchestrator
+        run: |
+          go vet ./...
+          go test -count=1 ./...
+
+      - name: Device manager tests
+        working-directory: packages/device-manager
+        run: |
+          go vet ./...
+          go test -count=1 ./...
+
+      - uses: mlugg/setup-zig@v2
+        with:
+          version: 0.16.0
+
+      - name: Zig portable core tests
+        working-directory: packages/pty-pool
+        run: zig build test
+
+      - uses: oven-sh/setup-bun@v2
+
+      - name: FFI bridge contract tests
+        run: bun test packages/runtime-core/tests/unit/ffi_bridge.test.ts
+
+  # Changes the wiring the app actually loads: Zig library, Rust cdylib, and the
+  # Go cgo shared libraries. Needs a C toolchain and the real target OS.
+  native-link:
+    name: native link (macOS arm64)
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23"
+
+      - uses: mlugg/setup-zig@v2
+        with:
+          version: 0.16.0
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Build the Zig PTY library for the real target
+        working-directory: packages/pty-pool
+        run: |
+          zig build test
+          zig build lib -Dtarget=aarch64-macos
+
+      - name: Verify the Rust persistence crate compiles
+        working-directory: packages/persistence
+        run: cargo check --release
+
+      - name: Build the Go shared libraries
+        env:
+          CGO_ENABLED: "1"
+        working-directory: packages
+        run: |
+          cd orchestrator/cshared && go mod tidy && go build -buildmode=c-shared -o ../libhelios-orchestrator.dylib .
+          cd ../../device-manager/cshared && go mod tidy && go build -buildmode=c-shared -o ../libhelios-device.dylib .
+
+      - name: Assert the exported symbols the bridge expects actually exist
+        run: |
+          set -euo pipefail
+          nm -gU packages/orchestrator/libhelios-orchestrator.dylib | grep -q _HeliosOrchestratorNew
+          nm -gU packages/orchestrator/libhelios-orchestrator.dylib | grep -q _HeliosOrchestratorRecordTokens
+          nm -gU packages/device-manager/libhelios-device.dylib | grep -q _HeliosDevicesNew
+          nm -gU packages/device-manager/libhelios-device.dylib | grep -q _HeliosDevicesExec
+          nm -gU packages/pty-pool/zig-out/lib/libhelios-pty.dylib | grep -q _pty_pool_spawn
+          nm -gU packages/pty-pool/zig-out/lib/libhelios-pty.dylib | grep -q _pty_pool_abi_version
+          echo "all expected symbols exported"
+
+      # Full round trip: load the real libraries through the bridge and drive them.
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Drive the real native libraries through the FFI bridge
+        run: bun test packages/runtime-core/tests/unit/ffi_bridge.test.ts
