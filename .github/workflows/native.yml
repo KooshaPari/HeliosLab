@@ -54,6 +54,17 @@ jobs:
 
       - uses: oven-sh/setup-bun@v2
 
+      # Bun's test runner executes the bridge but does not typecheck it. The
+      # CString misuse fixed on 2026-09-17 was invisible to the test suite
+      # because no native library is loaded during it, and would have thrown at
+      # runtime on every string-returning call. Typechecking is the only thing
+      # that catches that class of defect before the library exists.
+      - name: Typecheck the FFI bridge
+        run: |
+          bunx tsc --noEmit --skipLibCheck --strict \
+            --target esnext --module esnext --moduleResolution bundler \
+            --types bun-types packages/runtime-core/src/ffi/index.ts
+
       - name: FFI bridge contract tests
         run: bun test packages/runtime-core/tests/unit/ffi_bridge.test.ts
 
