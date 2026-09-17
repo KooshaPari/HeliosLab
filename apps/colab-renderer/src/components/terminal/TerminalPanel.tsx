@@ -2,6 +2,11 @@ import { FitAddon } from "@xterm/addon-fit";
 import { WebLinksAddon } from "@xterm/addon-web-links";
 import { Terminal } from "@xterm/xterm";
 import { type Component, onCleanup, onMount } from "solid-js";
+import {
+	resizeTerminal,
+	subscribeToTerminal,
+	writeToTerminal,
+} from "../../stores/terminal.store.ts";
 
 export type TerminalPanelProps = {
 	terminalId: string;
@@ -43,15 +48,26 @@ export const TerminalPanel: Component<TerminalPanelProps> = (props) => {
 			fitAddon?.fit();
 		});
 
-		if (props.onData) {
-			const disposable = terminal.onData((data: string) => {
-				props.onData?.(data);
-			});
-			onCleanup(() => disposable.dispose());
-		}
+		const inputDisposable = terminal.onData((data: string) => {
+			// Straight to the shell, so the panel works on its own. props.onData
+			// is kept as an observer for callers that also want keystrokes.
+			writeToTerminal(props.terminalId, data);
+			props.onData?.(data);
+		});
+		onCleanup(() => inputDisposable.dispose());
+
+		// Output from the shell. Nothing rendered before this: the store could
+		// drive a PTY, but no UI surface consumed what came back.
+		const unsubscribe = subscribeToTerminal(props.terminalId, (chunk) => {
+			terminal?.write(chunk);
+		});
+		onCleanup(() => unsubscribe());
 
 		resizeObserver = new ResizeObserver(() => {
 			fitAddon?.fit();
+			// Tell the kernel, otherwise full-screen programs keep drawing at the
+			// old size. fit() alone only changes what xterm renders.
+			if (terminal) resizeTerminal(props.terminalId, terminal.cols, terminal.rows);
 		});
 		resizeObserver.observe(ref);
 	});

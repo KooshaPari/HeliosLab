@@ -143,11 +143,12 @@ bun run build:native
   `/bin/sh` spawn, a window-size round trip through the kernel, and exit-status
   reporting. The C ABI is exercised through `dlopen` the same way Bun reaches it,
   and the built artifact exports exactly the 15 symbols the bridge looks up.
-- **The full path works end to end**, and a terminal session layer now sits on
-  top of it: `pty-session.ts` owns a PTY per terminal and pumps it, which is the
-  seam the renderer's `writeToTerminal` stub was leaving open. Verified by
-  `pty_live.test.ts` (3/3) and `pty_session.test.ts` (5/5), both against a real
-  shell on macOS.
+- **The full path works end to end, all the way to the renderer.** The terminal
+  store owns one PTY per terminal and the chain runs store -> `pty-session.ts` ->
+  FFI bridge -> Zig -> kernel, with output published back to subscribers for
+  xterm. Verified by `terminal.store.test.ts` (9/9 on macOS, 8 of which also run
+  on Windows), `pty_session.test.ts` (5/5) and `pty_live.test.ts` (3/3), all
+  against a real shell.
 - Driving that layer found a **memory-corruption bug**: the handle's index mask
   had drifted from its bit layout, so reusing a slot indexed the ring array out
   of bounds. It only appeared on the second spawn in a process, which is why the
@@ -174,9 +175,9 @@ bun run build:native
 - The cgo link step: the Go shared libraries have never been linked. A C
   toolchain is needed, and the development host has none. Their logic is covered
   by 65 tests, but the cgo shims themselves are uncompiled.
-- The PTY pool is reached through `pty-session.ts`, but the renderer's terminal
-  store still calls its own `writeToTerminal` stub. Connecting the two is a small
-  change and has not been done, so no UI terminal tab has ever driven a real PTY.
+- The terminal store drives a real PTY, but `TerminalPanel.tsx` has not been
+  updated to subscribe to it or to report resizes. Until then no UI surface has
+  actually rendered shell output, even though the path underneath is proven.
 - The CI workflow has never run on a runner.
 
 **A caution about this file.** Every defect found this session came from running
