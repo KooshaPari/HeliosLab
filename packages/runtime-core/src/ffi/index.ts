@@ -63,14 +63,18 @@ const COMPONENT_FILES: Record<NativeComponent, string[]> = {
 
 /**
  * Directories searched for a built native library, most specific first.
- * `zig-out/lib` is Zig's default install prefix, `target/release` is Cargo's.
+ *
+ * Paths are relative to this file (packages/runtime-core/src/ffi), so `../../..`
+ * reaches `packages/`. The earlier entries repeated `packages/`, resolving to
+ * `packages/packages/...` and therefore never matching anything on disk, which
+ * meant every component looked unbuilt even when it had been built.
  */
 const SEARCH_DIRS = [
-  "../../../packages/pty-pool/zig-out/lib",
-  "../../../packages/pty-pool/lib",
-  "../../../packages/persistence/target/release",
-  "../../../packages/orchestrator",
-  "../../../packages/device-manager",
+  "../../../pty-pool/zig-out/lib",
+  "../../../pty-pool/lib",
+  "../../../persistence/target/release",
+  "../../../orchestrator",
+  "../../../device-manager",
   "../../../native",
 ];
 
