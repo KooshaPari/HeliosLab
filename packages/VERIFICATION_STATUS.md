@@ -147,6 +147,11 @@ bun run build:native
   real shell on macOS, from TypeScript through Bun's `dlopen`, the C ABI, Zig,
   and the kernel. It loads the library, spawns `/bin/sh`, reads its output, and
   reports the exit status.
+- Rust persistence now **compiles**: `cargo check --release` finishes clean,
+  including `libsqlite3-sys` building its bundled SQLite. It had never been
+  compiled, and the first run found a spliced-together function referencing
+  `stmt` inside its own initializer. Toolchain installed into `/tmp/rust` on the
+  MacBook, so nothing was installed system-wide.
 - Go orchestrator, device manager, and SSH transport: 65 tests, `go vet` clean,
   `gofmt` clean, cross-compiles for darwin/arm64. The SSH path was exercised
   against the real MacBook: 5/5, including host-key rejection and prompt
