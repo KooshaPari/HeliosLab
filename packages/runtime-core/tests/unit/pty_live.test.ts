@@ -13,7 +13,13 @@ import { PtyPool, nativeStatus } from "../../src/ffi/index.ts";
 
 const status = nativeStatus();
 
-describe("pty pool over the live FFI bridge", () => {
+// Skipped only on Windows: the library is a Mach-O dylib or an ELF shared
+// object, neither of which can load there, so a failure would say nothing about
+// the code. On macOS and Linux it runs and fails loudly if the build is missing,
+// because there the absence of the library is a real problem.
+describe.skipIf(process.platform === "win32")(
+  "pty pool over the live FFI bridge",
+  () => {
   test("the bridge locates and loads the built library", () => {
     // Fails loudly rather than skipping: if the library is expected to be built
     // but the bridge cannot find it, the search paths are wrong, which is a bug

@@ -121,6 +121,19 @@ function tryLoad(component: NativeComponent, symbols: Symbols): Library | null {
   }
 }
 
+/**
+ * Clear the cached load results.
+ *
+ * Exists for tests. Results are cached at module scope, so a test that places a
+ * library on disk and re-probes would otherwise see the answer from an earlier
+ * probe in the same process. Without this, a path-resolution test passes when
+ * run alone and fails in a suite where another file probed first.
+ */
+export function resetNativeStatusCache(): void {
+  loaded.clear();
+  loadState.clear();
+}
+
 /** Report which native components loaded. Never throws. */
 export function nativeStatus(): Record<NativeComponent, NativeLoadState> {
   // Touch each component so the map is populated.
