@@ -175,9 +175,10 @@ bun run build:native
 - The cgo link step: the Go shared libraries have never been linked. A C
   toolchain is needed, and the development host has none. Their logic is covered
   by 65 tests, but the cgo shims themselves are uncompiled.
-- The terminal store drives a real PTY, but `TerminalPanel.tsx` has not been
-  updated to subscribe to it or to report resizes. Until then no UI surface has
-  actually rendered shell output, even though the path underneath is proven.
+- The renderer wiring is typechecked but has never been run in the actual app.
+  `TerminalPanel.tsx` subscribes to PTY output and reports resizes, and the store
+  is tested, but the Electrobun UI has not been launched, so no shell output has
+  been seen on screen. Everything below the UI is proven; the last step is visual.
 - The CI workflow has never run on a runner.
 
 **A caution about this file.** Every defect found this session came from running
