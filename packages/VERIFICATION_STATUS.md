@@ -162,12 +162,17 @@ bun run build:native
 
 **Not verified:**
 
-- `pty_live.test.ts` has never run. It needs a built library on a POSIX host, and
-  `kooshas-laptop` became unreachable partway through the session.
-- Rust persistence has never been compiled. It needs `cargo` plus a C compiler,
-  because `rusqlite`'s bundled feature builds SQLite from source.
-- Mojo is a sketch with its known defects named in the file header.
-- The cgo link step: no C toolchain on the development host.
+- Mojo is a sketch with its known defects named in the file header. There is no
+  MAX toolchain, and the TypeScript bridge does not load it, so nothing shipped
+  depends on it.
+- The cgo link step: the Go shared libraries have never been linked. A C
+  toolchain is needed, and the development host has none. Their logic is covered
+  by 65 tests, but the cgo shims themselves are uncompiled.
+- Rust is compiled but not tested. `cargo check` proves it typechecks; nothing
+  has exercised the SQLite schema, the FTS5 triggers, or the C ABI at runtime.
+- The PTY pool is verified in isolation but not wired into the app. No terminal
+  tab in the UI drives it yet.
+- The CI workflow has never run on a runner.
 
 **A caution about this file.** Every defect found this session (31 of them) came
 from running something that could disagree with the author. None came from the
