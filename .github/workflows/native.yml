@@ -54,6 +54,12 @@ jobs:
 
       - uses: oven-sh/setup-bun@v2
 
+      # Static check that every symbol the bridge calls is exported by the
+      # matching native source. Needs no toolchain, so it runs before any build
+      # and catches drift in the hand-maintained symbol tables.
+      - name: FFI symbol contract
+        run: bun tools/check-abi.ts
+
       # Bun's test runner executes the bridge but does not typecheck it. The
       # CString misuse fixed on 2026-09-17 was invisible to the test suite
       # because no native library is loaded during it, and would have thrown at
