@@ -58,6 +58,10 @@ test "spawns a real shell and reads its output" {
     try testing.expectEqual(@as(i32, 0), pool.pty_pool_create(8));
 
     const handle = pool.pty_pool_spawn(POPEN_SHELL, null, 80, 24);
+    // Report the code before asserting: -10 openpt, -11 grantpt, -12 unlockpt,
+    // -13 slave open, -14 winsize ioctl, -15 file actions, -16 spawn attrs,
+    // -17 posix_spawn.
+    if (handle < 0) std.debug.print("\npty_pool_spawn returned {d}\n", .{handle});
     try testing.expect(handle >= 0);
     defer _ = pool.pty_pool_destroy(handle);
 

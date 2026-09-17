@@ -28,6 +28,19 @@ pub const ERR_INVALID: i32 = -1;
 pub const ERR_STALE: i32 = -2;
 pub const ERR_IO: i32 = -3;
 pub const ERR_SPAWN: i32 = -4;
+
+/// Spawn sub-step failures, surfaced individually so a failing test names the
+/// call that broke rather than reporting a single opaque ERR_SPAWN.
+/// -10 openpt, -11 grantpt, -12 unlockpt, -13 slave open,
+/// -14 winsize ioctl, -15 file actions, -16 spawn attributes, -17 posix_spawn.
+pub const ERR_SPAWN_OPENPT: i32 = -10;
+pub const ERR_SPAWN_GRANTPT: i32 = -11;
+pub const ERR_SPAWN_UNLOCKPT: i32 = -12;
+pub const ERR_SPAWN_SLAVE: i32 = -13;
+pub const ERR_SPAWN_WINSIZE: i32 = -14;
+pub const ERR_SPAWN_ACTIONS: i32 = -15;
+pub const ERR_SPAWN_ATTR: i32 = -16;
+pub const ERR_SPAWN_POSIX_SPAWN: i32 = -17;
 pub const ERR_WOULD_BLOCK: i32 = -5;
 pub const ERR_EOF: i32 = -6;
 pub const ERR_EXHAUSTED: i32 = -7;
@@ -73,9 +86,21 @@ pub export fn pty_pool_spawn(
     const idx: usize = @intCast(handle & 0xFFFFF);
     g_rings[idx].clear();
 
-    const res = pty.spawn(shell, cwd, cols, rows) catch {
+    const res = pty.spawn(shell, cwd, cols, rows) catch |e| {
         g_pool.release(handle) catch {};
-        return ERR_SPAWN;
+        // Distinct codes so a failing runtime test names the exact step.
+        // Collapsing these to a single ERR_SPAWN made the failure
+        // undiagnosable from the test output.
+        return switch (e) {
+            error.OpenptFailed => -10,
+            error.GrantptFailed => -11,
+            error.UnlockptFailed => -12,
+            error.SlaveOpenFailed => -13,
+            error.WinsizeFailed => -14,
+            error.FileActionsFailed => -15,
+            error.AttrFailed => -16,
+            error.SpawnFailed => -17,
+        };
     };
     pty.setNonBlocking(res.master_fd) catch {};
 
