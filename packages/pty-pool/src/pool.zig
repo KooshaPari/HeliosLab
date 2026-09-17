@@ -18,8 +18,14 @@ pub const SlotState = enum(u8) {
 };
 
 /// Bits reserved for the slot index; the rest carry the generation.
-const INDEX_BITS = 20;
+///
+/// A handle is an i32, so the top bit must stay clear or a handle with a high
+/// generation goes negative and collides with the negative error sentinels.
+/// 19 + 12 = 31 bits.
+const INDEX_BITS = 19;
 const INDEX_MASK: u32 = (1 << INDEX_BITS) - 1;
+const GEN_BITS = 32 - INDEX_BITS - 1;
+const GEN_MASK: u32 = (1 << GEN_BITS) - 1;
 pub const MAX_CAPACITY: usize = INDEX_MASK;
 
 pub const NO_HANDLE: i32 = -1;
@@ -73,6 +79,7 @@ pub fn Pool(comptime capacity: usize) type {
         }
 
         pub fn capacityTotal(self: *const Self) usize {
+            _ = self;
             return capacity;
         }
 
@@ -87,7 +94,11 @@ pub fn Pool(comptime capacity: usize) type {
             self.free_len -= 1;
             const idx = self.free[self.free_len];
             self.live += 1;
-            return @intCast((self.slots[idx].generation << INDEX_BITS) | idx);
+            // Only the generation bits that fit in a handle are encoded.
+            // Shifting the full u32 generation overflows the i32 handle, which
+            // only breaks once a slot has been recycled past 2^GEN_BITS times.
+            const gen = self.slots[idx].generation & GEN_MASK;
+            return @intCast((gen << INDEX_BITS) | idx);
         }
 
         /// Return a slot to the free list. The stored generation is bumped so
@@ -96,7 +107,7 @@ pub fn Pool(comptime capacity: usize) type {
             const idx = try self.index(handle);
             self.slots[idx].generation +%= 1;
             self.slots[idx] = .{ .generation = self.slots[idx].generation };
-            self.free[self.free_len] = idx;
+            self.free[self.free_len] = @intCast(idx);
             self.free_len += 1;
             self.live -= 1;
         }
@@ -138,8 +149,11 @@ pub fn Pool(comptime capacity: usize) type {
             const idx = h & INDEX_MASK;
             const gen = h >> INDEX_BITS;
             if (idx >= capacity) return error.InvalidHandle;
-            if (self.slots[idx].state == .closed and gen == 0) return error.InvalidHandle;
-            if (self.slots[idx].generation != gen) return error.StaleHandle;
+            // Only the generation decides validity. An earlier version also
+            // rejected `state == .closed and gen == 0`, which is exactly the
+            // state of a slot returned by acquire() before its caller has had a
+            // chance to populate it, so every acquire()/get() pair failed.
+            if ((self.slots[idx].generation & GEN_MASK) != gen) return error.StaleHandle;
             return idx;
         }
     };
@@ -280,14 +294,22 @@ test "snapshot respects output capacity" {
 test "generation wrapping does not alias live handles" {
     var p = Pool(1){};
     p.init();
-    // Force the generation to the maximum so the next release wraps it.
-    (try p.get(try p.acquire())).generation = std.math.maxInt(u32);
 
-    const h = try p.acquire();
-    try p.release(h);
-    // Generation wrapped to 0 and state reset; the new handle is valid and the
-    // old one resolves to the same fresh slot rather than a stale one.
-    const h2 = try p.acquire();
-    try testing.expectEqual(h & INDEX_MASK, h2 & INDEX_MASK);
-    try testing.expectEqual(@as(u32, 0), (try p.getConst(h2)).generation);
+    // Force the free slot's generation to the maximum, so that the release
+    // below has to wrap it. The generation must be bumped while the slot is
+    // free: changing it while a handle is outstanding would (correctly)
+    // invalidate that handle.
+    p.slots[0].generation = std.math.maxInt(u32);
+
+    const before = try p.acquire();
+    try testing.expectEqual(std.math.maxInt(u32), (try p.getConst(before)).generation);
+
+    try p.release(before); // wraps 0xFFFFFFFF -> 0
+
+    const after = try p.acquire();
+    try testing.expectEqual(0, (try p.getConst(after)).generation);
+    try testing.expectEqual(before & INDEX_MASK, after & INDEX_MASK);
+
+    // The pre-wrap handle must not resolve to the recycled slot.
+    try testing.expectError(error.StaleHandle, p.get(before));
 }

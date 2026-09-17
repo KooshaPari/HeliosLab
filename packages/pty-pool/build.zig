@@ -7,10 +7,15 @@ pub fn build(b: *std.Build) void {
 
     // Portable core tests. These run on any host, including the Windows
     // development machine, because they touch no operating-system APIs.
+    //
+    // Zig 0.16 replaced TestOptions.root_source_file with a root_module, so the
+    // module has to be built explicitly the same way the library's is.
     const core_tests = b.addTest(.{
-        .root_source_file = b.path("src/core_test.zig"),
-        .target = target,
-        .optimize = optimize,
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("src/core_test.zig"),
+            .target = target,
+            .optimize = optimize,
+        }),
     });
     const run_core_tests = b.addRunArtifact(core_tests);
     const test_step = b.step("test", "Run portable core unit tests");
@@ -36,7 +41,7 @@ pub fn build(b: *std.Build) void {
 
     if (target.result.os.tag == .windows) {
         lib_step.dependOn(&b.addFail(
-            "helios-pty targets macOS and Linux; Windows has no POSIX PTY. " +
+            "helios-pty targets macOS and Linux; Windows has no POSIX PTY. " ++
                 "Use -Dtarget=aarch64-macos to cross-compile.",
         ).step);
     }
