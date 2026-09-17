@@ -75,10 +75,23 @@ const POSIX_SPAWN_SETSID: c_short = 0x0400;
 // and @sizeOf is resolved by Zig.
 const IOC_IN: c_ulong = 0x80000000;
 const IOC_VOID: c_ulong = 0x20000000;
+const IOC_OUT: c_ulong = 0x40000000;
 const TIOCSWINSZ: c_ulong = IOC_IN |
     ((@as(c_ulong, @sizeOf(Winsize)) & 0x1fff) << 16) |
     (@as(c_ulong, 't') << 8) | 103;
 const TIOCSCTTY: c_ulong = IOC_VOID | (@as(c_ulong, 't') << 8) | 97;
+/// _IOR('t', 104, struct winsize). Reading the size back is the only check that
+/// can actually disagree with TIOCSWINSZ above.
+pub const TIOCGWINSZ: c_ulong = IOC_OUT |
+    ((@as(c_ulong, @sizeOf(Winsize)) & 0x1fff) << 16) |
+    (@as(c_ulong, 't') << 8) | 104;
+
+/// Ask the kernel for a terminal's window size.
+pub fn getWinsize(fd: c_int) ?Winsize {
+    var ws = Winsize{};
+    if (ioctl(fd, TIOCGWINSZ, &ws) != 0) return null;
+    return ws;
+}
 
 // ---------------------------------------------------------------------------
 // libc declarations
@@ -319,10 +332,16 @@ test "winsize layout matches the C struct" {
     try testing.expectEqual(@as(usize, 8), @sizeOf(Winsize));
 }
 
-test "ioctl request numbers match the C macros" {
-    // Computed the same way _IOW/_IO do, with @sizeOf resolved by Zig.
+test "ioctl request numbers are internally consistent" {
+    // This asserts the computed expression against a literal written from the
+    // same reading of _IOW, so it cannot detect a misunderstanding of the
+    // macro: it only catches an accidental edit to the expression.
+    //
+    // The check that can actually disagree is in pty_runtime_test.zig, which
+    // sets a size through TIOCSWINSZ and reads it back through TIOCGWINSZ.
     try testing.expectEqual(@as(c_ulong, 0x80087467), TIOCSWINSZ);
     try testing.expectEqual(@as(c_ulong, 0x20007461), TIOCSCTTY);
+    try testing.expectEqual(@as(c_ulong, 0x40087468), TIOCGWINSZ);
 }
 
 test "wait status accessors" {

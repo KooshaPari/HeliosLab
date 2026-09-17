@@ -13,6 +13,7 @@
 const std = @import("std");
 const testing = std.testing;
 const pool = @import("main.zig");
+const pty = @import("pty_unix.zig");
 
 const POPEN_SHELL = "/bin/sh";
 
@@ -52,6 +53,30 @@ fn runAndExpect(handle: i32, command: []const u8, needle: []const u8) !bool {
         }
     }
     return seen;
+}
+
+test "window size round-trips through the kernel" {
+    // The one check here that can fail for a reason I might not have
+    // anticipated. spawn sets the size with TIOCSWINSZ; this reads it back with
+    // TIOCGWINSZ. If TIOCSWINSZ were the wrong request number the set would
+    // silently do nothing, the pty would keep the kernel default, and this
+    // would read back 0 x 0.
+    //
+    // Unlike the constant assertion in pty_unix.zig, nothing here is derived
+    // from my own reading of _IOW, so it can disagree with me.
+    const res = try pty.spawn("/bin/sh", null, 91, 37);
+    defer pty.closeFd(res.master_fd);
+    defer pty.terminate(res.pid);
+
+    const got = pty.getWinsize(res.master_fd) orelse return error.WinsizeUnreadable;
+    try testing.expectEqual(@as(u16, 91), got.ws_col);
+    try testing.expectEqual(@as(u16, 37), got.ws_row);
+
+    // A change must be visible too, not just the initial value.
+    try testing.expect(pty.resize(res.master_fd, 133, 53));
+    const after = pty.getWinsize(res.master_fd) orelse return error.WinsizeUnreadable;
+    try testing.expectEqual(@as(u16, 133), after.ws_col);
+    try testing.expectEqual(@as(u16, 53), after.ws_row);
 }
 
 test "spawns a real shell and reads its output" {
