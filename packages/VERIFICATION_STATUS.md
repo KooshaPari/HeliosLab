@@ -143,6 +143,10 @@ bun run build:native
   `/bin/sh` spawn, a window-size round trip through the kernel, and exit-status
   reporting. The C ABI is exercised through `dlopen` the same way Bun reaches it,
   and the built artifact exports exactly the 15 symbols the bridge looks up.
+- **The full path works end to end**: `pty_live.test.ts` passes 3/3 against a
+  real shell on macOS, from TypeScript through Bun's `dlopen`, the C ABI, Zig,
+  and the kernel. It loads the library, spawns `/bin/sh`, reads its output, and
+  reports the exit status.
 - Go orchestrator, device manager, and SSH transport: 65 tests, `go vet` clean,
   `gofmt` clean, cross-compiles for darwin/arm64. The SSH path was exercised
   against the real MacBook: 5/5, including host-key rejection and prompt
