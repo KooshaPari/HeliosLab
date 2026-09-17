@@ -143,10 +143,16 @@ bun run build:native
   `/bin/sh` spawn, a window-size round trip through the kernel, and exit-status
   reporting. The C ABI is exercised through `dlopen` the same way Bun reaches it,
   and the built artifact exports exactly the 15 symbols the bridge looks up.
-- **The full path works end to end**: `pty_live.test.ts` passes 3/3 against a
-  real shell on macOS, from TypeScript through Bun's `dlopen`, the C ABI, Zig,
-  and the kernel. It loads the library, spawns `/bin/sh`, reads its output, and
-  reports the exit status.
+- **The full path works end to end**, and a terminal session layer now sits on
+  top of it: `pty-session.ts` owns a PTY per terminal and pumps it, which is the
+  seam the renderer's `writeToTerminal` stub was leaving open. Verified by
+  `pty_live.test.ts` (3/3) and `pty_session.test.ts` (5/5), both against a real
+  shell on macOS.
+- Driving that layer found a **memory-corruption bug**: the handle's index mask
+  had drifted from its bit layout, so reusing a slot indexed the ring array out
+  of bounds. It only appeared on the second spawn in a process, which is why the
+  Zig tests, the C ABI check and the bridge test all missed it. A regression test
+  now spawns and destroys four times in one pool.
 - Rust persistence now **compiles and runs**: 9 tests pass against real SQLite,
   covering schema creation, message ordering, FTS5 search and its no-match case,
   token aggregation, NUL handling and null arguments. Toolchain installed into
@@ -168,8 +174,9 @@ bun run build:native
 - The cgo link step: the Go shared libraries have never been linked. A C
   toolchain is needed, and the development host has none. Their logic is covered
   by 65 tests, but the cgo shims themselves are uncompiled.
-- The PTY pool is verified in isolation but not wired into the app. No terminal
-  tab in the UI drives it yet.
+- The PTY pool is reached through `pty-session.ts`, but the renderer's terminal
+  store still calls its own `writeToTerminal` stub. Connecting the two is a small
+  change and has not been done, so no UI terminal tab has ever driven a real PTY.
 - The CI workflow has never run on a runner.
 
 **A caution about this file.** Every defect found this session came from running
