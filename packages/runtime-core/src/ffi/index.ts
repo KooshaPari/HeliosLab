@@ -457,22 +457,16 @@ export class HeliosDb {
 const ORCHESTRATOR_SYMBOLS: Symbols = {
   HeliosOrchestratorNew: { args: [], returns: FFIType.ptr },
   HeliosOrchestratorCreateSession: {
-    args: [FFIType.ptr, FFIType.cstring, FFIType.i64, FFIType.ptr],
-    returns: FFIType.i32,
+    args: [FFIType.ptr, FFIType.cstring, FFIType.i64],
+    returns: FFIType.ptr,
   },
   HeliosOrchestratorAddLane: {
-    args: [FFIType.ptr, FFIType.cstring, FFIType.cstring, FFIType.ptr],
-    returns: FFIType.i32,
+    args: [FFIType.ptr, FFIType.cstring, FFIType.cstring],
+    returns: FFIType.ptr,
   },
   HeliosOrchestratorSpawnAgent: {
-    args: [
-      FFIType.ptr,
-      FFIType.cstring,
-      FFIType.cstring,
-      FFIType.cstring,
-      FFIType.ptr,
-    ],
-    returns: FFIType.i32,
+    args: [FFIType.ptr, FFIType.cstring, FFIType.cstring, FFIType.cstring],
+    returns: FFIType.ptr,
   },
   HeliosOrchestratorRecordTokens: {
     args: [FFIType.ptr, FFIType.cstring, FFIType.i64],
@@ -510,10 +504,10 @@ export interface OrchestratorStatus {
   tokens_used: number;
 }
 
-/** Shared out-parameter used to receive an allocated id string. */
-function idOutBuffer(): BigUint64Array {
-  return new BigUint64Array(1);
-}
+/**
+ * String-returning calls hand back a freshly allocated C string, or NULL on
+ * failure. Ownership transfers to the caller, which must free it.
+ */
 
 export class Orchestrator {
   #lib: Library;
@@ -525,26 +519,19 @@ export class Orchestrator {
     if (this.#ptr === 0) throw new Error("HeliosOrchestratorNew returned null");
   }
 
-  #takeString(ptr: bigint | number): string {
-    const addr = Number(ptr);
+  #takeString(addr: number): string {
     const text = readCString(addr);
     this.#lib.symbols.HeliosOrchestratorFree(addr);
     return text;
   }
 
-  #callId(
-    symbol: string,
-    args: unknown[],
-    errorContext: string,
-  ): string {
-    const out = idOutBuffer();
-    const rc = (this.#lib.symbols[symbol] as (...a: unknown[]) => number)(
-      this.#ptr,
-      ...args,
-      out,
-    );
-    if (rc !== 0) throw new Error(`${errorContext} returned ${rc}`);
-    return this.#takeString(out[0]);
+  #callId(symbol: string, args: unknown[], errorContext: string): string {
+    const fn = this.#lib.symbols[symbol] as (...a: unknown[]) => number | null;
+    const addr = fn(this.#ptr, ...args);
+    if (addr === null || addr === 0) {
+      throw new Error(`${errorContext} failed (native returned no id)`);
+    }
+    return this.#takeString(addr);
   }
 
   createSession(workspaceId: string, tokenBudget = 0): string {
@@ -573,12 +560,10 @@ export class Orchestrator {
 
   /** Returns true when the session has now exceeded its token budget. */
   recordTokens(sessionId: string, tokens: number): boolean {
-    const out = idOutBuffer();
     const rc = this.#lib.symbols.HeliosOrchestratorRecordTokens(
       this.#ptr,
       sessionId,
       tokens,
-      out,
     ) as number;
     if (rc < 0) throw new Error(`recordTokens returned ${rc}`);
     return rc === 1;
@@ -619,8 +604,15 @@ export class Orchestrator {
 const DEVICE_SYMBOLS: Symbols = {
   HeliosDevicesNew: { args: [], returns: FFIType.ptr },
   HeliosDevicesAdd: {
-    args: [FFIType.ptr, FFIType.cstring, FFIType.cstring, FFIType.i32, FFIType.cstring, FFIType.cstring, FFIType.ptr],
-    returns: FFIType.i32,
+    args: [
+      FFIType.ptr,
+      FFIType.cstring,
+      FFIType.cstring,
+      FFIType.i32,
+      FFIType.cstring,
+      FFIType.cstring,
+    ],
+    returns: FFIType.ptr,
   },
   HeliosDevicesList: { args: [FFIType.ptr], returns: FFIType.ptr },
   HeliosDevicesConnect: {
@@ -636,8 +628,8 @@ const DEVICE_SYMBOLS: Symbols = {
     returns: FFIType.i32,
   },
   HeliosDevicesExec: {
-    args: [FFIType.ptr, FFIType.cstring, FFIType.cstring, FFIType.ptr],
-    returns: FFIType.i32,
+    args: [FFIType.ptr, FFIType.cstring, FFIType.cstring],
+    returns: FFIType.ptr,
   },
   HeliosDevicesFree: { args: [FFIType.ptr], returns: FFIType.void },
   HeliosDevicesClose: { args: [FFIType.ptr], returns: FFIType.void },
@@ -687,18 +679,18 @@ export class DeviceManager {
     user: string,
     keyPath: string,
   ): string {
-    const out = idOutBuffer();
-    const rc = this.#lib.symbols.HeliosDevicesAdd(
+    const addr = this.#lib.symbols.HeliosDevicesAdd(
       this.#ptr,
       name,
       host,
       port,
       user,
       keyPath,
-      out,
-    ) as number;
-    if (rc !== 0) throw new Error(`devices.add returned ${rc}`);
-    return this.#takeString(Number(out[0]));
+    ) as number | null;
+    if (addr === null || addr === 0) {
+      throw new Error("devices.add failed (native returned no id)");
+    }
+    return this.#takeString(addr);
   }
 
   list(): DeviceSummary[] {
@@ -723,15 +715,15 @@ export class DeviceManager {
   }
 
   exec(deviceId: string, command: string): ExecOutcome {
-    const out = idOutBuffer();
-    const rc = this.#lib.symbols.HeliosDevicesExec(
+    const addr = this.#lib.symbols.HeliosDevicesExec(
       this.#ptr,
       deviceId,
       command,
-      out,
-    ) as number;
-    if (rc !== 0) throw new Error(`devices.exec returned ${rc}`);
-    const raw = this.#takeString(Number(out[0]));
+    ) as number | null;
+    if (addr === null || addr === 0) {
+      throw new Error("devices.exec failed (native returned no result)");
+    }
+    const raw = this.#takeString(addr);
     return JSON.parse(raw) as ExecOutcome;
   }
 

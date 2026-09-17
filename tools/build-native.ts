@@ -36,7 +36,9 @@ async function buildRust() {
 async function buildGo() {
   console.log("🔧 Building Go Orchestrator...");
   try {
-    await $`cd ${PACKAGES}/orchestrator && go build -buildmode=c-shared -o libhelios-orchestrator.so .`;
+    // The cgo shims live in nested modules so the parent packages stay
+    // testable without a C toolchain. Both need CGO_ENABLED=1.
+    await $`cd ${PACKAGES}/orchestrator/cshared && go mod tidy && go build -buildmode=c-shared -o ../libhelios-orchestrator.so .`;
     console.log("✅ Go Orchestrator built");
   } catch (e) {
     console.error("❌ Go orchestrator build failed:", e.message);
@@ -45,7 +47,7 @@ async function buildGo() {
 
   console.log("🔧 Building Go Device Manager...");
   try {
-    await $`cd ${PACKAGES}/device-manager && go build -buildmode=c-shared -o libhelios-device.so .`;
+    await $`cd ${PACKAGES}/device-manager/cshared && go mod tidy && go build -buildmode=c-shared -o ../libhelios-device.so .`;
     console.log("✅ Go Device Manager built");
   } catch (e) {
     console.error("❌ Go device manager build failed:", e.message);
@@ -71,7 +73,8 @@ async function main() {
   const start = Date.now();
 
   try {
-    // Build in parallel where possible
+    // Build in parallel where possible. Go's cgo builds need CGO_ENABLED=1 and
+    // a C compiler; without one they fail while Zig/Rust still succeed.
     await Promise.all([
       buildZig(),
       buildRust(),
