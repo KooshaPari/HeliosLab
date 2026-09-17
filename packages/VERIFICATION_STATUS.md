@@ -137,9 +137,44 @@ bun run build:native
 
 ## Honest summary
 
-Verified by execution: Go orchestrator logic, Go device-manager logic including
-the SSH host-key path, the TS FFI bridge contract.
-Not verified: every line of Zig, Rust, and Mojo, and the cgo link step.
+**Verified by execution:**
+
+- Zig PTY layer: builds on macOS arm64, and 29/29 tests pass, including a real
+  `/bin/sh` spawn, a window-size round trip through the kernel, and exit-status
+  reporting. The C ABI is exercised through `dlopen` the same way Bun reaches it,
+  and the built artifact exports exactly the 15 symbols the bridge looks up.
+- Go orchestrator, device manager, and SSH transport: 65 tests, `go vet` clean,
+  `gofmt` clean, cross-compiles for darwin/arm64. The SSH path was exercised
+  against the real MacBook: 5/5, including host-key rejection and prompt
+  cancellation.
+- TypeScript FFI bridge: FFI suite 4 pass / 0 fail, `tsc --strict` clean under
+  the repo's own config, and a static check that all 43 symbols across the four
+  native packages match the bridge's tables.
+
+**Not verified:**
+
+- `pty_live.test.ts` has never run. It needs a built library on a POSIX host, and
+  `kooshas-laptop` became unreachable partway through the session.
+- Rust persistence has never been compiled. It needs `cargo` plus a C compiler,
+  because `rusqlite`'s bundled feature builds SQLite from source.
+- Mojo is a sketch with its known defects named in the file header.
+- The cgo link step: no C toolchain on the development host.
+
+**A caution about this file.** Every defect found this session (31 of them) came
+from running something that could disagree with the author. None came from the
+tests written first, and three were defects in the verification itself:
+
+1. A constant assertion compared a computed value against a literal derived the
+   same way. It could not fail, and the constant it "proved" was used by an ioctl
+   that was returning ENOTTY.
+2. A cache-reset helper cleared the wrong cache, so a test passed standalone and
+   failed in a suite. Caught only by running it both ways.
+3. A root cause was asserted from two coincidentally equal failure durations and
+   was disproved by one experiment.
+
+Treat any claim in this file as provisional until you have seen the command that
+could have contradicted it.
+
 
 ---
 
