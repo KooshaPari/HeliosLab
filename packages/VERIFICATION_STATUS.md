@@ -175,9 +175,17 @@ bun run build:native
 
 **Not verified:**
 
-- Mojo is a sketch with its known defects named in the file header. There is no
-  MAX toolchain, and the TypeScript bridge does not load it, so nothing shipped
-  depends on it.
+- Mojo has no built artifact, and the question of what to do with it is now
+  answered by evidence rather than opinion. `inference_router.mojo` reinvents
+  four backends, a hardware probe and a registry that already exist in
+  TypeScript **and are under test**:
+  `apps/runtime/src/integrations/inference/` holds `engine.ts` (an
+  `InferenceEngine` interface), `registry.ts`, `hardware.ts`, and adapters for
+  Anthropic, llama.cpp, MLX and vLLM, with tests for the Anthropic and vLLM
+  ones. Adopting the Mojo sketch would supersede a tested implementation with an
+  untestable one, so it is marked do-not-adopt in its own header. If Mojo is
+  wanted, it belongs behind the existing `InferenceEngine` interface as one more
+  adapter, which is additive rather than displacing. No code was deleted.
 - The renderer's wiring is tested, but the component's DOM glue and the app
   itself have never been run. `panel-wiring.ts` covers which callback goes where
   (6 tests), and the store is covered (9), so the logic is exercised. What is

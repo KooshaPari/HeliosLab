@@ -1,9 +1,9 @@
 # =============================================================================
-# UNVERIFIED - NOT COMPILED, NOT TESTED, NOT WIRED UP
+# UNVERIFIED, AND IT DUPLICATES WORKING CODE - DO NOT ADOPT AS WRITTEN
 # =============================================================================
 #
-# There is no Mojo/MAX toolchain available on this machine or on the macOS
-# build host, so this file has never been compiled. Treat it as a sketch:
+# There is no Mojo/MAX toolchain on this machine or the macOS build host, so
+# this file has never been compiled. Defects visible by reading:
 #
 #   * `from utils.index import Variant` is almost certainly wrong. It was
 #     written from memory and does not correspond to a module that is known to
@@ -13,15 +13,23 @@
 #   * `HardwareInfo.detect()` returns hardcoded values rather than probing the
 #     machine, so the routing decisions it drives are not meaningful yet.
 #
-# The TypeScript bridge does NOT load this file, so nothing in the shipped app
-# depends on it. It is kept as a design sketch only.
+# MORE IMPORTANTLY - its whole job already exists, in TypeScript and under test.
+# apps/runtime/src/integrations/inference/ contains:
 #
-# Before this can be used it needs: a Mojo toolchain, a real hardware probe,
-# and a C ABI layer matching the pattern used by the Zig and Go packages.
+#   engine.ts         an InferenceEngine interface
+#   registry.ts       register / unregister / lookup
+#   hardware.ts       hardware detection
+#   anthropic-adapter.ts, llamacpp-adapter.ts, mlx-adapter.ts, vllm-adapter.ts
+#   plus tests for the anthropic and vllm adapters under apps/runtime/tests
 #
-# Decision needed from the user: either install MAX and finish this properly,
-# or delete it in favour of a TypeScript inference router, which would be
-# immediately testable.
+# That is the same four backends, the same hardware probe and the same registry
+# this file reinvents. Adopting it would supersede a tested implementation with
+# an untestable one, which is the opposite of integrating. The TypeScript bridge
+# does not load this file, so nothing shipped depends on it.
+#
+# Recommendation: if Mojo is wanted here, it belongs BEHIND the existing
+# InferenceEngine interface as one more adapter - additive, swappable, and not
+# displacing anything. It should not be a router.
 # =============================================================================
 
 # HeliosLab Inference Router - Multi-backend inference management
