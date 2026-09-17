@@ -211,8 +211,8 @@ func hostPatternGlob(pattern, hostname string) bool {
 	}
 
 	var (
-		p   int
-		h   int
+		p    int
+		h    int
 		star = -1
 		mark int
 	)

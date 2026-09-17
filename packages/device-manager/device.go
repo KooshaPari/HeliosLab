@@ -82,23 +82,23 @@ type Dialer interface {
 
 // Metrics is a sampled resource snapshot for a device.
 type Metrics struct {
-	DeviceID   string  `json:"device_id"`
-	CPUPercent float64 `json:"cpu_percent"`
-	MemPercent float64 `json:"mem_percent"`
-	DiskPercent float64 `json:"disk_percent"`
-	LoadAvg1   float64 `json:"load_avg_1"`
-	UptimeSecs int64   `json:"uptime_secs"`
-	SampledAt  time.Time `json:"sampled_at"`
+	DeviceID    string    `json:"device_id"`
+	CPUPercent  float64   `json:"cpu_percent"`
+	MemPercent  float64   `json:"mem_percent"`
+	DiskPercent float64   `json:"disk_percent"`
+	LoadAvg1    float64   `json:"load_avg_1"`
+	UptimeSecs  int64     `json:"uptime_secs"`
+	SampledAt   time.Time `json:"sampled_at"`
 }
 
 // Device is one registered machine.
 type Device struct {
-	ID       string    `json:"id"`
-	Name     string    `json:"name"`
-	Target   Target    `json:"target"`
-	State    string    `json:"state"`
-	LastErr  string    `json:"last_error,omitempty"`
-	AddedAt  time.Time `json:"added_at"`
+	ID      string    `json:"id"`
+	Name    string    `json:"name"`
+	Target  Target    `json:"target"`
+	State   string    `json:"state"`
+	LastErr string    `json:"last_error,omitempty"`
+	AddedAt time.Time `json:"added_at"`
 
 	conn Conn
 }

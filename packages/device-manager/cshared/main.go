@@ -145,7 +145,7 @@ func HeliosDevicesRemove(h C.uintptr_t, deviceID *C.char) C.int {
 	return 0
 }
 
-//execOutcome mirrors devices.ExecResult on the wire.
+// execOutcome mirrors devices.ExecResult on the wire.
 type execOutcome struct {
 	Stdout   string `json:"stdout"`
 	Stderr   string `json:"stderr"`

@@ -70,14 +70,14 @@ type TokenBudget struct {
 
 // Session is a unit of work owned by the orchestrator.
 type Session struct {
-	ID          string         `json:"id"`
-	WorkspaceID string         `json:"workspace_id"`
-	State       string         `json:"state"`
-	Lanes       []*Lane        `json:"lanes"`
-	Agents      []*Agent       `json:"agents"`
-	Budget      TokenBudget    `json:"budget"`
-	CreatedAt   time.Time      `json:"created_at"`
-	UpdatedAt   time.Time      `json:"updated_at"`
+	ID          string      `json:"id"`
+	WorkspaceID string      `json:"workspace_id"`
+	State       string      `json:"state"`
+	Lanes       []*Lane     `json:"lanes"`
+	Agents      []*Agent    `json:"agents"`
+	Budget      TokenBudget `json:"budget"`
+	CreatedAt   time.Time   `json:"created_at"`
+	UpdatedAt   time.Time   `json:"updated_at"`
 
 	agents map[string]*Agent
 	lanes  map[string]*Lane
