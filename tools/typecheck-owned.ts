@@ -30,6 +30,8 @@ const OWNED_PREFIXES = [
   "packages/runtime-core/tests/unit/ffi_paths.test.ts",
   "packages/runtime-core/tests/unit/pty_live.test.ts",
   "packages/runtime-core/tests/unit/pty_session.test.ts",
+  "apps/colab-renderer/src/stores/terminal.store.ts",
+  "apps/colab-renderer/tests/unit/stores/terminal.store.test.ts",
   "tools/check-abi.ts",
   "tools/typecheck-owned.ts",
 ];
