@@ -143,7 +143,12 @@ pub extern "C" fn helios_db_create_conversation(
     title: *const c_char,
     model_id: *const c_char,
 ) -> i32 {
-    let conn = unsafe { &*db };
+    // A C caller can pass null. Dereferencing it would take down the host
+    // process, which this crate's own null-argument test demonstrated by
+    // segfaulting.
+    let Some(conn) = (unsafe { db.as_ref() }) else {
+        return -1;
+    };
     let id_str = unsafe { CStr::from_ptr(id).to_str().unwrap_or("") };
     let title_str = unsafe { CStr::from_ptr(title).to_str().unwrap_or("Untitled") };
     let model_str = unsafe { CStr::from_ptr(model_id).to_str().unwrap_or("unknown") };
@@ -166,7 +171,9 @@ pub extern "C" fn helios_db_add_message(
     content: *const c_char,
     timestamp: i64,
 ) -> i32 {
-    let conn = unsafe { &*db };
+    let Some(conn) = (unsafe { db.as_ref() }) else {
+        return -1;
+    };
     let conv_str = unsafe { CStr::from_ptr(conv_id).to_str().unwrap_or("") };
     let role_str = unsafe { CStr::from_ptr(role).to_str().unwrap_or("user") };
     let content_str = unsafe { CStr::from_ptr(content).to_str().unwrap_or("") };
@@ -197,7 +204,9 @@ pub extern "C" fn helios_db_get_messages(
     limit: i32,
     offset: i32,
 ) -> *mut c_char {
-    let conn = unsafe { &*db };
+    let Some(conn) = (unsafe { db.as_ref() }) else {
+        return to_c_string("[]".to_string());
+    };
     let conv_str = unsafe { CStr::from_ptr(conv_id).to_str().unwrap_or("") };
 
     let messages = (|| -> rusqlite::Result<Vec<Message>> {
@@ -227,7 +236,9 @@ pub extern "C" fn helios_db_search_messages(
     query: *const c_char,
     limit: i32,
 ) -> *mut c_char {
-    let conn = unsafe { &*db };
+    let Some(conn) = (unsafe { db.as_ref() }) else {
+        return to_c_string("[]".to_string());
+    };
     let query_str = unsafe { CStr::from_ptr(query).to_str().unwrap_or("") };
 
     let messages = (|| -> rusqlite::Result<Vec<Message>> {
@@ -265,7 +276,9 @@ pub extern "C" fn helios_db_record_token_usage(
     cost_cents: f64,
     backend: *const c_char,
 ) -> i32 {
-    let conn = unsafe { &*db };
+    let Some(conn) = (unsafe { db.as_ref() }) else {
+        return -1;
+    };
     let session_str = unsafe { CStr::from_ptr(session_id).to_str().unwrap_or("") };
     let backend_str = unsafe { CStr::from_ptr(backend).to_str().unwrap_or("unknown") };
 
@@ -284,7 +297,9 @@ pub extern "C" fn helios_db_get_token_stats(
     db: *mut Connection,
     session_id: *const c_char,
 ) -> *mut c_char {
-    let conn = unsafe { &*db };
+    let Some(conn) = (unsafe { db.as_ref() }) else {
+        return to_c_string("{}".to_string());
+    };
     let session_str = unsafe { CStr::from_ptr(session_id).to_str().unwrap_or("") };
 
     // An earlier edit spliced this together with the previous function: it
@@ -332,5 +347,188 @@ pub extern "C" fn helios_db_free_string(s: *mut c_char) {
 pub extern "C" fn helios_db_close(db: *mut Connection) {
     if !db.is_null() {
         unsafe { drop(Box::from_raw(db)); }
+    }
+}
+
+// ============================================================================
+// Tests
+// ============================================================================
+//
+// These drive the exported C functions directly, so they cover the same path
+// the Bun bridge uses: open, schema creation, insert, read back, FTS search and
+// token aggregation.
+//
+// Each test opens its own file in the temp directory, named after the test, so
+// they do not collide when run in parallel.
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::ffi::CStr;
+
+    /// A database in the temp directory, removed first so runs are independent.
+    fn fresh_db(name: &str) -> *mut Connection {
+        let path = std::env::temp_dir().join(format!("helios_persistence_{name}.db"));
+        let _ = std::fs::remove_file(&path);
+        let c_path = CString::new(path.to_str().unwrap()).unwrap();
+        let db = helios_db_open(c_path.as_ptr());
+        assert!(!db.is_null(), "helios_db_open returned null for {name}");
+        db
+    }
+
+    fn cs(s: &str) -> CString {
+        CString::new(s).unwrap()
+    }
+
+    /// Take ownership of a string the library allocated.
+    fn take(ptr: *mut c_char) -> String {
+        assert!(!ptr.is_null(), "expected a string, got null");
+        let s = unsafe { CStr::from_ptr(ptr) }.to_str().unwrap().to_string();
+        helios_db_free_string(ptr);
+        s
+    }
+
+    #[test]
+    fn opens_and_creates_the_schema() {
+        let db = fresh_db("schema");
+        // If the FTS5 table or its triggers had failed to create, open would
+        // have returned null and fresh_db would already have panicked. Prove
+        // the tables exist by inserting through them.
+        let conv = cs("c1");
+        let title = cs("First");
+        let model = cs("m1");
+        assert_eq!(0, helios_db_create_conversation(db, conv.as_ptr(), title.as_ptr(), model.as_ptr()));
+        helios_db_close(db);
+    }
+
+    #[test]
+    fn stores_and_reads_messages_in_order() {
+        let db = fresh_db("messages");
+        let conv = cs("c1");
+        assert_eq!(0, helios_db_create_conversation(db, conv.as_ptr(), cs("t").as_ptr(), cs("m").as_ptr()));
+
+        for (role, text) in [("user", "hello"), ("assistant", "hi there"), ("user", "bye")] {
+            let rc = helios_db_add_message(db, conv.as_ptr(), cs(role).as_ptr(), cs(text).as_ptr(), 0);
+            assert_eq!(0, rc, "add_message failed for {text}");
+        }
+
+        let json = take(helios_db_get_messages(db, conv.as_ptr(), 50, 0));
+        let parsed: Vec<Message> = serde_json::from_str(&json).unwrap();
+        assert_eq!(3, parsed.len());
+        assert_eq!("hello", parsed[0].content);
+        assert_eq!("hi there", parsed[1].content);
+        assert_eq!("bye", parsed[2].content);
+        assert_eq!("assistant", parsed[1].role);
+
+        helios_db_close(db);
+    }
+
+    #[test]
+    fn fts_search_finds_a_message() {
+        let db = fresh_db("fts");
+        let conv = cs("c1");
+        assert_eq!(0, helios_db_create_conversation(db, conv.as_ptr(), cs("t").as_ptr(), cs("m").as_ptr()));
+        assert_eq!(0, helios_db_add_message(db, conv.as_ptr(), cs("user").as_ptr(), cs("the quick brown fox").as_ptr(), 0));
+        assert_eq!(0, helios_db_add_message(db, conv.as_ptr(), cs("user").as_ptr(), cs("unrelated content").as_ptr(), 0));
+
+        // Exercises the FTS5 external-content table and its insert trigger.
+        let json = take(helios_db_search_messages(db, cs("quick").as_ptr(), 10));
+        let hits: Vec<Message> = serde_json::from_str(&json).unwrap();
+        assert_eq!(1, hits.len());
+        assert!(hits[0].content.contains("quick"));
+
+        helios_db_close(db);
+    }
+
+    #[test]
+    fn fts_search_with_no_match_returns_empty() {
+        let db = fresh_db("fts_empty");
+        let conv = cs("c1");
+        assert_eq!(0, helios_db_create_conversation(db, conv.as_ptr(), cs("t").as_ptr(), cs("m").as_ptr()));
+        assert_eq!(0, helios_db_add_message(db, conv.as_ptr(), cs("user").as_ptr(), cs("alpha").as_ptr(), 0));
+
+        let json = take(helios_db_search_messages(db, cs("zzzznothing").as_ptr(), 10));
+        let hits: Vec<Message> = serde_json::from_str(&json).unwrap();
+        assert!(hits.is_empty());
+        helios_db_close(db);
+    }
+
+    #[test]
+    fn token_usage_aggregates_per_session() {
+        let db = fresh_db("tokens");
+        let s = cs("sess-1");
+        assert_eq!(0, helios_db_record_token_usage(db, s.as_ptr(), 100, 50, 1.5, cs("llama_cpp").as_ptr()));
+        assert_eq!(0, helios_db_record_token_usage(db, s.as_ptr(), 200, 25, 0.5, cs("anthropic").as_ptr()));
+
+        let json = take(helios_db_get_token_stats(db, s.as_ptr()));
+        let stats: TokenStats = serde_json::from_str(&json).unwrap();
+        assert_eq!(300, stats.total_prompt_tokens);
+        assert_eq!(75, stats.total_completion_tokens);
+        assert_eq!(2, stats.usage_count);
+        assert!((stats.total_cost_cents - 2.0).abs() < 1e-9);
+
+        helios_db_close(db);
+    }
+
+    #[test]
+    fn token_stats_for_unknown_session_is_empty_object() {
+        let db = fresh_db("tokens_empty");
+        let json = take(helios_db_get_token_stats(db, cs("nobody").as_ptr()));
+        assert_eq!("{}", json);
+        helios_db_close(db);
+    }
+
+    #[test]
+    fn content_containing_a_nul_byte_is_read_back_safely() {
+        let db = fresh_db("nul");
+        let conv = cs("c1");
+        assert_eq!(0, helios_db_create_conversation(db, conv.as_ptr(), cs("t").as_ptr(), cs("m").as_ptr()));
+
+        // The row is written through SQLite directly, not through the C ABI: a
+        // C string is NUL-terminated by definition, so CString::new refuses to
+        // build one containing an interior NUL. An earlier version of this test
+        // tried to, and panicked on its own construction rather than exercising
+        // anything.
+        //
+        // What matters is the read path. to_c_string strips interior NULs
+        // because the original code called unwrap on CString::new and would
+        // have aborted the host process.
+        {
+            let conn = unsafe { &*db };
+            conn.execute(
+                "INSERT INTO messages (id, conversation_id, role, content, timestamp) \
+                 VALUES (?1, ?2, ?3, ?4, ?5)",
+                params!["m1", "c1", "user", "before\0after", "2026-01-01T00:00:00Z"],
+            )
+            .expect("insert with an embedded NUL");
+        }
+
+        let json = take(helios_db_get_messages(db, conv.as_ptr(), 50, 0));
+        let parsed: Vec<Message> =
+            serde_json::from_str(&json).expect("output must remain valid JSON");
+        assert_eq!(1, parsed.len());
+        // serde_json escapes a NUL as \u0000, so the exact bytes depend on
+        // which layer handled it. Both layers must have coped without aborting.
+        assert!(parsed[0].content.contains("before"), "got {:?}", parsed[0].content);
+
+        helios_db_close(db);
+    }
+
+    #[test]
+    fn unknown_conversation_returns_empty_array() {
+        let db = fresh_db("missing_conv");
+        let json = take(helios_db_get_messages(db, cs("no-such-conv").as_ptr(), 50, 0));
+        assert_eq!("[]", json);
+        helios_db_close(db);
+    }
+
+    #[test]
+    fn null_arguments_do_not_crash() {
+        // The bridge could in principle pass null through; the helpers check for
+        // it rather than dereferencing.
+        let json = take(helios_db_get_messages(std::ptr::null_mut(), cs("x").as_ptr(), 10, 0));
+        assert_eq!("[]", json);
+        // close on null must be a no-op, not a double free.
+        helios_db_close(std::ptr::null_mut());
     }
 }
