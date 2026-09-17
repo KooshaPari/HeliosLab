@@ -24,13 +24,18 @@ type Symbols = Record<string, FFIFunction>;
  *
  * So calls go through this loosely-typed view. The symbol tables are still
  * checked against `FFIFunction`, which is where argument arity and types are
- * actually declared, but the compiler no longer verifies call sites. Fixing
- * that properly means threading a generic `NativeLib<T>` through the loader, the
- * cache, and every class field; worth doing, not done here.
+ * actually declared, but the compiler no longer verifies call sites.
+ *
+ * `symbols` is deliberately `any` rather than `Record<string, Fn>`: this repo
+ * sets `noPropertyAccessFromIndexSignature`, which turns every
+ * `symbols.pty_pool_spawn(...)` into a TS4111 error and forces bracket notation
+ * at all ~40 call sites. The real fix is threading a generic `NativeLib<T>`
+ * through the loader, the cache, and every class field, which restores full
+ * type safety; that is worth doing and is not done here.
  */
 type Library = {
   // biome-ignore lint/suspicious/noExplicitAny: see note above
-  symbols: Record<string, (...args: any[]) => any>;
+  symbols: any;
   close: () => void;
 };
 

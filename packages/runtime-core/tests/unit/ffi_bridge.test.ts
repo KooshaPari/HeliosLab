@@ -13,6 +13,7 @@ import { describe, expect, test } from "bun:test";
 import {
   DeviceManager,
   HeliosDb,
+  type NativeComponent,
   NativeUnavailableError,
   Orchestrator,
   PTY_ABI_VERSION,
@@ -39,7 +40,7 @@ describe("ffi bridge", () => {
   test("unavailable components raise NativeUnavailableError, not a crash", () => {
     const status = nativeStatus();
 
-    const cases: Array<[string, (ok: boolean) => () => unknown]> = [
+    const cases: Array<[NativeComponent, (ok: boolean) => () => unknown]> = [
       ["pty", (ok) => () => (ok ? null : new PtyPool(4))],
       ["persistence", (ok) => () => (ok ? null : new HeliosDb(":memory:"))],
       ["orchestrator", (ok) => () => (ok ? null : new Orchestrator())],
@@ -47,7 +48,7 @@ describe("ffi bridge", () => {
     ];
 
     for (const [component, build] of cases) {
-      const entry = status[component as "pty"];
+      const entry = status[component];
       if (entry.ok) continue; // available: nothing to assert here
 
       let caught: unknown;
