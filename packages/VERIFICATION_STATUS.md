@@ -159,6 +159,11 @@ bun run build:native
   token aggregation, NUL handling and null arguments. Toolchain installed into
   `/tmp/rust` on the MacBook, so nothing was installed system-wide. Its first run
   found a null-deref that would have segfaulted the host process.
+- **The Go cgo shared libraries link.** `libhelios-orchestrator.dylib` and
+  `libhelios-device.dylib` both build for macOS arm64 and export exactly the
+  symbols the bridge binds: 10 `_HeliosOrchestrator*` and 9 `_HeliosDevices*`,
+  matching the TypeScript tables one for one. Their logic had 65 tests; the shims
+  themselves had never been compiled until now.
 - Go orchestrator, device manager, and SSH transport: 65 tests, `go vet` clean,
   `gofmt` clean, cross-compiles for darwin/arm64. The SSH path was exercised
   against the real MacBook: 5/5, including host-key rejection and prompt
@@ -172,9 +177,6 @@ bun run build:native
 - Mojo is a sketch with its known defects named in the file header. There is no
   MAX toolchain, and the TypeScript bridge does not load it, so nothing shipped
   depends on it.
-- The cgo link step: the Go shared libraries have never been linked. A C
-  toolchain is needed, and the development host has none. Their logic is covered
-  by 65 tests, but the cgo shims themselves are uncompiled.
 - The renderer wiring is typechecked but has never been run in the actual app.
   `TerminalPanel.tsx` subscribes to PTY output and reports resizes, and the store
   is tested, but the Electrobun UI has not been launched, so no shell output has
