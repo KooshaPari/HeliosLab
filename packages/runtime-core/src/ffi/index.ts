@@ -132,6 +132,14 @@ function tryLoad(component: NativeComponent, symbols: Symbols): Library | null {
 export function resetNativeStatusCache(): void {
   loaded.clear();
   loadState.clear();
+  // Each component has its own module-level cache, separate from the `loaded`
+  // map. Clearing only the map leaves these non-undefined, so the getters
+  // short-circuit, never call tryLoad, and leave loadState empty, which
+  // surfaces as the misleading reason "not probed".
+  ptyLib = undefined;
+  persistenceLib = undefined;
+  orchestratorLib = undefined;
+  deviceLib = undefined;
 }
 
 /** Report which native components loaded. Never throws. */
