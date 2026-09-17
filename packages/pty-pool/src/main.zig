@@ -80,7 +80,7 @@ export fn pty_pool_spawn(
     pty.setNonBlocking(res.master_fd) catch {};
 
     const slot = g_pool.get(handle) catch {
-        pty.close(res.master_fd);
+        pty.closeFd(res.master_fd);
         pty.terminate(res.pid);
         g_pool.release(handle) catch {};
         return ERR_STALE;
@@ -109,7 +109,7 @@ export fn pty_pool_pump(handle: i32) i32 {
     // Drain until the fd would block or the ring fills (backpressure).
     while (g_rings[idx].writable() > 0) {
         const room = @min(g_rings[idx].writable(), PUMP_BUF);
-        switch (pty.read(slot.fd, buf[0..room])) {
+        switch (pty.readOut(slot.fd, buf[0..room])) {
             .data => |n| {
                 const wrote = g_rings[idx].write(buf[0..n]);
                 total += @intCast(wrote);
@@ -153,7 +153,7 @@ export fn pty_pool_write(handle: i32, data: [*]const u8, len: u32) i32 {
     if (slot.fd < 0) return ERR_INVALID;
     if (len == 0) return 0;
 
-    const n = pty.write(slot.fd, data[0..len]);
+    const n = pty.writeIn(slot.fd, data[0..len]);
     if (n < 0) {
         slot.state = .errored;
         return ERR_IO;
@@ -211,7 +211,7 @@ export fn pty_pool_destroy(handle: i32) i32 {
         pty.terminate(slot.pid);
         _ = pty.reap(slot.pid);
     }
-    if (slot.fd >= 0) pty.close(slot.fd);
+    if (slot.fd >= 0) pty.closeFd(slot.fd);
 
     const idx: usize = @intCast(handle & 0xFFFFF);
     g_rings[idx].clear();
