@@ -1,136 +1,147 @@
 # HeliosLab
 
-A TypeScript + Rust monorepo lab for Phenotype projects — journeys, contracts, and desktop tooling.
+A TypeScript + Rust monorepo lab for Phenotype infrastructure experiments — a hybrid browser + code editor desktop shell, a multi-architecture CLI, and domain-agnostic benchmarking. Think of HeliosLab as the proving ground where new Phenotype subsystems are prototyped before graduating to dedicated repositories.
 
-## What It Is
+[![CI](https://github.com/KooshaPari/HeliosLab/actions/workflows/ci.yaml/badge.svg)](https://github.com/KooshaPari/HeliosLab/actions/workflows/ci.yaml)
 
-HeliosLab is the development workspace for Phenotype infrastructure experiments. It houses the `phenoctl` CLI binary, core configuration and crypto crates, FFI bridges to Python and Go, an agent platform layer, and a Go-based CLI variant. Think of it as the place where new Phenotype subsystems are prototyped before graduating to dedicated repositories.
+## Repository Map
+
+```
+HeliosLab/
+├── apps/                          # TS/Bun application packages
+│   ├── desktop/                   #   Electrobun desktop shell
+│   ├── runtime/                   #   Runtime execution context
+│   ├── renderer/                  #   Shared rendering layer
+│   └── colab-renderer/            #   Legacy colab views
+├── packages/                      # Shared TS library packages
+│   ├── errors/                    # Typed error primitives
+│   ├── ids/                       # Identifier generation & validation
+│   ├── logger/                    # Structured logging
+│   ├── runtime-core/              # Core runtime abstractions
+│   └── types/                     # Shared type definitions
+├── pheno-cli/                     # Rust CLI binary (phenoctl)
+├── pheno-core/                    # Shared types, config, feature flags
+├── pheno-db/                      # Local storage & persistence
+├── pheno-crypto/                  # Cryptographic primitives & key mgmt
+├── crates/
+│   ├── pheno-ffi-python/          # Python FFI bridge (PyO3)
+│   └── pheno-ffi-go/              # Go FFI bridge (cgo)
+├── src/                           # Desktop app source tree
+│   ├── main/helioslab.ts          #   Electrobun entrypoint
+│   ├── renderers/                 #   Web views (helioslab, bunny, ivde)
+│   ├── pty/                       #   Terminal emulation (xterm)
+│   ├── hooks/                     #   App lifecycle hooks
+│   ├── i18n/                      #   Internationalisation
+│   ├── styles/                    #   Global styles
+│   ├── config/                    #   Client config
+│   ├── shared/                    #   Shared TS utilities
+│   ├── docs/                      #   App-local documentation views
+│   ├── helios_bench/              #   Python benchmark harness
+│   └── bun/                       #   Bun runtime helpers
+├── contracts/                     # Interface contracts
+│   └── polyglot-config-core.contract.json
+├── docs/                          # VitePress documentation site
+│   ├── adr/                       # Architecture Decision Records
+│   ├── journeys/                  # User journeys & workflows
+│   ├── api/                       # API reference
+│   ├── specs/                     # Specifications
+│   └── wiki/                      # Project wiki
+├── just/                          # Shared justfile library
+│   └── phenotype.just
+├── scripts/                       # Developer tooling scripts
+├── tools/                         # Vendored tooling
+├── electrobun.config.ts           # Electrobun desktop configuration
+├── justfile                       # Recipe runner (re-exports just/phenotype.just)
+├── Taskfile.yml                   # Task runner configuration
+├── .nvmrc                         # Node.js version (20)
+└── rust-toolchain.toml            # Rust toolchain (stable)
+```
 
 ## Architecture
 
-The Rust workspace (resolver v2) contains six crates unified behind the `phenoctl` CLI:
+Three primary runtimes coexist in this monorepo:
 
-```text
-phenoctl (binary)
-  ├── pheno-core       Shared types, config, and feature-flag logic
-  ├── pheno-db         Local storage and persistence abstractions
-  ├── pheno-crypto     Cryptographic primitives and key management
-  ├── pheno-cli        CLI entrypoint (clap-based) and TUI
-  ├── pheno-ffi-python Python FFI bridge via PyO3
-  └── pheno-ffi-go     Go FFI bridge via cgo
-```
+| Layer | Runtime | Location | Purpose |
+|-------|---------|----------|---------|
+| **Desktop Shell** | TypeScript + Bun (electrobun) | `apps/ + src/` | Hybrid browser + code editor wrapping Rust sidecars |
+| **CLI & Libraries** | Rust (edition 2021) | `pheno-*` crates | `phenoctl` CLI, crypto, DB, FFI bridges |
+| **Benchmarking** | Python >= 3.12 | `src/helios_bench/` | Terminal Bench-style CLI benchmark harness |
 
-A parallel TypeScript layer under `Agentora/` provides agent platform adapters, runtime orchestration, and intent-routing examples. A Go-based CLI variant (`pheno-cli-go/`) implements plugin scaffolding, audit, and rollout commands.
+The electrobun desktop bundles web views (helioslab, ivde, bunny) with a Rust sidecar for crypto, persistence, and platform integration. The Rust workspace produces the `phenoctl` binary and FFI libraries callable from Python (PyO3) and Go (cgo). The Python benchmark harness (`helios-bench`) is a standalone CLI for measuring system and procesperformance.
 
-Cross-repo dependencies pull from:
-
-- **PhenoInfra** — crypto, health, observability, state-machine crates
-- **PhenoObservability** — `pheno-otel` for OTLP trace export
+Cross-repo dependencies:
+- **PhenoObservability** — `pheno-otel` for OTLP trace export (tagged `v0.1.0`)
+- **PhenoInfra** — `phenotype-crypto`, `phenotype-health`, `phenotype-observability`, `phenotype-state-machine` (pinned rev)
 
 ## Prerequisites
 
-| Tool | Version | Notes |
-|------|---------|-------|
-| Rust | >= 1.75 (edition 2021) | See `rust-toolchain.toml` for pinned MSRV |
-| cargo-deny | latest | Run `cargo deny check` before CI |
-| Node.js | >= 20 | For the TypeScript agent layer |
-| Go | >= 1.21 | For `pheno-cli-go` only |
-| Python | >= 3.10 | For `pheno-ffi-python` build only |
+| Tool | Version | Required For |
+|------|---------|--------------|
+| Rust | >= 1.75 (stable) | All Rust crates |
+| Node.js | >= 20 (see `.nvmrc`) | TypeScript typechecking, linting |
+| Bun | latest | Electrobun desktop, TS package scripts |
+| Go | >= 1.21 | `pheno-ffi-go` only |
+| Python | >= 3.12 | `helios-bench` benchmark harness |
+| `just` | latest | Recipe runner |
+| `go-task` / `task` | latest | Taskfile runner |
+| `cargo-deny` | latest | License/dependency audit |
+| `biome` | 2.5.x | TS/JS linting & formatting |
 
-## Quick Start
+## Getting Started
 
 ```bash
-# Clone and build
+# Clone
 git clone https://github.com/KooshaPari/HeliosLab.git
 cd HeliosLab
-cargo build --workspace
 
-# Install the CLI
-cargo install --path pheno-cli
+# Rust toolchain
+rustup show                          # verify channel & targets
+cargo check --workspace              # verify all crates compile
+cargo build --release                # build phenoctl + FFI libs
 
-# Set configuration
-phenoctl config set app.name "My App"
+# TS packages + desktop
+bun install                          # install workspace dependencies
+bun run typecheck                    # verify types across all TS packages
+bun run lint                         # biome check
 
-# Manage feature flags
-phenoctl flags create dark-mode --description "Enable dark mode"
-phenoctl flags enable dark-mode
+# Python benchmark harness
+uv sync                              # create venv, install helios-bench
+helios-bench tasks                   # list available benchmarks
 
-# Store secrets
-phenoctl secrets set API_KEY
-
-# Inspect versions
-phenoctl version show
-
-# Launch the TUI
-phenoctl tui
+# Quick validation
+just build                           # build all (Rust + verify)
+just test                            # run Rust test suite
 ```
 
-## Project Structure
+## Key Commands
 
-```text
-HeliosLab/
-├── pheno-core/           Rust crate — shared config, flags, versioning
-├── pheno-db/             Rust crate — local persistence
-├── pheno-crypto/         Rust crate — crypto primitives
-├── pheno-cli/            Rust crate — phenoctl binary and TUI
-├── crates/
-│   ├── pheno-ffi-python/ Rust crate — Python FFI via PyO3
-│   └── pheno-ffi-go/     Rust crate — Go FFI bridge
-├── pheno-cli-go/         Go CLI — plugin, audit, rollout commands
-├── Agentora/             TS agent platform — adapters, runtime, intents
-├── config/               Default configuration and templates
-├── docs/                 VitePress documentation
-├── Cargo.toml            Workspace manifest
-├── deny.toml             cargo-deny policy
-└── rust-toolchain.toml   Pinned Rust toolchain
-```
+| Command | Target | Description |
+|---------|--------|-------------|
+| `cargo run --bin phenoctl` | Rust | Run the `phenoctl` CLI |
+| `cargo test --workspace` | Rust | Run all Rust unit + integration tests |
+| `cargo deny check` | Rust | License / security audit |
+| `bun run typecheck` | TypeScript | TypeScript type checking |
+| `bun run lint` | TypeScript | Biome lint |
+| `bun run format` | TypeScript | Biome format |
+| `bun run setup` | TypeScript | Generate dependency verify files |
+| `helios-bench` | Python | Run benchmark harness |
+| `just build` | All | Build all Rust crates |
+| `just test` | All | Run test suite |
+| `just lint` | All | Lint check |
+| `just doc` | All | Generate docs preview |
+| `just deny` | All | Cargo-deny audit |
+| `just grade` | All | Print tier-0 hygiene score |
+| `just ci` | All | Full CI simulation (lint → test → deny) |
 
-## Development
+## Documentation
 
-```bash
-# Build everything
-cargo build --workspace
-
-# Run tests
-cargo test --workspace
-
-# Lint and deny checks
-cargo clippy --workspace -- -D warnings
-cargo deny check
-cargo audit
-
-# Format
-cargo fmt --all -- --check
-
-# TypeScript agent layer (inside Agentora/)
-cd Agentora/adapters/web/agent-platform
-npm install
-npm test
-```
-
-## Contributing
-
-1. Fork the repository and create a feature branch.
-2. Make changes following existing code conventions.
-3. Run `cargo test --workspace`, `cargo clippy`, and `cargo deny check` before pushing.
-4. Open a pull request with a clear description of the change.
-5. One reviewer required; no force-pushes to `main`.
+- **Architecture Decisions** — `docs/adr/`
+- **User Journeys** — `docs/journeys/` (Quick Start, Core Integration, Production Setup)
+- **API Reference** — `docs/api/`
+- **Development Guide** — `docs/development-guide.md`
+- **Specifications** — `docs/specs/`
+- **Governance** — `docs/governance/`
 
 ## License
 
-Licensed under either of:
-
-- [MIT License](LICENSE-MIT)
-- [Apache License, Version 2.0](LICENSE-APACHE)
-
-at your option.
-
-## Related Repos
-
-| Repository | Description |
-|-----------|-------------|
-| [PhenoInfra](https://github.com/KooshaPari/PhenoInfra) | Shared infrastructure crates (crypto, health, observability, state-machine) |
-| [PhenoObservability](https://github.com/KooshaPari/PhenoObservability) | OTLP observability and `pheno-otel` |
-| [pheno](https://github.com/KooshaPari/pheno) | Phenotype Infrastructure Kit — 85 crates |
-| [phenotooling](https://github.com/KooshaPari/phenotooling) | Org-internal tooling (Rust + TS) |
-| [omniroute](https://github.com/KooshaPari/omniroute) | AI model routing proxy |
+Licensed under **MIT OR Apache-2.0** (dual-licensed). See the LICENSE file for details.
