@@ -51,7 +51,7 @@ fn mapError(e: anyerror) i32 {
 
 /// Initialise the process-wide pool. Returns 0 on success, an ERR_* otherwise.
 /// Calling it again reinitialises, which invalidates every outstanding handle.
-export fn pty_pool_create(max_pty: u32) i32 {
+pub export fn pty_pool_create(max_pty: u32) i32 {
     if (max_pty == 0 or max_pty > CAPACITY) return ERR_INVALID;
     g_pool.init();
     for (&g_rings) |*r| r.clear();
@@ -60,7 +60,7 @@ export fn pty_pool_create(max_pty: u32) i32 {
 }
 
 /// Spawn a shell in a new PTY. Returns a handle, or a negative ERR_*.
-export fn pty_pool_spawn(
+pub export fn pty_pool_spawn(
     shell: [*:0]const u8,
     cwd: ?[*:0]const u8,
     cols: u16,
@@ -96,7 +96,7 @@ export fn pty_pool_spawn(
 
 /// Read available bytes from the PTY fd into the slot's ring buffer.
 /// Returns bytes buffered, 0 if nothing was ready, or a negative ERR_*.
-export fn pty_pool_pump(handle: i32) i32 {
+pub export fn pty_pool_pump(handle: i32) i32 {
     if (!g_initialised) return ERR_NOT_INIT;
 
     const slot = g_pool.get(handle) catch |e| return mapError(e);
@@ -128,7 +128,7 @@ export fn pty_pool_pump(handle: i32) i32 {
 }
 
 /// Drain buffered bytes out of the ring into `out`.
-export fn pty_pool_read(handle: i32, out: [*]u8, out_len: u32) i32 {
+pub export fn pty_pool_read(handle: i32, out: [*]u8, out_len: u32) i32 {
     if (!g_initialised) return ERR_NOT_INIT;
     _ = g_pool.get(handle) catch |e| return mapError(e);
     if (out_len == 0) return 0;
@@ -138,7 +138,7 @@ export fn pty_pool_read(handle: i32, out: [*]u8, out_len: u32) i32 {
 }
 
 /// Bytes currently buffered for this session.
-export fn pty_pool_readable(handle: i32) i32 {
+pub export fn pty_pool_readable(handle: i32) i32 {
     if (!g_initialised) return ERR_NOT_INIT;
     _ = g_pool.get(handle) catch |e| return mapError(e);
     const idx: usize = @intCast(handle & 0xFFFFF);
@@ -146,7 +146,7 @@ export fn pty_pool_readable(handle: i32) i32 {
 }
 
 /// Send input to the child. Returns bytes written, or a negative ERR_*.
-export fn pty_pool_write(handle: i32, data: [*]const u8, len: u32) i32 {
+pub export fn pty_pool_write(handle: i32, data: [*]const u8, len: u32) i32 {
     if (!g_initialised) return ERR_NOT_INIT;
 
     const slot = g_pool.get(handle) catch |e| return mapError(e);
@@ -162,7 +162,7 @@ export fn pty_pool_write(handle: i32, data: [*]const u8, len: u32) i32 {
 }
 
 /// Resize the PTY window. Returns 0 on success, a negative ERR_* otherwise.
-export fn pty_pool_resize(handle: i32, cols: u16, rows: u16) i32 {
+pub export fn pty_pool_resize(handle: i32, cols: u16, rows: u16) i32 {
     if (!g_initialised) return ERR_NOT_INIT;
     if (cols == 0 or rows == 0) return ERR_INVALID;
 
@@ -176,21 +176,21 @@ export fn pty_pool_resize(handle: i32, cols: u16, rows: u16) i32 {
 }
 
 /// Lifecycle state: 0 closed, 1 running, 2 exited, 3 errored.
-export fn pty_pool_state(handle: i32) i32 {
+pub export fn pty_pool_state(handle: i32) i32 {
     if (!g_initialised) return ERR_NOT_INIT;
     const slot = g_pool.get(handle) catch |e| return mapError(e);
     return @intFromEnum(slot.state);
 }
 
 /// Child exit code. -2 means "not reaped yet"; signals are reported negative.
-export fn pty_pool_exit_code(handle: i32) i32 {
+pub export fn pty_pool_exit_code(handle: i32) i32 {
     if (!g_initialised) return ERR_NOT_INIT;
     const slot = g_pool.get(handle) catch |e| return mapError(e);
     return slot.exit_code;
 }
 
 /// Non-blocking reap; updates state and exit code when the child has finished.
-export fn pty_pool_reap(handle: i32) i32 {
+pub export fn pty_pool_reap(handle: i32) i32 {
     if (!g_initialised) return ERR_NOT_INIT;
     const slot = g_pool.get(handle) catch |e| return mapError(e);
     if (slot.state != .running) return 0;
@@ -203,7 +203,7 @@ export fn pty_pool_reap(handle: i32) i32 {
 }
 
 /// Terminate and release one session.
-export fn pty_pool_destroy(handle: i32) i32 {
+pub export fn pty_pool_destroy(handle: i32) i32 {
     if (!g_initialised) return ERR_NOT_INIT;
 
     const slot = g_pool.get(handle) catch |e| return mapError(e);
@@ -220,7 +220,7 @@ export fn pty_pool_destroy(handle: i32) i32 {
 }
 
 /// Terminate and release every session.
-export fn pty_pool_destroy_all() void {
+pub export fn pty_pool_destroy_all() void {
     if (!g_initialised) return;
 
     var views: [CAPACITY]pool_mod.SlotView = undefined;
@@ -232,18 +232,18 @@ export fn pty_pool_destroy_all() void {
 }
 
 /// Number of live sessions.
-export fn pty_pool_live_count() i32 {
+pub export fn pty_pool_live_count() i32 {
     if (!g_initialised) return ERR_NOT_INIT;
     return @intCast(g_pool.liveCount());
 }
 
 /// Slots still available.
-export fn pty_pool_available() i32 {
+pub export fn pty_pool_available() i32 {
     if (!g_initialised) return ERR_NOT_INIT;
     return @intCast(g_pool.available());
 }
 
 /// Build metadata, so the bridge can assert it loaded a compatible library.
-export fn pty_pool_abi_version() u32 {
+pub export fn pty_pool_abi_version() u32 {
     return 2;
 }
