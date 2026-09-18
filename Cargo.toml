@@ -11,15 +11,21 @@ edition = "2021"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", default-features = false, features = ["env-filter", "fmt"] }
 clap = { version = "4.5", features = ["derive", "wrap_help"] }
-clap-ext = { git = "https://github.com/<REDACTED>/clap-ext", tag = "v0.1.0" }
+# clap-ext: upstream KooshaPari/clap-ext was retired. The crate is now vendored in
+# PhenoShared as a workspace member (crates/clap-ext), whose own manifest records
+# the retirement. Cargo locates the package by name inside the repo's workspace,
+# so no subdirectory key is needed (and cargo does not accept one for git deps).
+clap-ext = { git = "https://github.com/KooshaPari/PhenoShared", rev = "c035018315e38ffd3a8a893a32e559863fbee98b" }
 # Use pheno-otel from PhenoObservability v0.1.0 (ADR-037 substrate).
-# Git + tag + subdirectory form pins the crate to a known-good release
-# so all consumers across the pheno-* fleet see the same OTLP wire-format
-# export surface. See https://github.com/<REDACTED>/PhenoObservability/releases/tag/v0.1.0
-pheno-otel = { git = "https://github.com/<REDACTED>/PhenoObservability", tag = "v0.1.0", subdirectory = "pheno-otel" }
+# The PhenoObservability repo is gone; the crate is now a workspace member of
+# PhenoShared, at crates/argis-extensions/pheno-otel.
+pheno-otel = { git = "https://github.com/KooshaPari/PhenoShared", rev = "c035018315e38ffd3a8a893a32e559863fbee98b" }
 
 # --- Phenotype shared infrakit crates (from PhenoInfra) ---
-phenotype-crypto = { git = "https://github.com/<REDACTED>/PhenoInfra.git", rev = "dd040ed1" }
-phenotype-health = { git = "https://github.com/<REDACTED>/PhenoInfra.git", rev = "dd040ed1" }
-phenotype-observability = { git = "https://github.com/<REDACTED>/PhenoInfra.git", rev = "dd040ed1" }
-phenotype-state-machine = { git = "https://github.com/<REDACTED>/PhenoInfra.git", rev = "dd040ed1" }
+# Org restored. KooshaPari/PhenoInfra exists at this exact rev, with these crates
+# under infrakit/crates/. Nothing inherits them yet, so they are absent from
+# Cargo.lock, but the pins are valid and usable.
+phenotype-crypto = { git = "https://github.com/KooshaPari/PhenoInfra.git", rev = "dd040ed1" }
+phenotype-health = { git = "https://github.com/KooshaPari/PhenoInfra.git", rev = "dd040ed1" }
+phenotype-observability = { git = "https://github.com/KooshaPari/PhenoInfra.git", rev = "dd040ed1" }
+phenotype-state-machine = { git = "https://github.com/KooshaPari/PhenoInfra.git", rev = "dd040ed1" }
