@@ -14,7 +14,11 @@ plugins:
     - id: trunk
       uri: https://github.com/trunk-io/plugins
       ref: v1.2.2
+    # The community source needs the same uri. CI confirmed this rather than my
+    # guessing: after fixing the trunk source the error simply moved from
+    # "[trunk] ... 11:7" to "[community] ... 17:7", same trunk/config-error.
     - id: community
+      uri: https://github.com/trunk-io/plugins
       ref: main
 
 cli:
