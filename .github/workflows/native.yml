@@ -8,15 +8,18 @@ name: native
 # macOS-first) and because the cgo build genuinely needs a real toolchain.
 
 on:
+  # This job runs three tools from tools/, so a change to any of them has to
+  # re-run it. Listing only the native build script meant that editing the
+  # checks themselves did not trigger the workflow that runs them.
   push:
     paths:
       - "packages/**"
-      - "tools/build-native.ts"
+      - "tools/**"
       - ".github/workflows/native.yml"
   pull_request:
     paths:
       - "packages/**"
-      - "tools/build-native.ts"
+      - "tools/**"
       - ".github/workflows/native.yml"
   workflow_dispatch:
 
@@ -59,6 +62,13 @@ jobs:
       # and catches drift in the hand-maintained symbol tables.
       - name: FFI symbol contract
         run: bun tools/check-abi.ts
+
+      # The contract check reports only what its parsers return, so a parser
+      # that matches nothing reports a contract that holds. These pin the two
+      # shapes that broke exactly that way: the nested `args`/`returns` pairs,
+      # and the `pub` on every Zig export.
+      - name: FFI symbol contract parser tests
+        run: bun test tests/unit/abi-parsers.test.ts
 
       # Nothing else verifies the renderer bundles: the unit tests import
       # modules directly, and the real app build needs macOS and Electrobun. So
