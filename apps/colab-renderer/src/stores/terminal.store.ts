@@ -89,19 +89,24 @@ export function createTerminal(): string {
 	const active = getManager();
 	if (active !== null) {
 		try {
-			active.open(id, { shell: "/bin/zsh", cwd: undefined }, {
-				onData: (chunk) => publish(id, chunk),
-				onExit: () => {
-					// The child is gone. Leave the tab in place so its final
-					// output stays readable, but stop claiming it is live.
-					publish(id, new TextEncoder().encode("\r\n[process exited]\r\n"));
+			active.open(
+				id,
+				{ shell: "/bin/zsh", cwd: undefined },
+				{
+					onData: (chunk) => publish(id, chunk),
+					onExit: () => {
+						// The child is gone. Leave the tab in place so its final
+						// output stays readable, but stop claiming it is live.
+						publish(id, new TextEncoder().encode("\r\n[process exited]\r\n"));
+					},
 				},
-			});
+			);
 		} catch (cause) {
 			// Opening can fail for reasons that are not a missing library, such
 			// as exhausting the pool. Record it rather than leaving the user
 			// with a tab that silently does nothing.
-			unavailableReason = cause instanceof Error ? cause.message : String(cause);
+			unavailableReason =
+				cause instanceof Error ? cause.message : String(cause);
 		}
 	}
 
@@ -150,7 +155,11 @@ export function writeToTerminal(terminalId: string, data: string): void {
 }
 
 /** Tell the shell its window changed, so full-screen programs redraw. */
-export function resizeTerminal(terminalId: string, cols: number, rows: number): void {
+export function resizeTerminal(
+	terminalId: string,
+	cols: number,
+	rows: number,
+): void {
 	manager?.resize(terminalId, cols, rows);
 }
 
@@ -162,4 +171,4 @@ export function closeAllTerminals(): void {
 
 export function isTerminalLive(id: string): boolean {
 	return manager?.has(id) ?? false;
-}  
+}

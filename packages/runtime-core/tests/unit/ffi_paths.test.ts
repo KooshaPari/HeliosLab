@@ -29,47 +29,47 @@ const PLACEHOLDER_DIR = join(REPO, "packages", "pty-pool", "zig-out", "lib");
 const PLACEHOLDER = join(PLACEHOLDER_DIR, "libhelios-pty.dylib");
 
 function cleanup(): void {
-  rmSync(PLACEHOLDER, { force: true });
-  rmSync(PLACEHOLDER_DIR, { recursive: true, force: true });
+	rmSync(PLACEHOLDER, { force: true });
+	rmSync(PLACEHOLDER_DIR, { recursive: true, force: true });
 }
 
 describe("native library search paths", () => {
-  afterAll(cleanup);
+	afterAll(cleanup);
 
-  test("the bridge resolves a build output placed at the canonical location", async () => {
-    cleanup();
-    mkdirSync(PLACEHOLDER_DIR, { recursive: true });
-    // Deliberately not a valid library. Loading is expected to fail; what
-    // matters is which failure.
-    writeFileSync(PLACEHOLDER, "not a real library");
+	test("the bridge resolves a build output placed at the canonical location", async () => {
+		cleanup();
+		mkdirSync(PLACEHOLDER_DIR, { recursive: true });
+		// Deliberately not a valid library. Loading is expected to fail; what
+		// matters is which failure.
+		writeFileSync(PLACEHOLDER, "not a real library");
 
-    // Imported dynamically so the path is computed in the same process, and so
-    // this file does not fail to load if the bridge is later made eager.
-    const { nativeStatus, resetNativeStatusCache } = await import(
-      "../../src/ffi/index.ts"
-    );
+		// Imported dynamically so the path is computed in the same process, and so
+		// this file does not fail to load if the bridge is later made eager.
+		const { nativeStatus, resetNativeStatusCache } = await import(
+			"../../src/ffi/index.ts"
+		);
 
-    // Load results are cached at module scope, so another test file in the same
-    // run may already have probed and recorded "nothing found". Without this
-    // reset the test passes alone and fails in the suite.
-    resetNativeStatusCache();
+		// Load results are cached at module scope, so another test file in the same
+		// run may already have probed and recorded "nothing found". Without this
+		// reset the test passes alone and fails in the suite.
+		resetNativeStatusCache();
 
-    const status = nativeStatus();
+		const status = nativeStatus();
 
-    expect(status.pty.ok).toBe(false);
-    if (status.pty.ok) return;
+		expect(status.pty.ok).toBe(false);
+		if (status.pty.ok) return;
 
-    const reason = status.pty.reason;
+		const reason = status.pty.reason;
 
-    // The real assertion: the resolver reached the file. If the search paths
-    // regress to the doubled "packages/packages/..." form, the resolver finds
-    // nothing and the reason becomes "no build output found on disk".
-    expect(reason).not.toContain("no build output found on disk");
-    expect(reason).toContain("libhelios-pty.dylib");
-    // And it must be the corrected path, not some other directory that happens
-    // to contain a file of that name.
-    expect(reason.replace(/\\/g, "/")).toContain(
-      "packages/pty-pool/zig-out/lib/libhelios-pty.dylib",
-    );
-  });
+		// The real assertion: the resolver reached the file. If the search paths
+		// regress to the doubled "packages/packages/..." form, the resolver finds
+		// nothing and the reason becomes "no build output found on disk".
+		expect(reason).not.toContain("no build output found on disk");
+		expect(reason).toContain("libhelios-pty.dylib");
+		// And it must be the corrected path, not some other directory that happens
+		// to contain a file of that name.
+		expect(reason.replace(/\\/g, "/")).toContain(
+			"packages/pty-pool/zig-out/lib/libhelios-pty.dylib",
+		);
+	});
 });

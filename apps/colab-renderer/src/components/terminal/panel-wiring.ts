@@ -14,21 +14,21 @@
 
 /** The subset of the xterm Terminal this wiring needs. */
 export interface TerminalLike {
-  readonly cols: number;
-  readonly rows: number;
-  write(chunk: Uint8Array): void;
-  onData(handler: (data: string) => void): { dispose(): void };
+	readonly cols: number;
+	readonly rows: number;
+	write(chunk: Uint8Array): void;
+	onData(handler: (data: string) => void): { dispose(): void };
 }
 
 /** The store functions the wiring calls. Passed in rather than imported, so a
  *  test can supply its own and assert on them. */
 export interface TerminalWiringDeps {
-  subscribeToTerminal(
-    terminalId: string,
-    listener: (chunk: Uint8Array) => void,
-  ): () => void;
-  writeToTerminal(terminalId: string, data: string): void;
-  resizeTerminal(terminalId: string, cols: number, rows: number): void;
+	subscribeToTerminal(
+		terminalId: string,
+		listener: (chunk: Uint8Array) => void,
+	): () => void;
+	writeToTerminal(terminalId: string, data: string): void;
+	resizeTerminal(terminalId: string, cols: number, rows: number): void;
 }
 
 /**
@@ -39,26 +39,26 @@ export interface TerminalWiringDeps {
  * terminal and keeps delivering output to a disposed xterm instance.
  */
 export function wireTerminal(
-  terminalId: string,
-  terminal: TerminalLike,
-  deps: TerminalWiringDeps,
+	terminalId: string,
+	terminal: TerminalLike,
+	deps: TerminalWiringDeps,
 ): { dispose: () => void } {
-  // Output: shell -> xterm.
-  const unsubscribe = deps.subscribeToTerminal(terminalId, (chunk) => {
-    terminal.write(chunk);
-  });
+	// Output: shell -> xterm.
+	const unsubscribe = deps.subscribeToTerminal(terminalId, (chunk) => {
+		terminal.write(chunk);
+	});
 
-  // Input: xterm -> shell.
-  const input = terminal.onData((data) => {
-    deps.writeToTerminal(terminalId, data);
-  });
+	// Input: xterm -> shell.
+	const input = terminal.onData((data) => {
+		deps.writeToTerminal(terminalId, data);
+	});
 
-  return {
-    dispose: () => {
-      unsubscribe();
-      input.dispose();
-    },
-  };
+	return {
+		dispose: () => {
+			unsubscribe();
+			input.dispose();
+		},
+	};
 }
 
 /**
@@ -71,9 +71,9 @@ export function wireTerminal(
  * caller cannot report a stale size it captured earlier.
  */
 export function reportTerminalSize(
-  terminalId: string,
-  terminal: TerminalLike,
-  deps: TerminalWiringDeps,
+	terminalId: string,
+	terminal: TerminalLike,
+	deps: TerminalWiringDeps,
 ): void {
-  deps.resizeTerminal(terminalId, terminal.cols, terminal.rows);
-}  
+	deps.resizeTerminal(terminalId, terminal.cols, terminal.rows);
+}
