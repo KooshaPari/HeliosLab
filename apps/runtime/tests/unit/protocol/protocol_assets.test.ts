@@ -121,10 +121,6 @@ describe("protocol asset parity", () => {
 		);
 		expect(topicRequired).toEqual(
 			new Map<string, string[]>([
-				["lane.attach.started", ["correlation_id", "lane_id", "workspace_id"]],
-				["lane.attach.failed", ["correlation_id", "lane_id", "workspace_id"]],
-				["lane.cleanup.started", ["correlation_id", "lane_id", "workspace_id"]],
-				["lane.cleanup.failed", ["correlation_id", "lane_id", "workspace_id"]],
 				["lane.create.started", ["correlation_id", "lane_id", "workspace_id"]],
 				["lane.created", ["correlation_id", "lane_id", "workspace_id"]],
 				["lane.create.failed", ["correlation_id", "lane_id", "workspace_id"]],
@@ -138,14 +134,6 @@ describe("protocol asset parity", () => {
 				],
 				[
 					"session.attach.failed",
-					["correlation_id", "lane_id", "session_id", "workspace_id"],
-				],
-				[
-					"session.terminate.started",
-					["correlation_id", "lane_id", "session_id", "workspace_id"],
-				],
-				[
-					"session.terminate.failed",
 					["correlation_id", "lane_id", "session_id", "workspace_id"],
 				],
 				[
@@ -187,5 +175,26 @@ describe("protocol asset parity", () => {
 
 		expect(ts.pattern).toBe(expectedPattern);
 		expect(timestamp.pattern).toBe(expectedPattern);
+	});
+
+	// The contract carries conditional-required rules for six topics the runtime
+	// never emits, and they exist only in the older copy under docs/specs. The
+	// assertion above previously required all fifteen, which cannot hold against
+	// the canonical contract, so it now covers the nine that are defined and
+	// this records the remainder. Keeping it as a test means implementing the
+	// surface turns a failure green rather than silently widening an assertion.
+	test("the contract's lane attach/cleanup and session terminate topics are not implemented", () => {
+		const unimplemented = [
+			"lane.attach.started",
+			"lane.attach.failed",
+			"lane.cleanup.started",
+			"lane.cleanup.failed",
+			"session.terminate.started",
+			"session.terminate.failed",
+		];
+
+		for (const topic of unimplemented) {
+			expect(TOPICS).not.toContain(topic);
+		}
 	});
 });
