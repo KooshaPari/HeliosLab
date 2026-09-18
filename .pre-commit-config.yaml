@@ -80,12 +80,14 @@ repos:
 
   # ── Secret scanning ──
   - repo: https://github.com/gitleaks/gitleaks
-    rev: v8.28.1
+    # v8.28.1 does not exist. pre-commit failed with "pathspec 'v8.28.1' did not
+    # match any file(s) known to git"; the real tags jump v8.28.0 -> v8.29.0.
+    # Using the closest existing tag rather than the newest, to avoid changing
+    # scanner behaviour while only intending to fix the pin.
+    rev: v8.28.0
     hooks:
       - id: gitleaks
 
-  # ── Trunk.io (if installed) ──
-  - repo: https://github.com/trunk-io/trunk
-    rev: v1.0.0
-    hooks:
-      - id: trunk-check
+  # The trunk-io/trunk entry was removed: that repo returns 404 on the GitHub
+  # API, so pre-commit could never check it out. Trunk is already run by its own
+  # workflow (trunk-check.yml via trunk-io/trunk-action), so nothing is lost.
