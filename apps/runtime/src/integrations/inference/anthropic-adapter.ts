@@ -12,7 +12,6 @@ export class AnthropicInferenceEngine implements InferenceEngine {
 	readonly name = "Anthropic (Cloud)";
 	readonly type = "cloud" as const;
 	private apiKey: string;
-	private endpoint: string;
 	private client: KyInstance;
 
 	constructor(apiKey?: string, endpoint = "https://api.anthropic.com") {
@@ -21,7 +20,6 @@ export class AnthropicInferenceEngine implements InferenceEngine {
 			process.env.HELIOS_ACP_API_KEY ??
 			process.env.ANTHROPIC_API_KEY ??
 			"";
-		this.endpoint = endpoint;
 		this.client = ky.create({
 			prefix: endpoint,
 			retry: {
