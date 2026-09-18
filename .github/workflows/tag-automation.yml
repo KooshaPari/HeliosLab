@@ -1,18 +1,23 @@
 name: Tag Automation
 
-# Delegates to phenoShared reusable workflow.
-# See: https://github.com/<REDACTED>/phenoShared/blob/main/.github/workflows/reusable/tag-automation.yml
+# DISABLED: this called a reusable workflow in <REDACTED>/phenoShared, which no
+# longer resolves, so every run failed at startup without a job ever starting.
+# Same treatment as vitepress-pages.yml and the promote job in release.yml.
+# Restore the `uses:` call below only once that repository is reachable.
 
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  tag:
-    uses: <REDACTED>/phenoShared/.github/workflows/tag-automation.yml@bf2c65ac776d0c759406dfdb8551e6b344914ea0
-    permissions:
-      contents: write
+  disabled:
+    name: disabled (upstream reusable workflow is gone)
+    if: false
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Tag automation is disabled; see the note at the top of this file."
