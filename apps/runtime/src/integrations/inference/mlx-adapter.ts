@@ -10,7 +10,6 @@ export class MlxInferenceEngine implements InferenceEngine {
 	readonly id = "mlx";
 	readonly name = "MLX (Apple Silicon)";
 	readonly type = "local" as const;
-	constructor(_modelPath = "~/.cache/mlx-models/") {}
 
 	async init(): Promise<void> {
 		const hw = await detectHardware();
