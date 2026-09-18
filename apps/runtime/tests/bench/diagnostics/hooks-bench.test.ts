@@ -4,7 +4,9 @@
  */
 import { describe, expect, it } from "bun:test";
 import { createInstrumentationHooks } from "../../../src/diagnostics/hooks.js";
-
+// Missing, so any benchmark that built a registry died with
+// "MetricsRegistry is not defined" before it could measure anything.
+import { MetricsRegistry } from "../../../src/diagnostics/metrics.js";
 import { computePercentiles } from "../../../src/diagnostics/percentiles.js";
 import { SLOMonitor } from "../../../src/diagnostics/slo.js";
 import type { SLODefinition } from "../../../src/diagnostics/types.js";
