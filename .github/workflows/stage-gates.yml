@@ -108,7 +108,10 @@ jobs:
           version: 0.16.0
       - name: Build the Zig PTY library
         working-directory: packages/pty-pool
-        run: zig build -Drelease-fast
+        # `zig build lib` is the step that emits the shared library, matching
+        # native.yml. Not `-Drelease-fast`: zig 0.16 rejects that flag outright
+        # with "invalid option", which is also why tools/build-native.ts fails.
+        run: zig build lib
       - name: Run tests
         run: bun run test
 

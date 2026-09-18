@@ -15,7 +15,10 @@ const PACKAGES = join(ROOT, "../packages");
 async function buildZig() {
 	console.log("🔧 Building Zig PTY Pool...");
 	try {
-		await $`cd ${PACKAGES}/pty-pool && zig build -Drelease-fast`;
+		// `-Drelease-fast` is not a zig flag; zig 0.16 rejects it with "invalid
+		// option" and the build fails. build.zig uses standardOptimizeOption and
+		// exposes a `lib` step, so this is the correct invocation.
+		await $`cd ${PACKAGES}/pty-pool && zig build lib -Doptimize=ReleaseFast`;
 		console.log("✅ Zig PTY Pool built");
 	} catch (e) {
 		console.error("❌ Zig build failed:", e.message);
