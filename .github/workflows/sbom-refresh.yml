@@ -1,7 +1,7 @@
 name: Monthly SBOM Refresh
 
 # The reusable workflow lives in KooshaPari/PhenoShared. It was previously
-# referenced as <REDACTED>/phenotype-tooling, which does not exist under any
+# referenced as KooshaPari/phenotype-tooling, which does not exist under any
 # name, so this workflow failed at startup without a job ever starting. The
 # org was redacted during a PII sweep; the real org is KooshaPari.
 

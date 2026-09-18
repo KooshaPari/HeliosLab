@@ -5,7 +5,7 @@
 	"record_status": "OPERATIONAL",
 	"example_class": "REAL_ASSESSMENT",
 	"title": "HeliosLab Assessment",
-	"subtitle": "Source-level assessment of <REDACTED>/HeliosLab — 6 crates, 3K LOC, 53 CI workflows. Compact crypto/CLI/FFI library.",
+	"subtitle": "Source-level assessment of KooshaPari/HeliosLab — 6 crates, 3K LOC, 53 CI workflows. Compact crypto/CLI/FFI library.",
 	"purpose": "Evaluate HeliosLab's architecture, implementation quality, testing, cross-consumption, and readiness.",
 	"boundary": "Source-level only. No runtime evidence.",
 	"beneficiary": "HeliosLab product owner and Phenotype ecosystem",

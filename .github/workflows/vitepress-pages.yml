@@ -1,5 +1,5 @@
 name: VitePress Pages (disabled)
-# DISABLED: depends on missing repo <REDACTED>/heliosApp (404).
+# DISABLED: depends on missing repo KooshaPari/heliosApp (404).
 # The canonical Pages workflow is pages.yml. This file is preserved for
 # provenance and only runs via manual workflow_dispatch so the dependency
 # is visible but does not block PRs/main.
