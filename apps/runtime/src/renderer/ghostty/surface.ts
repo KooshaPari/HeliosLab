@@ -55,7 +55,6 @@ const MAX_GPU_MEMORY_PER_TERMINAL_BYTES = 10 * 1024 * 1024;
 export class GhosttySurface {
 	private _bound = false;
 	private _surface: RenderSurface | undefined;
-	private _processPid: number | undefined;
 
 	// T011: GPU rendering state
 	private _gpuMode: GpuRenderingMode = "unknown";
@@ -110,7 +109,7 @@ export class GhosttySurface {
 	 * @param gpuAvailable - Whether a GPU is available on the system (T011).
 	 * @throws {SurfaceBindingError} if binding fails.
 	 */
-	bind(surface: RenderSurface, processPid: number, gpuAvailable = true): void {
+	bind(surface: RenderSurface, _processPid: number, gpuAvailable = true): void {
 		if (this._bound) {
 			this.unbind();
 		}
@@ -119,14 +118,12 @@ export class GhosttySurface {
 		if (surface.bounds.width <= 0 || surface.bounds.height <= 0) {
 			// Zero-size surface (e.g., minimized window) -- bind but skip rendering
 			this._surface = surface;
-			this._processPid = processPid;
 			this._bound = true;
 			this._gpuMode = "unknown";
 			return;
 		}
 
 		this._surface = surface;
-		this._processPid = processPid;
 		this._bound = true;
 
 		// T011: Attempt GPU rendering initialisation
@@ -145,7 +142,6 @@ export class GhosttySurface {
 		}
 		this._stopMemoryMonitoring();
 		this._surface = undefined;
-		this._processPid = undefined;
 		this._bound = false;
 		this._gpuMode = "unknown";
 		this._gpuFallbackOccurred = false;
