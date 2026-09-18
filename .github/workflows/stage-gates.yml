@@ -98,6 +98,17 @@ jobs:
         uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
       - name: Install dependencies
         run: bun install
+      # `bun run test` includes packages/runtime-core/tests/unit/pty_live.test.ts,
+      # which drives a real PTY through the FFI bridge and, by its own design,
+      # fails loudly rather than skipping on macOS and Linux. Without this build
+      # it failed with NativeUnavailableError before asserting anything. Zig
+      # builds for the host, so this produces libhelios-pty.so on this runner.
+      - uses: mlugg/setup-zig@v2
+        with:
+          version: 0.16.0
+      - name: Build the Zig PTY library
+        working-directory: packages/pty-pool
+        run: zig build -Drelease-fast
       - name: Run tests
         run: bun run test
 
