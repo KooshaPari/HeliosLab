@@ -21,7 +21,9 @@ export const ShareModal: Component<ShareModalProps> = (props) => {
 
 	return (
 		<Show when={props.isOpen}>
-			<div role="button" tabIndex={0}
+			<div
+				role="button"
+				tabIndex={0}
 				style={{
 					position: "fixed",
 					inset: "0",
@@ -32,9 +34,13 @@ export const ShareModal: Component<ShareModalProps> = (props) => {
 					"z-index": "1000",
 				}}
 				onClick={props.onClose}
-				onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") props.onClose }}
+				onKeyDown={(e) => {
+					if (e.key === "Enter" || e.key === " ") props.onClose;
+				}}
 			>
-				<div role="button" tabIndex={0}
+				<div
+					role="button"
+					tabIndex={0}
 					style={{
 						"background-color": "#313244",
 						"border-radius": "12px",
@@ -43,7 +49,10 @@ export const ShareModal: Component<ShareModalProps> = (props) => {
 						"max-width": "500px",
 					}}
 					onClick={(e: MouseEvent) => e.stopPropagation()}
-					onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") (e: MouseEvent) => e.stopPropagation() }}
+					onKeyDown={(e) => {
+						if (e.key === "Enter" || e.key === " ")
+							(e: MouseEvent) => e.stopPropagation();
+					}}
 				>
 					<h3
 						style={{
@@ -74,7 +83,8 @@ export const ShareModal: Component<ShareModalProps> = (props) => {
 						>
 							{props.shareUrl || "Generating link..."}
 						</code>
-						<button type="button"
+						<button
+							type="button"
 							onClick={copyToClipboard}
 							style={{
 								background: copied() ? "#a6e3a1" : "#89b4fa",
@@ -90,7 +100,8 @@ export const ShareModal: Component<ShareModalProps> = (props) => {
 							{copied() ? "Copied!" : "Copy"}
 						</button>
 					</div>
-					<button type="button"
+					<button
+						type="button"
 						onClick={props.onClose}
 						style={{
 							"margin-top": "16px",

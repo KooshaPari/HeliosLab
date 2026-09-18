@@ -53,7 +53,8 @@ export const Sidebar: Component = () => {
 					"border-bottom": "1px solid #313244",
 				}}
 			>
-				<button type="button"
+				<button
+					type="button"
 					onClick={newChat}
 					style={{
 						width: "100%",

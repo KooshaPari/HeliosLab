@@ -1345,8 +1345,7 @@ export default declareComponent(ColabBadge, {
 		async (ctx) => {
 			if (!ctx.filePath) return;
 
-			const { writeFileSync, mkdirSync } =
-				await import("node:fs");
+			const { writeFileSync, mkdirSync } = await import("node:fs");
 			const { statSync } = await import("node:fs");
 			const { join, dirname } = await import("node:path");
 

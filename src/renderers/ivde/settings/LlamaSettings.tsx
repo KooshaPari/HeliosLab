@@ -512,7 +512,11 @@ export const LlamaSettings = (): JSXElement => {
 											</div>
 											<div>
 												{isInstalling() ? (
-													<div role="button" tabIndex={0} style="display: flex; align-items: center; gap: 6px;">
+													<div
+														role="button"
+														tabIndex={0}
+														style="display: flex; align-items: center; gap: 6px;"
+													>
 														<div style="width: 12px; height: 12px; border: 1px solid #666; border-top: 1px solid #fff; border-radius: 50%; animation: spin 1s linear infinite;"></div>
 														<span style="font-size: 10px; color: #ffa500;">
 															Installing...
@@ -526,7 +530,10 @@ export const LlamaSettings = (): JSXElement => {
 													<button
 														type="button"
 														onClick={() => installModel(model.name, model.ref)}
-														onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") installModel(model.name, model.ref) }}
+														onKeyDown={(e) => {
+															if (e.key === "Enter" || e.key === " ")
+																installModel(model.name, model.ref);
+														}}
 														style="background: #0073e6; color: white; border: none; padding: 4px 12px; border-radius: 3px; cursor: pointer; font-size: 11px;"
 														disabled={installingModel() !== null}
 													>

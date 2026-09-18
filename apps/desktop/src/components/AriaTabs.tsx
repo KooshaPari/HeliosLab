@@ -5,7 +5,7 @@
 //
 // Reference: https://www.w3.org/WAI/ARIA/apg/patterns/tabs/
 
-import { type Component, type JSX, createSignal, For, Show } from "solid-js";
+import { type Component, createSignal, For, type JSX, Show } from "solid-js";
 
 export interface TabDef {
 	id: string;
@@ -73,7 +73,9 @@ export const AriaTabs: Component<AriaTabsProps> = (props) => {
 							tabindex={activeId() === t.id ? 0 : -1}
 							aria-keyshortcuts={t.ariaKeyshortcuts}
 							onClick={() => focusTab(t.id)}
-							onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") focusTab(t.id) }}
+							onKeyDown={(e) => {
+								if (e.key === "Enter" || e.key === " ") focusTab(t.id);
+							}}
 						>
 							{t.label}
 						</button>

@@ -35,7 +35,9 @@ export const GitHubStatus = (): JSXElement => {
 	};
 
 	return (
-		<div role="button" tabIndex={0}
+		<div
+			role="button"
+			tabIndex={0}
 			style={{
 				margin: "0 5px",
 				color: getStatusColor(),
@@ -46,7 +48,9 @@ export const GitHubStatus = (): JSXElement => {
 				"font-size": "11px",
 			}}
 			onClick={handleGitHubClick}
-			onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") handleGitHubClick }}
+			onKeyDown={(e) => {
+				if (e.key === "Enter" || e.key === " ") handleGitHubClick;
+			}}
 			title="Click to open GitHub integration settings"
 		>
 			<span>{getIcon()}</span>

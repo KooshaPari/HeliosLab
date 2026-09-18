@@ -78,10 +78,7 @@
 			}
 		},
 		{
-			"includes": [
-				"tests/**",
-				"scripts/**"
-			],
+			"includes": ["tests/**", "scripts/**"],
 			"linter": {
 				"rules": {
 					"suspicious": {
@@ -98,9 +95,7 @@
 			}
 		},
 		{
-			"includes": [
-				"webflow-plugin/**"
-			],
+			"includes": ["webflow-plugin/**"],
 			"linter": {
 				"rules": {
 					"a11y": {
@@ -112,9 +107,7 @@
 			}
 		},
 		{
-			"includes": [
-				"docs/**"
-			],
+			"includes": ["docs/**"],
 			"linter": {
 				"rules": {
 					"a11y": {
@@ -127,10 +120,7 @@
 			}
 		},
 		{
-			"includes": [
-				"electrobun.config.ts",
-				"packages/**"
-			],
+			"includes": ["electrobun.config.ts", "packages/**"],
 			"linter": {
 				"rules": {
 					"complexity": {
@@ -144,9 +134,7 @@
 			}
 		},
 		{
-			"includes": [
-				"src/main/**"
-			],
+			"includes": ["src/main/**"],
 			"linter": {
 				"rules": {
 					"suspicious": {

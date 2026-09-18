@@ -1112,7 +1112,8 @@ const GlobalSettings = () => {
 															label="token"
 															value={token.token}
 														/>
-														<button type="button"
+														<button
+															type="button"
 															style="cursor: pointer;background: #dd4444;color: white;font-weight: bold;border: none;padding: 10px;margin: 4px 0 8px;"
 															onClick={() => onDeleteClick(token.id)}
 														>
@@ -1753,7 +1754,8 @@ const Pane = ({
 						style="display:flex; align-items:center; box-shadow: -2px 0px 4px 2px #222; z-index: 1;"
 					>
 						<Show when={getRootPane()?.type === "container"}>
-							<button type="button"
+							<button
+								type="button"
 								onClick={onCloseSplitClick}
 								aria-label="Close pane"
 								title="Close pane"
@@ -1767,7 +1769,8 @@ const Pane = ({
 								/>
 							</button>
 						</Show>
-						<button type="button"
+						<button
+							type="button"
 							onClick={onHorizontalSplitClick}
 							aria-label="Split pane horizontally"
 							title="Split pane horizontally"
@@ -1780,7 +1783,8 @@ const Pane = ({
 								src={"views://assets/file-icons/horizontal-split-right.svg"}
 							/>
 						</button>
-						<button type="button"
+						<button
+							type="button"
 							onClick={onVerticalSplitClick}
 							aria-label="Split pane vertically"
 							title="Split pane vertically"
@@ -2403,7 +2407,9 @@ const PaneTab = ({
 				</div>
 			</Show>
 			<Show when={isHovered()}>
-				<div role="button" tabIndex={0}
+				<div
+					role="button"
+					tabIndex={0}
 					onMouseEnter={() => setIsHoveredOnX(true)}
 					onMouseLeave={() => setIsHoveredOnX(false)}
 					style={`position: absolute; top: 7px; right: 3px; background: ${
@@ -2417,7 +2423,9 @@ const PaneTab = ({
           font-style: normal;
           line-height: 11px; `}
 					onClick={onCloseClick}
-					onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onCloseClick }}
+					onKeyDown={(e) => {
+						if (e.key === "Enter" || e.key === " ") onCloseClick;
+					}}
 				>
 					x
 				</div>
@@ -3572,11 +3580,17 @@ const NodeSettings = () => {
 						class="actions"
 						style="display: flex;-webkit-box-flex: 1;-ms-flex-positive: 1;flex-grow: 1;-ms-flex-negative: 0;flex-shrink: 0;-webkit-box-pack: end;-ms-flex-pack: end;justify-content: flex-end;-webkit-box-align: center;-ms-flex-align: center;align-items: center;"
 					/>
-					<div role="button" tabIndex={0} style="flex-grow: 0;margin-left: 8px;display: -webkit-box;display: -ms-flexbox;display: flex;-webkit-box-flex: 1;-ms-flex-positive: 1;flex-grow: 1;-ms-flex-negative: 0;flex-shrink: 0;-webkit-box-pack: end;-ms-flex-pack: end;justify-content: flex-end;-webkit-box-align: center;-ms-flex-align: center;align-items: center;">
+					<div
+						role="button"
+						tabIndex={0}
+						style="flex-grow: 0;margin-left: 8px;display: -webkit-box;display: -ms-flexbox;display: flex;-webkit-box-flex: 1;-ms-flex-positive: 1;flex-grow: 1;-ms-flex-negative: 0;flex-shrink: 0;-webkit-box-pack: end;-ms-flex-pack: end;justify-content: flex-end;-webkit-box-align: center;-ms-flex-align: center;align-items: center;"
+					>
 						<button
 							type="button"
 							onClick={onCloseClick}
-							onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onCloseClick }}
+							onKeyDown={(e) => {
+								if (e.key === "Enter" || e.key === " ") onCloseClick;
+							}}
 							style="border-color: rgb(54, 54, 54);outline: 0px;cursor: default;-webkit-user-select: none;padding: 0px 12px;font-family: inherit;font-size: 12px;position: relative;display: flex;align-items: center;justify-content: center;height: 32px;border-radius: 2px;color: rgb(235, 235, 235);background: rgb(94, 94, 94);border-width: 1px;border-style: solid;box-sizing: border-box;align-self: center;"
 						>
 							Close
@@ -3633,7 +3647,10 @@ const NodeSettings = () => {
 													// directory
 													// multiple
 													onClick={onPathChooserClick}
-													onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onPathChooserClick }}
+													onKeyDown={(e) => {
+														if (e.key === "Enter" || e.key === " ")
+															onPathChooserClick;
+													}}
 													style="cursor: pointer; border-color: rgb(54, 54, 54);outline: 0px;-webkit-user-select: none;padding: 0px 12px;font-family: inherit;font-size: 12px;position: relative;display: flex;align-items: center;justify-content: center;height: 32px;border-radius: 2px;color: rgb(235, 235, 235);background: rgb(94, 94, 94);border-width: 1px;border-style: solid;box-sizing: border-box;"
 												>
 													Select an existing folder
@@ -3682,7 +3699,11 @@ const NodeSettings = () => {
 														!isOkToChooseExisitingPath() && isFileNameConflict()
 													}
 												>
-													<div role="button" tabIndex={0} style="color: #dd4444; font-size: 12px; margin-top: 4px;">
+													<div
+														role="button"
+														tabIndex={0}
+														style="color: #dd4444; font-size: 12px; margin-top: 4px;"
+													>
 														A file or folder with that name already exists
 													</div>
 												</Match>
@@ -3695,7 +3716,10 @@ const NodeSettings = () => {
 												<button
 													type="button"
 													onClick={onClickRemoveCompletely}
-													onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onClickRemoveCompletely }}
+													onKeyDown={(e) => {
+														if (e.key === "Enter" || e.key === " ")
+															onClickRemoveCompletely;
+													}}
 													style="cursor: pointer;background: #dd4444;color: white;font-weight: bold;border: none;padding: 10px;margin: 4px 0 8px;"
 												>
 													Delete from disk
@@ -3822,7 +3846,10 @@ const NodeSettings = () => {
 													<button
 														type="button"
 														onClick={onClickEditPreloadScript}
-														onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onClickEditPreloadScript }}
+														onKeyDown={(e) => {
+															if (e.key === "Enter" || e.key === " ")
+																onClickEditPreloadScript;
+														}}
 														style="cursor: pointer;background: #222;color: white;font-weight: bold;border: none;padding: 10px;margin: 4px 0 8px;"
 													>
 														Edit
@@ -3875,11 +3902,18 @@ const NodeSettings = () => {
 											label={`${friendlyTypeName.repo} Settings`}
 										>
 											<SettingsPaneField label="Repository Source">
-												<div role="button" tabIndex={0} style="display: flex; gap: 8px; margin-bottom: 12px;">
+												<div
+													role="button"
+													tabIndex={0}
+													style="display: flex; gap: 8px; margin-bottom: 12px;"
+												>
 													<button
 														type="button"
 														onClick={() => setUseGitHubSelector(true)}
-														onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setUseGitHubSelector(true) }}
+														onKeyDown={(e) => {
+															if (e.key === "Enter" || e.key === " ")
+																setUseGitHubSelector(true);
+														}}
 														style={{
 															background: useGitHubSelector()
 																? "#0969da"
@@ -4184,7 +4218,9 @@ const Sidebar = () => {
 						placeholder="Find All"
 						onInput={onFindAllChange}
 					/>
-					<div role="button" tabIndex={0}
+					<div
+						role="button"
+						tabIndex={0}
 						style={{
 							width: "15px",
 							background: state.ui.filterFileTreeByFindAll
@@ -4197,7 +4233,9 @@ const Sidebar = () => {
 							"user-select": "none",
 						}}
 						onClick={toggleShowFilter}
-						onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") toggleShowFilter }}
+						onKeyDown={(e) => {
+							if (e.key === "Enter" || e.key === " ") toggleShowFilter;
+						}}
 					>
 						<svg
 							style={{

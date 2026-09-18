@@ -252,7 +252,9 @@ export const PluginMarketplace = (): JSXElement => {
 				<button
 					type="button"
 					onClick={onCloseClick}
-					onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onCloseClick }}
+					onKeyDown={(e) => {
+						if (e.key === "Enter" || e.key === " ") onCloseClick;
+					}}
 					style={{
 						"border-color": "rgb(54, 54, 54)",
 						outline: "0px",
@@ -282,7 +284,8 @@ export const PluginMarketplace = (): JSXElement => {
 					background: "#2b2b2b",
 				}}
 			>
-				<button type="button"
+				<button
+					type="button"
 					onClick={() => setActiveTab("browse")}
 					style={{
 						padding: "10px 20px",
@@ -299,7 +302,8 @@ export const PluginMarketplace = (): JSXElement => {
 				>
 					Browse
 				</button>
-				<button type="button"
+				<button
+					type="button"
 					onClick={() => setActiveTab("installed")}
 					style={{
 						padding: "10px 20px",
@@ -317,9 +321,12 @@ export const PluginMarketplace = (): JSXElement => {
 					Installed ({installedPlugins().length})
 				</button>
 				<div role="button" tabIndex={0} style={{ "flex-grow": "1" }} />
-				<button type="button"
+				<button
+					type="button"
 					onClick={handleInstallFromFolder}
-					onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") handleInstallFromFolder }}
+					onKeyDown={(e) => {
+						if (e.key === "Enter" || e.key === " ") handleInstallFromFolder;
+					}}
 					disabled={installing() !== null}
 					style={{
 						padding: "6px 12px",
@@ -405,7 +412,8 @@ export const PluginMarketplace = (): JSXElement => {
 					}}
 				>
 					<span>{error()}</span>
-					<button type="button"
+					<button
+						type="button"
 						onClick={() => setError(null)}
 						style={{
 							background: "transparent",
@@ -491,7 +499,8 @@ export const PluginMarketplace = (): JSXElement => {
 											v{ext.version}
 										</span>
 										<Show when={isInstalled(ext.name)}>
-											<button type="button"
+											<button
+												type="button"
 												onClick={() => handleUninstall(ext.name)}
 												disabled={installing() === ext.name}
 												style={{
@@ -510,7 +519,8 @@ export const PluginMarketplace = (): JSXElement => {
 											</button>
 										</Show>
 										<Show when={!isInstalled(ext.name)}>
-											<button type="button"
+											<button
+												type="button"
 												onClick={() => handleInstall(ext.name)}
 												disabled={installing() === ext.name}
 												style={{
@@ -713,7 +723,8 @@ export const PluginMarketplace = (): JSXElement => {
 												(pluginEntitlements()[plugin.name]?.length || 0) > 3
 											}
 										>
-											<button type="button"
+											<button
+												type="button"
 												onClick={() =>
 													setExpandedEntitlements(
 														expandedEntitlements() === plugin.name
@@ -770,7 +781,8 @@ export const PluginMarketplace = (): JSXElement => {
 										Enabled
 									</label>
 									<div style={{ flex: "1" }} />
-									<button type="button"
+									<button
+										type="button"
 										onClick={() =>
 											setState("settingsPane", {
 												type: "plugin-settings",
@@ -789,7 +801,8 @@ export const PluginMarketplace = (): JSXElement => {
 									>
 										Settings
 									</button>
-									<button type="button"
+									<button
+										type="button"
 										onClick={() => handleUninstall(plugin.name)}
 										disabled={installing() === plugin.name}
 										style={{

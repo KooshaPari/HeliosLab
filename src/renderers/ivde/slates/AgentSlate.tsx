@@ -494,7 +494,11 @@ export const AgentSlate = ({
 	};
 
 	return (
-		<div role="button" tabIndex={0} style="height: 100%; display: flex; flex-direction: column; background: #1e1e1e">
+		<div
+			role="button"
+			tabIndex={0}
+			style="height: 100%; display: flex; flex-direction: column; background: #1e1e1e"
+		>
 			{/* Connection bar to match active tab */}
 
 			<div style="display: flex; flex: 1; margin-top: 8px; background: #1e1e1e;">
@@ -506,9 +510,12 @@ export const AgentSlate = ({
 							<h4 style="margin: 0; color: #fff; font-size: 13px; font-weight: 500;">
 								Chat History
 							</h4>
-							<button type="button"
+							<button
+								type="button"
 								onClick={() => setShowSidebar(false)}
-								onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setShowSidebar(false) }}
+								onKeyDown={(e) => {
+									if (e.key === "Enter" || e.key === " ") setShowSidebar(false);
+								}}
 								style="background: none; border: none; color: #888; cursor: pointer; font-size: 16px; padding: 2px;"
 								title="Hide sidebar"
 							>
@@ -517,10 +524,17 @@ export const AgentSlate = ({
 						</div>
 
 						{/* New Chat Button */}
-						<div role="button" tabIndex={0} style="padding: 12px 16px; border-bottom: 1px solid #333;">
-							<button type="button"
+						<div
+							role="button"
+							tabIndex={0}
+							style="padding: 12px 16px; border-bottom: 1px solid #333;"
+						>
+							<button
+								type="button"
 								onClick={startNewChat}
-								onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") startNewChat }}
+								onKeyDown={(e) => {
+									if (e.key === "Enter" || e.key === " ") startNewChat;
+								}}
 								style="width: 100%; background: #0066cc; border: none; color: white; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500;"
 							>
 								+ New Chat
@@ -537,7 +551,9 @@ export const AgentSlate = ({
 
 							<For each={chatHistories()}>
 								{(chat) => (
-									<div role="button" tabIndex={0}
+									<div
+										role="button"
+										tabIndex={0}
 										style={`padding: 12px 16px; border-bottom: 1px solid #2a2a2a; cursor: pointer; transition: background 0.15s; ${
 											currentChatId() === chat.id ? "background: #333;" : ""
 										}`}
@@ -552,7 +568,10 @@ export const AgentSlate = ({
 											}
 										}}
 										onClick={() => switchToChat(chat.id)}
-										onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") switchToChat(chat.id) }}
+										onKeyDown={(e) => {
+											if (e.key === "Enter" || e.key === " ")
+												switchToChat(chat.id);
+										}}
 									>
 										<div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
 											<div style="flex: 1; min-width: 0;">
@@ -564,7 +583,8 @@ export const AgentSlate = ({
 													{new Date(chat.updatedAt).toLocaleDateString()}
 												</div>
 											</div>
-											<button type="button"
+											<button
+												type="button"
 												onClick={(e) => {
 													e.stopPropagation();
 													if (confirm(`Delete chat "${chat.title}"?`)) {
@@ -585,14 +605,22 @@ export const AgentSlate = ({
 				</Show>
 
 				{/* Main Chat Area */}
-				<div role="button" tabIndex={0} style="flex: 1; display: flex; flex-direction: column;">
+				<div
+					role="button"
+					tabIndex={0}
+					style="flex: 1; display: flex; flex-direction: column;"
+				>
 					{/* Header */}
 					<div style="display: flex; align-items: center; justify-content: space-between; padding: 16px 16px; border-bottom: 2px solid #111; background: #1e1e1e;">
 						<div style="display: flex; align-items: center; gap: 12px;">
 							<Show when={!showSidebar()}>
-								<button type="button"
+								<button
+									type="button"
 									onClick={() => setShowSidebar(true)}
-									onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setShowSidebar(true) }}
+									onKeyDown={(e) => {
+										if (e.key === "Enter" || e.key === " ")
+											setShowSidebar(true);
+									}}
 									style="background: #555; border: 1px solid #666; color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 12px; cursor: pointer;"
 									title="Show chat history"
 								>
@@ -634,7 +662,8 @@ export const AgentSlate = ({
 								</Show>
 							</select>
 							<Show when={currentChatId()}>
-								<button type="button"
+								<button
+									type="button"
 									onClick={clearCurrentChat}
 									style="background: #555; border: 1px solid #666; color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 12px; cursor: pointer;"
 									title="Clear current chat"
@@ -642,21 +671,24 @@ export const AgentSlate = ({
 									Clear
 								</button>
 							</Show>
-							<button type="button"
+							<button
+								type="button"
 								onClick={() => setShowSettings(!showSettings())}
 								style={`background: ${showSettings() ? "#0066cc" : "#555"}; border: 1px solid ${showSettings() ? "#0066cc" : "#666"}; color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 12px; cursor: pointer;`}
 								title="AI Settings"
 							>
 								⚙️
 							</button>
-							<button type="button"
+							<button
+								type="button"
 								onClick={reloadContextFile}
 								style="background: #666; border: 1px solid #777; color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 12px; cursor: pointer;"
 								title="Reload context file"
 							>
 								↻
 							</button>
-							<button type="button"
+							<button
+								type="button"
 								onClick={startNewChat}
 								style="background: #0066cc; border: 1px solid #0066cc; color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 12px; cursor: pointer;"
 								title="Start new chat"
@@ -756,7 +788,8 @@ export const AgentSlate = ({
 							</div>
 
 							<div style="margin-top: 12px; display: flex; gap: 8px; justify-content: flex-end;">
-								<button type="button"
+								<button
+									type="button"
 									onClick={() => {
 										setTemperature(0.7);
 										setMaxTokens(2000);
@@ -843,7 +876,8 @@ export const AgentSlate = ({
 								style="flex: 1; background: #1e1e1e; border: 1px solid #555; color: #fff; padding: 12px; border-radius: 8px; resize: none; min-height: 20px; max-height: 120px; font-family: inherit; font-size: 14px; line-height: 1.4;"
 								rows="1"
 							/>
-							<button type="button"
+							<button
+								type="button"
 								onClick={sendMessage}
 								disabled={!message().trim() || isLoading()}
 								style={`background: ${

@@ -77,7 +77,7 @@ describe("CredentialStore: cross-provider isolation", () => {
 				"ws1",
 				"myKey",
 			);
-		} catch (e) {
+		} catch {
 			// expected
 		}
 		const events = bus.getEvents();

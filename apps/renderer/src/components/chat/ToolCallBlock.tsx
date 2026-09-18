@@ -32,9 +32,13 @@ export const ToolCallBlock: Component<ToolCallBlockProps> = (props) => {
 				overflow: "hidden",
 			}}
 		>
-			<div role="button" tabIndex={0}
+			<div
+				role="button"
+				tabIndex={0}
 				onClick={() => setExpanded(!expanded())}
-				onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setExpanded(!expanded()) }}
+				onKeyDown={(e) => {
+					if (e.key === "Enter" || e.key === " ") setExpanded(!expanded());
+				}}
 				style={{
 					display: "flex",
 					"align-items": "center",

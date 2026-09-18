@@ -16,9 +16,13 @@ function relativeTime(date: Date): string {
 
 export const ConversationItem: Component<ConversationItemProps> = (props) => {
 	return (
-		<div role="button" tabIndex={0}
+		<div
+			role="button"
+			tabIndex={0}
 			onClick={() => props.onClick(props.id)}
-			onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") props.onClick(props.id) }}
+			onKeyDown={(e) => {
+				if (e.key === "Enter" || e.key === " ") props.onClick(props.id);
+			}}
 			style={{
 				padding: "10px 14px",
 				cursor: "pointer",

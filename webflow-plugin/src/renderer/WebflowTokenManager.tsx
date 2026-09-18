@@ -309,7 +309,11 @@ const WebflowTokenManager = (
 									</div>
 								</Show>
 								<Show when={token.error}>
-									<div role="button" tabIndex={0} style="font-size: 10px; color: #ff6b6b; margin-top: 2px;">
+									<div
+										role="button"
+										tabIndex={0}
+										style="font-size: 10px; color: #ff6b6b; margin-top: 2px;"
+									>
 										{token.error}
 									</div>
 								</Show>
@@ -318,7 +322,9 @@ const WebflowTokenManager = (
 								type="button"
 								style={removeButtonStyle}
 								onClick={() => removeToken(token.id)}
-								onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") removeToken(token.id) }}
+								onKeyDown={(e) => {
+									if (e.key === "Enter" || e.key === " ") removeToken(token.id);
+								}}
 							>
 								Remove
 							</button>

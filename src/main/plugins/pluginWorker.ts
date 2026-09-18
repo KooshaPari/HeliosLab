@@ -421,7 +421,11 @@ self.onmessage = async (
 		}
 
 		case "command": {
-			const { commandId, args, requestId: _requestId } = message as typeof message & {
+			const {
+				commandId,
+				args,
+				requestId: _requestId,
+			} = message as typeof message & {
 				requestId: string;
 			};
 			try {

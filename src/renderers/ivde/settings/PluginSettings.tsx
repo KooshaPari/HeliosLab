@@ -383,7 +383,9 @@ export const PluginSettings = (): JSXElement => {
 					<button
 						type="button"
 						onClick={onClose}
-						onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onClose }}
+						onKeyDown={(e) => {
+							if (e.key === "Enter" || e.key === " ") onClose;
+						}}
 						style="border-color: rgb(54, 54, 54);outline: 0px;cursor: default;-webkit-user-select: none;padding: 0px 12px;font-family: inherit;font-size: 12px;position: relative;display: flex;align-items: center;justify-content: center;height: 32px;border-radius: 2px;color: rgb(235, 235, 235);background: rgb(94, 94, 94);border-width: 1px;border-style: solid;box-sizing: border-box;align-self: center;"
 					>
 						Close

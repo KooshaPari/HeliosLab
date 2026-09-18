@@ -1734,7 +1734,8 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 								when={Object.keys(uiState.changes.unstaged || {}).length > 0}
 							>
 								<div style={{ display: "flex", gap: "4px" }}>
-									<button type="button"
+									<button
+										type="button"
 										style={{
 											background: "transparent",
 											border: "1px solid #555",
@@ -1775,7 +1776,8 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 										</svg>
 										<span>Discard All</span>
 									</button>
-									<button type="button"
+									<button
+										type="button"
 										style={{
 											background: "transparent",
 											border: "1px solid #555",
@@ -1861,7 +1863,8 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 									Staged Changes (
 									{Object.keys(uiState.changes.staged || {}).length})
 								</span>
-								<button type="button"
+								<button
+									type="button"
 									style={{
 										background: "transparent",
 										border: "1px solid #555",
@@ -2182,7 +2185,8 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 							</div>
 							<Show when={uiState.remotes?.length > 0}>
 								<div style={{ display: "flex", gap: "4px" }}>
-									<button type="button"
+									<button
+										type="button"
 										style={{
 											background: "transparent",
 											border: "1px solid #555",
@@ -2218,7 +2222,8 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 									>
 										Fetch
 									</button>
-									<button type="button"
+									<button
+										type="button"
 										style={{
 											background: "transparent",
 											border: "1px solid #555",
@@ -2267,7 +2272,8 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 											</span>
 										</Show>
 									</button>
-									<button type="button"
+									<button
+										type="button"
 										style={{
 											background: "transparent",
 											border: "1px solid #555",
@@ -2393,7 +2399,9 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 											onMouseEnter={() => setIsCommitHovered(true)}
 											onMouseLeave={() => setIsCommitHovered(false)}
 										>
-											<div role="button" tabIndex={0}
+											<div
+												role="button"
+												tabIndex={0}
 												style={{
 													display: "flex",
 													"align-items": "center",
@@ -2405,7 +2413,10 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 													"border-bottom": "1px solid #2d2d2d",
 												}}
 												onClick={() => setIsExpanded(!isExpanded())}
-												onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setIsExpanded(!isExpanded()) }}
+												onKeyDown={(e) => {
+													if (e.key === "Enter" || e.key === " ")
+														setIsExpanded(!isExpanded());
+												}}
 											>
 												{/* Commit indicator circle */}
 												<div
@@ -2544,7 +2555,8 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 																uiState.log.findIndex((c) => !c.isRemoteOnly)
 														}
 													>
-														<button type="button"
+														<button
+															type="button"
 															style={{
 																background: "#252526",
 																border: "1px solid #555",
@@ -2572,7 +2584,8 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 													</Show>
 
 													{/* Checkout button for all commits */}
-													<button type="button"
+													<button
+														type="button"
 														style={{
 															background: "#252526",
 															border: "1px solid #555",
@@ -2609,7 +2622,8 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 													</button>
 
 													{/* Revert button for all commits */}
-													<button type="button"
+													<button
+														type="button"
 														style={{
 															background: "#252526",
 															border: "1px solid #555",
@@ -2820,7 +2834,8 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 										"border-top": "1px solid #333",
 									}}
 								>
-									<button type="button"
+									<button
+										type="button"
 										onClick={loadMoreCommits}
 										disabled={pagination.isLoading}
 										style={{
@@ -2895,7 +2910,8 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 							<div
 								style={{ display: "flex", gap: "8px", "align-items": "center" }}
 							>
-								<button type="button"
+								<button
+									type="button"
 									style={{
 										background:
 											uiState.activeSection === "branches"
@@ -2919,7 +2935,8 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 										.length || 0}
 									)
 								</button>
-								<button type="button"
+								<button
+									type="button"
 									style={{
 										background:
 											uiState.activeSection === "remotes"
@@ -2940,7 +2957,8 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 								>
 									REMOTES ({uiState.remotes?.length || 0})
 								</button>
-								<button type="button"
+								<button
+									type="button"
 									style={{
 										background:
 											uiState.activeSection === "stashes"
@@ -3142,7 +3160,8 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 																	isCurrent && !uiState.branches.trackingBranch
 																}
 															>
-																<button type="button"
+																<button
+																	type="button"
 																	style={{
 																		background: "transparent",
 																		border: "1px solid #f59e0b",
@@ -3197,7 +3216,8 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 																</button>
 															</Show>
 															<Show when={!isCurrent}>
-																<button type="button"
+																<button
+																	type="button"
 																	style={{
 																		background: "transparent",
 																		border: "1px solid #555",
@@ -3246,7 +3266,8 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 																>
 																	checkout
 																</button>
-																<button type="button"
+																<button
+																	type="button"
 																	style={{
 																		background: "transparent",
 																		border: "1px solid #d32f2f",
@@ -3391,7 +3412,8 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 														</div>
 													</Show>
 													<div style={{ display: "flex", gap: "6px" }}>
-														<button type="button"
+														<button
+															type="button"
 															style={{
 																background: validateBranchName(
 																	branchInputValue(),
@@ -3422,7 +3444,8 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 														>
 															Create
 														</button>
-														<button type="button"
+														<button
+															type="button"
 															style={{
 																background: "transparent",
 																border: "1px solid #555",
@@ -3447,7 +3470,8 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 												</div>
 											}
 										>
-											<button type="button"
+											<button
+												type="button"
 												style={{
 													background: "transparent",
 													border: "1px solid #094771",
@@ -3494,7 +3518,8 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 											gap: "8px",
 										}}
 									>
-										<button type="button"
+										<button
+											type="button"
 											style={{
 												background: "transparent",
 												border: "1px solid #4fc3f7",
@@ -3664,7 +3689,8 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 												</Show>
 											</div>
 											<div style={{ display: "flex", gap: "6px" }}>
-												<button type="button"
+												<button
+													type="button"
 													style={{
 														background:
 															validateRemoteName(remoteNameValue()).isValid &&
@@ -3699,7 +3725,8 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 												>
 													Add
 												</button>
-												<button type="button"
+												<button
+													type="button"
 													style={{
 														background: "transparent",
 														border: "1px solid #555",
@@ -3857,7 +3884,8 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 																							: "#4fc3f7";
 
 																						return (
-																							<button type="button"
+																							<button
+																								type="button"
 																								style={{
 																									background: "transparent",
 																									border: `1px solid ${borderColor}`,
@@ -3977,7 +4005,8 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 											gap: "8px",
 										}}
 									>
-										<button type="button"
+										<button
+											type="button"
 											style={{
 												background: "transparent",
 												border: "1px solid #4fc3f7",
@@ -4073,10 +4102,17 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 												</label>
 											</div>
 
-											<div role="button" tabIndex={0} style={{ display: "flex", gap: "8px" }}>
-												<button type="button"
+											<div
+												role="button"
+												tabIndex={0}
+												style={{ display: "flex", gap: "8px" }}
+											>
+												<button
+													type="button"
 													onClick={createStash}
-													onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") createStash }}
+													onKeyDown={(e) => {
+														if (e.key === "Enter" || e.key === " ") createStash;
+													}}
 													style={{
 														background: "#0e639c",
 														border: "none",
@@ -4097,7 +4133,8 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 												>
 													Save Stash
 												</button>
-												<button type="button"
+												<button
+													type="button"
 													onClick={() => setShowStashForm(false)}
 													style={{
 														background: "transparent",
@@ -4242,7 +4279,8 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 																</div>
 
 																<div style={{ display: "flex", gap: "4px" }}>
-																	<button type="button"
+																	<button
+																		type="button"
 																		onClick={(e) => {
 																			e.stopPropagation();
 																			applyStash(stashName);
@@ -4267,7 +4305,8 @@ export const GitSlate = ({ node }: { node?: CachedFileType }) => {
 																	>
 																		Apply
 																	</button>
-																	<button type="button"
+																	<button
+																		type="button"
 																		onClick={(e) => {
 																			e.stopPropagation();
 																			dropStash(stashName);
@@ -4559,14 +4598,21 @@ const FileList = ({
 	repoRootPath: string;
 }) => {
 	return (
-		<div role="button" tabIndex={0} class="file-list" style={{ margin: "10px 0" }}>
+		<div
+			role="button"
+			tabIndex={0}
+			class="file-list"
+			style={{ margin: "10px 0" }}
+		>
 			<For each={filesAsChanges(files())}>
 				{(change) => (
 					<FileListItem
 						change={change}
 						commitHash={commitHash}
 						onClick={onClick}
-						onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onClick }}
+						onKeyDown={(e) => {
+							if (e.key === "Enter" || e.key === " ") onClick;
+						}}
 						selectedFile={selectedFile}
 						showStageButtons={showStageButtons}
 						onStage={onStage}
@@ -4653,9 +4699,13 @@ const FileListItem = ({
 				"font-family": "'Segoe UI', 'SF Pro Display', system-ui, sans-serif",
 			}}
 		>
-			<div role="button" tabIndex={0}
+			<div
+				role="button"
+				tabIndex={0}
 				onClick={() => onClick(change, commitHash)}
-				onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onClick(change, commitHash) }}
+				onKeyDown={(e) => {
+					if (e.key === "Enter" || e.key === " ") onClick(change, commitHash);
+				}}
 				onDblClick={handleDoubleClick}
 				style={{
 					cursor: "pointer",
@@ -4708,7 +4758,8 @@ const FileListItem = ({
 					}}
 				>
 					<Show when={!isStaged && onDiscard}>
-						<button type="button"
+						<button
+							type="button"
 							onClick={(e) => {
 								e.stopPropagation();
 								onDiscard?.(change.relPath);
@@ -4759,7 +4810,8 @@ const FileListItem = ({
 							</svg>
 						</button>
 					</Show>
-					<button type="button"
+					<button
+						type="button"
 						onClick={handleStageClick}
 						style={{
 							background: "transparent",

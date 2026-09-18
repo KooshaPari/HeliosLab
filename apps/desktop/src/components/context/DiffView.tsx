@@ -45,9 +45,12 @@ export const DiffView: Component<DiffViewProps> = (props) => {
 				</span>
 				<div role="button" tabIndex={0} style={{ display: "flex", gap: "8px" }}>
 					<Show when={props.onAccept}>
-						<button type="button"
+						<button
+							type="button"
 							onClick={props.onAccept}
-							onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") props.onAccept }}
+							onKeyDown={(e) => {
+								if (e.key === "Enter" || e.key === " ") props.onAccept;
+							}}
 							style={{
 								background: "#a6e3a1",
 								border: "none",
@@ -62,7 +65,8 @@ export const DiffView: Component<DiffViewProps> = (props) => {
 						</button>
 					</Show>
 					<Show when={props.onReject}>
-						<button type="button"
+						<button
+							type="button"
 							onClick={props.onReject}
 							style={{
 								background: "#f38ba8",

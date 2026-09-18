@@ -333,7 +333,11 @@ export const GitHubRepoSelector = (
 
 			{/* Loading State */}
 			<Show when={loading()}>
-				<div role="button" tabIndex={0} style="padding: 20px; text-align: center; color: #999; font-size: 11px;">
+				<div
+					role="button"
+					tabIndex={0}
+					style="padding: 20px; text-align: center; color: #999; font-size: 11px;"
+				>
 					Loading repositories...
 				</div>
 			</Show>
@@ -347,7 +351,10 @@ export const GitHubRepoSelector = (
 								{/* Repository Row */}
 								<div
 									onClick={() => handleRepoSelect(repo)}
-									onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") handleRepoSelect(repo) }}
+									onKeyDown={(e) => {
+										if (e.key === "Enter" || e.key === " ")
+											handleRepoSelect(repo);
+									}}
 									style={{
 										padding: "12px",
 										"border-bottom": "1px solid #2a2a2a",
