@@ -4,6 +4,14 @@ version = "0.1.0"
 edition = "2021"
 description = "HeliosLab SQLite persistence layer"
 
+# Built on its own rather than as a member of the repository-root Cargo
+# workspace, which holds the pheno-* crates. Without this table cargo refuses to
+# build the crate at all: it finds the root manifest's [workspace] and expects
+# to be a member, then fails with "current package believes it's in a workspace
+# when it's not". Making it its own workspace root also means the
+# [profile.release] below is honoured, which it would not be as a member.
+[workspace]
+
 [lib]
 name = "helios_persistence"
 crate-type = ["cdylib"]

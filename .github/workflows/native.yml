@@ -57,6 +57,13 @@ jobs:
 
       - uses: oven-sh/setup-bun@v2
 
+      # Every bun step below imports from node_modules, and bunfig.toml preloads
+      # tests/setup-dom.ts for every `bun test`, which needs happy-dom. With no
+      # install step the first test failed on a missing module rather than on
+      # anything it was written to check.
+      - name: Install Bun dependencies
+        run: bun install --frozen-lockfile
+
       # Static check that every symbol the bridge calls is exported by the
       # matching native source. Needs no toolchain, so it runs before any build
       # and catches drift in the hand-maintained symbol tables.
@@ -141,6 +148,9 @@ jobs:
 
       # Full round trip: load the real libraries through the bridge and drive them.
       - uses: oven-sh/setup-bun@v2
+
+      - name: Install Bun dependencies
+        run: bun install --frozen-lockfile
 
       - name: Drive the real native libraries through the FFI bridge
         run: bun test packages/runtime-core/tests/unit/ffi_bridge.test.ts
