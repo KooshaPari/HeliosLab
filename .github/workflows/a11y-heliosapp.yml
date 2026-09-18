@@ -1,8 +1,12 @@
 # a11y-heliosapp.yml
-# Reusable WCAG 2.1 AA gate for the heliosApp monorepo. Delegates the actual
-# e2e work to the proposed org-level reusable workflow at
-# `.github/workflows/reusable-a11y.yml`. Per the spec, this workflow is the
-# per-app call site that pins app_name / app_dir / dev_port / spec_glob.
+# WCAG 2.1 AA gate for the HeliosLab monorepo. Delegates the actual e2e work
+# to the in-repo reusable workflow at `.github/workflows/reusable-a11y.yml`.
+# Per the spec, this workflow is the per-app call site that pins
+# app_name / app_dir / dev_port / spec_glob.
+#
+# The `heliosapp` name is historical: the former heliosApp repo was merged into
+# this one, so app_dir is "." and spec_glob points at e2e/a11y/wcag.spec.ts
+# here. The workflow is live and functional; only the naming is stale.
 
 name: a11y-heliosapp
 
