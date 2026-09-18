@@ -1,2 +1,7 @@
 [test]
-preload = ["./tests/unit/dom-shim.ts"]
+# Preload the repository's shared DOM globals. This used to point at a local
+# copy under tests/unit/dom-shim.ts, which meant the two lists could drift; the
+# copy had the constructors this one lacked, but only applied when tests were
+# run from inside apps/desktop. Keeping one list means a run from the root and a
+# run from here behave the same.
+preload = ["../../tests/setup-dom.ts"]

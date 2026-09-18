@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { createRuntime } from "../../../runtime/src";
-import { bootDesktop, renderControlPlaneSnapshot } from "../../src";
+import { bootDesktop, renderControlPlaneSnapshot } from "../../src/index.ts";
 
 // Traces to: FR-SHL-003 (provide terminal-first default layout with split panes, tab bar, and sidebar)
 // Traces to: FR-TAB-002 (All tabs MUST be bound to the currently active workspace, lane, and session context)

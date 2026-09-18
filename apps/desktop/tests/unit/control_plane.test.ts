@@ -3,7 +3,9 @@
 // Traces to: ILocalBusPort (primary port), IWorkspacePort (workspace boot)
 import { describe, expect, test } from "bun:test";
 import { createRuntime } from "../../../runtime/src/index.js";
-import { bootDesktop } from "../../src";
+// "../../src" resolves to index.tsx, the Solid app shell, which does not export
+// this. The control-plane library lives in index.ts.
+import { bootDesktop } from "../../src/index.ts";
 
 describe("EditorlessControlPlane", () => {
 	test("wires lane/session/terminal actions and keeps context in sync", async () => {
