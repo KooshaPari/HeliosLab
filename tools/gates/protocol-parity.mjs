@@ -113,13 +113,13 @@ const formalMethods = readJson(
 const matrix = readJson(
 	resolve(
 		root,
-		"kitty-specs/001-colab-agent-terminal-control-plane/contracts/protocol-parity-matrix.json",
+		"agileplus-specs/colab-agent-terminal-control-plane/contracts/protocol-parity-matrix.json",
 	),
 );
 const contract = readJson(
 	resolve(
 		root,
-		"kitty-specs/001-colab-agent-terminal-control-plane/contracts/orchestration-envelope.schema.json",
+		"agileplus-specs/colab-agent-terminal-control-plane/contracts/orchestration-envelope.schema.json",
 	),
 );
 
