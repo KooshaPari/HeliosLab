@@ -98,3 +98,6 @@ yarn-error.log*
 # meant every test run deleted them and left the working tree dirty.
 scripts/tests/fixtures/
 scripts/tests/adr-fixtures/
+
+# Gate reports are generated output; CI writes its own per run.
+.gate-reports/
