@@ -33,7 +33,6 @@ export class LaneEventHandler {
 	private rafId?: number | undefined;
 	private lastSequenceNumbers: Map<string, number> = new Map();
 	private isConnected: boolean = true;
-	private lastEventTime: number = 0;
 
 	constructor(options: LaneEventHandlerOptions) {
 		this.options = {
@@ -161,8 +160,6 @@ export class LaneEventHandler {
 	}
 
 	private recordEventReceived(): void {
-		this.lastEventTime = Date.now();
-
 		if (!this.isConnected) {
 			this.isConnected = true;
 			if (this.options.onBusConnectivityIssue) {

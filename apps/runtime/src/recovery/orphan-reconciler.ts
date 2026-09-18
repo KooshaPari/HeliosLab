@@ -23,10 +23,8 @@ export interface CleanupResult {
 
 export class OrphanReconciler {
 	private bus?: LocalBus;
-	private restoredSessionIds: Set<string>;
 
 	constructor(restoredSessionIds: string[], bus?: LocalBus) {
-		this.restoredSessionIds = new Set(restoredSessionIds);
 		this.bus = bus;
 	}
 

@@ -31,7 +31,6 @@ export class LanePanel {
 	private selectedLaneId?: string;
 	private props: LanePanelProps;
 	private container: HTMLElement | null = null;
-	private scrollContainer: HTMLElement | null = null;
 	private keyboardListeners: Map<string, (e: KeyboardEvent) => void> =
 		new Map();
 
@@ -51,7 +50,6 @@ export class LanePanel {
 	unmount(): void {
 		this.detachEventListeners();
 		this.container = null;
-		this.scrollContainer = null;
 	}
 
 	update(props: Partial<LanePanelProps>): void {
@@ -74,10 +72,6 @@ export class LanePanel {
 		this.container.innerHTML = "";
 		const panel = this.createPanelElement();
 		this.container.appendChild(panel);
-
-		this.scrollContainer = this.container.querySelector(
-			'[data-panel="lane-scroll"]',
-		);
 
 		// Set up event handlers for list items
 		const items = this.container.querySelectorAll("[data-lane-item]");

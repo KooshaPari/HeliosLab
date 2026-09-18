@@ -13,7 +13,6 @@ export class CheckpointScheduler {
 	private isRunning = false;
 	private timerInterval?: NodeJS.Timeout;
 	private currentInterval = DEFAULT_CHECKPOINT_INTERVAL_MS;
-	private lastCheckpointTime: number = 0;
 	private activityCounter = 0;
 	private lastWriteDurationMs = 0;
 	private pendingTrigger?: Promise<void>;
@@ -24,7 +23,6 @@ export class CheckpointScheduler {
 		this.writer = writer;
 		this.stateGetter = stateGetter;
 		this.isRunning = true;
-		this.lastCheckpointTime = Date.now();
 
 		// Set up periodic timer
 		this.timerInterval = setInterval(() => {
@@ -72,7 +70,6 @@ export class CheckpointScheduler {
 		try {
 			await this.writer.write(checkpoint);
 			this.lastWriteDurationMs = Date.now() - startTime;
-			this.lastCheckpointTime = Date.now();
 			this.activityCounter = 0;
 
 			// Adjust interval based on write time

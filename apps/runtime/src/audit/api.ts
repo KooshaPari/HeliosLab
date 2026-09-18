@@ -24,7 +24,6 @@ export interface ErrorResponse {
  */
 export class AuditLedgerAPI {
 	private requestCounts: Map<string, number> = new Map();
-	private requestResetTime: number = 0;
 	private readonly RATE_LIMIT = 100; // 100 requests per minute
 	private readonly RATE_LIMIT_WINDOW = 60_000; // 1 minute
 
@@ -32,7 +31,6 @@ export class AuditLedgerAPI {
 		// Start rate limit reset timer
 		setInterval(() => {
 			this.requestCounts.clear();
-			this.requestResetTime = Date.now();
 		}, this.RATE_LIMIT_WINDOW);
 	}
 
