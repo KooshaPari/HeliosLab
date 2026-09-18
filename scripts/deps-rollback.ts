@@ -143,7 +143,13 @@ async function rollback(packageName: string): Promise<void> {
 			throw new Error(`Package '${packageName}' not found in package.json`);
 		}
 
-		writeFileSync(PACKAGE_JSON_PATH, JSON.stringify(packageJson, null, 2));
+		// Tab indent and a trailing newline, matching biome. Two-space JSON here
+		// would leave package.json unformatted and fail the lint gate, the same
+		// way the changelog writer did.
+		writeFileSync(
+			PACKAGE_JSON_PATH,
+			`${JSON.stringify(packageJson, null, "\t")}\n`,
+		);
 		console.log(`Updated package.json to pin ${rollbackVersion}`);
 
 		// Note: In a real scenario, you would run:
@@ -155,7 +161,7 @@ async function rollback(packageName: string): Promise<void> {
 		// Update registry
 		dep.currentPin = rollbackVersion;
 		dep.lastUpdated = new Date().toISOString();
-		writeFileSync(REGISTRY_PATH, JSON.stringify(registry, null, 2));
+		writeFileSync(REGISTRY_PATH, `${JSON.stringify(registry, null, "\t")}\n`);
 		console.log("Updated registry manifest");
 
 		// Append changelog entry

@@ -16,13 +16,13 @@ describe("Dependency Canary Upgrade Process", () => {
 	beforeEach(() => {
 		// Ensure clean changelog for testing
 		const empty: DepsChangelog = { entries: [] };
-		writeFileSync(CHANGELOG_PATH, JSON.stringify(empty, null, 2));
+		writeFileSync(CHANGELOG_PATH, `${JSON.stringify(empty, null, "\t")}\n`);
 	});
 
 	afterEach(() => {
 		// Reset changelog after tests
 		const empty: DepsChangelog = { entries: [] };
-		writeFileSync(CHANGELOG_PATH, JSON.stringify(empty, null, 2));
+		writeFileSync(CHANGELOG_PATH, `${JSON.stringify(empty, null, "\t")}\n`);
 	});
 
 	test("registry contains dependencies for canary to process", () => {
