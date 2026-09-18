@@ -93,3 +93,8 @@ pnpm-debug.log*
 Thumbs.db
 yarn-debug.log*
 yarn-error.log*
+# Test scratch directories. The compliance and ADR suites write fixtures here
+# and remove the directory recursively in afterAll, so tracking the contents
+# meant every test run deleted them and left the working tree dirty.
+scripts/tests/fixtures/
+scripts/tests/adr-fixtures/
