@@ -1,2 +1,7 @@
 [test]
 preload = ["./tests/setup-dom.ts"]
+
+# Deterministic installs: new dependencies are saved with an exact version
+# rather than a range, so the lockfile and package.json cannot drift apart.
+[install]
+exact = true
