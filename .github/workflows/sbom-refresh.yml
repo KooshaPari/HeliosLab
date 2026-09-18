@@ -1,10 +1,9 @@
 name: Monthly SBOM Refresh
 
-# DISABLED: this called a reusable workflow in <REDACTED>/phenotype-tooling,
-# which no longer resolves, so every run failed at startup without a job ever
-# starting. Same treatment as vitepress-pages.yml and the promote job in
-# release.yml. Restore the `uses:` call below only once that repository is
-# reachable.
+# The reusable workflow lives in KooshaPari/PhenoShared. It was previously
+# referenced as <REDACTED>/phenotype-tooling, which does not exist under any
+# name, so this workflow failed at startup without a job ever starting. The
+# org was redacted during a PII sweep; the real org is KooshaPari.
 
 on:
   schedule:
@@ -15,9 +14,11 @@ permissions:
   contents: read
 
 jobs:
-  disabled:
-    name: disabled (upstream reusable workflow is gone)
-    if: false
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo "SBOM refresh is disabled; see the note at the top of this file."
+  sbom:
+    # Pinned to PhenoShared main as of 2026-09-18.
+    uses: KooshaPari/PhenoShared/.github/workflows/sbom-monthly.yml@c035018315e38ffd3a8a893a32e559863fbee98b
+    with:
+      repo_path: '.'
+      build_system: 'node'
+    permissions:
+      contents: read
