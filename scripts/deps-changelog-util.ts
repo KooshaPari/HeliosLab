@@ -81,7 +81,10 @@ export function appendChangelogEntry(entry: ChangelogEntry): void {
 	// Write to temporary file, then atomically rename
 	const tempFile = join(tmpdir(), `changelog-${Date.now()}.tmp.json`);
 	try {
-		writeFileSync(tempFile, JSON.stringify(changelog, null, 2));
+		// Tab indent and a trailing newline, matching biome's output. Writing
+		// two-space JSON here made every run of the deps tooling leave
+		// deps-changelog.json unformatted, which fails the lint gate.
+		writeFileSync(tempFile, `${JSON.stringify(changelog, null, "\t")}\n`);
 		// Atomic rename (move temp file to final location)
 		require("node:fs").renameSync(tempFile, CHANGELOG_PATH);
 	} catch (e) {
