@@ -35,7 +35,7 @@ describe("transition()", () => {
 		try {
 			transition("stopped", "spawn_requested", "pty-42");
 			throw new Error("should have thrown");
-		} catch {
+		} catch (e) {
 			expect(e).toBeInstanceOf(InvalidTransitionError);
 			const err = e as InvalidTransitionError;
 			expect(err.ptyId).toBe("pty-42");

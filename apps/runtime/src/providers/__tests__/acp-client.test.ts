@@ -79,11 +79,15 @@ describe("ACP Client Adapter", () => {
 			await expect(adapter.init(config)).rejects.toThrow(/init failed/i);
 		});
 
-		it("should reject missing apiKeyRef", async () => {
+		it("should reject missing apiKey", async () => {
+			// The credential is what makes this config invalid. The sibling tests
+			// use the same shape: a valid config with one field blanked. This one
+			// previously supplied the same fully valid config as "should initialize
+			// with valid config" above and asked for the opposite result, so it
+			// could never pass.
 			const config = {
 				baseUrl: "http://localhost:8080/acp",
-				apiKey: "acp-key",
-
+				apiKey: "",
 				model: "claude-3-sonnet",
 				timeout: 30000,
 			};
@@ -286,7 +290,7 @@ describe("ACP Client Adapter", () => {
 
 			try {
 				await adapter.execute({ prompt: "Test" }, "corr-123");
-			} catch {
+			} catch (e) {
 				// Expected - should be NormalizedProviderError with PROVIDER_POLICY_DENIED
 				expect(e instanceof NormalizedProviderError).toBe(true);
 				if (e instanceof NormalizedProviderError) {
@@ -450,7 +454,7 @@ describe("ACP Client Adapter", () => {
 
 			try {
 				await adapter.execute({ prompt: "Test" }, correlationId);
-			} catch {
+			} catch (e) {
 				if (e instanceof NormalizedProviderError) {
 					expect(e.correlationId).toBe(correlationId);
 				}

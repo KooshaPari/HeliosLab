@@ -80,7 +80,7 @@ describe("MCP Bridge Adapter - Execution", () => {
 			);
 		}
 
-		const _results = await Promise.all(promises);
+		const results = await Promise.all(promises);
 
 		expect(results).toHaveLength(5);
 		results.forEach((result) => {

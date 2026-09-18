@@ -27,7 +27,11 @@ describe("MCP Bridge Adapter - Correlation IDs", () => {
 			correlationId,
 		);
 
-		const toolEvents = getMcpToolEvents(bus);
+		// Discovery happens at init, where there is no execution to correlate
+		// with, so only the events this call emits are asserted on.
+		const toolEvents = getMcpToolEvents(bus).filter(
+			(event) => event.topic !== "provider.mcp.tool.discovered",
+		);
 		toolEvents.forEach((event) => {
 			expect(event.payload?.correlationId).toBe(correlationId);
 		});

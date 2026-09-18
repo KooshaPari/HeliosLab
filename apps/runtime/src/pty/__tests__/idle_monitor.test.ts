@@ -29,10 +29,11 @@ function makeRecord(
 
 describe("IdleMonitor", () => {
 	it("transitions idle PTY to throttled", () => {
-		const _registry = new PtyRegistry();
+		const registry = new PtyRegistry();
 		const bus = new InMemoryBusPublisher();
 		const lifecycles = new Map<string, PtyLifecycle>();
 
+		// Registered by the call itself; the record is not read in this test.
 		const _record = makeRecord(registry, "pty-1");
 		const lifecycle = new PtyLifecycle("pty-1", "active");
 		lifecycles.set("pty-1", lifecycle);
@@ -54,7 +55,7 @@ describe("IdleMonitor", () => {
 	});
 
 	it("does not throttle PTY with recent output", () => {
-		const _registry = new PtyRegistry();
+		const registry = new PtyRegistry();
 		const bus = new InMemoryBusPublisher();
 		const lifecycles = new Map<string, PtyLifecycle>();
 
@@ -75,7 +76,7 @@ describe("IdleMonitor", () => {
 	});
 
 	it("does not throttle disabled PTYs", () => {
-		const _registry = new PtyRegistry();
+		const registry = new PtyRegistry();
 		const bus = new InMemoryBusPublisher();
 		const lifecycles = new Map<string, PtyLifecycle>();
 
@@ -94,7 +95,7 @@ describe("IdleMonitor", () => {
 	});
 
 	it("transitions throttled PTY back to active on output", () => {
-		const _registry = new PtyRegistry();
+		const registry = new PtyRegistry();
 		const bus = new InMemoryBusPublisher();
 		const lifecycles = new Map<string, PtyLifecycle>();
 
@@ -111,7 +112,7 @@ describe("IdleMonitor", () => {
 	});
 
 	it("supports per-PTY timeout override", () => {
-		const _registry = new PtyRegistry();
+		const registry = new PtyRegistry();
 		const bus = new InMemoryBusPublisher();
 		const lifecycles = new Map<string, PtyLifecycle>();
 
@@ -131,7 +132,7 @@ describe("IdleMonitor", () => {
 	});
 
 	it("remove cleans up tracking", () => {
-		const _registry = new PtyRegistry();
+		const registry = new PtyRegistry();
 		const bus = new InMemoryBusPublisher();
 		const lifecycles = new Map<string, PtyLifecycle>();
 

@@ -1,6 +1,12 @@
 import { afterEach, describe, expect, it } from "bun:test";
 import { InMemoryBusPublisher, PtyManager } from "../index.js";
 
+// These tests spawned /bin/sh explicitly, which does not exist on Windows, so
+// every one of them failed there before reaching its assertion. Use the same
+// shell the product picks.
+const TEST_SHELL =
+	process.platform === "win32" ? (process.env.ComSpec ?? "cmd.exe") : "/bin/sh";
+
 describe("PtyManager", () => {
 	const pidsToCleanup: number[] = [];
 
@@ -18,8 +24,8 @@ describe("PtyManager", () => {
 	it("spawn and get", async () => {
 		const bus = new InMemoryBusPublisher();
 		const mgr = new PtyManager(300, bus);
-		const _record = await mgr.spawn({
-			shell: "/bin/sh",
+		const record = await mgr.spawn({
+			shell: TEST_SHELL,
 			laneId: "lane-1",
 			sessionId: "session-1",
 			terminalId: "term-1",
@@ -39,13 +45,13 @@ describe("PtyManager", () => {
 	it("getByLane works", async () => {
 		const mgr = new PtyManager();
 		const r1 = await mgr.spawn({
-			shell: "/bin/sh",
+			shell: TEST_SHELL,
 			laneId: "lane-A",
 			sessionId: "s1",
 			terminalId: "t1",
 		});
 		const r2 = await mgr.spawn({
-			shell: "/bin/sh",
+			shell: TEST_SHELL,
 			laneId: "lane-A",
 			sessionId: "s2",
 			terminalId: "t2",
@@ -60,8 +66,8 @@ describe("PtyManager", () => {
 	it("resize updates dimensions and emits events", async () => {
 		const bus = new InMemoryBusPublisher();
 		const mgr = new PtyManager(300, bus);
-		const _record = await mgr.spawn({
-			shell: "/bin/sh",
+		const record = await mgr.spawn({
+			shell: TEST_SHELL,
 			laneId: "lane-1",
 			sessionId: "s1",
 			terminalId: "t1",
@@ -82,8 +88,8 @@ describe("PtyManager", () => {
 
 	it("resize rejects invalid dimensions", async () => {
 		const mgr = new PtyManager();
-		const _record = await mgr.spawn({
-			shell: "/bin/sh",
+		const record = await mgr.spawn({
+			shell: TEST_SHELL,
 			laneId: "lane-1",
 			sessionId: "s1",
 			terminalId: "t1",
@@ -105,8 +111,8 @@ describe("PtyManager", () => {
 	it("resize rejects on stopped PTY", async () => {
 		const bus = new InMemoryBusPublisher();
 		const mgr = new PtyManager(300, bus);
-		const _record = await mgr.spawn({
-			shell: "/bin/sh",
+		const record = await mgr.spawn({
+			shell: TEST_SHELL,
 			laneId: "lane-1",
 			sessionId: "s1",
 			terminalId: "t1",
@@ -121,8 +127,8 @@ describe("PtyManager", () => {
 	it("terminate cleans up PTY", async () => {
 		const bus = new InMemoryBusPublisher();
 		const mgr = new PtyManager(300, bus);
-		const _record = await mgr.spawn({
-			shell: "/bin/sh",
+		const record = await mgr.spawn({
+			shell: TEST_SHELL,
 			laneId: "lane-1",
 			sessionId: "s1",
 			terminalId: "t1",

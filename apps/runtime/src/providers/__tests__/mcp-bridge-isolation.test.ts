@@ -14,7 +14,7 @@ describe("MCP Bridge Adapter - Sandboxing and Isolation", () => {
 	});
 
 	it("supports concurrent tool executions without interference", async () => {
-		const _results = await Promise.all([
+		const results = await Promise.all([
 			adapter.execute(
 				{ toolName: "read_file", arguments: { path: "/file1.txt" } },
 				"corr-1",

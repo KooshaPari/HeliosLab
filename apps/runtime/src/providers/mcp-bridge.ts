@@ -125,7 +125,7 @@ export class MCPBridgeAdapter
 				state: "unavailable",
 				lastCheck: new Date(),
 				failureCount: 0,
-				message: "Not initialized",
+				message: this.healthStatus.message ?? "Not initialized",
 			};
 		}
 
@@ -183,7 +183,9 @@ export class MCPBridgeAdapter
 		if (!this.config || !this.connection.connected) {
 			throw new NormalizedProviderError(
 				"PROVIDER_UNAVAILABLE",
-				"MCP bridge not initialized or disconnected",
+				// Say unavailable, matching the code above and the wording the A2A
+				// router and the error taxonomy already use.
+				"MCP bridge unavailable: not initialized or disconnected",
 				"mcp",
 			);
 		}
@@ -213,6 +215,12 @@ export class MCPBridgeAdapter
 					input.arguments,
 					abortController.signal,
 				);
+
+				// terminate() aborts the in-flight tools. A call that was cancelled
+				// while it ran must not go on to report success.
+				if (abortController.signal.aborted) {
+					throw new Error("Tool invocation cancelled");
+				}
 
 				const duration = Date.now() - _startTime;
 

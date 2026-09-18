@@ -3,6 +3,12 @@ import { PtyRegistry } from "../registry.js";
 import { spawnPty } from "../spawn.js";
 
 // Traces to: FR-PTY-001 (state machine), FR-PTY-002 (process registry), FR-PTY-003 (spawn operation)
+
+// These tests spawned /bin/sh explicitly, which does not exist on Windows, so
+// every one of them failed there before reaching its assertion. Use the same
+// shell the product picks.
+const TEST_SHELL =
+	process.platform === "win32" ? (process.env.ComSpec ?? "cmd.exe") : "/bin/sh";
 describe("spawnPty()", () => {
 	const pidsToCleanup: number[] = [];
 	let registry: PtyRegistry;
@@ -23,7 +29,7 @@ describe("spawnPty()", () => {
 		registry = new PtyRegistry();
 		const result = await spawnPty(
 			{
-				shell: "/bin/sh",
+				shell: TEST_SHELL,
 				laneId: "lane-1",
 				sessionId: "session-1",
 				terminalId: "term-1",
@@ -48,7 +54,7 @@ describe("spawnPty()", () => {
 		registry = new PtyRegistry();
 		const result = await spawnPty(
 			{
-				shell: "/bin/sh",
+				shell: TEST_SHELL,
 				cols: 120,
 				rows: 40,
 				laneId: "lane-1",
@@ -85,7 +91,7 @@ describe("spawnPty()", () => {
 		registry = new PtyRegistry();
 		const result = await spawnPty(
 			{
-				shell: "/bin/sh",
+				shell: TEST_SHELL,
 				laneId: "lane-1",
 				sessionId: "session-1",
 				terminalId: "term-1",

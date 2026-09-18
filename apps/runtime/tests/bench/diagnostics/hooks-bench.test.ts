@@ -55,7 +55,7 @@ describe("Instrumentation Overhead Benchmarks", () => {
 	});
 
 	it("record() call overhead < 0.05ms p99", () => {
-		const _registry = new MetricsRegistry();
+		const registry = new MetricsRegistry();
 		registry.register({
 			name: "bench-record",
 			type: "latency",
@@ -89,7 +89,7 @@ describe("Instrumentation Overhead Benchmarks", () => {
 	});
 
 	it("checkAll with 10 SLO definitions < 5ms p99", () => {
-		const _registry = new MetricsRegistry();
+		const registry = new MetricsRegistry();
 		const defs: SLODefinition[] = [];
 
 		for (let i = 0; i < 10; i++) {

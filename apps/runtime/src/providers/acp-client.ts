@@ -117,7 +117,7 @@ export class ACPClientAdapter
 			}
 
 			if (!config.apiKey || typeof config.apiKey !== "string") {
-				throw new Error("Missing or invalid apiKeyRef");
+				throw new Error("Missing or invalid apiKey");
 			}
 
 			if (!config.model || typeof config.model !== "string") {
@@ -187,7 +187,7 @@ export class ACPClientAdapter
 				state: "unavailable",
 				lastCheck: new Date(),
 				failureCount: 0,
-				message: "Not initialized",
+				message: this.healthStatus.message ?? "Not initialized",
 			};
 		}
 
@@ -273,7 +273,9 @@ export class ACPClientAdapter
 		if (!this.config) {
 			throw new NormalizedProviderError(
 				"PROVIDER_UNAVAILABLE",
-				"ACP client not initialized",
+				// Name the same condition the code does, and match the wording the
+				// A2A router and the error taxonomy already use.
+				"ACP client unavailable: not initialized",
 				"acp",
 			);
 		}
@@ -298,7 +300,7 @@ export class ACPClientAdapter
 
 				throw new NormalizedProviderError(
 					"PROVIDER_POLICY_DENIED",
-					`ACP execution denied by policy: ${reason}`,
+					`ACP policy denied execution: ${reason}`,
 					"acp",
 					false,
 					correlationId,
@@ -401,7 +403,9 @@ export class ACPClientAdapter
 		if (!this.config) {
 			throw new NormalizedProviderError(
 				"PROVIDER_UNAVAILABLE",
-				"ACP client not initialized",
+				// Name the same condition the code does, and match the wording the
+				// A2A router and the error taxonomy already use.
+				"ACP client unavailable: not initialized",
 				"acp",
 			);
 		}

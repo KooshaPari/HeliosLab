@@ -94,41 +94,45 @@ describe("SignalHistory", () => {
 });
 
 describe("resize", () => {
-	it("updates dimensions and emits events", () => {
-		// Spawn a real child so SIGWINCH delivery succeeds.
-		const pid = spawnShellProcess();
-		pidsToCleanup.push(pid);
+	// SIGWINCH has no Windows equivalent, so delivery cannot succeed there.
+	it.skipIf(process.platform === "win32")(
+		"updates dimensions and emits events",
+		() => {
+			// Spawn a real child so SIGWINCH delivery succeeds.
+			const pid = spawnShellProcess();
+			pidsToCleanup.push(pid);
 
-		const _registry = new PtyRegistry();
-		const _record = makeRecord({ pid });
-		registry.register(record);
-		const historyMap: SignalHistoryMap = new Map();
-		const bus = new InMemoryBusPublisher();
+			const registry = new PtyRegistry();
+			const record = makeRecord({ pid });
+			registry.register(record);
+			const historyMap: SignalHistoryMap = new Map();
+			const bus = new InMemoryBusPublisher();
 
-		resize(record, 120, 40, registry, historyMap, bus);
+			resize(record, 120, 40, registry, historyMap, bus);
 
-		const updated = registry.get(record.ptyId);
-		expect(updated?.dimensions).toEqual({ cols: 120, rows: 40 });
+			const updated = registry.get(record.ptyId);
+			expect(updated?.dimensions).toEqual({ cols: 120, rows: 40 });
 
-		const topics = bus.events.map((e) => e.topic);
-		expect(topics).toContain("pty.signal.delivered");
-		expect(topics).toContain("pty.resized");
+			const topics = bus.events.map((e) => e.topic);
+			expect(topics).toContain("pty.signal.delivered");
+			expect(topics).toContain("pty.resized");
 
-		// Check resize event payload includes old/new dimensions.
-		const resizeEvt = bus.events.find((e) => e.topic === "pty.resized");
-		expect(resizeEvt?.payload.oldDimensions).toEqual({
-			cols: 80,
-			rows: 24,
-		});
-		expect(resizeEvt?.payload.newDimensions).toEqual({
-			cols: 120,
-			rows: 40,
-		});
-	});
+			// Check resize event payload includes old/new dimensions.
+			const resizeEvt = bus.events.find((e) => e.topic === "pty.resized");
+			expect(resizeEvt?.payload.oldDimensions).toEqual({
+				cols: 80,
+				rows: 24,
+			});
+			expect(resizeEvt?.payload.newDimensions).toEqual({
+				cols: 120,
+				rows: 40,
+			});
+		},
+	);
 
 	it("rejects invalid dimensions", () => {
-		const _registry = new PtyRegistry();
-		const _record = makeRecord();
+		const registry = new PtyRegistry();
+		const record = makeRecord();
 		registry.register(record);
 		const historyMap: SignalHistoryMap = new Map();
 		const bus = new InMemoryBusPublisher();
@@ -145,8 +149,8 @@ describe("resize", () => {
 	});
 
 	it("rejects resize on errored PTY", () => {
-		const _registry = new PtyRegistry();
-		const _record = makeRecord({ state: "errored" });
+		const registry = new PtyRegistry();
+		const record = makeRecord({ state: "errored" });
 		registry.register(record);
 		const historyMap: SignalHistoryMap = new Map();
 		const bus = new InMemoryBusPublisher();
@@ -157,8 +161,8 @@ describe("resize", () => {
 	});
 
 	it("rejects resize on stopped PTY", () => {
-		const _registry = new PtyRegistry();
-		const _record = makeRecord({ state: "stopped" });
+		const registry = new PtyRegistry();
+		const record = makeRecord({ state: "stopped" });
 		registry.register(record);
 		const historyMap: SignalHistoryMap = new Map();
 		const bus = new InMemoryBusPublisher();
@@ -171,8 +175,8 @@ describe("resize", () => {
 
 describe("terminate", () => {
 	it("terminates with SIGTERM and cleans up", async () => {
-		const _registry = new PtyRegistry();
-		const _record = makeRecord({ pid: 99998 });
+		const registry = new PtyRegistry();
+		const record = makeRecord({ pid: 99998 });
 		registry.register(record);
 		const lifecycle = new PtyLifecycle(record.ptyId, "active");
 		const historyMap: SignalHistoryMap = new Map();
@@ -201,8 +205,8 @@ describe("terminate", () => {
 	});
 
 	it("is idempotent on stopped PTY", async () => {
-		const _registry = new PtyRegistry();
-		const _record = makeRecord({ state: "stopped" });
+		const registry = new PtyRegistry();
+		const record = makeRecord({ state: "stopped" });
 		// Don't register — already cleaned up.
 		const lifecycle = new PtyLifecycle(record.ptyId, "stopped");
 		const historyMap: SignalHistoryMap = new Map();
@@ -214,8 +218,8 @@ describe("terminate", () => {
 	});
 
 	it("escalates to SIGKILL after grace period", async () => {
-		const _registry = new PtyRegistry();
-		const _record = makeRecord({ pid: 99999 });
+		const registry = new PtyRegistry();
+		const record = makeRecord({ pid: 99999 });
 		registry.register(record);
 		const lifecycle = new PtyLifecycle(record.ptyId, "active");
 		const historyMap: SignalHistoryMap = new Map();
@@ -258,8 +262,8 @@ describe("terminate", () => {
 	});
 
 	it("handles terminate on throttled PTY", async () => {
-		const _registry = new PtyRegistry();
-		const _record = makeRecord({ pid: 99998, state: "throttled" });
+		const registry = new PtyRegistry();
+		const record = makeRecord({ pid: 99998, state: "throttled" });
 		registry.register(record);
 		const lifecycle = new PtyLifecycle(record.ptyId, "throttled");
 		const historyMap: SignalHistoryMap = new Map();
@@ -285,12 +289,13 @@ describe("terminate", () => {
 });
 
 describe("sendSighup", () => {
-	it("records successful delivery", () => {
+	// SIGHUP is POSIX-only; there is no Windows signal to deliver.
+	it.skipIf(process.platform === "win32")("records successful delivery", () => {
 		// Spawn a real child so SIGHUP has a valid target (not the test runner).
 		const pid = spawnShellProcess();
 		pidsToCleanup.push(pid);
 
-		const _record = makeRecord({ pid });
+		const record = makeRecord({ pid });
 		const historyMap: SignalHistoryMap = new Map();
 		const bus = new InMemoryBusPublisher();
 		const envelope = sendSighup(record, historyMap, bus);
@@ -301,7 +306,7 @@ describe("sendSighup", () => {
 
 	it("records failed delivery for dead process", () => {
 		// Use a non-existent PID to avoid sending signals to the test process
-		const _record = makeRecord({ pid: 999999 });
+		const record = makeRecord({ pid: 999999 });
 		const historyMap: SignalHistoryMap = new Map();
 		const bus = new InMemoryBusPublisher();
 
