@@ -308,35 +308,15 @@ async function checkTestCoverage(files: string[]): Promise<Finding[]> {
 	const sectionLine = sections.get(section) || 0;
 
 	for (const filePath of files) {
-		// Normalize once. Every exclusion below is written POSIX-style, but paths
-		// carry backslashes on Windows, so a raw includes() silently never matched
-		// there and the skip did not happen. The fixtures check had already been
-		// patched for both separators by hand; doing it here instead covers all of
-		// them and stops the next one being written the same way.
-		const normalizedPath = filePath.replaceAll("\\", "/");
-
-		// Skip documentation/build configuration files that are not expected to have paired tests.
-		if (normalizedPath.includes("/.vitepress/")) {
-			continue;
-		}
-
+		// POSIX-style patterns never matched Windows backslash paths.
+		const p = filePath.replaceAll("\\", "/");
+		// Skip documentation/build configuration files with no paired test expected.
+		if (p.includes("/.vitepress/")) continue;
 		// Only check source files, not test files
-		if (
-			normalizedPath.includes(".test.") ||
-			normalizedPath.includes(".spec.")
-		) {
-			continue;
-		}
-
+		if (p.includes(".test.") || p.includes(".spec.")) continue;
 		// Skip fixture files (they are test artifacts, not source code)
-		if (normalizedPath.includes("/fixtures/")) {
-			continue;
-		}
-
-		if (
-			!normalizedPath.includes("node_modules") &&
-			normalizedPath.endsWith(".ts")
-		) {
+		if (p.includes("/fixtures/")) continue;
+		if (!p.includes("node_modules") && p.endsWith(".ts")) {
 			const candidateTestPaths = getCandidateTestPaths(filePath);
 			let hasTestFile = false;
 
