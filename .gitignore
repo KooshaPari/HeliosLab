@@ -101,3 +101,6 @@ scripts/tests/adr-fixtures/
 
 # Gate reports are generated output; CI writes its own per run.
 .gate-reports/
+  
+# VitePress build cache. Regenerable, and it was committed by mistake, which is why the bypass gate scanned 2000-line generated bundles.  
+.vitepress/cache/  
