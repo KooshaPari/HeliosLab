@@ -53,7 +53,15 @@ function findTypescriptFiles(rootDir: string): string[] {
 		}
 
 		for (const entry of entries) {
-			if (entry.startsWith(".") || entry === "node_modules") {
+			// `fixtures` directories hold deliberately oversized sample files
+			// (scripts/tests/fixtures/large-file.ts and friends are 501 lines of
+			// "// line N") that exist to test size rules. Scanning them made this
+			// gate fail on the very data used to verify it.
+			if (
+				entry.startsWith(".") ||
+				entry === "node_modules" ||
+				entry === "fixtures"
+			) {
 				continue;
 			}
 
