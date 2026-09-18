@@ -313,7 +313,7 @@ runtime:
   replicaCount: 3
   
   image:
-    repository: ghcr.io/<REDACTED>/heliosApp
+    repository: ghcr.io/KooshaPari/heliosApp
     tag: "2026.03A.0"
     pullPolicy: IfNotPresent
   
@@ -630,7 +630,7 @@ kubectl patch service helios-app-service \
 ```bash
 # Execute production smoke tests
 kubectl run smoke-test \
-    --image=ghcr.io/<REDACTED>/heliosApp:smoke-test \
+    --image=ghcr.io/KooshaPari/heliosApp:smoke-test \
     --restart=Never \
     -n helios-app \
     --wait

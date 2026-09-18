@@ -5,7 +5,7 @@
 For questions, bug reports, and feature requests, please use the project's
 GitHub issue tracker:
 
-- **Issues:** https://github.com/<REDACTED>/HeliosLab/issues
+- **Issues:** https://github.com/KooshaPari/HeliosLab/issues
 
 Before opening a new issue, search existing issues to avoid duplicates.
 
@@ -16,7 +16,7 @@ Before opening a new issue, search existing issues to avoid duplicates.
 
 ## Community
 
-- **Discussions:** https://github.com/<REDACTED>/HeliosLab/discussions
+- **Discussions:** https://github.com/KooshaPari/HeliosLab/discussions
 
 ## Commercial Support
 

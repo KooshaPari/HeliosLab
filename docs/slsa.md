@@ -30,7 +30,7 @@ and is triggered:
 ## Verification
 
 ```bash
-gh attestation verify <artifact> --owner <REDACTED>
+gh attestation verify <artifact> --owner KooshaPari
 ```
 
 ## References

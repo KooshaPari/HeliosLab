@@ -1,7 +1,7 @@
 # Journey Manifests
 
 - **Status:** Active
-- **Repo:** <REDACTED>/HeliosLab
+- **Repo:** KooshaPari/HeliosLab
 
 This directory contains journey manifests following the Phenotype journey traceability standard.
 
