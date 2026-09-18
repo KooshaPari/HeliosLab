@@ -447,6 +447,14 @@ export class ACPClientAdapter
 			}
 			this.inFlightTasks.clear();
 
+			// Stop the periodic health check. Nothing else clears it, so without
+			// this the interval keeps firing for the life of the process after a
+			// clean shutdown.
+			if (this.healthCheckInterval !== undefined) {
+				clearInterval(this.healthCheckInterval);
+				this.healthCheckInterval = undefined;
+			}
+
 			// Clear config
 			this.config = null;
 
