@@ -2,10 +2,10 @@ import { existsSync, readFileSync } from "node:fs";
 
 const specPath =
 	process.env.TRACE_SPEC_PATH ??
-	"kitty-specs/001-colab-agent-terminal-control-plane/spec.md";
+	"docs/specs/001-colab-agent-terminal-control-plane/spec.md";
 const matrixPath =
 	process.env.TRACE_MATRIX_PATH ??
-	"kitty-specs/001-colab-agent-terminal-control-plane/traceability-matrix.json";
+	".archive/kitty-specs/001-colab-agent-terminal-control-plane/traceability-matrix.json";
 
 function extractRequirementIds(specText) {
 	const matches = [...specText.matchAll(/\*\*((?:FR|NFR)-[0-9]+[a-z]?)\*\*/g)];
@@ -29,13 +29,30 @@ if (!Array.isArray(matrix.requirements)) {
 }
 
 const byId = new Map(matrix.requirements.map((entry) => [entry.id, entry]));
-const missing = requirementIds.filter((id) => !byId.has(id));
+// Matrix entries may split one requirement into lettered sub-requirements
+// (FR-001 -> FR-001a, FR-001b). A spec ID is mapped when the matrix contains
+// either the exact ID or one or more of its lettered splits.
+const mapped = requirementIds.filter((id) =>
+	[...byId.keys()].some(
+		(matrixId) => matrixId === id || matrixId.startsWith(`${id}`) && /^[a-z]$/.test(matrixId.slice(id.length)),
+	),
+);
+const missing = requirementIds.filter((id) => !mapped.includes(id));
 if (missing.length) {
 	fail(`missing mappings for: ${missing.join(", ")}`);
 }
 
 const broken = [];
-for (const id of requirementIds) {
+const mappedIds = new Set(
+	requirementIds.flatMap((id) =>
+		[...byId.keys()].filter(
+			(matrixId) =>
+				matrixId === id ||
+				(matrixId.startsWith(id) && /^[a-z]+$/.test(matrixId.slice(id.length))),
+		),
+	),
+);
+for (const id of mappedIds) {
 	const entry = byId.get(id);
 	if (!Array.isArray(entry.artifacts) || entry.artifacts.length === 0) {
 		broken.push(`${id} has no artifacts`);
