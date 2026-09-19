@@ -96,19 +96,32 @@ pub export fn pty_pool_spawn(
         g_pool.release(handle) catch {};
         // Distinct codes so a failing runtime test names the exact step.
         // Collapsing these to a single ERR_SPAWN made the failure
-        // undiagnosable from the test output.
-        // Distinct codes so a failing test names the exact step. Collapsing
-        // these to a single ERR_SPAWN made the failure undiagnosable from
-        // the test output. The Windows backend reuses the Unix numbering
-        // slots where the failure is analogous.
+        // undiagnosable from the test output. Each backend only maps its own
+        // error set; the comptime guard keeps the switch exhaustive per
+        // target without either backend seeing the other's members.
+        if (builtin.os.tag == .windows) {
+            return switch (e) {
+                error.PipeFailed => -10,
+                error.ConptyFailed => -11, // last_hresult carries the HRESULT
+                error.AttrUpdateFailed => -15,
+                error.AttrListInitFailed => -16,
+                error.ProcessFailed => -17, // last_errno carries GetLastError()
+                error.InvalidUtf8 => -18,
+                error.OutOfMemory => -19,
+            };
+        }
         return switch (e) {
-            error.PipeFailed => -10,
-            error.ConptyFailed => -11, // last_hresult carries the HRESULT
-            error.AttrUpdateFailed => -15,
-            error.AttrListInitFailed => -16,
-            error.ProcessFailed => -17, // last_errno carries GetLastError()
-            error.InvalidUtf8 => -18,
-            error.OutOfMemory => -19,
+            error.OpenptFailed => -10,
+            error.GrantptFailed => -11,
+            error.UnlockptFailed => -12,
+            error.SlaveOpenFailed => -13,
+            error.WinsizeFailed => -14,
+            error.FileActionsFailed => -15,
+            error.AttrFailed => -16,
+            // Offset by the errno so the returned code identifies the cause.
+            // posix_spawn returns the errno directly, so e.g. ENOENT (2) arrives
+            // as -119 rather than an opaque -17.
+            error.SpawnFailed => -100 - pty.last_errno,
         };
     };
     pty.setNonBlocking(res.master_fd) catch {};
