@@ -5,6 +5,7 @@
  * @module
  */
 
+import type { PtyProcessHandle } from "./io.js";
 import type { PtyDimensions, PtyRecord, PtyRegistry } from "./registry.js";
 import { PtyLifecycle } from "./state_machine.js";
 
@@ -28,10 +29,18 @@ export interface SpawnOptions {
 	terminalId: string;
 }
 
-/** Result of a spawn operation, including timing data. */
+/** Result of a spawn operation, including timing data and the live handle. */
 export interface SpawnResult {
 	readonly record: PtyRecord;
 	readonly spawnLatencyMs: number;
+	/**
+	 * The live subprocess handle.
+	 *
+	 * `stdout` is a `ReadableStream<Uint8Array>` that callers pipe into a
+	 * renderer via the stream binding layer. Without this handle the spawned
+	 * process is unreachable and its output can never reach a surface.
+	 */
+	readonly process: PtyProcessHandle;
 }
 
 /**
@@ -116,7 +125,7 @@ export async function spawnPty(
 		registry.register(record);
 
 		const spawnLatencyMs = performance.now() - startTime;
-		return { record, spawnLatencyMs };
+		return { record, spawnLatencyMs, process: proc };
 	} catch (error) {
 		// If still in spawning state, transition to errored
 		if (lifecycle.state === "spawning") {
