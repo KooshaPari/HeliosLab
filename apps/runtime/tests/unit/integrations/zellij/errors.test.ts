@@ -11,7 +11,7 @@ import {
 	ZellijNotFoundError,
 	ZellijTimeoutError,
 	ZellijVersionError,
-} from "../../../src/integrations/zellij/errors";
+} from "../../../../src/integrations/zellij/errors";
 
 describe("zellij error types", () => {
 	it("ZellijNotFoundError carries install guidance", () => {
