@@ -85,8 +85,14 @@
 				"lane.create.started",
 				"lane.created",
 				"lane.create.failed",
+				"lane.attach.started",
 				"lane.attached",
+				"lane.attach.failed",
+				"lane.cleanup.started",
 				"lane.cleaned",
+				"lane.cleanup.failed",
+				"session.terminate.started",
+				"session.terminate.failed",
 				"harness.status.changed",
 				"audit.recorded",
 				"diagnostics.metric",
@@ -214,6 +220,70 @@
 				"required": ["type", "topic"]
 			},
 			"then": { "required": ["correlation_id", "workspace_id", "lane_id"] }
+		},
+		{
+			"if": {
+				"properties": {
+					"type": { "const": "event" },
+					"topic": { "const": "lane.attach.started" }
+				},
+				"required": ["type", "topic"]
+			},
+			"then": { "required": ["correlation_id", "workspace_id", "lane_id"] }
+		},
+		{
+			"if": {
+				"properties": {
+					"type": { "const": "event" },
+					"topic": { "const": "lane.attach.failed" }
+				},
+				"required": ["type", "topic"]
+			},
+			"then": { "required": ["correlation_id", "workspace_id", "lane_id"] }
+		},
+		{
+			"if": {
+				"properties": {
+					"type": { "const": "event" },
+					"topic": { "const": "lane.cleanup.started" }
+				},
+				"required": ["type", "topic"]
+			},
+			"then": { "required": ["correlation_id", "workspace_id", "lane_id"] }
+		},
+		{
+			"if": {
+				"properties": {
+					"type": { "const": "event" },
+					"topic": { "const": "lane.cleanup.failed" }
+				},
+				"required": ["type", "topic"]
+			},
+			"then": { "required": ["correlation_id", "workspace_id", "lane_id"] }
+		},
+		{
+			"if": {
+				"properties": {
+					"type": { "const": "event" },
+					"topic": { "const": "session.terminate.started" }
+				},
+				"required": ["type", "topic"]
+			},
+			"then": {
+				"required": ["correlation_id", "workspace_id", "lane_id", "session_id"]
+			}
+		},
+		{
+			"if": {
+				"properties": {
+					"type": { "const": "event" },
+					"topic": { "const": "session.terminate.failed" }
+				},
+				"required": ["type", "topic"]
+			},
+			"then": {
+				"required": ["correlation_id", "workspace_id", "lane_id", "session_id"]
+			}
 		},
 		{
 			"if": {

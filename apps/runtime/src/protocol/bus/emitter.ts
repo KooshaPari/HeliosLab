@@ -10,10 +10,12 @@ import {
 import { MetricsRecorder } from "./metrics.js";
 import {
 	handleLaneAttach,
+	handleLaneCleanup,
 	handleLaneCreate,
 	handleRendererCapabilities,
 	handleRendererSwitch,
 	handleSessionAttach,
+	handleSessionTerminate,
 	handleTerminalInput,
 	handleTerminalSpawn,
 	type RequestHandlerContext,
@@ -215,7 +217,9 @@ export class InMemoryLocalBus implements LocalBus {
 			const needsCorrelation = [
 				"lane.create",
 				"lane.attach",
+				"lane.cleanup",
 				"session.attach",
+				"session.terminate",
 				"terminal.spawn",
 				"terminal.input",
 				"terminal.resize",
@@ -244,8 +248,12 @@ export class InMemoryLocalBus implements LocalBus {
 				return handleLaneCreate(command, startTime, ctx);
 			if (command.method === "lane.attach")
 				return handleLaneAttach(command, ctx);
+			if (command.method === "lane.cleanup")
+				return handleLaneCleanup(command, startTime, ctx);
 			if (command.method === "session.attach")
 				return handleSessionAttach(command, startTime, ctx);
+			if (command.method === "session.terminate")
+				return handleSessionTerminate(command, startTime, ctx);
 			if (command.method === "terminal.spawn")
 				return handleTerminalSpawn(command, startTime, ctx);
 			if (command.method === "terminal.input")
