@@ -9,6 +9,7 @@ import { createBoundaryDispatcher } from "./protocol/boundary_adapter.js";
 import { InMemoryLocalBus } from "./protocol/bus.js";
 import { METHODS } from "./protocol/methods.js";
 import type { LocalBusEnvelope } from "./protocol/types.js";
+import { DurabilityLayer } from "./recovery/durability_layer.js";
 import { handleRuntimeRequest } from "./runtime/ops.js";
 import type { TerminalBuffer } from "./runtime/types.js";
 import { RedactionEngine } from "./secrets/redaction-engine.js";
@@ -62,6 +63,8 @@ export type RuntimeOptions = {
 		check(): Promise<{ ok: boolean; reason?: string | null }>;
 	};
 	terminalBufferCapBytes?: number;
+	/** Root directory for durability (checkpoints, crash records, recovery state). */
+	dataDir?: string;
 };
 
 type RuntimeInstance = ReturnType<typeof createRuntime>;
@@ -150,6 +153,15 @@ export function createRuntime(options: RuntimeOptions = {}) {
 	const laneService = new LaneLifecycleService(bus);
 	const redactionEngine = new RedactionEngine();
 	redactionEngine.loadRules(getDefaultRules());
+
+	// --- Durability layer (optional) ---
+	let durability: DurabilityLayer | undefined;
+	if (options.dataDir) {
+		durability = new DurabilityLayer({
+			dataDir: options.dataDir,
+			bus: innerBus,
+		});
+	}
 
 	const auditRecords: RuntimeAuditRecord[] = [];
 	let bootstrapResult: RecoveryBootstrapResult | null = null;
@@ -825,7 +837,25 @@ export function createRuntime(options: RuntimeOptions = {}) {
 		spawnTerminal,
 		inputTerminal,
 		resizeTerminal,
-		shutdown(): void {},
+		shutdown(): void {
+			if (durability) {
+				durability.shutdown().catch((err) => {
+					console.error("[Runtime] Durability shutdown error:", err);
+				});
+			}
+		},
+		durability,
+		/**
+		 * Start the durability layer with a checkpoint snapshotter.
+		 * The snapshotter returns the current session list for checkpointing.
+		 * Only available if `dataDir` was provided in options.
+		 */
+		async startDurability(
+			snapshotter: () => import("./recovery/checkpoint.js").CheckpointSession[],
+		): Promise<void> {
+			if (!durability) return;
+			await durability.start(snapshotter);
+		},
 	};
 }
 
