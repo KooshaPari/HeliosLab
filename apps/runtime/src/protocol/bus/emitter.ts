@@ -11,15 +11,17 @@ import { MetricsRecorder } from "./metrics.js";
 import {
 	handleLaneAttach,
 	handleLaneCleanup,
+	handleSessionTerminate,
+	type RequestHandlerContext,
+} from "./request-handlers.js";
+import {
 	handleLaneCreate,
 	handleRendererCapabilities,
 	handleRendererSwitch,
 	handleSessionAttach,
-	handleSessionTerminate,
 	handleTerminalInput,
 	handleTerminalSpawn,
-	type RequestHandlerContext,
-} from "./request-handlers.js";
+} from "./request-handlers-session.js";
 import type {
 	AuditRecord,
 	BusState,
