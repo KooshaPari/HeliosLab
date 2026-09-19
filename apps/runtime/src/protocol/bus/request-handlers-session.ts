@@ -2,9 +2,7 @@
 
 import type { LocalBusEnvelope } from "../types.js";
 import { publishLifecycleEvent } from "./lifecycle.js";
-import type { MetricsRecorder } from "./metrics.js";
 import type { RequestHandlerContext } from "./request-handlers.js";
-import type { AuditRecord, BusState } from "./types.js";
 import { hasTopLevelDataField } from "./validation.js";
 
 export function handleLaneCreate(
