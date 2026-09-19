@@ -62,6 +62,15 @@ pub fn Pool(comptime capacity: usize) type {
             fd: i32 = -1,
             /// Child process id, or -1 when unused.
             pid: i32 = -1,
+            /// Backend-extra handle. Unix ignores it. Windows stores the
+            /// input pipe's write HANDLE there (fd-encoded), because resize
+            /// and writeIn need a second handle and the pool's slot is
+            /// deliberately backend-agnostic.
+            fd_aux: i32 = -1,
+            /// Second backend-extra, Windows only: the HPCON, fd-encoded.
+            /// resize() must reach the console of the *same* session, so a
+            /// process-global stash is wrong once two sessions exist.
+            hpcon_aux: i64 = -1,
             cols: u16 = 80,
             rows: u16 = 24,
             state: SlotState = .closed,
