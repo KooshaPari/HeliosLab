@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Protocol topics `lane.attach.started/failed`, `lane.cleanup.started/failed`, `session.terminate.started/failed` implemented across contract, runtime, and parity matrix ([#196](https://github.com/KooshaPari/HeliosLab/pull/196))
 - `RecordingRendererAdapter` for headless CI testing of renderer binding ([#199](https://github.com/KooshaPari/HeliosLab/pull/199))
 - `pty_pool_last_spawn_error` and `pty_pool_last_hresult` exports for bridge diagnosis ([#197](https://github.com/KooshaPari/HeliosLab/pull/197))
+- CVP harness proving 1000 concurrent live sessions (`docs/cvp/`), with scaling regression suite ([#199](https://github.com/KooshaPari/HeliosLab/pull/199))
 
 ### Changed
 - `SpawnResult` now carries the spawned process handle; `PtyManager` exposes `getProcess()` ([#199](https://github.com/KooshaPari/HeliosLab/pull/199))
