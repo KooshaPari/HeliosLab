@@ -75,7 +75,13 @@ jobs:
       - name: Run axe a11y e2e tests
         env:
           HELIOSLAB_RENDERER_URL: http://localhost:5173
-        run: node node_modules/playwright/cli.js test e2e/a11y/ --reporter=github
+        # Same shadowing the reusable gate had: without an explicit --config,
+        # Playwright resolves playwright.config.ts first, which uses testDir "."
+        # and boots apps/desktop, instead of playwright.config.mts, which uses
+        # testDir "./e2e" and serves the fixture on 5173. Note .mts reads
+        # HELIOSLAB_RENDERER_PORT, not the HELIOSLAB_RENDERER_URL set above, so
+        # that variable does not reach it either way.
+        run: node node_modules/playwright/cli.js test --config playwright.config.mts e2e/a11y/ --reporter=github
 
       - name: Upload Playwright report on failure
         if: failure()
