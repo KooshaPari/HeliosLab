@@ -212,7 +212,7 @@ export class VerticalSliceDriver {
 
 	private static laneIdOf(evt: EventEnvelope): string | undefined {
 		if (typeof evt.lane_id === "string") return evt.lane_id;
-		const payloadLaneId = evt.payload?.["lane_id"];
+		const payloadLaneId = evt.payload?.lane_id;
 		if (typeof payloadLaneId === "string") {
 			return payloadLaneId;
 		}

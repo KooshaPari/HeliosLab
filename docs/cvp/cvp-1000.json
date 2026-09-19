@@ -1,61 +1,61 @@
 {
-  "schema": "helios.cvp.v1",
-  "generatedAt": "2026-09-19T19:33:01.937Z",
-  "environment": {
-    "bunVersion": "1.4.0",
-    "nodeVersion": "v26.3.0",
-    "platform": "win32",
-    "arch": "x64",
-    "cpus": 16
-  },
-  "options": {
-    "count": 1000,
-    "maxPtys": 1500,
-    "shell": null
-  },
-  "results": {
-    "lanesRequested": 1000,
-    "lanesBound": 1000,
-    "lanesFailed": 0,
-    "spawnErrors": [],
-    "throughputLanesPerSecond": 10.156298827200073
-  },
-  "latency": {
-    "perLaneMs": {
-      "count": 1000,
-      "min_ms": 98433.3484,
-      "p50_ms": 98434.98640000001,
-      "p95_ms": 98437.7359,
-      "p99_ms": 98459.3963,
-      "max_ms": 98460.7276,
-      "mean_ms": 98435.88719780008
-    },
-    "cleanupMs": 599.9306999999972
-  },
-  "duration": {
-    "totalMs": 99061.75639999998,
-    "setupMs": 0.7605999999999966,
-    "spawnAndBindMs": 98461.06509999999
-  },
-  "memory": {
-    "baselineRssBytes": 25600000,
-    "peakRssBytes": 91746304,
-    "afterCleanupRssBytes": 93884416,
-    "deltaBytes": 68284416,
-    "deltaMegabytes": 65.12109375
-  },
-  "thresholds": {
-    "maxTotalMs": 210000,
-    "maxSpawnP99Ms": 150000,
-    "maxCleanupMs": 25000,
-    "maxMemoryDeltaMb": 200
-  },
-  "pass": {
-    "lanesBound": true,
-    "totalDuration": true,
-    "spawnLatency": true,
-    "cleanupLatency": true,
-    "memoryStability": true
-  },
-  "overallPass": true
+	"schema": "helios.cvp.v1",
+	"generatedAt": "2026-09-19T19:33:01.937Z",
+	"environment": {
+		"bunVersion": "1.4.0",
+		"nodeVersion": "v26.3.0",
+		"platform": "win32",
+		"arch": "x64",
+		"cpus": 16
+	},
+	"options": {
+		"count": 1000,
+		"maxPtys": 1500,
+		"shell": null
+	},
+	"results": {
+		"lanesRequested": 1000,
+		"lanesBound": 1000,
+		"lanesFailed": 0,
+		"spawnErrors": [],
+		"throughputLanesPerSecond": 10.156298827200073
+	},
+	"latency": {
+		"perLaneMs": {
+			"count": 1000,
+			"min_ms": 98433.3484,
+			"p50_ms": 98434.98640000001,
+			"p95_ms": 98437.7359,
+			"p99_ms": 98459.3963,
+			"max_ms": 98460.7276,
+			"mean_ms": 98435.88719780008
+		},
+		"cleanupMs": 599.9306999999972
+	},
+	"duration": {
+		"totalMs": 99061.75639999998,
+		"setupMs": 0.7605999999999966,
+		"spawnAndBindMs": 98461.06509999999
+	},
+	"memory": {
+		"baselineRssBytes": 25600000,
+		"peakRssBytes": 91746304,
+		"afterCleanupRssBytes": 93884416,
+		"deltaBytes": 68284416,
+		"deltaMegabytes": 65.12109375
+	},
+	"thresholds": {
+		"maxTotalMs": 210000,
+		"maxSpawnP99Ms": 150000,
+		"maxCleanupMs": 25000,
+		"maxMemoryDeltaMb": 200
+	},
+	"pass": {
+		"lanesBound": true,
+		"totalDuration": true,
+		"spawnLatency": true,
+		"cleanupLatency": true,
+		"memoryStability": true
+	},
+	"overallPass": true
 }

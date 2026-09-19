@@ -271,7 +271,13 @@ async function main(): Promise<void> {
 	report.overallPass = Object.values(report.pass).every(Boolean);
 
 	await mkdir(dirname(opts.outputPath), { recursive: true });
-	await writeFile(opts.outputPath, JSON.stringify(report, null, 2), "utf-8");
+	// Tab indentation matches the repository's biome formatting so the
+	// generated evidence stays lint-clean without a post-processing step.
+	await writeFile(
+		opts.outputPath,
+		`${JSON.stringify(report, null, "\t")}\n`,
+		"utf-8",
+	);
 
 	console.log(`\n=== CVP Report (${opts.count} concurrent sessions) ===`);
 	console.log(`Lanes bound:      ${bound}/${opts.count}`);
