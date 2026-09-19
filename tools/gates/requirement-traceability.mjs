@@ -34,7 +34,10 @@ const byId = new Map(matrix.requirements.map((entry) => [entry.id, entry]));
 // either the exact ID or one or more of its lettered splits.
 const mapped = requirementIds.filter((id) =>
 	[...byId.keys()].some(
-		(matrixId) => matrixId === id || matrixId.startsWith(`${id}`) && /^[a-z]$/.test(matrixId.slice(id.length)),
+		(matrixId) =>
+			matrixId === id ||
+			(matrixId.startsWith(`${id}`) &&
+				/^[a-z]$/.test(matrixId.slice(id.length))),
 	),
 );
 const missing = requirementIds.filter((id) => !mapped.includes(id));
