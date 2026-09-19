@@ -16,7 +16,12 @@ on:
 jobs:
   sync-secrets:
     name: Pull secrets from Infisical
-    runs-on: blacksmith-2vcpu-ubuntu-2204
+    # blacksmith-2vcpu-ubuntu-2204: this run spent 50+ minutes stuck in
+    # "queued" on 2026-09-19 (every Infisical run in repo history never
+    # left the queue), because the Blacksmith pool has no runner available
+    # for this fork. ubuntu-latest is served by GitHub-hosted runners, which
+    # start in seconds, so the gate actually runs.
+    runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - name: Checkout
