@@ -45,5 +45,15 @@ jobs:
         run: bunx playwright install --with-deps chromium
 
       - name: Run axe accessibility gate
-        run: bunx playwright test ${{ inputs.spec_glob }}
+        # Playwright resolves playwright.config.ts before playwright.config.mts,
+        # and this repo has BOTH at the root. The .ts config boots apps/desktop on
+        # its own ports with testDir "."; this gate expects the fixture server on
+        # the declared dev_port with testDir "./e2e", which is what .mts provides.
+        # Naming the config explicitly removes the shadowing.
+        env:
+          # dev_port was declared as an input at the top of this file but never
+          # referenced, so the value both callers pass (5173) was silently ignored
+          # and .mts fell back to its own default.
+          HELIOSLAB_RENDERER_PORT: ${{ inputs.dev_port }}
+        run: bunx playwright test --config playwright.config.mts ${{ inputs.spec_glob }}
         working-directory: ${{ inputs.app_dir }}
