@@ -24,7 +24,7 @@ export interface CleanupResult {
 export class OrphanReconciler {
 	private bus?: LocalBus;
 
-	constructor(restoredSessionIds: string[], bus?: LocalBus) {
+	constructor(_restoredSessionIds: string[], bus?: LocalBus) {
 		this.bus = bus;
 	}
 

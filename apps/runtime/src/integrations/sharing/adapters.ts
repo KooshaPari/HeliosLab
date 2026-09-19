@@ -113,12 +113,6 @@ export interface TmateConfig {
  * FR-026-004: Tmate backend with link generation.
  */
 export class TmateAdapter implements ShareBackendAdapter {
-	private config: TmateConfig;
-
-	constructor(config?: TmateConfig) {
-		this.config = config || {};
-	}
-
 	/**
 	 * Check if tmate binary is available.
 	 */
@@ -195,7 +189,7 @@ export function getBackendAdapter(
 		case "upterm":
 			return new UptermAdapter(config as UptermConfig | undefined);
 		case "tmate":
-			return new TmateAdapter(config as TmateConfig | undefined);
+			return new TmateAdapter();
 		default:
 			throw new Error(`Unknown backend: ${backend}`);
 	}

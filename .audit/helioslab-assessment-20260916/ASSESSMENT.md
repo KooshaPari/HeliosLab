@@ -1,7 +1,7 @@
 # HeliosLab Assessment Report
 
 **Assessment ID:** HELIOSLAB-LIBRARY-2026-09-16
-**Subject:** <REDACTED>/HeliosLab @ `6815b38f`
+**Subject:** KooshaPari/HeliosLab @ `6815b38f`
 **Profile:** Library (crypto/CLI/FFI)
 **Epoch:** 2026-09-16
 **Evidence Class:** Source-level inspection

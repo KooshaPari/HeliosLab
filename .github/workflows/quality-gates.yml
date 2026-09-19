@@ -24,7 +24,11 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
         with:
-          bun-version: '1.2.20'
+          # 1.2.20 does not export `vi` from bun:test, so every test that calls
+          # vi.useFakeTimers() in a beforeEach failed outright. Seven files do
+          # that, which is why Gate 3 reported 147 failures. 1.4.0 is the
+          # version the suite is developed and verified against.
+          bun-version: '1.4.0'
 
       - name: Cache Bun modules
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9

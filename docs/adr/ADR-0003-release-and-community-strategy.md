@@ -59,7 +59,7 @@ Publishing to PyPI is triggered by pushing a `v*` git tag matching the pattern `
 3. Builds the package with `python -m hatchling build`
 4. Publishes to PyPI using `pypa/gh-action-pypi-publish` with trusted publishing (OIDC)
 
-Trusted publishing eliminates the need for manually managed PyPI API tokens. The workflow requires `id-token: write` permission and is configured in the PyPI project settings to trust the GitHub Actions environment for the `<REDACTED>/heliosBench` repository.
+Trusted publishing eliminates the need for manually managed PyPI API tokens. The workflow requires `id-token: write` permission and is configured in the PyPI project settings to trust the GitHub Actions environment for the `KooshaPari/heliosBench` repository.
 
 No manual `twine upload` is ever performed — all releases go through CI.
 

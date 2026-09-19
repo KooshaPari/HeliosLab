@@ -26,7 +26,7 @@ This journey guides new contributors through setting up a complete heliosApp dev
 Start by cloning the heliosApp repository:
 
 ```bash
-git clone git@github.com:<REDACTED>/heliosApp.git
+git clone git@github.com:KooshaPari/heliosApp.git
 cd heliosApp
 ```
 

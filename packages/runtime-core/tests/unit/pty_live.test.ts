@@ -13,11 +13,15 @@ import { nativeStatus, PtyPool } from "../../src/ffi/index.ts";
 
 const status = nativeStatus();
 
-// Skipped only on Windows: the library is a Mach-O dylib or an ELF shared
-// object, neither of which can load there, so a failure would say nothing about
-// the code. On macOS and Linux it runs and fails loudly if the build is missing,
-// because there the absence of the library is a real problem.
-describe.skipIf(process.platform === "win32")(
+// Skipped unless on macOS. The previous comment claimed macOS and Linux both
+// ran it and that a missing library there was a real problem worth failing on.
+// That is wrong for Linux: packages/pty-pool/src/pty_unix.zig calls
+// @compileError("pty_unix.zig currently targets macOS only"), so the library
+// cannot be built on a Linux runner at all and failing there said nothing about
+// this code. Windows is excluded for the same reason plus the loader being
+// POSIX-oriented. On macOS it still fails loudly rather than skipping, because
+// there the absence of a built library IS a real problem.
+describe.skipIf(process.platform !== "darwin")(
 	"pty pool over the live FFI bridge",
 	() => {
 		test("the bridge locates and loads the built library", () => {

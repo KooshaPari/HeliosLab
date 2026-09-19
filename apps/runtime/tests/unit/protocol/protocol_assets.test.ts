@@ -177,12 +177,22 @@ describe("protocol asset parity", () => {
 		expect(timestamp.pattern).toBe(expectedPattern);
 	});
 
-	// The contract carries conditional-required rules for six topics the runtime
-	// never emits, and they exist only in the older copy under docs/specs. The
-	// assertion above previously required all fifteen, which cannot hold against
-	// the canonical contract, so it now covers the nine that are defined and
-	// this records the remainder. Keeping it as a test means implementing the
-	// surface turns a failure green rather than silently widening an assertion.
+	// These six topics appear in the older contract copies (docs/specs,
+	// apps/runtime/tests/contracts, .archive) but not in the canonical contract
+	// or in TOPICS, which is why the parity gate passes while the declared
+	// surface stays incomplete.
+	//
+	// One of the six is drift rather than a pure gap: bus/lifecycle.ts declares
+	// lane.attach.started and request-handlers.ts already publishes it, so the
+	// emitter and its own registry disagree about the same topic. An earlier
+	// version of this comment claimed the runtime never emits any of the six,
+	// which was wrong for that one.
+	//
+	// The assertion above previously required all fifteen conditional-required
+	// rules, which cannot hold against the canonical contract, so it now covers
+	// the nine that are defined and this records the remainder. Keeping it as a
+	// test means implementing the surface turns a failure green rather than
+	// silently widening an assertion.
 	test("the contract's lane attach/cleanup and session terminate topics are not implemented", () => {
 		const unimplemented = [
 			"lane.attach.started",
