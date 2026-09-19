@@ -39,9 +39,16 @@
 				<button id="new-file-btn" type="button" aria-label="New file">New</button>
 				<button id="open-file-btn" type="button" aria-label="Open file">Open</button>
 			</header>
-			<aside id="file-tree" aria-label="Files" role="tree">
-				<div role="treeitem" aria-expanded="false" aria-level="1">src</div>
-				<div role="treeitem" aria-expanded="false" aria-level="1">tests</div>
+			<aside id="file-tree" aria-label="Files">
+				<!-- role="tree" lives on a nested container, not on the <aside>:
+				     biome's noNoninteractiveElementToInteractiveRole rejects an
+				     interactive role on a non-interactive element, while axe's
+				     aria-required-parent still requires the treeitems to sit inside
+				     something with role tree or group. This satisfies both. -->
+				<div role="tree">
+					<div role="treeitem" aria-expanded="false" aria-level="1">src</div>
+					<div role="treeitem" aria-expanded="false" aria-level="1">tests</div>
+				</div>
 			</aside>
 			<main id="main" tabindex="-1">
 				<section id="editor-pane" aria-label="Code editor">
