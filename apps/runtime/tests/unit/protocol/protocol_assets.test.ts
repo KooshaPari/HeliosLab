@@ -124,6 +124,18 @@ describe("protocol asset parity", () => {
 				["lane.create.started", ["correlation_id", "lane_id", "workspace_id"]],
 				["lane.created", ["correlation_id", "lane_id", "workspace_id"]],
 				["lane.create.failed", ["correlation_id", "lane_id", "workspace_id"]],
+				["lane.attach.started", ["correlation_id", "lane_id", "workspace_id"]],
+				["lane.attach.failed", ["correlation_id", "lane_id", "workspace_id"]],
+				["lane.cleanup.started", ["correlation_id", "lane_id", "workspace_id"]],
+				["lane.cleanup.failed", ["correlation_id", "lane_id", "workspace_id"]],
+				[
+					"session.terminate.started",
+					["correlation_id", "lane_id", "session_id", "workspace_id"],
+				],
+				[
+					"session.terminate.failed",
+					["correlation_id", "lane_id", "session_id", "workspace_id"],
+				],
 				[
 					"session.attach.started",
 					["correlation_id", "lane_id", "session_id", "workspace_id"],
@@ -177,14 +189,24 @@ describe("protocol asset parity", () => {
 		expect(timestamp.pattern).toBe(expectedPattern);
 	});
 
-	// The contract carries conditional-required rules for six topics the runtime
-	// never emits, and they exist only in the older copy under docs/specs. The
-	// assertion above previously required all fifteen, which cannot hold against
-	// the canonical contract, so it now covers the nine that are defined and
-	// this records the remainder. Keeping it as a test means implementing the
-	// surface turns a failure green rather than silently widening an assertion.
-	test("the contract's lane attach/cleanup and session terminate topics are not implemented", () => {
-		const unimplemented = [
+	// These six topics appear in the older contract copies (docs/specs,
+	// apps/runtime/tests/contracts, .archive) but not in the canonical contract
+	// or in TOPICS, which is why the parity gate passes while the declared
+	// surface stays incomplete.
+	//
+	// One of the six is drift rather than a pure gap: bus/lifecycle.ts declares
+	// lane.attach.started and request-handlers.ts already publishes it, so the
+	// emitter and its own registry disagree about the same topic. An earlier
+	// version of this comment claimed the runtime never emits any of the six,
+	// which was wrong for that one.
+	//
+	// The assertion above previously required all fifteen conditional-required
+	// rules, which cannot hold against the canonical contract, so it now covers
+	// the nine that are defined and this records the remainder. Keeping it as a
+	// test means implementing the surface turns a failure green rather than
+	// silently widening an assertion.
+	test("the contract's lane attach/cleanup and session terminate topics are implemented", () => {
+		const implemented = [
 			"lane.attach.started",
 			"lane.attach.failed",
 			"lane.cleanup.started",
@@ -193,8 +215,55 @@ describe("protocol asset parity", () => {
 			"session.terminate.failed",
 		];
 
-		for (const topic of unimplemented) {
-			expect(TOPICS).not.toContain(topic);
+		for (const topic of implemented) {
+			expect(TOPICS).toContain(topic);
 		}
+	});
+
+	test("session terminate emits its full lifecycle over the bus", async () => {
+		const { InMemoryLocalBus } = await import("../../../src/protocol/bus");
+		const bus = new InMemoryLocalBus();
+		const seen: string[] = [];
+		bus.subscribe?.("session.terminate.started", () => seen.push("started"));
+		const response = await bus.request({
+			id: "cmd-term-1",
+			type: "command",
+			ts: new Date().toISOString(),
+			method: "session.terminate",
+			correlation_id: "corr-term-1",
+			workspace_id: "ws1",
+			lane_id: "lane1",
+			session_id: "sess1",
+			payload: {},
+		} as never);
+		expect(response.status).toBe("ok");
+		const topics = bus
+			.getEvents()
+			.map((e: { topic?: string }) => e.topic)
+			.filter(Boolean);
+		expect(topics).toContain("session.terminate.started");
+		expect(topics).toContain("session.terminated");
+	});
+
+	test("lane cleanup emits its full lifecycle over the bus", async () => {
+		const { InMemoryLocalBus } = await import("../../../src/protocol/bus");
+		const bus = new InMemoryLocalBus();
+		const response = await bus.request({
+			id: "cmd-cln-1",
+			type: "command",
+			ts: new Date().toISOString(),
+			method: "lane.cleanup",
+			correlation_id: "corr-cln-1",
+			workspace_id: "ws1",
+			lane_id: "lane1",
+			payload: {},
+		} as never);
+		expect(response.status).toBe("ok");
+		const topics = bus
+			.getEvents()
+			.map((e: { topic?: string }) => e.topic)
+			.filter(Boolean);
+		expect(topics).toContain("lane.cleanup.started");
+		expect(topics).toContain("lane.cleaned");
 	});
 });

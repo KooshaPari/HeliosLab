@@ -31,5 +31,9 @@ workspace-default-features = "warn"
 unknown-registry = "deny"
 unknown-git = "deny"
 allow-git = [
-    "https://github.com/<REDACTED>/clap-ext",
+    # clap-ext and pheno-otel are now vendored in PhenoShared. Their original
+    # repos, KooshaPari/clap-ext and KooshaPari/PhenoObservability, were retired.
+    "https://github.com/KooshaPari/PhenoShared",
+    # phenotype-* infrakit crates.
+    "https://github.com/KooshaPari/PhenoInfra.git",
 ]

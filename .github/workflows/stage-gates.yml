@@ -98,6 +98,11 @@ jobs:
         uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
       - name: Install dependencies
         run: bun install
+      # No native build here, and none is possible: packages/pty-pool/src/pty_unix.zig
+      # refuses to compile off macOS with an explicit @compileError, so the PTY
+      # library cannot exist on this ubuntu runner. packages/runtime-core/tests/unit/pty_live.test.ts
+      # therefore skips unless it is on darwin. Its real CI home, where the
+      # library is built, is native.yml's native-link job.
       - name: Run tests
         run: bun run test
 

@@ -16,15 +16,24 @@ on:
 jobs:
   sync-secrets:
     name: Pull secrets from Infisical
-    runs-on: blacksmith-2vcpu-ubuntu-2204
+    # blacksmith-2vcpu-ubuntu-2204: this run spent 50+ minutes stuck in
+    # "queued" on 2026-09-19 (every Infisical run in repo history never
+    # left the queue), because the Blacksmith pool has no runner available
+    # for this fork. ubuntu-latest is served by GitHub-hosted runners, which
+    # start in seconds, so the gate actually runs.
+    runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Install Infisical CLI
+        # Cloudsmith stopped serving the Infisial CLI package repo on
+        # 2026-09-16; the repo moved to Infisical's own host. The old URL now
+        # returns a 404 page, and piping that into bash silently did nothing
+        # before apt failed with "Unable to locate package infisical".
         run: |
-          curl -1sLf "https://dl.cloudsmith.io/public/infisical/infisical-cli/setup.deb.sh" | sudo -E bash
+          curl -1sLf "https://artifacts-cli.infisical.com/setup.deb.sh" | sudo -E bash
           sudo apt-get install -y infisical
 
       - name: Pull secrets to .env

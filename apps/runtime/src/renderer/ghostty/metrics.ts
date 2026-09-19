@@ -145,8 +145,6 @@ export class GhosttyMetrics {
 
 	private _enabled = false;
 	private _droppedFrames = 0;
-	private _frameCount = 0;
-	private _framesInWindow = 0;
 	private _lastFrameTimestamp = 0;
 	private _windowStartTimestamp = 0;
 
@@ -225,9 +223,6 @@ export class GhosttyMetrics {
 	recordFrame(timestamp: number = Date.now()): void {
 		if (!this._enabled) return;
 
-		this._frameCount++;
-		this._framesInWindow++;
-
 		if (this._lastFrameTimestamp > 0) {
 			const frameTimeMs = timestamp - this._lastFrameTimestamp;
 			this._frameTimes.push(frameTimeMs);
@@ -244,7 +239,6 @@ export class GhosttyMetrics {
 		const elapsed = timestamp - this._windowStartTimestamp;
 		if (elapsed >= this._windowMs) {
 			this._windowStartTimestamp = timestamp;
-			this._framesInWindow = 0;
 		}
 	}
 
@@ -312,11 +306,9 @@ export class GhosttyMetrics {
 	reset(): void {
 		this._frameTimes.clear();
 		this._inputLatencies.clear();
-		this._frameCount = 0;
 		this._droppedFrames = 0;
 		this._lastFrameTimestamp = 0;
 		this._windowStartTimestamp = 0;
-		this._framesInWindow = 0;
 	}
 
 	// -----------------------------------------------------------------------

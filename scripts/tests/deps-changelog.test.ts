@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { existsSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import {
 	appendChangelogEntry,
@@ -11,21 +11,32 @@ import type { ChangelogEntry, DepsChangelog } from "../deps-types";
 const REPO_ROOT = process.cwd();
 const CHANGELOG_PATH = join(REPO_ROOT, "deps-changelog.json");
 
+// deps-changelog.json is tracked, so these tests must leave it as they found it.
+// The teardown used to delete it, which removed a committed file on every run,
+// and the setup wrote two-space JSON, which fails the lint gate.
+const ORIGINAL_CHANGELOG = existsSync(CHANGELOG_PATH)
+	? readFileSync(CHANGELOG_PATH, "utf-8")
+	: null;
+
+function restoreChangelog(): void {
+	if (ORIGINAL_CHANGELOG === null) {
+		rmSync(CHANGELOG_PATH, { force: true });
+		return;
+	}
+	writeFileSync(CHANGELOG_PATH, ORIGINAL_CHANGELOG);
+}
+
 // Traces to: FR-DEP-008 (dependency changelog recording)
 describe("Dependency Changelog Utility", () => {
 	beforeEach(() => {
 		// Reset changelog to empty state
 		const empty: DepsChangelog = { entries: [] };
-		writeFileSync(CHANGELOG_PATH, JSON.stringify(empty, null, 2));
+		writeFileSync(CHANGELOG_PATH, `${JSON.stringify(empty, null, "\t")}\n`);
 	});
 
 	afterEach(() => {
-		// Clean up test changelog
-		try {
-			rmSync(CHANGELOG_PATH, { force: true });
-		} catch (_e) {
-			// Ignore
-		}
+		// Restore the tracked changelog rather than deleting it.
+		restoreChangelog();
 	});
 
 	test("valid entry appends successfully", () => {

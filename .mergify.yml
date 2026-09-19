@@ -27,7 +27,7 @@ pull_request_rules:
   # Auto-merge owner PRs when CI passes (no self-review required)
   - name: Auto-merge owner PRs + CI green
     conditions:
-      - author=<REDACTED>
+      - author=KooshaPari
       - check-success=ci
       - check-success=lint
       - check-success=typecheck
@@ -84,7 +84,7 @@ pull_request_rules:
         teams:
           - phenotype/core
         github_accounts:
-          - <REDACTED>
+          - KooshaPari
 
   # Label PRs based on changed files
   - name: Label Python changes

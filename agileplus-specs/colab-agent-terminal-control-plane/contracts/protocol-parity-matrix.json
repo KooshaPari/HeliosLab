@@ -488,6 +488,69 @@
 			"task_ids": ["T016", "T045"]
 		},
 		{
+			"name": "lane.attach.started",
+			"status": "implemented",
+			"contract_refs": [
+				"contracts/control-plane.openapi.yaml#x-formal-event-families.lane"
+			],
+			"runtime_refs": [
+				"apps/runtime/src/protocol/topics.ts",
+				"apps/runtime/src/protocol/bus/request-handlers.ts"
+			],
+			"task_ids": ["T045"]
+		},
+		{
+			"name": "lane.attach.failed",
+			"status": "implemented",
+			"contract_refs": [
+				"contracts/control-plane.openapi.yaml#x-formal-event-families.lane"
+			],
+			"runtime_refs": ["apps/runtime/src/protocol/topics.ts"],
+			"task_ids": ["T045"]
+		},
+		{
+			"name": "lane.cleanup.started",
+			"status": "implemented",
+			"contract_refs": [
+				"contracts/control-plane.openapi.yaml#x-formal-event-families.lane"
+			],
+			"runtime_refs": [
+				"apps/runtime/src/protocol/topics.ts",
+				"apps/runtime/src/protocol/bus/request-handlers.ts"
+			],
+			"task_ids": ["T045"]
+		},
+		{
+			"name": "lane.cleanup.failed",
+			"status": "implemented",
+			"contract_refs": [
+				"contracts/control-plane.openapi.yaml#x-formal-event-families.lane"
+			],
+			"runtime_refs": ["apps/runtime/src/protocol/topics.ts"],
+			"task_ids": ["T045"]
+		},
+		{
+			"name": "session.terminate.started",
+			"status": "implemented",
+			"contract_refs": [
+				"contracts/control-plane.openapi.yaml#x-formal-event-families.session"
+			],
+			"runtime_refs": [
+				"apps/runtime/src/protocol/topics.ts",
+				"apps/runtime/src/protocol/bus/request-handlers.ts"
+			],
+			"task_ids": ["T045"]
+		},
+		{
+			"name": "session.terminate.failed",
+			"status": "implemented",
+			"contract_refs": [
+				"contracts/control-plane.openapi.yaml#x-formal-event-families.session"
+			],
+			"runtime_refs": ["apps/runtime/src/protocol/topics.ts"],
+			"task_ids": ["T045"]
+		},
+		{
 			"name": "lane.cleaned",
 			"status": "implemented",
 			"contract_refs": [

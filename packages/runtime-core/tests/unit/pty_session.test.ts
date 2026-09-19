@@ -8,7 +8,11 @@
 import { afterAll, afterEach, describe, expect, test } from "bun:test";
 import { PtySessionManager } from "../../src/terminal/pty-session.ts";
 
-const onWindows = process.platform === "win32";
+// The PTY library cannot exist off macOS: packages/pty-pool/src/pty_unix.zig
+// calls @compileError("pty_unix.zig currently targets macOS only"). Skipping on
+// win32 alone still ran this on Linux, where it failed for a reason that says
+// nothing about this code.
+const cannotLoadNativePty = process.platform !== "darwin";
 
 /** Poll until `predicate` holds, or give up. */
 async function until(
@@ -34,7 +38,7 @@ function decoderCollector() {
 	};
 }
 
-describe.skipIf(onWindows)("pty session manager", () => {
+describe.skipIf(cannotLoadNativePty)("pty session manager", () => {
 	const manager = new PtySessionManager({ pollMs: 5, maxPty: 8 });
 
 	// Sessions are closed after every test, not only at the end of the file. Each

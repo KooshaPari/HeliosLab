@@ -16,6 +16,10 @@
 import { beforeAll, describe, expect, it } from "bun:test";
 
 import { detectRioBinary } from "../../../../src/renderer/rio/index.js";
+// RioMetrics is not re-exported from the rio barrel, so import it directly.
+// Without this the four benchmarks below died with "RioMetrics is not defined"
+// before asserting anything.
+import { RioMetrics } from "../../../../src/renderer/rio/metrics.js";
 
 // ---------------------------------------------------------------------------
 // Skip control

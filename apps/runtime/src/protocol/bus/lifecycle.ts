@@ -20,24 +20,40 @@ export const LIFECYCLE_SEQUENCES: Record<string, string[]> = {
 		"terminal.spawn.failed",
 	],
 	"lane.attach": ["lane.attach.started", "lane.attached", "lane.attach.failed"],
+	"lane.cleanup": [
+		"lane.cleanup.started",
+		"lane.cleaned",
+		"lane.cleanup.failed",
+	],
+	"session.terminate": [
+		"session.terminate.started",
+		"session.terminated",
+		"session.terminate.failed",
+	],
 };
 
 export const TERMINAL_TOPICS = new Set([
 	"session.attached",
 	"session.attach.failed",
+	"session.terminated",
+	"session.terminate.failed",
 	"lane.created",
 	"lane.create.failed",
-	"terminal.spawned",
 	"lane.attached",
 	"lane.attach.failed",
+	"lane.cleaned",
+	"lane.cleanup.failed",
+	"terminal.spawned",
 	"terminal.spawn.failed",
 ]);
 
 export const START_TOPICS = new Set([
 	"session.attach.started",
+	"session.terminate.started",
 	"lane.create.started",
 	"terminal.spawn.started",
 	"lane.attach.started",
+	"lane.cleanup.started",
 ]);
 
 // ---------------------------------------------------------------------------

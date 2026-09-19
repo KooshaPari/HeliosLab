@@ -39,7 +39,7 @@ out_of_scope:
 
 **Next review:** 2026-07-17
 <!--
-propagated-from: <REDACTED>/phenotype-registry @ chore/l7-001-curation-snapshot
+propagated-from: KooshaPari/phenotype-registry @ chore/l7-001-curation-snapshot
 date: 2026-06-17
 source-commit: a1aa44660
 do-not-edit-locally: regenerate via scripts/propagate-intent-to-repos.py
