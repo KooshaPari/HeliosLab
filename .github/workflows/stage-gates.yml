@@ -112,7 +112,15 @@ jobs:
         # in when the runner is several times slower than a developer's
         # laptop — true deadlocks still surface because they hit ~30s, not
         # because they hit 5s.
-        run: bun run test --timeout 30000
+        #
+        # `--isolate` gives each test file its own module/global
+        # registry. Without it, setInterval handles and `process.on`
+        # listeners from `apps/runtime/src/recovery/__tests__/*` (which
+        # exercise the real `DurabilityLayer` via `createRuntime`)
+        # leak into the next test file in the same Bun process and
+        # cause 30s hangs on the Ubuntu runner even though the same
+        # tests pass in well under a second in isolation.
+        run: bun run test --timeout 30000 --isolate
 
   coverage-check:
     name: coverage-check
