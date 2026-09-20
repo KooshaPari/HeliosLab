@@ -76,7 +76,22 @@ async function runCvp(count: number): Promise<CvpResult> {
 	return { created: bound, bound, durationMs, errors };
 }
 
-describe("CVP scaling", () => {
+/**
+ * These suites are opt-in.
+ *
+ * Materialising hundreds of live PTYs in-process starves any suite running
+ * beside it: the coverage gate sweeps `apps/runtime/tests` with `--coverage`,
+ * and this load made unrelated, load-sensitive tests fail (git commits in
+ * temp repos returning `exit null`, the 50-lane lane stress test timing out).
+ * So the heavy suites only run when asked for.
+ *
+ *   bun run cvp:scaling          # 25 / 100 / 250 lanes
+ *   CVP_SCALING=1 CVP_TARGET=1000 bun test apps/runtime/tests/cvp/cvp-scaling.test.ts
+ */
+const SCALING_ENABLED = process.env.CVP_SCALING === "1";
+const CVP_TARGET = Number.parseInt(process.env.CVP_TARGET ?? "0", 10);
+
+describe.skipIf(!SCALING_ENABLED)("CVP scaling", () => {
 	it("materialises 25 concurrent lanes", async () => {
 		const r = await runCvp(25);
 		expect(r.errors).toHaveLength(0);
@@ -98,8 +113,6 @@ describe("CVP scaling", () => {
 		expect(r.durationMs).toBeLessThan(120_000);
 	}, 300_000);
 });
-
-const CVP_TARGET = Number.parseInt(process.env.CVP_TARGET ?? "0", 10);
 
 if (CVP_TARGET > 0) {
 	describe("CVP scaling (extended targets)", () => {

@@ -57,15 +57,22 @@ tight for large ones.
 ## Reproduce
 
 ```sh
-# Scaling regression suite (25 / 100 / 250 lanes)
-bun test apps/runtime/tests/cvp/cvp-scaling.test.ts
+# Scaling regression suite (25 / 100 / 250 lanes), opt-in
+bun run cvp:scaling
 
 # The 1000-lane CVP target
-CVP_TARGET=1000 bun test apps/runtime/tests/cvp/cvp-scaling.test.ts
+CVP_SCALING=1 CVP_TARGET=1000 bun test apps/runtime/tests/cvp/cvp-scaling.test.ts
 
 # Produce a JSON report
-bun run apps/runtime/tests/cvp/cvp-harness.ts --count=1000 --output=docs/cvp/cvp-1000.json
+bun run cvp:1000
 ```
+
+The scaling suites are **opt-in**. Materialising hundreds of live PTYs in one
+process starves anything running beside it, and the coverage gate sweeps
+`apps/runtime/tests` with `--coverage`. Leaving them enabled there made
+unrelated, load-sensitive tests fail: git commits in temporary repos returned
+`exit null`, and the 50-lane lane stress test timed out. Hence the
+`CVP_SCALING=1` guard.
 
 ## Thresholds
 
