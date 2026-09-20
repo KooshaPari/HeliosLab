@@ -20,8 +20,9 @@ import { STALE_TEMP_FILE_MS } from "./orphan-reconciler.js";
  * a structured report.
  *
  * Detection scope:
- * - `*.tmp` files inside `dataDir/recovery` (CheckpointWriter
- *   rotations that were abandoned mid-write).
+ * - `*.tmp` and `*.tmp-<uuid>` files inside `dataDir/recovery` and
+ *   every subdirectory (CheckpointWriter and the durable stores'
+ *   atomic-rename rotations leave these behind when interrupted).
  * - `checkpoint.json.backup` rotation leftovers. If
  *   `checkpoint.json` exists, the backup is safe to terminate.
  *   If it does NOT exist, the backup is a needs-review orphan
@@ -30,6 +31,10 @@ import { STALE_TEMP_FILE_MS } from "./orphan-reconciler.js";
  * - `*.rollback` and `*.partial` artifacts. These are flagged as
  *   safe-to-terminate because they describe a half-applied
  *   mutation that did not finish.
+ * - Files under `dataDir/recovery/audit/` and
+ *   `dataDir/recovery/sessions/<sid>/` are scanned recursively so
+ *   abandoned `.tmp-<uuid>` writes from `FileBackedAuditDurableStore`
+ *   and `FileBackedCheckpointStore` are surfaced.
  *
  * The per-resource scanners (`scanOrphanPTYs`,
  * `scanStaleZelijjSessions`) are intentionally left as
@@ -49,9 +54,9 @@ export async function detectOrphansImpl(
 	const needsReview: OrphanItem[] = [];
 	const recoveryDir = path.join(dataDir, "recovery");
 
-	let entries: string[] = [];
+	let topEntries: string[] = [];
 	try {
-		entries = await fs.readdir(recoveryDir);
+		topEntries = await fs.readdir(recoveryDir);
 	} catch (err) {
 		const code = (err as NodeJS.ErrnoException).code;
 		if (code !== "ENOENT") {
@@ -62,27 +67,59 @@ export async function detectOrphansImpl(
 	}
 
 	const now = Date.now();
-	const checkpointLive = entries.includes("checkpoint.json");
+	const checkpointLive = topEntries.includes("checkpoint.json");
 
-	for (const name of entries) {
-		const fullPath = path.join(recoveryDir, name);
+	// Walk the recovery tree breadth-first. Every regular file we
+	// find is classified against the same rules; subdirectories are
+	// recursed so the audit-store and per-session stores are
+	// covered. A symlink cycle is prevented by tracking visited
+	// directories and refusing to recurse into them twice.
+	const visitedDirs = new Set<string>([path.resolve(recoveryDir)]);
+	const queue: string[] = topEntries.map((name) =>
+		path.join(recoveryDir, name),
+	);
+
+	while (queue.length > 0) {
+		const fullPath = queue.shift() as string;
 		let stat: import("node:fs").Stats;
 		try {
 			stat = await fs.stat(fullPath);
 		} catch {
 			continue;
 		}
+		if (stat.isDirectory()) {
+			const resolved = path.resolve(fullPath);
+			if (visitedDirs.has(resolved)) continue;
+			visitedDirs.add(resolved);
+			let childNames: string[];
+			try {
+				childNames = await fs.readdir(fullPath);
+			} catch {
+				continue;
+			}
+			for (const child of childNames) {
+				queue.push(path.join(fullPath, child));
+			}
+			continue;
+		}
 		if (!stat.isFile()) continue;
 
-		// Stale .tmp files left by CheckpointWriter rotations that
-		// crashed before fsync + rename completed.
-		if (name.endsWith(".tmp")) {
+		const name = path.basename(fullPath);
+		const relPath = fullPath.slice(recoveryDir.length + 1);
+		// Stale temp files left by CheckpointWriter and the durable
+		// stores' atomic-rename rotations. Match both `*.tmp` (the
+		// legacy `.tmp` suffix used by CheckpointWriter) and
+		// `*.tmp-<uuid>` (used by FileBackedAuditDurableStore and
+		// FileBackedCheckpointStore).
+		const isStaleTemp =
+			name.endsWith(".tmp") || /\.tmp-[0-9a-z-]+$/i.test(name);
+		if (isStaleTemp) {
 			const age = now - stat.mtimeMs;
 			if (age >= STALE_TEMP_FILE_MS) {
 				safeToTerminate.push({
 					type: "temp_file",
-					id: name,
-					description: `Stale temp file: ${name} (${Math.round(age / 1000)}s old)`,
+					id: `${relPath}`,
+					description: `Stale temp file: ${relPath} (${Math.round(age / 1000)}s old)`,
 					path: fullPath,
 				});
 			}
@@ -93,8 +130,8 @@ export async function detectOrphansImpl(
 		if (name.endsWith(".rollback") || name.endsWith(".partial")) {
 			safeToTerminate.push({
 				type: "temp_file",
-				id: name,
-				description: `Partial rollback artifact: ${name}`,
+				id: relPath,
+				description: `Partial rollback artifact: ${relPath}`,
 				path: fullPath,
 			});
 			continue;
@@ -103,19 +140,21 @@ export async function detectOrphansImpl(
 		// Stale backup checkpoint. If a live checkpoint.json is
 		// also present, the backup is safe to retire. If the live
 		// file is missing, the backup may be the last good copy
-		// and a human should look at it.
-		if (name === "checkpoint.json.backup") {
+		// and a human should look at it. The backup only ever
+		// exists at the recovery root — subdirectory backups are
+		// classified by the rules above (or are not relevant).
+		if (relPath === "checkpoint.json.backup") {
 			if (checkpointLive) {
 				safeToTerminate.push({
 					type: "temp_file",
-					id: name,
+					id: relPath,
 					description: "Backup checkpoint no longer needed (live file present)",
 					path: fullPath,
 				});
 			} else {
 				needsReview.push({
 					type: "temp_file",
-					id: name,
+					id: relPath,
 					description:
 						"Lone checkpoint backup — live checkpoint.json missing, manual review required",
 					path: fullPath,
@@ -129,15 +168,23 @@ export async function detectOrphansImpl(
 	const filtered = safeToTerminate.filter((item) => {
 		if (item.type !== "temp_file" || !item.path) return true;
 		const base = path.basename(item.path);
-		const match = base.match(/^session-([0-9a-zA-Z_-]+)/);
+		// Match `session-<sid>` (legacy top-level) and `<sid>/...` (per-session
+		// subdirectories). The directory name is the canonical session id.
+		const dirMatch = path
+			.basename(path.dirname(item.path))
+			.match(/^([0-9a-zA-Z_-]+)$/);
+		const sessionId =
+			dirMatch && !dirMatch[1].endsWith(".tmp") ? dirMatch[1] : undefined;
+		const fileMatch = base.match(/^session-([0-9a-zA-Z_-]+)/);
+		const matched = sessionId ?? (fileMatch ? fileMatch[1] : undefined);
 		if (
-			match &&
+			matched &&
 			restoredSessionIds.size > 0 &&
-			!restoredSessionIds.has(match[1])
+			!restoredSessionIds.has(matched)
 		) {
 			needsReview.push({
 				...item,
-				description: `${item.description} (session ${match[1]} not in restored set)`,
+				description: `${item.description} (session ${matched} not in restored set)`,
 			});
 			return false;
 		}

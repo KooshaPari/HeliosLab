@@ -71,6 +71,14 @@ export type RuntimeOptions = {
 	 * which derives a per-workspace path under `~/.helios/data/`.
 	 */
 	dataDir?: string;
+	/**
+	 * Whether `createRuntime()` should auto-start the durability layer
+	 * when `dataDir` is supplied. Defaults to `true` so a caller who
+	 * opts into persistence gets checkpoints without having to call
+	 * `runtime.startDurability()` themselves; opt out by passing
+	 * `autoStartDurability: false` to retain full manual control.
+	 */
+	autoStartDurability?: boolean;
 };
 
 type RuntimeInstance = ReturnType<typeof createRuntime>;
@@ -122,6 +130,27 @@ export function createRuntime(options: RuntimeOptions = {}) {
 		terminalRegistry,
 		...(options.dataDir !== undefined ? { dataDir: options.dataDir } : {}),
 	});
+
+	// Auto-start the durability layer when persistence is opted into
+	// (`dataDir` is set) unless the caller explicitly disables it.
+	// Previously, ordinary lane/session activity never started the
+	// scheduler or installed activity subscriptions because callers
+	// had to invoke `runtime.startDurability()` themselves — supplying
+	// `dataDir` produced no checkpoint unless the caller remembered
+	// the hook. The auto-start fires-and-forgets so a slow filesystem
+	// cannot delay `createRuntime`'s return; failures are logged and
+	// surfaced through the existing close-time `console.error` path.
+	const hasDataDir =
+		typeof options.dataDir === "string" && options.dataDir.length > 0;
+	const autoStart = hasDataDir && options.autoStartDurability !== false;
+	if (autoStart) {
+		durabilityBundle.startDurability().catch((err) => {
+			console.error(
+				"createRuntime: auto-start durability failed; runtime continues without checkpoints",
+				err,
+			);
+		});
+	}
 
 	if (options.recovery_metadata) {
 		bootstrapResult = recovery.bootstrap(options.recovery_metadata);

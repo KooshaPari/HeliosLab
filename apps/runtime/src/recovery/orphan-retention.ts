@@ -138,19 +138,15 @@ export async function enforceRetentionImpl(
 		}
 	}
 
-	// Safety net: if the only file in the directory is a valid
-	// `checkpoint.json`, never delete it just because retention says so.
-	// We pre-check this BEFORE the filter passes so a single-file
-	// directory with an expired checkpoint.json is preserved.
+	// Safety net: never delete a valid live `checkpoint.json` regardless
+	// of how many unrelated files share the directory. The previous
+	// guard only triggered when the directory contained a single file,
+	// so an expired `.tmp` companion could still let the age/count/bytes
+	// passes remove the only valid checkpoint.
 	const checkpointEntry = entries.find(
 		(entry) => entry.name === "checkpoint.json",
 	);
-	if (
-		entries.length === 1 &&
-		checkpointEntry &&
-		checkpointEntry.name === "checkpoint.json" &&
-		checkpointIsValid
-	) {
+	if (checkpointIsValid && checkpointEntry) {
 		removed.delete(checkpointEntry.fullPath);
 	}
 

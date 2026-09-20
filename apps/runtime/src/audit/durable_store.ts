@@ -95,7 +95,18 @@ export class FileBackedAuditDurableStore implements AuditDurableStore {
 
 	private recordId(record: AuditRecord): string {
 		if (record.id && typeof record.id === "string") {
-			return record.id.replace(/[^a-zA-Z0-9_-]/g, "_");
+			const sanitised = record.id.replace(/[^a-zA-Z0-9_-]/g, "_");
+			// Hash-prefix whenever sanitisation changed the input so
+			// distinct unsafe IDs (e.g. `a/b` and `a\b`, which both
+			// sanitise to `a_b`) cannot collide on the same filename.
+			if (sanitised !== record.id) {
+				const hash = createHash("sha256")
+					.update(record.id)
+					.digest("hex")
+					.slice(0, 16);
+				return `${hash.slice(0, 8)}_${hash.slice(8, 16)}_${sanitised}`;
+			}
+			return sanitised;
 		}
 		const seed = `${record.recorded_at ?? ""}|${record.sequence ?? ""}|${randomUUID()}`;
 		return createHash("sha256").update(seed).digest("hex").slice(0, 24);

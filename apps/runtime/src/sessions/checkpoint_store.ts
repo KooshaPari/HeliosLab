@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { promises as fs } from "node:fs";
 import path from "node:path";
+import { assertSafeId } from "../recovery/safe-id.js";
 
 export type SessionCheckpoint = {
 	checkpoint_id: string;
@@ -38,11 +39,22 @@ export class FileBackedCheckpointStore implements CheckpointStore {
 	}
 
 	async save(checkpoint: SessionCheckpoint): Promise<void> {
-		const checkpointId = checkpoint.checkpoint_id || randomUUID();
-		const sessionId = checkpoint.session_id;
-		if (!sessionId) {
-			throw new Error("SessionCheckpoint.session_id is required");
+		// Reject path-traversal attempts before the identifiers reach
+		// `path.join`. Both fields are attacker-controllable through
+		// the bus envelope, so any unsafe character or `..` segment
+		// is an error rather than a silent rewrite — `save` must
+		// never write outside `<dataDir>/recovery/sessions/<sessionId>`.
+		assertSafeId(checkpoint.session_id, "SessionCheckpoint.session_id");
+		const providedCheckpointId =
+			typeof checkpoint.checkpoint_id === "string" &&
+			checkpoint.checkpoint_id.length > 0
+				? checkpoint.checkpoint_id
+				: undefined;
+		if (providedCheckpointId) {
+			assertSafeId(providedCheckpointId, "SessionCheckpoint.checkpoint_id");
 		}
+		const checkpointId = providedCheckpointId ?? randomUUID();
+		const sessionId = checkpoint.session_id;
 		const dir = path.join(this.baseDir, sessionId);
 		const fullPath = path.join(dir, `${checkpointId}.json`);
 
@@ -76,6 +88,9 @@ export class FileBackedCheckpointStore implements CheckpointStore {
 	}
 
 	async list(sessionId: string): Promise<SessionCheckpoint[]> {
+		// Same path-traversal guard as `save` — `list` would otherwise
+		// leak the contents of arbitrary directories.
+		assertSafeId(sessionId, "sessionId");
 		const dir = path.join(this.baseDir, sessionId);
 		let names: string[];
 		try {
