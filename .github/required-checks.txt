@@ -3,3 +3,4 @@ ci.yml|ci / lint
 ci.yml|ci / test
 required-check-names-guard.yml|verify-required-check-names
 release-evidence.yml|Release Evidence
+cvp-evidence.yml|CVP Evidence

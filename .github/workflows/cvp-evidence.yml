@@ -1,0 +1,82 @@
+name: CVP Evidence Gate
+
+# Validates that the committed Customer Validation Pack evidence
+# (`docs/cvp/cvp-1000.json`) is a passing run for the documented
+# capacity claim (1000 concurrent live sessions), when present.
+#
+# The CVP harness itself is opt-in (`CVP_SCALING=1 CVP_TARGET=1000`)
+# because materialising 1000 live PTYs is expensive and load-sensitive.
+# This gate does not run the harness; it inspects the committed
+# artifact so the same logic is fast enough to run on every PR.
+#
+# Triggered by:
+#   - `pull_request` against `main`: validates the JSON in the PR branch
+#   - `workflow_dispatch`: manual re-validation against the chosen ref
+#
+# The job status (pass/fail) becomes the "CVP Evidence" check on the PR
+# via GitHub's automatic job-status mapping; no separate `gh api` call
+# is needed.
+#
+# When the JSON file is absent, every check returns `skip` and the gate
+# passes — the validator is opt-in until CVP evidence is committed.
+# Once the JSON is present, the gate enforces schema, overall-pass,
+# per-check flags, and threshold bounds.
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  cvp-evidence:
+    name: CVP Evidence
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+
+    steps:
+      - name: Resolve commit SHA
+        id: resolve-sha
+        env:
+          PR_SHA: ${{ github.event.pull_request.head.sha }}
+          DISPATCH_SHA: ${{ github.sha }}
+        run: |
+          # `workflow_dispatch` does not expose `pull_request`, so we
+          # pick one based on the event type. Both are trusted GitHub
+          # data; the `env:` block keeps them out of any shell expansion
+          # below.
+          if [ -n "$PR_SHA" ]; then
+            echo "sha=$PR_SHA" >> "$GITHUB_OUTPUT"
+          else
+            echo "sha=$DISPATCH_SHA" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.1.1
+        with:
+          fetch-depth: 0
+          ref: ${{ steps.resolve-sha.outputs.sha }}
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: '1.4.0'
+
+      - name: Validate CVP evidence
+        id: validate
+        env:
+          GITHUB_SHA: ${{ steps.resolve-sha.outputs.sha }}
+        run: |
+          bun run scripts/cvp-evidence-validate.ts \
+            --file docs/cvp/cvp-1000.json \
+            --commit "$GITHUB_SHA"
+
+      - name: Upload evidence report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: cvp-evidence-report
+          path: .gate-reports/cvp-evidence.json
+          if-no-files-found: warn
+          retention-days: 30
