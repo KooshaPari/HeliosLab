@@ -17,6 +17,7 @@
  */
 
 import type { afterEach, beforeEach } from "bun:test";
+import { randomUUID } from "node:crypto";
 import { promises as fs } from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -32,7 +33,7 @@ import type { CheckpointSession } from "../../src/recovery/checkpoint.js";
 export async function emptyDir(prefix: string): Promise<string> {
 	const dir = path.join(
 		os.tmpdir(),
-		`${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+		`${prefix}-${Date.now()}-${randomUUID().replace(/-/g, "").slice(0, 12)}`,
 	);
 	await fs.mkdir(dir, { recursive: true });
 	return dir;
