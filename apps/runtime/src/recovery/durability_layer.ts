@@ -177,10 +177,21 @@ export class DurabilityLayer {
 
 		// Wire watchdog → crash loop detector → SafeMode.
 		watchdog.onCrashDetected(async (event) => {
-			const ev = event as { timestamp: number };
-			await crashDetector.recordCrash(ev.timestamp);
-			if (crashDetector.isLooping()) {
-				await safeMode.enter();
+			if (
+				!event ||
+				typeof event !== "object" ||
+				typeof (event as { timestamp?: unknown }).timestamp !== "number"
+			) {
+				return;
+			}
+			const timestamp = (event as { timestamp: number }).timestamp;
+			try {
+				await crashDetector.recordCrash(timestamp);
+				if (crashDetector.isLooping()) {
+					await safeMode.enter();
+				}
+			} catch (err) {
+				console.error("DurabilityLayer crash handler failed:", err);
 			}
 		});
 

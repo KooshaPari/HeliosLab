@@ -7,9 +7,9 @@ pull_request_rules:
     conditions:
       - "#review-requested=0"
       - "#approved-reviews-by>=1"
-      - check-success=ci
-      - check-success=lint
-      - check-success=test
+      - check-success=coverage-check
+      - check-success=lint-check
+      - check-success=unit-check
       - -conflict
       - -closed
     actions:
@@ -22,10 +22,12 @@ pull_request_rules:
   - name: Auto-merge owner PRs + CI green
     conditions:
       - author=KooshaPari
-      - check-success=ci
-      - check-success=lint
-      - check-success=typecheck
-      - check-success=test
+      - check-success=coverage-check
+      - check-success=lint-check
+      - check-success=format-check
+      - check-success=unit-check
+      - check-success=Type Check + Lint + Tests
+      - check-success=Mergify Merge Protections
       - -conflict
       - -closed
       - -draft
@@ -41,7 +43,8 @@ pull_request_rules:
       - or:
           - author=dependabot[bot]
           - author=renovate[bot]
-      - check-success=ci
+      - check-success=coverage-check
+      - check-success=lint-check
       - -conflict
       - -closed
     actions:
@@ -57,8 +60,8 @@ pull_request_rules:
           - author=trunk-io[bot]
           - author=mergify[bot]
           - author=github-actions[bot]
-      - check-success=ci
-      - check-success=lint
+      - check-success=lint-check
+      - check-success=format-check
       - -conflict
       - -closed
     actions:
@@ -129,9 +132,9 @@ pull_request_rules:
     conditions:
       - -closed
       - -draft
-      - check-success=ci
-      - check-success=lint
-      - check-success=test
+      - check-success=coverage-check
+      - check-success=lint-check
+      - check-success=unit-check
       - "#approved-reviews-by>=1"
     actions:
       label:
