@@ -51,11 +51,7 @@ export class ConversationStore {
 			this.conversations = new Map(conversations.map((c) => [c.id, c]));
 			await Bun.write(
 				this.filePath,
-				JSON.stringify(
-					Array.from(this.conversations.values()),
-					null,
-					2,
-				),
+				JSON.stringify(Array.from(this.conversations.values()), null, 2),
 			);
 		} catch (error) {
 			console.error(
