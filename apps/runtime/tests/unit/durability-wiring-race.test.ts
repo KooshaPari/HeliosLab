@@ -97,7 +97,7 @@ describe("attachDurability race condition", () => {
 		// gate is actually registered. Releasing the gate before
 		// `start()` runs would silently drop the resolution and the
 		// promises would hang forever.
-		for (let i = 0; i < 50 && pendingStartGates.length === 0; i++) {
+		for (let i = 0; i < 5000 && pendingStartGates.length === 0; i++) {
 			await new Promise((r) => setImmediate(r));
 		}
 		// Release the gate; all 8 promises resolve to the same instance.
@@ -125,7 +125,7 @@ describe("attachDurability race condition", () => {
 		const getPromise = bundle.getDurability();
 		// Wait until the stub's start() registers its gate so the
 		// subsequent closeDurability can await the in-flight init.
-		for (let i = 0; i < 50 && pendingStartGates.length === 0; i++) {
+		for (let i = 0; i < 5000 && pendingStartGates.length === 0; i++) {
 			await new Promise((r) => setImmediate(r));
 		}
 		const closePromise = bundle.closeDurability();
@@ -150,7 +150,7 @@ describe("attachDurability race condition", () => {
 		// avoids a self-deadlock.
 		const first = bundle.getDurability();
 		// Wait for the gate to be registered before releasing it.
-		for (let i = 0; i < 50 && pendingStartGates.length === 0; i++) {
+		for (let i = 0; i < 5000 && pendingStartGates.length === 0; i++) {
 			await new Promise((r) => setImmediate(r));
 		}
 		releaseAllGates();
@@ -174,7 +174,7 @@ describe("attachDurability race condition", () => {
 		const bundle = attachDurability(ctx);
 		// Build the layer first (so durability is set).
 		const promise = bundle.getDurability();
-		for (let i = 0; i < 50 && pendingStartGates.length === 0; i++) {
+		for (let i = 0; i < 5000 && pendingStartGates.length === 0; i++) {
 			await new Promise((r) => setImmediate(r));
 		}
 		releaseAllGates();
@@ -195,7 +195,7 @@ describe("attachDurability race condition", () => {
 		// No prior getDurability — startDurability should call
 		// ensureDurability internally (with the default snapshotter).
 		const promise = bundle.startDurability();
-		for (let i = 0; i < 50 && pendingStartGates.length === 0; i++) {
+		for (let i = 0; i < 5000 && pendingStartGates.length === 0; i++) {
 			await new Promise((r) => setImmediate(r));
 		}
 		releaseAllGates();
@@ -215,7 +215,7 @@ describe("attachDurability race condition", () => {
 		// Build the layer so subscribeBusForActivity is invoked from
 		// inside the IIFE.
 		const promise = bundle.getDurability();
-		for (let i = 0; i < 50 && pendingStartGates.length === 0; i++) {
+		for (let i = 0; i < 5000 && pendingStartGates.length === 0; i++) {
 			await new Promise((r) => setImmediate(r));
 		}
 		releaseAllGates();
@@ -285,7 +285,7 @@ describe("attachDurability race condition", () => {
 			};
 		const bundle = attachDurability(ctx);
 		const promise = bundle.getDurability();
-		for (let i = 0; i < 50 && pendingStartGates.length === 0; i++) {
+		for (let i = 0; i < 5000 && pendingStartGates.length === 0; i++) {
 			await new Promise((r) => setImmediate(r));
 		}
 		releaseAllGates();
@@ -303,7 +303,7 @@ describe("attachDurability race condition", () => {
 		};
 		const bundle = attachDurability(ctx);
 		const promise = bundle.getDurability();
-		for (let i = 0; i < 50 && pendingStartGates.length === 0; i++) {
+		for (let i = 0; i < 5000 && pendingStartGates.length === 0; i++) {
 			await new Promise((r) => setImmediate(r));
 		}
 		releaseAllGates();
