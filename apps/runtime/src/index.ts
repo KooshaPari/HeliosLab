@@ -5,13 +5,12 @@
  * the current test suite.
  */
 
+import { attachDurability } from "./durability_wiring.js";
 import { createBoundaryDispatcher } from "./protocol/boundary_adapter.js";
 import { InMemoryLocalBus } from "./protocol/bus.js";
 import { METHODS } from "./protocol/methods.js";
 import type { LocalBusEnvelope } from "./protocol/types.js";
-import type { CheckpointSession } from "./recovery/checkpoint.js";
-import { resolveDefaultDataDir } from "./recovery/data-dir.js";
-import { DurabilityLayer } from "./recovery/durability_layer.js";
+import { normalizePayload, redactPayload } from "./redaction.js";
 import { handleRuntimeRequest } from "./runtime/ops.js";
 import type { TerminalBuffer } from "./runtime/types.js";
 import { RedactionEngine } from "./secrets/redaction-engine.js";
@@ -79,58 +78,6 @@ type RuntimeInstance = ReturnType<typeof createRuntime>;
 const _startTime = performance.now();
 const _METHOD_SET = new Set<string>(METHODS);
 
-function normalizePayload(value: unknown): Record<string, unknown> {
-	if (!value || typeof value !== "object" || Array.isArray(value)) {
-		return {};
-	}
-	return { ...(value as Record<string, unknown>) };
-}
-
-function redactStructuredValue(value: unknown, key?: string): unknown {
-	const normalizedKey = key?.toLowerCase() ?? "";
-	const shouldRedactKey =
-		normalizedKey.includes("api_key") ||
-		normalizedKey.includes("token") ||
-		normalizedKey.includes("secret") ||
-		normalizedKey.includes("password");
-
-	if (shouldRedactKey && typeof value === "string" && value.length > 0) {
-		return "[REDACTED]";
-	}
-
-	if (Array.isArray(value)) {
-		return value.map((item) => redactStructuredValue(item));
-	}
-
-	if (value && typeof value === "object") {
-		return Object.fromEntries(
-			Object.entries(value as Record<string, unknown>).map(
-				([entryKey, entryValue]) => [
-					entryKey,
-					redactStructuredValue(entryValue, entryKey),
-				],
-			),
-		);
-	}
-
-	return value;
-}
-
-function redactPayload(
-	engine: RedactionEngine,
-	payload: Record<string, unknown>,
-	correlationId: string,
-): Record<string, unknown> {
-	const structured = redactStructuredValue(payload) as Record<string, unknown>;
-	const serialized = JSON.stringify(structured);
-	const result = engine.redact(serialized, {
-		artifactId: `audit-${correlationId}`,
-		artifactType: "audit",
-		correlationId,
-	});
-	return JSON.parse(result.redacted) as Record<string, unknown>;
-}
-
 /** Returns the current health status of the runtime. */
 export function healthCheck(): HealthCheckResult {
 	return {
@@ -164,88 +111,17 @@ export function createRuntime(options: RuntimeOptions = {}) {
 	const auditRecords: RuntimeAuditRecord[] = [];
 	let bootstrapResult: RecoveryBootstrapResult | null = null;
 
-	// Durability wiring is lazy: we resolve the data dir and instantiate
-	// the layer only once we know we actually want to record activity.
-	// This keeps the default `createRuntime()` call cheap when callers
-	// don't care about persistence.
-	let durability: DurabilityLayer | undefined;
-	const durabilitySubscribers: Array<() => void> = [];
-
-	function buildCheckpointSessions(): CheckpointSession[] {
-		const lanes = recovery.snapshot();
-		const laneById = new Map(lanes.lanes.map((lane) => [lane.lane_id, lane]));
-		const sessions: CheckpointSession[] = [];
-		for (const session of lanes.sessions) {
-			// A session without a lane mapping cannot be restored, so skip it.
-			if (!session.lane_id) continue;
-			const lane = laneById.get(session.lane_id);
-			const terminalId =
-				lane?.terminal_id ??
-				session.terminal_id ??
-				`pending-${session.session_id}`;
-			const terminal = terminalId
-				? terminalRegistry.get(terminalId)
-				: undefined;
-			sessions.push({
-				sessionId: session.session_id,
-				terminalId,
-				laneId: session.lane_id,
-				workingDirectory: process.cwd(),
-				environmentVariables: {},
-				scrollbackSnapshot: "",
-				zelijjSessionName: `codex-${session.codex_session_id ?? session.session_id}`,
-				shellCommand: "bash",
-			});
-			if (terminal) {
-				// Mark terminal as recently seen; no behavior change yet.
-				terminalRegistry.setState(terminal.terminal_id, terminal.state);
-			}
-		}
-		return sessions;
-	}
-
-	async function ensureDurability(): Promise<DurabilityLayer> {
-		if (durability) return durability;
-		const dataDir =
-			options.dataDir !== undefined && options.dataDir.length > 0
-				? options.dataDir
-				: await resolveDefaultDataDir();
-		durability = new DurabilityLayer({ dataDir });
-		durability.start(buildCheckpointSessions);
-		subscribeBusForActivity();
-		return durability;
-	}
-
-	function subscribeBusForActivity(): void {
-		const topics: ReadonlyArray<string> = [
-			"lane.created",
-			"lane.cleaned",
-			"session.attached",
-			"session.terminated",
-			"terminal.spawned",
-			"terminal.output",
-		];
-		for (const topic of topics) {
-			durabilitySubscribers.push(
-				bus.subscribe(topic, () => {
-					durability?.recordActivity();
-				}),
-			);
-		}
-	}
-
-	async function closeDurability(): Promise<void> {
-		for (const unsubscribe of durabilitySubscribers.splice(0)) {
-			try {
-				unsubscribe();
-			} catch (err) {
-				console.error("createRuntime.close: unsubscribe failed", err);
-			}
-		}
-		if (durability) {
-			await durability.shutdown();
-		}
-	}
+	// Durability wiring is lazy: the bundle resolves the data dir and
+	// instantiates the layer only once a caller asks. This keeps the
+	// default `createRuntime()` call cheap when callers don't care
+	// about persistence. The wiring lives in `./durability_wiring.ts`
+	// to keep `createRuntime`'s length under the no-growth baseline.
+	const durabilityBundle = attachDurability({
+		bus,
+		recovery,
+		terminalRegistry,
+		...(options.dataDir !== undefined ? { dataDir: options.dataDir } : {}),
+	});
 
 	if (options.recovery_metadata) {
 		bootstrapResult = recovery.bootstrap(options.recovery_metadata);
@@ -923,20 +799,16 @@ export function createRuntime(options: RuntimeOptions = {}) {
 		 * Callers that need direct access to `DurabilityLayer` for
 		 * `checkpointNow()` / `readCheckpoint()` can await this.
 		 */
-		async getDurability(): Promise<DurabilityLayer> {
-			return ensureDurability();
-		},
+		getDurability: durabilityBundle.getDurability,
 		/**
 		 * Graceful shutdown: stops bus subscribers, then takes a final
 		 * checkpoint before tearing down the scheduler. Idempotent.
 		 */
-		async close(): Promise<void> {
-			await closeDurability();
-		},
+		close: durabilityBundle.closeDurability,
 		shutdown(): void {
 			// Fire-and-forget: legacy synchronous hook. Prefer `close()`
 			// for new code; this remains for backward compatibility.
-			closeDurability().catch((err) => {
+			durabilityBundle.closeDurability().catch((err) => {
 				console.error("createRuntime.shutdown failed", err);
 			});
 		},
