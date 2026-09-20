@@ -11,7 +11,6 @@
  * (`bun test apps/runtime/tests --coverage`).
  */
 import { describe, expect, it } from "bun:test";
-import type { LocalBus, LocalBusEnvelope } from "../../../src/protocol/bus.js";
 import { InMemoryLocalBus } from "../../../src/protocol/bus.js";
 import type { ProcessMap } from "../../../src/pty/io.js";
 import { InvalidStateError, writeInput } from "../../../src/pty/io.js";
@@ -21,6 +20,7 @@ import {
 	PtyRegistry,
 	RegistryCapacityError,
 } from "../../../src/pty/registry.js";
+import { RecordingBus } from "../../helpers/test-tmp.js";
 
 function makeRecord(state: PtyRecord["state"] = "active"): PtyRecord {
 	return {
@@ -87,13 +87,7 @@ describe("writeInput", () => {
 	});
 
 	it("publishes pty.error and invokes onError when the write fails", () => {
-		class CapturingBus extends InMemoryLocalBus {
-			published: LocalBusEnvelope[] = [];
-			override async publish(envelope: LocalBusEnvelope): Promise<void> {
-				this.published.push(envelope);
-			}
-		}
-		const bus = new CapturingBus();
+		const bus = new RecordingBus();
 		const record = makeRecord("active");
 		const failing = {
 			stdin: {
@@ -106,15 +100,9 @@ describe("writeInput", () => {
 
 		let erroredPtyId: string | undefined;
 		expect(() =>
-			writeInput(
-				record,
-				new Uint8Array([1, 2]),
-				processMap,
-				bus as unknown as LocalBus,
-				(id) => {
-					erroredPtyId = id;
-				},
-			),
+			writeInput(record, new Uint8Array([1, 2]), processMap, bus, (id) => {
+				erroredPtyId = id;
+			}),
 		).toThrow(/broken pipe/);
 
 		expect(erroredPtyId).toBe(record.ptyId);

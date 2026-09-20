@@ -17,9 +17,7 @@
  */
 import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 import { promises as fs } from "node:fs";
-import os from "node:os";
 import path from "node:path";
-import type { LocalBusEnvelope } from "../../../src/protocol/bus.js";
 import { InMemoryLocalBus } from "../../../src/protocol/bus.js";
 import {
 	RecoveryStage,
@@ -33,45 +31,25 @@ import {
 	persistRecoveryState,
 } from "../../../src/recovery/state-machine-persistence.js";
 import { MAX_RETRIES_PER_STAGE } from "../../../src/recovery/state-machine-types.js";
-
-class RecordingBus extends InMemoryLocalBus {
-	published: LocalBusEnvelope[] = [];
-	override async publish(envelope: LocalBusEnvelope): Promise<void> {
-		this.published.push(envelope);
-		await super.publish(envelope);
-	}
-}
-
-async function emptyDir(prefix: string): Promise<string> {
-	const dir = path.join(
-		os.tmpdir(),
-		`${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-	);
-	await fs.mkdir(dir, { recursive: true });
-	return dir;
-}
+import { RecordingBus, useTempDir } from "../../helpers/test-tmp.js";
 
 describe("RecoveryStateMachine surface coverage", () => {
-	let tempDir: string;
+	const temp: { dir: string } = { dir: "" };
+	useTempDir("recovery-sm", { beforeEach, afterEach }, temp);
 	let bus: RecordingBus;
 
-	beforeEach(async () => {
-		tempDir = await emptyDir("recovery-sm");
+	beforeEach(() => {
 		bus = new RecordingBus();
 	});
 
-	afterEach(async () => {
-		await fs.rm(tempDir, { recursive: true, force: true }).catch(() => {});
-	});
-
 	it("starts in CRASHED and persists nothing until first transition", async () => {
-		const sm = new RecoveryStateMachine(tempDir, bus);
+		const sm = new RecoveryStateMachine(temp.dir, bus);
 		await sm.initialize();
 		expect(sm.getCurrentStage()).toBe(RecoveryStage.CRASHED);
 	});
 
 	it("transitions through the happy path and emits recovery.stage.changed", async () => {
-		const sm = new RecoveryStateMachine(tempDir, bus);
+		const sm = new RecoveryStateMachine(temp.dir, bus);
 		await sm.initialize();
 		const seen: RecoveryStage[] = [];
 		sm.onStageChange((_from, to) => seen.push(to));
@@ -100,7 +78,7 @@ describe("RecoveryStateMachine surface coverage", () => {
 	});
 
 	it("rejects an illegal transition", async () => {
-		const sm = new RecoveryStateMachine(tempDir, bus);
+		const sm = new RecoveryStateMachine(temp.dir, bus);
 		await sm.initialize();
 		await expect(sm.transition(RecoveryStage.LIVE)).rejects.toThrow(
 			/Illegal transition/,
@@ -108,7 +86,7 @@ describe("RecoveryStateMachine surface coverage", () => {
 	});
 
 	it("increments attempt count when retrying from a failure state", async () => {
-		const sm = new RecoveryStateMachine(tempDir, bus);
+		const sm = new RecoveryStateMachine(temp.dir, bus);
 		await sm.initialize();
 		await sm.transition(RecoveryStage.DETECTING);
 		await sm.transition(RecoveryStage.DETECTION_FAILED);
@@ -123,7 +101,7 @@ describe("RecoveryStateMachine surface coverage", () => {
 	});
 
 	it("throws once the per-stage retry budget is exceeded", async () => {
-		const sm = new RecoveryStateMachine(tempDir, bus);
+		const sm = new RecoveryStateMachine(temp.dir, bus);
 		await sm.initialize();
 		await sm.transition(RecoveryStage.DETECTING);
 		await sm.transition(RecoveryStage.DETECTION_FAILED);
@@ -139,39 +117,32 @@ describe("RecoveryStateMachine surface coverage", () => {
 	});
 
 	it("reset() restores CRASHED and clears persisted state", async () => {
-		const sm = new RecoveryStateMachine(tempDir, bus);
+		const sm = new RecoveryStateMachine(temp.dir, bus);
 		await sm.initialize();
 		await sm.transition(RecoveryStage.DETECTING);
 		expect(sm.getCurrentStage()).toBe(RecoveryStage.DETECTING);
 
 		await sm.reset();
 		expect(sm.getCurrentStage()).toBe(RecoveryStage.CRASHED);
-		const reloaded = await loadRecoveryState(tempDir);
+		const reloaded = await loadRecoveryState(temp.dir);
 		expect(reloaded).toBeNull();
 	});
 
 	it("resume() returns the persisted stage after restart", async () => {
-		const sm1 = new RecoveryStateMachine(tempDir, bus);
+		const sm1 = new RecoveryStateMachine(temp.dir, bus);
 		await sm1.initialize();
 		await sm1.transition(RecoveryStage.DETECTING);
 		await sm1.transition(RecoveryStage.INVENTORYING);
 
-		const sm2 = new RecoveryStateMachine(tempDir, new InMemoryLocalBus());
+		const sm2 = new RecoveryStateMachine(temp.dir, new InMemoryLocalBus());
 		const stage = await sm2.resume();
 		expect(stage).toBe(RecoveryStage.INVENTORYING);
 	});
 });
 
 describe("state-machine-persistence helpers", () => {
-	let tempDir: string;
-
-	beforeEach(async () => {
-		tempDir = await emptyDir("recovery-sm-persist");
-	});
-
-	afterEach(async () => {
-		await fs.rm(tempDir, { recursive: true, force: true }).catch(() => {});
-	});
+	const temp: { dir: string } = { dir: "" };
+	useTempDir("recovery-sm-persist", { beforeEach, afterEach }, temp);
 
 	it("isRecoveryState() validates well-formed states and rejects garbage", () => {
 		expect(isRecoveryState(null)).toBe(false);
@@ -214,35 +185,35 @@ describe("state-machine-persistence helpers", () => {
 	});
 
 	it("loadRecoveryState() returns null when the file is missing", async () => {
-		expect(await loadRecoveryState(tempDir)).toBeNull();
+		expect(await loadRecoveryState(temp.dir)).toBeNull();
 	});
 
 	it("loadRecoveryState() returns null when the file is malformed", async () => {
-		const statePath = getRecoveryStatePath(tempDir);
+		const statePath = getRecoveryStatePath(temp.dir);
 		await fs.mkdir(path.dirname(statePath), { recursive: true });
 		await fs.writeFile(statePath, "{not json}", "utf8");
-		expect(await loadRecoveryState(tempDir)).toBeNull();
+		expect(await loadRecoveryState(temp.dir)).toBeNull();
 	});
 
 	it("loadRecoveryState() returns null when persisted JSON is not a state", async () => {
-		const statePath = getRecoveryStatePath(tempDir);
+		const statePath = getRecoveryStatePath(temp.dir);
 		await fs.mkdir(path.dirname(statePath), { recursive: true });
 		await fs.writeFile(statePath, JSON.stringify({ foo: "bar" }), "utf8");
-		expect(await loadRecoveryState(tempDir)).toBeNull();
+		expect(await loadRecoveryState(temp.dir)).toBeNull();
 	});
 
 	it("persistRecoveryState() round-trips a valid state", async () => {
-		const sm = new RecoveryStateMachine(tempDir);
+		const sm = new RecoveryStateMachine(temp.dir);
 		await sm.initialize();
 		await sm.transition(RecoveryStage.DETECTING);
 
-		const reloaded = await loadRecoveryState(tempDir);
+		const reloaded = await loadRecoveryState(temp.dir);
 		expect(reloaded?.stage).toBe(RecoveryStage.DETECTING);
 	});
 
 	it("persistRecoveryState() swallows fs errors without throwing", async () => {
 		// An unwritable path: writeFile to a path whose parent is a regular file.
-		const blocker = path.join(tempDir, "blocker");
+		const blocker = path.join(temp.dir, "blocker");
 		await fs.writeFile(blocker, "i am a file");
 		await expect(
 			persistRecoveryState(blocker, {
@@ -254,14 +225,14 @@ describe("state-machine-persistence helpers", () => {
 	});
 
 	it("deleteRecoveryState() is a no-op when the file is absent", async () => {
-		await expect(deleteRecoveryState(tempDir)).resolves.toBeUndefined();
+		await expect(deleteRecoveryState(temp.dir)).resolves.toBeUndefined();
 	});
 
 	it("deleteRecoveryState() removes the persisted file", async () => {
-		const sm = new RecoveryStateMachine(tempDir);
+		const sm = new RecoveryStateMachine(temp.dir);
 		await sm.initialize();
 		await sm.transition(RecoveryStage.DETECTING);
-		await deleteRecoveryState(tempDir);
-		expect(await loadRecoveryState(tempDir)).toBeNull();
+		await deleteRecoveryState(temp.dir);
+		expect(await loadRecoveryState(temp.dir)).toBeNull();
 	});
 });

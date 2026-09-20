@@ -17,50 +17,23 @@
  * (`bun test apps/runtime/tests --coverage`).
  */
 import { afterEach, beforeEach, describe, expect, it } from "bun:test";
-import { promises as fs } from "node:fs";
-import os from "node:os";
-import path from "node:path";
 import { createRuntime } from "../../../src/index.js";
 import { InMemoryLocalBus } from "../../../src/protocol/bus.js";
-import type { CheckpointSession } from "../../../src/recovery/checkpoint.js";
 import { DurabilityLayer } from "../../../src/recovery/durability_layer.js";
 import { SafeMode } from "../../../src/recovery/safe-mode.js";
 import { Watchdog } from "../../../src/recovery/watchdog.js";
+import { makeCheckpointSession, useTempDir } from "../../helpers/test-tmp.js";
 
-const makeSession = (tempDir: string, index: number): CheckpointSession => ({
-	sessionId: `sess-${index}`,
-	terminalId: `term-${index}`,
-	laneId: `lane-${index}`,
-	workingDirectory: tempDir,
-	environmentVariables: {},
-	scrollbackSnapshot: `output-${index}`,
-	zelijjSessionName: `zellij-${index}`,
-	shellCommand: "bash",
-});
-
-async function emptyDir(prefix: string): Promise<string> {
-	const dir = path.join(
-		os.tmpdir(),
-		`${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-	);
-	await fs.mkdir(dir, { recursive: true });
-	return dir;
-}
+const makeSession = (tempDir: string, index: number) =>
+	makeCheckpointSession(index, tempDir);
 
 describe("DurabilityLayer surface coverage", () => {
-	let tempDir: string;
-
-	beforeEach(async () => {
-		tempDir = await emptyDir("durability-surface");
-	});
-
-	afterEach(async () => {
-		await fs.rm(tempDir, { recursive: true, force: true }).catch(() => {});
-	});
+	const temp: { dir: string } = { dir: "" };
+	useTempDir("durability-surface", { beforeEach, afterEach }, temp);
 
 	it("constructs with default crash-loop options", () => {
 		const bus = new InMemoryLocalBus();
-		const layer = new DurabilityLayer({ dataDir: tempDir, bus });
+		const layer = new DurabilityLayer({ dataDir: temp.dir, bus });
 		// Accessors return real instances even before start.
 		expect(layer.watchdogInstance).toBeInstanceOf(Watchdog);
 		expect(layer.safeModeInstance).toBeInstanceOf(SafeMode);
@@ -69,7 +42,7 @@ describe("DurabilityLayer surface coverage", () => {
 	it("accepts custom crash threshold and window options", () => {
 		const bus = new InMemoryLocalBus();
 		const layer = new DurabilityLayer({
-			dataDir: tempDir,
+			dataDir: temp.dir,
 			bus,
 			crashThresholdCount: 7,
 			crashWindowMs: 12_000,
@@ -79,27 +52,35 @@ describe("DurabilityLayer surface coverage", () => {
 
 	it("start() is idempotent", async () => {
 		const bus = new InMemoryLocalBus();
-		const layer = new DurabilityLayer({ dataDir: tempDir, bus });
+		const layer = new DurabilityLayer({ dataDir: temp.dir, bus });
 		await layer.start(() => []);
 		// A second start should be a no-op rather than double-wiring.
 		await layer.start(() => []);
+		// Layer must be observably running: recovery stage is non-empty and
+		// safe mode is not silently flipped on by the second start.
+		expect(layer.getRecoveryStage().length).toBeGreaterThan(0);
+		expect(layer.isSafeModeActive()).toBe(false);
 		await layer.shutdown();
 	});
 
 	it("recordActivity() is a no-op until start() then schedules activity bursts", async () => {
 		const bus = new InMemoryLocalBus();
-		const layer = new DurabilityLayer({ dataDir: tempDir, bus });
-		// Before start, recordActivity is silently dropped.
+		const layer = new DurabilityLayer({ dataDir: temp.dir, bus });
+		// Before start, recordActivity is silently dropped (must not throw).
+		expect(() => layer.recordActivity()).not.toThrow();
+		await layer.start(() => [makeSession(temp.dir, 0)]);
+		// Once started, repeated recordActivity() must remain a cheap in-memory
+		// update — it should never trip safe mode on its own.
 		layer.recordActivity();
-		await layer.start(() => [makeSession(tempDir, 0)]);
 		layer.recordActivity();
-		layer.recordActivity();
+		expect(layer.isSafeModeActive()).toBe(false);
+		expect(layer.watchdogInstance).toBeInstanceOf(Watchdog);
 		await layer.shutdown();
 	});
 
 	it("readCheckpoint() returns null when no checkpoint exists yet", async () => {
 		const bus = new InMemoryLocalBus();
-		const layer = new DurabilityLayer({ dataDir: tempDir, bus });
+		const layer = new DurabilityLayer({ dataDir: temp.dir, bus });
 		await layer.start(() => []);
 		const checkpoint = await layer.readCheckpoint();
 		expect(checkpoint).toBeNull();
@@ -108,7 +89,7 @@ describe("DurabilityLayer surface coverage", () => {
 
 	it("restore() returns null when there is no checkpoint to replay", async () => {
 		const bus = new InMemoryLocalBus();
-		const layer = new DurabilityLayer({ dataDir: tempDir, bus });
+		const layer = new DurabilityLayer({ dataDir: temp.dir, bus });
 		await layer.start(() => []);
 		const result = await layer.restore();
 		expect(result).toBeNull();
@@ -117,8 +98,8 @@ describe("DurabilityLayer surface coverage", () => {
 
 	it("restore() replays a previously written checkpoint", async () => {
 		const bus = new InMemoryLocalBus();
-		const layer = new DurabilityLayer({ dataDir: tempDir, bus });
-		const session = makeSession(tempDir, 9);
+		const layer = new DurabilityLayer({ dataDir: temp.dir, bus });
+		const session = makeSession(temp.dir, 9);
 		await layer.start(() => [session]);
 		await layer.checkpointNow();
 
@@ -134,7 +115,7 @@ describe("DurabilityLayer surface coverage", () => {
 
 	it("getRecoveryStage() returns a non-empty stage identifier", async () => {
 		const bus = new InMemoryLocalBus();
-		const layer = new DurabilityLayer({ dataDir: tempDir, bus });
+		const layer = new DurabilityLayer({ dataDir: temp.dir, bus });
 		await layer.start(() => []);
 		const stage = layer.getRecoveryStage();
 		expect(typeof stage).toBe("string");
@@ -144,7 +125,7 @@ describe("DurabilityLayer surface coverage", () => {
 
 	it("isSafeModeActive() flips false after start and true after triggering safe mode", async () => {
 		const bus = new InMemoryLocalBus();
-		const layer = new DurabilityLayer({ dataDir: tempDir, bus });
+		const layer = new DurabilityLayer({ dataDir: temp.dir, bus });
 		await layer.start(() => []);
 		expect(layer.isSafeModeActive()).toBe(false);
 
@@ -154,7 +135,7 @@ describe("DurabilityLayer surface coverage", () => {
 
 		// A non-zero exit reported through the watchdog fires the wired crash
 		// handler that escalates into safe mode.
-		const layer2 = new DurabilityLayer({ dataDir: tempDir, bus });
+		const layer2 = new DurabilityLayer({ dataDir: temp.dir, bus });
 		await layer2.start(() => []);
 		await layer2.watchdogInstance.handleProcessExit(
 			"crashing-process",
@@ -168,7 +149,7 @@ describe("DurabilityLayer surface coverage", () => {
 
 	it("watchdogInstance and safeModeInstance return the same instances across calls", async () => {
 		const bus = new InMemoryLocalBus();
-		const layer = new DurabilityLayer({ dataDir: tempDir, bus });
+		const layer = new DurabilityLayer({ dataDir: temp.dir, bus });
 		const firstWatchdog = layer.watchdogInstance;
 		const firstSafeMode = layer.safeModeInstance;
 		expect(layer.watchdogInstance).toBe(firstWatchdog);
@@ -178,21 +159,31 @@ describe("DurabilityLayer surface coverage", () => {
 
 	it("shutdown() is idempotent and stops the scheduler", async () => {
 		const bus = new InMemoryLocalBus();
-		const layer = new DurabilityLayer({ dataDir: tempDir, bus });
-		await layer.start(() => [makeSession(tempDir, 1)]);
+		const layer = new DurabilityLayer({ dataDir: temp.dir, bus });
+		await layer.start(() => [makeSession(temp.dir, 1)]);
 		await layer.shutdown();
 		// Calling shutdown again is a no-op rather than throwing.
 		await layer.shutdown();
+		// After the second shutdown the layer is still in a queryable state:
+		// recordActivity stays a no-op and accessors keep returning instances.
+		expect(() => layer.recordActivity()).not.toThrow();
+		expect(layer.watchdogInstance).toBeInstanceOf(Watchdog);
+		expect(layer.safeModeInstance).toBeInstanceOf(SafeMode);
 	});
 
 	it("shutdown() without start() is a safe no-op", async () => {
 		const bus = new InMemoryLocalBus();
-		const layer = new DurabilityLayer({ dataDir: tempDir, bus });
+		const layer = new DurabilityLayer({ dataDir: temp.dir, bus });
 		await layer.shutdown();
+		// Safe mode is not flipped on by a stray shutdown() on a freshly
+		// constructed layer that was never started.
+		expect(layer.isSafeModeActive()).toBe(false);
+		expect(layer.watchdogInstance).toBeInstanceOf(Watchdog);
+		expect(layer.safeModeInstance).toBeInstanceOf(SafeMode);
 	});
 
 	it("exposes the durability layer via createRuntime({ dataDir })", () => {
-		const rt = createRuntime({ dataDir: tempDir });
+		const rt = createRuntime({ dataDir: temp.dir });
 		expect(rt.durability).toBeInstanceOf(DurabilityLayer);
 		expect(rt.durability?.watchdogInstance).toBeInstanceOf(Watchdog);
 		expect(rt.durability?.safeModeInstance).toBeInstanceOf(SafeMode);

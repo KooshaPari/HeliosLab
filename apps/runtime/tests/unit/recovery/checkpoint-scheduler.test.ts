@@ -14,55 +14,29 @@
  * (`bun test apps/runtime/tests --coverage`).
  */
 import { afterEach, beforeEach, describe, expect, it } from "bun:test";
-import { promises as fs } from "node:fs";
-import os from "node:os";
-import path from "node:path";
-import type {
-	Checkpoint,
-	CheckpointSession,
-} from "../../../src/recovery/checkpoint.js";
+import type { Checkpoint } from "../../../src/recovery/checkpoint.js";
 import {
 	CheckpointReader,
 	CheckpointWriter,
 } from "../../../src/recovery/checkpoint.js";
 import { CheckpointScheduler } from "../../../src/recovery/checkpoint-scheduler.js";
+import { makeCheckpointSession, useTempDir } from "../../helpers/test-tmp.js";
 
-async function emptyDir(prefix: string): Promise<string> {
-	const dir = path.join(
-		os.tmpdir(),
-		`${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-	);
-	await fs.mkdir(dir, { recursive: true });
-	return dir;
-}
-
-function makeSession(index: number): CheckpointSession {
-	return {
-		sessionId: `sess-${index}`,
-		terminalId: `term-${index}`,
-		laneId: `lane-${index}`,
-		workingDirectory: "/tmp",
-		environmentVariables: {},
-		scrollbackSnapshot: "snap",
-		zelijjSessionName: `z-${index}`,
-		shellCommand: "bash",
-	};
-}
+const makeSession = (index: number) => makeCheckpointSession(index);
 
 describe("CheckpointScheduler surface coverage", () => {
-	let tempDir: string;
+	const temp: { dir: string } = { dir: "" };
+	useTempDir("ckpt-scheduler", { beforeEach, afterEach }, temp);
 	let writer: CheckpointWriter;
 	let scheduler: CheckpointScheduler;
 
-	beforeEach(async () => {
-		tempDir = await emptyDir("ckpt-scheduler");
-		writer = new CheckpointWriter(tempDir);
+	beforeEach(() => {
+		writer = new CheckpointWriter(temp.dir);
 		scheduler = new CheckpointScheduler();
 	});
 
-	afterEach(async () => {
+	afterEach(() => {
 		scheduler.stop();
-		await fs.rm(tempDir, { recursive: true, force: true }).catch(() => {});
 	});
 
 	const buildCheckpoint = (): Checkpoint => ({
@@ -77,7 +51,7 @@ describe("CheckpointScheduler surface coverage", () => {
 		await scheduler.triggerNow();
 		await scheduler.waitForIdle();
 
-		const onDisk = await new CheckpointReader(tempDir).read();
+		const onDisk = await new CheckpointReader(temp.dir).read();
 		expect(onDisk?.sessions).toHaveLength(1);
 	});
 
@@ -120,7 +94,7 @@ describe("CheckpointScheduler surface coverage", () => {
 		// 50 events trips the threshold.
 		for (let i = 0; i < 60; i++) scheduler.recordActivity();
 		await scheduler.waitForIdle();
-		const onDisk = await new CheckpointReader(tempDir).read();
+		const onDisk = await new CheckpointReader(temp.dir).read();
 		expect(onDisk?.sessions).toHaveLength(1);
 	});
 

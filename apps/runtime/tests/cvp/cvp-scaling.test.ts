@@ -92,26 +92,20 @@ const SCALING_ENABLED = process.env.CVP_SCALING === "1";
 const CVP_TARGET = Number.parseInt(process.env.CVP_TARGET ?? "0", 10);
 
 describe.skipIf(!SCALING_ENABLED)("CVP scaling", () => {
-	it("materialises 25 concurrent lanes", async () => {
-		const r = await runCvp(25);
-		expect(r.errors).toHaveLength(0);
-		expect(r.bound).toBe(25);
-		expect(r.durationMs).toBeLessThan(30_000);
-	}, 90_000);
-
-	it("materialises 100 concurrent lanes", async () => {
-		const r = await runCvp(100);
-		expect(r.errors).toHaveLength(0);
-		expect(r.bound).toBe(100);
-		expect(r.durationMs).toBeLessThan(60_000);
-	}, 180_000);
-
-	it("materialises 250 concurrent lanes", async () => {
-		const r = await runCvp(250);
-		expect(r.errors).toHaveLength(0);
-		expect(r.bound).toBe(250);
-		expect(r.durationMs).toBeLessThan(120_000);
-	}, 300_000);
+	// SonarCloud S5976 wants these three lanes-count tests parameterized so
+	// the assertion logic is shared. bun:test's it.each takes the row data
+	// as the first callback argument.
+	it.each([
+		{ count: 25, durationBudgetMs: 30_000 },
+		{ count: 100, durationBudgetMs: 60_000 },
+		{ count: 250, durationBudgetMs: 120_000 },
+	])("materialises $count concurrent lanes", ({ count, durationBudgetMs }) => {
+		return runCvp(count).then((r) => {
+			expect(r.errors).toHaveLength(0);
+			expect(r.bound).toBe(count);
+			expect(r.durationMs).toBeLessThan(durationBudgetMs);
+		});
+	});
 });
 
 if (CVP_TARGET > 0) {

@@ -15,22 +15,12 @@
  */
 import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 import { promises as fs } from "node:fs";
-import os from "node:os";
 import path from "node:path";
-import type { LocalBusEnvelope } from "../../../src/protocol/bus.js";
-import { InMemoryLocalBus } from "../../../src/protocol/bus.js";
 import {
 	OrphanReconciler,
 	type OrphanReport,
 } from "../../../src/recovery/orphan-reconciler.js";
-
-class RecordingBus extends InMemoryLocalBus {
-	published: LocalBusEnvelope[] = [];
-	override async publish(envelope: LocalBusEnvelope): Promise<void> {
-		this.published.push(envelope);
-		await super.publish(envelope);
-	}
-}
+import { emptyDir, RecordingBus } from "../../helpers/test-tmp.js";
 
 describe("OrphanReconciler surface coverage", () => {
 	let cwdSnapshot: string;
@@ -38,11 +28,7 @@ describe("OrphanReconciler surface coverage", () => {
 
 	beforeEach(async () => {
 		cwdSnapshot = process.cwd();
-		tempCwd = path.join(
-			os.tmpdir(),
-			`orphan-reconciler-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-		);
-		await fs.mkdir(tempCwd, { recursive: true });
+		tempCwd = await emptyDir("orphan-reconciler");
 		process.chdir(tempCwd);
 	});
 

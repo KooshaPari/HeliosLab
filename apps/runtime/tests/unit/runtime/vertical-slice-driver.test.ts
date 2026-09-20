@@ -175,6 +175,12 @@ describe("VerticalSliceDriver surface coverage", () => {
 		driver.start(); // second start is a no-op
 		driver.stop();
 		driver.stop(); // second stop is a no-op
+		// After stop() the driver owns no live bindings: the accessors
+		// reflect a fully detached driver that is still safe to query.
+		expect(driver.laneIds()).toEqual([]);
+		expect(driver.errors).toEqual([]);
+		expect(driver.bindingForLane("any-lane")).toBeUndefined();
+		expect(driver.ptyForLane("any-lane")).toBeUndefined();
 	});
 
 	it("spawns a PTY for lane.created and exposes binding/pty accessors", async () => {
