@@ -32,12 +32,8 @@ pull_request_rules:
     actions:
       merge:
         method: squash
-        commit_message_template: |
-          {{ title }} (#{{ number }})
-
-          Co-authored-by: {{ author }}
-      post_merge:
-        action: close
+        commit_message_format:
+          title: pr-title
 
   # Auto-merge dependabot/Renovate PRs when CI passes
   - name: Auto-merge dependency updates
