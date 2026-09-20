@@ -6,8 +6,10 @@ import {
 	CARGO_TOML,
 	checkArtifactPresence,
 	checkVersionConsistency,
+	listFilesRecursive,
 	MANIFEST_NAMES,
 	PACKAGE_JSON,
+	PROVENANCE_SUFFIX,
 	readCargoWorkspaceVersion,
 	readPackageJsonVersion,
 	readProjectVersions,
@@ -170,50 +172,120 @@ describe("checkVersionConsistency", () => {
 	});
 });
 
-describe("checkArtifactPresence", () => {
-	test("returns skip finding when no inputs provided", () => {
-		const findings = checkArtifactPresence(null, null);
-		expect(findings).toHaveLength(1);
-		expect(findings[0]?.status).toBe("skip");
-		expect(findings[0]?.check).toBe("release-workflow-run");
+describe("listFilesRecursive", () => {
+	test("returns empty array for null", () => {
+		expect(listFilesRecursive(null)).toEqual([]);
 	});
 
-	test("passes SBOM and manifest when filenames list contains them", () => {
-		const findings = checkArtifactPresence(
-			["SBOM.cdx.json", "BUILD_MANIFEST.txt", "phenoctl"],
-			null,
+	test("returns empty array for non-existent directory", () => {
+		expect(listFilesRecursive("/no/such/path/here/abc/def")).toEqual([]);
+	});
+
+	test("returns relative paths of all regular files", () => {
+		const dir = mkdtempSync(join(tmpdir(), "rev-"));
+		writeFileSync(join(dir, "SBOM.cdx.json"), "x");
+		writeFileSync(join(dir, "BUILD_MANIFEST.txt"), "y");
+		writeFileSync(join(dir, "release.intoto.jsonl"), "z");
+		const files = listFilesRecursive(dir);
+		expect(files.sort()).toEqual(
+			["SBOM.cdx.json", "BUILD_MANIFEST.txt", "release.intoto.jsonl"].sort(),
 		);
+		rmSync(dir, { recursive: true, force: true });
+	});
+
+	test("walks nested directories", () => {
+		const dir = mkdtempSync(join(tmpdir(), "rev-"));
+		// Use forward slashes: handled by `path.join` cross-platform
+		const { mkdirSync } = require("node:fs");
+		mkdirSync(join(dir, "attestation"), { recursive: true });
+		mkdirSync(join(dir, "release-artifacts"), { recursive: true });
+		writeFileSync(join(dir, "attestation", "release.intoto.jsonl"), "z");
+		writeFileSync(join(dir, "release-artifacts", "SBOM.cdx.json"), "x");
+		const files = listFilesRecursive(dir);
+		expect(files).toContain("attestation/release.intoto.jsonl");
+		expect(files).toContain("release-artifacts/SBOM.cdx.json");
+		rmSync(dir, { recursive: true, force: true });
+	});
+});
+
+describe("checkArtifactPresence", () => {
+	test("returns skip findings when no download directory provided", () => {
+		const findings = checkArtifactPresence(null);
+		expect(findings).toHaveLength(3);
+		for (const f of findings) expect(f.status).toBe("skip");
+	});
+
+	test("returns skip findings when directory does not exist", () => {
+		const findings = checkArtifactPresence("/no/such/path/here/abc/def");
+		expect(findings).toHaveLength(3);
+		for (const f of findings) expect(f.status).toBe("skip");
+	});
+
+	test("returns fail findings when directory exists but is empty", () => {
+		const dir = mkdtempSync(join(tmpdir(), "rev-"));
+		const findings = checkArtifactPresence(dir);
+		expect(findings).toHaveLength(3);
+		for (const f of findings) expect(f.status).toBe("fail");
+		rmSync(dir, { recursive: true, force: true });
+	});
+
+	test("passes SBOM when SBOM file is in the directory", () => {
+		const dir = mkdtempSync(join(tmpdir(), "rev-"));
+		writeFileSync(join(dir, SBOM_NAMES[0] as string), "x");
+		const findings = checkArtifactPresence(dir);
 		const sbom = findings.find((f) => f.check === "sbom-present");
+		expect(sbom?.status).toBe("pass");
+		rmSync(dir, { recursive: true, force: true });
+	});
+
+	test("passes build-manifest when BUILD_MANIFEST.txt is in the directory", () => {
+		const dir = mkdtempSync(join(tmpdir(), "rev-"));
+		writeFileSync(join(dir, MANIFEST_NAMES[0] as string), "x");
+		const findings = checkArtifactPresence(dir);
 		const manifest = findings.find((f) => f.check === "build-manifest-present");
+		expect(manifest?.status).toBe("pass");
+		rmSync(dir, { recursive: true, force: true });
+	});
+
+	test("passes provenance when .intoto.jsonl file is in the directory", () => {
+		const dir = mkdtempSync(join(tmpdir(), "rev-"));
+		writeFileSync(join(dir, `release${PROVENANCE_SUFFIX}`), "x");
+		const findings = checkArtifactPresence(dir);
 		const provenance = findings.find(
 			(f) => f.check === "slsa-provenance-attached",
 		);
-		expect(sbom?.status).toBe("pass");
-		expect(manifest?.status).toBe("pass");
 		expect(provenance?.status).toBe("pass");
+		rmSync(dir, { recursive: true, force: true });
 	});
 
-	test("fails SBOM when no SBOM filename in list and no download dir", () => {
-		const findings = checkArtifactPresence(["phenoctl", "phenoctl.exe"], null);
+	test("fails SBOM when no SBOM file in the directory", () => {
+		const dir = mkdtempSync(join(tmpdir(), "rev-"));
+		writeFileSync(join(dir, "phenoctl"), "x");
+		const findings = checkArtifactPresence(dir);
 		const sbom = findings.find((f) => f.check === "sbom-present");
 		expect(sbom?.status).toBe("fail");
+		rmSync(dir, { recursive: true, force: true });
 	});
 
-	test("fails when no BUILD_MANIFEST present", () => {
-		const findings = checkArtifactPresence(["SBOM.cdx.json", "phenoctl"], null);
+	test("fails build-manifest when no BUILD_MANIFEST.txt in the directory", () => {
+		const dir = mkdtempSync(join(tmpdir(), "rev-"));
+		writeFileSync(join(dir, SBOM_NAMES[0] as string), "x");
+		const findings = checkArtifactPresence(dir);
 		const manifest = findings.find((f) => f.check === "build-manifest-present");
 		expect(manifest?.status).toBe("fail");
+		rmSync(dir, { recursive: true, force: true });
 	});
 
-	test("detects SBOM from downloaded directory even with empty filename list", () => {
+	test("scans subdirectories (artifacts unzipped to nested dirs)", () => {
 		const dir = mkdtempSync(join(tmpdir(), "rev-"));
-		writeFileSync(
-			join(dir, SBOM_NAMES[0] as string),
-			'{"bomFormat":"CycloneDX"}',
-		);
-		writeFileSync(join(dir, MANIFEST_NAMES[0] as string), "manifest");
+		const { mkdirSync } = require("node:fs");
+		mkdirSync(join(dir, "release-artifacts"), { recursive: true });
+		mkdirSync(join(dir, "attestation"), { recursive: true });
+		writeFileSync(join(dir, "release-artifacts", "SBOM.cdx.json"), "x");
+		writeFileSync(join(dir, "release-artifacts", "BUILD_MANIFEST.txt"), "y");
+		writeFileSync(join(dir, "attestation", "release.intoto.jsonl"), "z");
 
-		const findings = checkArtifactPresence([], dir);
+		const findings = checkArtifactPresence(dir);
 		const sbom = findings.find((f) => f.check === "sbom-present");
 		const manifest = findings.find((f) => f.check === "build-manifest-present");
 		const provenance = findings.find(
@@ -223,16 +295,5 @@ describe("checkArtifactPresence", () => {
 		expect(manifest?.status).toBe("pass");
 		expect(provenance?.status).toBe("pass");
 		rmSync(dir, { recursive: true, force: true });
-	});
-
-	test("detects provenance via .intoto.jsonl file", () => {
-		const findings = checkArtifactPresence(
-			["SBOM.cdx.json", "BUILD_MANIFEST.txt", "release.intoto.jsonl"],
-			null,
-		);
-		const provenance = findings.find(
-			(f) => f.check === "slsa-provenance-attached",
-		);
-		expect(provenance?.status).toBe("pass");
 	});
 });

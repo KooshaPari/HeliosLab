@@ -36,27 +36,42 @@ produced by humans rather than enforced by CI.
 
 ### 1. Evidence gate workflow
 
-`.github/workflows/release-evidence.yml` runs on every push to `main`
-whose commit message contains `release:` or `chore(release)`, plus
-manual `workflow_dispatch`. The gate is **post-merge** by design:
-release evidence (SBOM, BUILD_MANIFEST, SLSA provenance) is produced
-by `release.yml` and `release-attestation.yml`, which themselves only
-fire on push to `main`. Pre-merge validation cannot reach those
+`.github/workflows/release-evidence.yml` runs as a `workflow_run`
+follower on `Release` and `Release Attestation` completions on
+`main`, plus manual `workflow_dispatch`. The gate is **post-merge** by
+design: release evidence (SBOM, BUILD_MANIFEST, SLSA provenance) is
+produced by `release.yml` and `release-attestation.yml`, which themselves
+only fire on push to `main`. Pre-merge validation cannot reach those
 artifacts. The gate posts a single check named **Release Evidence**
 that branch protection may require. The job:
 
-1. Resolves the commit SHA.
-2. Calls `actions:listWorkflowRuns` filtered to `release.yml` on that SHA.
-   If the release workflow never ran (no `release:` commit), the gate
-   marks the relevant checks as `skip` and exits 0; release-evidence
-   must not block unrelated pushes.
-3. Calls `actions:listWorkflowRunArtifacts` to enumerate release
-   artefacts, writes their filenames to a temp file, and passes the
-   file to the validator script.
+1. Resolves the commit SHA from the triggering `workflow_run.event`
+   (or the manual `inputs.commit`).
+2. Calls `actions:listWorkflowRunsForRepo`, filters to runs on the
+   same `head_sha` with `conclusion === 'success'`, and identifies the
+   matching `Release` and `Release Attestation` runs.
+3. Downloads every artifact from each matched run into
+   `/tmp/release-evidence-artifacts/<artifact-name>/`, then extracts
+   every `.zip` so the validator scans a flat tree of real files.
 4. Runs the validator (`bun run scripts/release-evidence-validate.ts
-   --artifact-list release-artifacts.txt --commit <sha>`).
+   --download-dir /tmp/release-evidence-artifacts --commit <sha>`).
 5. Uploads `.gate-reports/release-evidence.json` as a workflow artefact
    for human inspection.
+
+Triggering on `workflow_run` (rather than `push`) eliminates the
+race-condition class of bugs that v1 had: by the time this gate starts,
+both upstream runs have a known terminal `conclusion`, so the gate
+does not have to retry or poll. The checkout action uses the same
+resolved SHA via `ref:` so all version checks see the validated commit,
+not the workflow run's HEAD.
+
+The CLI surface of the validator (`--download-dir`) accepts the path
+to a directory of downloaded artifacts. The directory layout may have
+each artifact in its own subdirectory (`<download-dir>/<artifact-name>/<file>`),
+which matches the layout produced by `actions/download-artifact@v4`
+once each archive is unzipped. The validator walks the tree
+recursively and matches files by basename (and for SBOM/manifest by
+exact relative path), so either layout works.
 
 GitHub Actions does not register brand-new workflows that exist only
 on a PR branch; the workflow file must land on `main` before it fires
@@ -67,32 +82,37 @@ runs the gate.
 ### 2. Validator script and tests
 
 `scripts/release-evidence-validate.ts` is the unit-testable core. It
-exports five pure functions (`readVersionFile`, `readPackageJsonVersion`,
-`readCargoWorkspaceVersion`, `checkVersionConsistency`,
-`checkArtifactPresence`) and a CLI entry point guarded by
-`import.meta.main`.
+exports eight pure functions (`readVersionFile`,
+`readPackageJsonVersion`, `readCargoWorkspaceVersion`,
+`listFilesRecursive`, `anyFileMatchesBasenames`,
+`checkVersionConsistency`, `checkArtifactPresence`) and a CLI entry
+point guarded by `import.meta.main`.
 
 The validator checks, in order:
 
 | Check | Source | Required |
 |-------|--------|----------|
 | `version-consistency` | `VERSION`, `package.json`, `Cargo.toml` | yes |
-| `sbom-present` | artefact filenames or downloaded dir | yes |
-| `build-manifest-present` | artefact filenames or downloaded dir | yes |
-| `slsa-provenance-attached` | artefact filenames (`.intoto.jsonl` or `BUILD_MANIFEST.txt`) | yes |
+| `sbom-present` | files inside the downloaded artifacts dir | yes |
+| `build-manifest-present` | files inside the downloaded artifacts dir | yes |
+| `slsa-provenance-attached` | files ending in `.intoto.jsonl` in the dir | yes |
 
-A `skip` status is allowed when the workflow run list is empty
-(non-release commit). All checks must pass or skip for `ok: true`.
+A `skip` status is allowed when the workflow did not download any
+artifacts (the upstream `Release` or `Release Attestation` workflows
+did not run for this SHA). All checks must pass or skip for `ok: true`.
 
-20 unit tests in `scripts/tests/release-evidence-validate.test.ts`
+27 unit tests in `scripts/tests/release-evidence-validate.test.ts`
 exercise every path through the validator with on-disk fixtures, no
 network or git history required. The fixture suite covers:
 
 - empty / malformed version files
 - all-three-agree, two-agree-one-disagree, one-missing, all-missing
-- SBOM detection by filename vs by directory contents
-- BUILD_MANIFEST detection by filename vs by directory contents
-- SLSA provenance detection via `.intoto.jsonl` vs via paired BUILD_MANIFEST
+- `listFilesRecursive` walks nested dirs and produces forward-slash
+  relative paths on POSIX and Windows
+- `anyFileMatchesBasenames` matches by basename or by exact path
+- SBOM / BUILD_MANIFEST detection in subdirectories
+- provenance detection via `.intoto.jsonl`
+- `skip` when no download directory is provided
 
 ### 3. Required-check manifest update
 
@@ -125,15 +145,16 @@ required status check.
 
 | Suite | Tests | Pass | Fail |
 |-------|-------|------|------|
-| `scripts/tests/release-evidence-validate.test.ts` | 20 | 20 | 0 |
+| `scripts/tests/release-evidence-validate.test.ts` | 27 | 27 | 0 |
 
 ## Quality gates
 
 | Gate | Status |
 |------|--------|
-| `bun test scripts/tests/release-evidence-validate.test.ts` | 20/20 pass |
+| `bun test scripts/tests/release-evidence-validate.test.ts` | 27/27 pass |
 | Validator catches real bugs | yes (VERSION mismatch detected) |
 | Validator returns non-zero on failure | yes (`process.exit(1)`) |
+| Static-analysis gate | PASS |
 
 ## Version consistency
 
@@ -161,8 +182,9 @@ required status check.
 ## How to verify locally
 
 ```bash
-# Validator should currently fail because release.yml has not yet run
-# (release commit not yet made). It catches the real bug we fixed.
+# Validator runs the version-consistency check (passes) and skips
+# artifact checks because no downloaded dir is provided in the local
+# dev environment. The CI workflow passes --download-dir.
 bun run scripts/release-evidence-validate.ts
 
 # Run the unit tests
@@ -170,5 +192,6 @@ bun test scripts/tests/release-evidence-validate.test.ts
 ```
 
 When the first real `release:` commit is pushed, the gate runs end-to-end:
-`release.yml` ships artifacts, `release-evidence.yml` queries them,
-the validator returns 0, the check turns green.
+`release.yml` ships artifacts, `release-attestation.yml` produces SLSA
+provenance, `release-evidence.yml` follows both via `workflow_run`,
+downloads all artifacts, the validator returns 0, the check turns green.

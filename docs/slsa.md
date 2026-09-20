@@ -21,24 +21,39 @@ log alongside the artifact.
 ### What is enforced today
 
 The [release-evidence gate][release-evidence-gate] (workflow
-`.github/workflows/release-evidence.yml`) runs on every push to `main`
-whose commit message contains `release:` or `chore(release)`, plus
-manual `workflow_dispatch`. The gate is **post-merge** by design:
-release evidence (SBOM, BUILD_MANIFEST, SLSA provenance) is produced
-by `release.yml` and `release-attestation.yml`, which themselves only
-fire on push to `main`. Pre-merge validation cannot reach those
-artifacts. The gate validates:
+`.github/workflows/release-evidence.yml`) is triggered by:
+
+- `workflow_run` events from `Release` and `Release Attestation` workflows
+  completing on `main`, or
+- manual `workflow_dispatch` with an optional commit SHA (defaults to the
+  workflow's `HEAD`).
+
+The gate is **post-merge** by design: release evidence (SBOM,
+`BUILD_MANIFEST.txt`, SLSA provenance) is produced by `release.yml` and
+`release-attestation.yml`, which themselves only fire on push to `main`.
+Pre-merge validation cannot reach those artifacts. The gate validates:
 
 1. Version consistency between `VERSION`, `package.json`, and `Cargo.toml`.
-2. `release.yml` completed successfully on the same SHA.
-3. Release artifacts contain an SBOM and a `BUILD_MANIFEST.txt`.
-4. SLSA provenance was generated.
+2. A `Release` workflow run completed successfully on the same SHA, and a
+   `Release Attestation` workflow run completed successfully on the same
+   SHA.
+3. Release + attestation artifacts downloaded into a single directory
+   contain an SBOM (`SBOM.cdx.json` / `SBOM.spdx.json`),
+   a `BUILD_MANIFEST.txt`, and an `.intoto.jsonl` provenance document.
+
+`workflow_run` is used as the trigger so the gate cannot race against an
+in-flight `release.yml` run; by the time the gate starts, the upstream
+runs have a known `conclusion` value that the gate reads. Artifacts are
+downloaded from the matched runs using
+`actions/github-script@v7`'s `listWorkflowRunArtifacts` and
+`downloadWorkflowRunArtifact` calls, so the validator scans the union of
+actual artifact files rather than container names.
 
 ### What is not yet enforced
 
 SBOM generation and cosign signing of binaries are not yet wired into
-`release.yml`; today the gate only checks that the attestation workflow
-ran and produced its expected outputs. Closing that gap is tracked in
+`release.yml`; today the gate verifies that the existing artifacts carry
+the expected file names. Closing that gap is tracked in
 [`docs/plans/tasks/release-evidence.md`][release-evidence-plan].
 
 ## Workflow
@@ -54,8 +69,10 @@ The validation gate lives at
 [`.github/workflows/release-evidence.yml`](../.github/workflows/release-evidence.yml)
 and is triggered:
 
-- Automatically on every `release:` or `chore(release)` commit to `main`.
-- Manually via `workflow_dispatch` for ad-hoc validation of any commit.
+- Automatically via `workflow_run` whenever `Release` or
+  `Release Attestation` completes on `main`.
+- Manually via `workflow_dispatch` with an optional commit SHA for
+  ad-hoc re-validation of any commit.
 
 ## Verification
 

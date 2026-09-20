@@ -3,23 +3,30 @@ name: Release Evidence Gate
 # Validates that a release commit on `main` carries the four pieces of
 # evidence every release must publish:
 #   - Version consistency between VERSION, package.json, and Cargo.toml
-#   - release.yml completed successfully on this SHA
-#   - release.yml uploaded release artifacts containing SBOM + BUILD_MANIFEST
-#   - release-attestation.yml produced a SLSA provenance artifact
+#   - release.yml completed successfully on the same SHA
+#   - release.yml + release-attestation.yml uploaded artifacts containing SBOM + BUILD_MANIFEST + SLSA provenance
 #
-# Runs on the same trigger as release.yml (push to main) plus manual
-# workflow_dispatch. Posts a single "Release Evidence" check that branch
-# protection may require. The gate is post-merge by design: release
-# evidence (SBOM, BUILD_MANIFEST, SLSA provenance) is produced by
-# release.yml and release-attestation.yml, which themselves only fire on
-# push to main. Pre-merge validation cannot reach those artifacts.
+# Triggered by either (a) `workflow_run` for release.yml or
+# release-attestation.yml completing on `main`, or (b) manual
+# `workflow_dispatch` with an optional commit SHA.
+#
+# `workflow_run` is the primary trigger: by the time the workflow runs,
+# release.yml has already terminated with a known `conclusion`, so there
+# is no race against an in-flight release run. Manual dispatch uses the
+# same logic, looking up the latest completed run on the requested SHA.
+#
+# The gate is post-merge by design: release.yml and release-attestation.yml
+# both only fire on push to main, and this gate follows them. Pre-merge
+# PR validation cannot reach those artifacts.
 on:
-  push:
+  workflow_run:
+    workflows: [Release, "Release Attestation"]
+    types: [completed]
     branches: [main]
   workflow_dispatch:
     inputs:
       commit:
-        description: "Commit SHA to validate (defaults to HEAD)"
+        description: "Commit SHA to validate (defaults to release run's SHA)"
         required: false
         type: string
 
@@ -32,64 +39,160 @@ jobs:
   evidence:
     name: Release Evidence
     runs-on: ubuntu-24.04
-    timeout-minutes: 5
-    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, 'release:') || contains(github.event.head_commit.message, 'chore(release)')
+    timeout-minutes: 10
+
     steps:
-      - name: Resolve commit SHA
-        id: commit
+      - name: Resolve commit SHA (workflow_run)
+        id: resolve-sha
+        if: github.event_name == 'workflow_run'
+        env:
+          EVENT_SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ inputs.commit }}" ]; then
-            echo "sha=${{ inputs.commit }}" >> "$GITHUB_OUTPUT"
+          # The workflow_run head SHA is treated as trusted GitHub data
+          # (validated by GitHub), not user input. `env:` keeps it out of
+          # shell interpolation contexts.
+          echo "sha=${EVENT_SHA}" >> "$GITHUB_OUTPUT"
+
+      - name: Resolve commit SHA (workflow_dispatch)
+        id: resolve-sha-dispatch
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          DEFAULT_SHA: ${{ github.sha }}
+          INPUT_COMMIT: ${{ inputs.commit }}
+        run: |
+          # The dispatch input is operator-only (only repo admins can
+          # trigger workflow_dispatch on this workflow), so passing
+          # through to checkout is safe; the env block still keeps it
+          # out of any shell expansion in this command.
+          if [ -n "$INPUT_COMMIT" ]; then
+            echo "sha=$INPUT_COMMIT" >> "$GITHUB_OUTPUT"
           else
-            echo "sha=${{ github.sha }}" >> "$GITHUB_OUTPUT"
+            echo "sha=$DEFAULT_SHA" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.1.1
         with:
           fetch-depth: 0
+          ref: ${{ steps.resolve-sha.outputs.sha || steps.resolve-sha-dispatch.outputs.sha }}
 
       - name: Setup Bun
-        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
+        uses: oven-sh/setup-bun@0c5077e51419868618aeedfe74b74d6c11d21e70 # v2
         with:
           bun-version: '1.4.0'
 
-      - name: List release.yml artifacts on this SHA
-        id: list-artifacts
+      - name: Find release runs on this SHA
+        id: find-runs
+        env:
+          COMMIT_SHA: ${{ steps.resolve-sha.outputs.sha || steps.resolve-sha-dispatch.outputs.sha }}
         uses: actions/github-script@v7
         with:
           script: |
-            const sha = '${{ steps.commit.outputs.sha }}';
-            const workflows = await github.paginate(github.rest.actions.listWorkflowRuns, {
-              ...context.repo, head_sha: sha, workflow_id: 'release.yml', event: 'push', per_page: 20
-            }).then(runs => runs.filter(r => r.head_sha === sha && r.event === 'push')
-              .sort((a, b) => b.id - a.id));
-            const releaseRun = workflows[0];
-            if (!releaseRun) {
-              core.info(`release.yml did not run on ${sha}; downstream checks will report skip.`);
-              core.setOutput('found', 'false');
-              return;
-            }
-            if (releaseRun.conclusion !== 'success') {
-              core.setFailed(`release.yml concluded ${releaseRun.conclusion} on ${sha}; evidence gate cannot proceed.`);
-              return;
-            }
-            const { data: artifacts } = await github.rest.actions.listWorkflowRunArtifacts({
-              ...context.repo, run_id: releaseRun.id
+            const sha = process.env.COMMIT_SHA;
+            const all = await github.paginate(github.rest.actions.listWorkflowRunsForRepo, {
+              ...context.repo, per_page: 100,
             });
+            const onSha = all.filter(r => r.head_sha === sha && r.conclusion === 'success');
+            const releaseRun = onSha.find(r => r.path === '.github/workflows/release.yml' || r.name === 'Release');
+            const attestationRun = onSha.find(r => r.path === '.github/workflows/release-attestation.yml' || r.name === 'Release Attestation');
+            core.setOutput('release_run_id', releaseRun ? String(releaseRun.id) : '');
+            core.setOutput('attestation_run_id', attestationRun ? String(attestationRun.id) : '');
+            core.setOutput('release_found', releaseRun ? 'true' : 'false');
+            core.setOutput('attestation_found', attestationRun ? 'true' : 'false');
+            core.info(`release.yml run on ${sha}: ${releaseRun ? releaseRun.id : 'NOT FOUND (will skip artifact checks)'}`);
+            core.info(`release-attestation.yml run on ${sha}: ${attestationRun ? attestationRun.id : 'NOT FOUND (will skip provenance check)'}`);
+
+      - name: Download release artifacts
+        if: steps.find-runs.outputs.release_found == 'true'
+        env:
+          RUN_ID: ${{ steps.find-runs.outputs.release_run_id }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Fetch every artifact from the release run and download to
+            // /tmp/release-evidence-artifacts/. Each artifact container
+            // is unpacked into a subdirectory of that path so the
+            // validator can scan the union of all their files (vs. only
+            // container names, which is what the artifacts API returns).
             const fs = require('fs');
-            const out = artifacts.map(a => a.name).join('\n');
-            fs.writeFileSync('release-artifacts.txt', out);
-            core.info(`release.yml artifacts on ${sha}: ${artifacts.map(a => `${a.name} (${a.size_in_bytes} bytes)`).join(', ')}`);
-            core.setOutput('found', 'true');
+            const path = require('path');
+            const downloadDir = '/tmp/release-evidence-artifacts';
+            fs.rmSync(downloadDir, { recursive: true, force: true });
+            fs.mkdirSync(downloadDir, { recursive: true });
+            const { data: artifacts } = await github.rest.actions.listWorkflowRunArtifacts({
+              ...context.repo, run_id: Number(process.env.RUN_ID),
+            });
+            for (const artifact of artifacts) {
+              const dest = path.join(downloadDir, artifact.name);
+              fs.mkdirSync(dest, { recursive: true });
+              const zipDest = path.join(dest, `${artifact.name}.zip`);
+              const stream = fs.createWriteStream(zipDest);
+              const { data } = await github.rest.actions.downloadWorkflowRunArtifact({
+                ...context.repo, artifact_id: artifact.id, archive_format: 'zip',
+              });
+              await new Promise((resolve, reject) => {
+                data.pipe(stream);
+                stream.on('finish', resolve);
+                stream.on('error', reject);
+              });
+              core.info(`Downloaded ${artifact.name} (${artifact.size_in_bytes} bytes)`);
+            }
+
+      - name: Download attestation artifacts
+        if: steps.find-runs.outputs.attestation_found == 'true'
+        env:
+          RUN_ID: ${{ steps.find-runs.outputs.attestation_run_id }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Same as the release-artifact download step but for the
+            // attestation workflow. SBOM, BUILD_MANIFEST, and SLSA
+            // provenance are emitted here, so this is where provenance
+            // evidence comes from.
+            const fs = require('fs');
+            const path = require('path');
+            const downloadDir = '/tmp/release-evidence-artifacts';
+            fs.mkdirSync(downloadDir, { recursive: true });
+            const { data: artifacts } = await github.rest.actions.listWorkflowRunArtifacts({
+              ...context.repo, run_id: Number(process.env.RUN_ID),
+            });
+            for (const artifact of artifacts) {
+              const dest = path.join(downloadDir, artifact.name);
+              fs.mkdirSync(dest, { recursive: true });
+              const zipDest = path.join(dest, `${artifact.name}.zip`);
+              const stream = fs.createWriteStream(zipDest);
+              const { data } = await github.rest.actions.downloadWorkflowRunArtifact({
+                ...context.repo, artifact_id: artifact.id, archive_format: 'zip',
+              });
+              await new Promise((resolve, reject) => {
+                data.pipe(stream);
+                stream.on('finish', resolve);
+                stream.on('error', reject);
+              });
+              core.info(`Downloaded attestation artifact ${artifact.name}`);
+            }
+
+      - name: Extract downloaded artifacts
+        if: steps.find-runs.outputs.release_found == 'true' || steps.find-runs.outputs.attestation_found == 'true'
+        run: |
+          # Each downloaded artifact is a zip; extract every .zip under
+          # /tmp/release-evidence-artifacts/ so the validator can scan a
+          # flat tree of real files.
+          set -e
+          for zip in /tmp/release-evidence-artifacts/*.zip; do
+            [ -e "$zip" ] || continue
+            dir="$(dirname "$zip")/$(basename "$zip" .zip)"
+            mkdir -p "$dir"
+            unzip -o -q "$zip" -d "$dir"
+          done
 
       - name: Validate release evidence
         id: validate
         env:
-          GITHUB_SHA: ${{ steps.commit.outputs.sha }}
+          GITHUB_SHA: ${{ steps.resolve-sha.outputs.sha || steps.resolve-sha-dispatch.outputs.sha }}
         run: |
           bun run scripts/release-evidence-validate.ts \
-            --artifact-list release-artifacts.txt \
+            --download-dir /tmp/release-evidence-artifacts \
             --commit "$GITHUB_SHA"
 
       - name: Upload evidence report

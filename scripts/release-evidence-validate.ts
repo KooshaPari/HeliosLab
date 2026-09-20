@@ -6,24 +6,36 @@
  * evidence every release must publish:
  *
  *   1. Version consistency    — VERSION, package.json, and Cargo.toml agree.
- *   2. Release workflow run   — release.yml completed successfully on this SHA.
- *   3. Artifact presence      — release.yml uploaded `release-artifacts/`.
- *   4. SBOM presence          — release-attestation.yml uploaded an SBOM file.
- *   5. SLSA provenance        — release-attestation.yml generated provenance.
+ *   2. SBOM presence          — at least one SBOM file (CycloneDX or SPDX)
+ *                               exists in the downloaded release artifacts.
+ *   3. BUILD_MANIFEST presence — `BUILD_MANIFEST.txt` exists in the artifacts,
+ *                               proving the release pipeline ran to completion.
+ *   4. SLSA provenance        — an `.intoto.jsonl` file (or
+ *                               `*.intoto.jsonl`) is present in the artifacts,
+ *                               proving `release-attestation.yml` produced a
+ *                               provenance attestation.
  *
- * Exits 0 if every check passes, 1 otherwise. Output is a structured
- * machine-readable report written to .gate-reports/release-evidence.json,
- * with a human summary on stdout. Designed to be invoked from
- * `.github/workflows/release-evidence.yml`.
+ * Exits 0 if every check passes (or all skip), 1 otherwise. Output is a
+ * structured machine-readable report written to
+ * `.gate-reports/release-evidence.json`, with a human summary on stdout.
  *
- * The workflow layer queries GitHub for the actual run/artifact data; this
- * script handles the local-evidence checks (version consistency + the
- * presence of the SBOM file in a passed artifact path), so the same logic
- * can be unit-tested without GitHub API calls.
+ * The workflow layer (`release-evidence.yml`) is responsible for
+ * downloading the release artifacts into a single directory before
+ * invoking this script. The validator only does local filesystem checks
+ * so the same logic can be unit-tested with fixtures without GitHub API
+ * access. The workflow not finding any release run is reported as a
+ * skip with a clear message; the validator cannot produce a meaningful
+ * pass/fail for a missing run on its own.
  */
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
+import {
+	existsSync,
+	mkdirSync,
+	readdirSync,
+	readFileSync,
+	writeFileSync,
+} from "node:fs";
+import { dirname, join, relative, resolve, sep } from "node:path";
 import process from "node:process";
 
 export interface EvidenceFinding {
@@ -57,20 +69,36 @@ export const SBOM_NAMES = [
 	"sbom.spdx.json",
 ];
 export const MANIFEST_NAMES = ["BUILD_MANIFEST.txt", "build-manifest.txt"];
+export const PROVENANCE_SUFFIX = ".intoto.jsonl";
 
 /**
- * Read the three version sources. Each returns null if the file does not
- * exist or the version field cannot be parsed; the caller decides how to
- * react to a null.
+ * Whether any of `files` (relative paths from `listFilesRecursive`)
+ * matches `basenames` by basename. Files downloaded into per-artifact
+ * subdirectories (`<download-dir>/<artifact-name>/<file>`) are common,
+ * so we accept either an exact relative-path match or a basename match.
+ */
+export function anyFileMatchesBasenames(
+	files: string[],
+	basenames: string[],
+): boolean {
+	const set = new Set(basenames);
+	for (const f of files) {
+		const base = f.split("/").pop() ?? f;
+		if (set.has(base)) return true;
+	}
+	return false;
+}
+
+/**
+ * Read the three local version sources. Returns nulls for missing or
+ * unreadable files; the caller decides how to react.
  */
 export function readProjectVersions(repoRoot: string): ProjectVersions {
-	const versionFile = readVersionFile(resolve(repoRoot, VERSION_FILE));
-	const packageJson = readPackageJsonVersion(resolve(repoRoot, PACKAGE_JSON));
-	const cargoWorkspace = readCargoWorkspaceVersion(
-		resolve(repoRoot, CARGO_TOML),
-	);
-
-	return { versionFile, packageJson, cargoWorkspace };
+	return {
+		versionFile: readVersionFile(resolve(repoRoot, VERSION_FILE)),
+		packageJson: readPackageJsonVersion(resolve(repoRoot, PACKAGE_JSON)),
+		cargoWorkspace: readCargoWorkspaceVersion(resolve(repoRoot, CARGO_TOML)),
+	};
 }
 
 export function readVersionFile(path: string): string | null {
@@ -102,8 +130,45 @@ export function readCargoWorkspaceVersion(path: string): string | null {
 }
 
 /**
- * Check 1: version consistency. All three sources must agree; missing sources
- * are reported individually so the operator can see what is missing.
+ * Recursively list every regular file under `dir`, returning paths
+ * relative to `dir` using forward slashes. Returns an empty array if
+ * the directory does not exist. The `dir` argument is expected to be
+ * downloaded release artifacts (or any directory layout of evidence
+ * files).
+ */
+export function listFilesRecursive(dir: string | null): string[] {
+	if (!dir || !existsSync(dir)) return [];
+	const found: string[] = [];
+	const stack = [dir];
+	while (stack.length > 0) {
+		const current = stack.pop();
+		if (!current) break;
+		let entries: ReturnType<typeof readdirSync>;
+		try {
+			entries = readdirSync(current, { withFileTypes: true });
+		} catch {
+			continue;
+		}
+		for (const entry of entries) {
+			const entryPath = join(current, entry.name);
+			if (entry.isDirectory()) {
+				stack.push(entryPath);
+			} else if (entry.isFile()) {
+				// Compute path relative to `dir`, then normalize to
+				// forward slashes so cross-platform callers receive a
+				// consistent shape (Windows backslashes are converted).
+				const rel = relative(dir, entryPath).split(sep).join("/");
+				found.push(rel);
+			}
+		}
+	}
+	return found;
+}
+
+/**
+ * Check 1: version consistency. All three sources must agree on the
+ * same version. Missing files are reported in the detail message so the
+ * operator can see which source is the problem.
  */
 export function checkVersionConsistency(
 	versions: ProjectVersions,
@@ -129,7 +194,9 @@ export function checkVersionConsistency(
 		return {
 			check: "version-consistency",
 			status: "fail",
-			detail: `Version mismatch: ${sources.map((s) => `${s.label}=${s.value ?? "<missing>"}`).join(", ")}`,
+			detail: `Version mismatch: ${sources
+				.map((s) => `${s.label}=${s.value ?? "<missing>"}`)
+				.join(", ")}`,
 		};
 	}
 
@@ -138,7 +205,9 @@ export function checkVersionConsistency(
 		return {
 			check: "version-consistency",
 			status: "fail",
-			detail: `Versions agree on ${present[0]?.value ?? "?"} but ${missing.map((m) => m.label).join(", ")} missing.`,
+			detail: `Versions agree on ${present[0]?.value ?? "?"} but ${missing
+				.map((m) => m.label)
+				.join(", ")} missing.`,
 		};
 	}
 
@@ -150,109 +219,109 @@ export function checkVersionConsistency(
 }
 
 /**
- * Check 2-5: artifact presence. The workflow passes either:
- *   - the path to a downloaded `release-artifacts/` directory, OR
- *   - a list of artifact filenames (from `actions:listWorkflowRunArtifacts`).
+ * Checks 2-4: artifact presence inside the downloaded directory.
  *
- * Either mode produces a `string[]` of candidate filenames that we scan
- * for the expected evidence files.
+ * The workflow downloads all artifacts from a release.yml run (plus
+ * release-attestation.yml artifacts for provenance) into a single
+ * directory before invoking this script. We scan that directory for
+ * the well-known evidence filenames. If the directory is not provided
+ * or does not exist, every check is `skip` — meaning the workflow
+ * could not acquire artifacts at all — rather than `fail`, because the
+ * validator alone cannot distinguish "no artifacts yet" from "no
+ * artifacts uploaded".
  */
 export function checkArtifactPresence(
-	availableFilenames: string[] | null,
 	downloadedDir: string | null,
 ): EvidenceFinding[] {
-	const findings: EvidenceFinding[] = [];
-
-	if (!availableFilenames && !downloadedDir) {
-		findings.push({
-			check: "release-workflow-run",
-			status: "skip",
-			detail:
-				"No artifact list or download dir provided; release.yml run cannot be validated locally.",
-		});
-		return findings;
+	if (!downloadedDir || !existsSync(downloadedDir)) {
+		return [
+			{
+				check: "sbom-present",
+				status: "skip",
+				detail:
+					"No downloaded artifact directory provided; SBOM cannot be verified locally. The workflow layer reports whether the release run produced artifacts.",
+			},
+			{
+				check: "build-manifest-present",
+				status: "skip",
+				detail:
+					"No downloaded artifact directory provided; BUILD_MANIFEST cannot be verified locally.",
+			},
+			{
+				check: "slsa-provenance-attached",
+				status: "skip",
+				detail:
+					"No downloaded artifact directory provided; SLSA provenance cannot be verified locally.",
+			},
+		];
 	}
 
-	const filenames = availableFilenames ?? [];
-	const sbomHit =
-		filenames.some((n) => SBOM_NAMES.includes(n)) || sbomInDir(downloadedDir);
-	const manifestHit =
-		filenames.some((n) => MANIFEST_NAMES.includes(n)) ||
-		manifestInDir(downloadedDir);
-	// BUILD_MANIFEST.txt is staged alongside provenance by release-attestation.yml,
-	// so its presence is a strong signal that the attestation workflow ran.
-	// A failing manifest check also fails provenance, since the two are paired.
-	const provenanceHit =
-		manifestHit ||
-		filenames.some(
-			(n) => n.endsWith(".intoto.jsonl") || n.includes("provenance"),
-		);
+	const files = listFilesRecursive(downloadedDir);
+	if (files.length === 0) {
+		return [
+			{
+				check: "sbom-present",
+				status: "fail",
+				detail: `Downloaded artifact directory ${downloadedDir} is empty.`,
+			},
+			{
+				check: "build-manifest-present",
+				status: "fail",
+				detail: `Downloaded artifact directory ${downloadedDir} is empty.`,
+			},
+			{
+				check: "slsa-provenance-attached",
+				status: "fail",
+				detail: `Downloaded artifact directory ${downloadedDir} is empty.`,
+			},
+		];
+	}
 
-	findings.push({
-		check: "sbom-present",
-		status: sbomHit ? "pass" : "fail",
-		detail: sbomHit
-			? `SBOM found (one of ${SBOM_NAMES.join(", ")}).`
-			: `No SBOM file found in artifacts (looked for ${SBOM_NAMES.join(", ")}).`,
-	});
+	const sbomHit = anyFileMatchesBasenames(files, SBOM_NAMES);
+	const manifestHit = anyFileMatchesBasenames(files, MANIFEST_NAMES);
+	const provenanceHit = files.some((f) => f.endsWith(PROVENANCE_SUFFIX));
 
-	findings.push({
-		check: "build-manifest-present",
-		status: manifestHit ? "pass" : "fail",
-		detail: manifestHit
-			? `BUILD_MANIFEST.txt present.`
-			: `No BUILD_MANIFEST.txt found in release artifacts.`,
-	});
-
-	findings.push({
-		check: "slsa-provenance-attached",
-		status: provenanceHit ? "pass" : "fail",
-		detail: provenanceHit
-			? `Provenance indicator present (BUILD_MANIFEST or .intoto.jsonl).`
-			: `No provenance indicator found; release-attestation.yml may not have run.`,
-	});
-
-	return findings;
-}
-
-export function sbomInDir(dir: string | null): boolean {
-	if (!dir) return false;
-	return SBOM_NAMES.some((n) => existsSync(resolve(dir, n)));
-}
-
-export function manifestInDir(dir: string | null): boolean {
-	if (!dir) return false;
-	return MANIFEST_NAMES.some((n) => existsSync(resolve(dir, n)));
+	return [
+		{
+			check: "sbom-present",
+			status: sbomHit ? "pass" : "fail",
+			detail: sbomHit
+				? `SBOM file present in artifacts (one of ${SBOM_NAMES.join(", ")}).`
+				: `No SBOM file found in downloaded artifacts (looked for ${SBOM_NAMES.join(", ")}).`,
+		},
+		{
+			check: "build-manifest-present",
+			status: manifestHit ? "pass" : "fail",
+			detail: manifestHit
+				? `BUILD_MANIFEST.txt present in downloaded artifacts.`
+				: `No BUILD_MANIFEST.txt found in downloaded artifacts.`,
+		},
+		{
+			check: "slsa-provenance-attached",
+			status: provenanceHit ? "pass" : "fail",
+			detail: provenanceHit
+				? `SLSA provenance (${PROVENANCE_SUFFIX}) present in downloaded artifacts.`
+				: `No ${PROVENANCE_SUFFIX} file in downloaded artifacts; release-attestation.yml may not have run.`,
+		},
+	];
 }
 
 /**
- * CLI entry point. Reads the three local version sources, prints a summary
- * to stdout, writes a structured report, and exits non-zero if any check
- * fails. Designed for both local operator use (`bun run scripts/release-evidence-validate.ts`)
- * and CI invocation (workflow passes `--artifacts` and/or `--download-dir`).
+ * CLI entry point. Reads the three local version sources and scans the
+ * downloaded-artifact directory passed in `--download-dir`. Prints a
+ * summary, writes a structured report, and exits non-zero if any check
+ * fails. Designed for both local operator use and CI invocation.
  */
 function main(): void {
 	const argv = process.argv.slice(2);
-	const artifactListPath = flagValue(argv, "--artifact-list");
 	const downloadDir = flagValue(argv, "--download-dir");
 	const commitSha =
 		flagValue(argv, "--commit") ?? process.env.GITHUB_SHA ?? "local";
 
-	let artifactFilenames: string[] | null = null;
-	if (artifactListPath && existsSync(artifactListPath)) {
-		artifactFilenames = readFileSync(artifactListPath, "utf8")
-			.split(/\r?\n/)
-			.map((s) => s.trim())
-			.filter((s) => s.length > 0);
-	}
-
 	const repoRoot = process.cwd();
 	const versions = readProjectVersions(repoRoot);
 	const versionFinding = checkVersionConsistency(versions);
-	const artifactFindings = checkArtifactPresence(
-		artifactFilenames,
-		downloadDir,
-	);
+	const artifactFindings = checkArtifactPresence(downloadDir);
 	const findings = [versionFinding, ...artifactFindings];
 
 	const canonicalVersion =
