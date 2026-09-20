@@ -13,8 +13,11 @@
  */
 
 import { describe, expect, it } from "bun:test";
+import {
+	createLane,
+	republishLaneCreated,
+} from "../../tests/helpers/vertical-slice-harness.js";
 import { InMemoryLocalBus } from "../protocol/bus.js";
-import type { LocalBusEnvelope } from "../protocol/types.js";
 import { RecordingRendererAdapter } from "../renderer/recording_adapter.js";
 import { LaneLifecycleService } from "../sessions/state_machine.js";
 import { VerticalSliceDriver } from "./vertical_slice_driver.js";
@@ -48,64 +51,11 @@ async function newHarness(): Promise<{
 	return { bus, lanes, renderer, driver };
 }
 
-function createLane(
-	lanes: LaneLifecycleService,
-	displayName: string,
-): Promise<{ lane_id: string }> {
-	return lanes.create({
-		workspace_id: WORKSPACE,
-		project_context_id: "pc-slice",
-		display_name: displayName,
-	});
-}
-
-/**
- * Publish a syntactically valid start+terminal pair for an existing lane.
- *
- * `lane.created` is a terminal topic, so the bus rejects it unless a matching
- * `lane.create.started` was published first for the same correlation id.
- */
-async function republishLaneCreated(
-	bus: InMemoryLocalBus,
-	laneId: string,
-	correlationId: string,
-): Promise<void> {
-	const base = {
-		type: "event" as const,
-		ts: new Date().toISOString(),
-		workspace_id: WORKSPACE,
-		lane_id: laneId,
-		correlation_id: correlationId,
-	};
-	const started: LocalBusEnvelope = {
-		...base,
-		id: `start-${correlationId}`,
-		topic: "lane.create.started",
-		payload: {
-			runtime_event: "lane.create.requested",
-			lane_id: laneId,
-			state: "provisioning",
-		},
-	};
-	const created: LocalBusEnvelope = {
-		...base,
-		id: `created-${correlationId}`,
-		topic: "lane.created",
-		payload: {
-			runtime_event: "lane.create.succeeded",
-			lane_id: laneId,
-			state: "ready",
-		},
-	};
-	await bus.publish(started);
-	await bus.publish(created);
-}
-
 describe("terminal-first vertical slice", () => {
 	it("routes PTY output from a lane to a renderer surface", async () => {
 		const { lanes, renderer, driver } = await newHarness();
 		try {
-			const lane = await createLane(lanes, "slice");
+			const lane = await createLane(lanes, "slice", WORKSPACE, "pc-slice");
 			const binding = await driver.waitForLane(lane.lane_id, SPAWN_TIMEOUT_MS);
 
 			expect(binding).not.toBeNull();
@@ -137,7 +87,12 @@ describe("terminal-first vertical slice", () => {
 	it("freezes the renderer surface when the lane is cleaned up", async () => {
 		const { lanes, renderer, driver } = await newHarness();
 		try {
-			const lane = await createLane(lanes, "slice-cleanup");
+			const lane = await createLane(
+				lanes,
+				"slice-cleanup",
+				WORKSPACE,
+				"pc-slice",
+			);
 			const binding = await driver.waitForLane(lane.lane_id, SPAWN_TIMEOUT_MS);
 			expect(binding).not.toBeNull();
 
@@ -166,11 +121,21 @@ describe("terminal-first vertical slice", () => {
 	it("does not spawn a second PTY for a repeated lane.created", async () => {
 		const { bus, lanes, driver } = await newHarness();
 		try {
-			const lane = await createLane(lanes, "slice-idempotent");
+			const lane = await createLane(
+				lanes,
+				"slice-idempotent",
+				WORKSPACE,
+				"pc-slice",
+			);
 			const first = await driver.waitForLane(lane.lane_id, SPAWN_TIMEOUT_MS);
 			expect(first).not.toBeNull();
 
-			await republishLaneCreated(bus, lane.lane_id, "dup-correlation");
+			await republishLaneCreated(
+				bus,
+				lane.lane_id,
+				"dup-correlation",
+				WORKSPACE,
+			);
 			await driver.settle();
 
 			expect(driver.ptys.getByLane(lane.lane_id)).toHaveLength(1);
@@ -185,9 +150,9 @@ describe("terminal-first vertical slice", () => {
 	it("gives concurrent lanes independent PTYs and renderer surfaces", async () => {
 		const { lanes, renderer, driver } = await newHarness();
 		try {
-			const a = await createLane(lanes, "slice-a");
-			const b = await createLane(lanes, "slice-b");
-			const c = await createLane(lanes, "slice-c");
+			const a = await createLane(lanes, "slice-a", WORKSPACE, "pc-slice");
+			const b = await createLane(lanes, "slice-b", WORKSPACE, "pc-slice");
+			const c = await createLane(lanes, "slice-c", WORKSPACE, "pc-slice");
 
 			const bindings = await Promise.all([
 				driver.waitForLane(a.lane_id, SPAWN_TIMEOUT_MS),

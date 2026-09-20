@@ -19,12 +19,15 @@
  */
 import { afterEach, describe, expect, it } from "bun:test";
 import { InMemoryLocalBus } from "../../../src/protocol/bus.js";
-import type { LocalBusEnvelope } from "../../../src/protocol/types.js";
 import { PtyManager } from "../../../src/pty/index.js";
 import { RecordingRendererAdapter } from "../../../src/renderer/recording_adapter.js";
 import { StreamBindingManager } from "../../../src/renderer/stream_binding.js";
 import { VerticalSliceDriver } from "../../../src/runtime/vertical_slice_driver.js";
 import { LaneLifecycleService } from "../../../src/sessions/state_machine.js";
+import {
+	createLane,
+	republishLaneCreated,
+} from "../../helpers/vertical-slice-harness.js";
 
 const WORKSPACE = "ws-driver-coverage";
 const SPAWN_TIMEOUT_MS = 10_000;
@@ -64,54 +67,6 @@ async function newHarness(options?: {
 	});
 	driver.start();
 	return { bus, lanes, renderer, driver };
-}
-
-function createLane(
-	lanes: LaneLifecycleService,
-	displayName: string,
-): Promise<{ lane_id: string }> {
-	return lanes.create({
-		workspace_id: WORKSPACE,
-		project_context_id: "pc-driver",
-		display_name: displayName,
-	});
-}
-
-/** Publish a syntactically valid start+terminal pair for an existing lane. */
-async function republishLaneCreated(
-	bus: InMemoryLocalBus,
-	laneId: string,
-	correlationId: string,
-): Promise<void> {
-	const base = {
-		type: "event" as const,
-		ts: new Date().toISOString(),
-		workspace_id: WORKSPACE,
-		lane_id: laneId,
-		correlation_id: correlationId,
-	};
-	const started: LocalBusEnvelope = {
-		...base,
-		id: `start-${correlationId}`,
-		topic: "lane.create.started",
-		payload: {
-			runtime_event: "lane.create.requested",
-			lane_id: laneId,
-			state: "provisioning",
-		},
-	};
-	const created: LocalBusEnvelope = {
-		...base,
-		id: `created-${correlationId}`,
-		topic: "lane.created",
-		payload: {
-			runtime_event: "lane.create.succeeded",
-			lane_id: laneId,
-			state: "ready",
-		},
-	};
-	await bus.publish(started);
-	await bus.publish(created);
 }
 
 async function republishLaneClosed(
@@ -187,7 +142,7 @@ describe("VerticalSliceDriver surface coverage", () => {
 		const { lanes, driver } = await newHarness();
 		cleanups.push(() => driver.shutdown());
 
-		const lane = await createLane(lanes, "spawn-surface");
+		const lane = await createLane(lanes, "spawn-surface", WORKSPACE);
 		const binding = await driver.waitForLane(lane.lane_id, SPAWN_TIMEOUT_MS);
 		expect(binding).not.toBeNull();
 		expect(driver.bindingForLane(lane.lane_id)).toBe(binding);
@@ -213,7 +168,7 @@ describe("VerticalSliceDriver surface coverage", () => {
 		const { lanes, renderer, driver } = await newHarness();
 		cleanups.push(() => driver.shutdown());
 
-		const lane = await createLane(lanes, "write-live");
+		const lane = await createLane(lanes, "write-live", WORKSPACE);
 		const binding = await driver.waitForLane(lane.lane_id, SPAWN_TIMEOUT_MS);
 		expect(binding).not.toBeNull();
 		const NEEDLE = `coverage-driver-${Date.now()}`;
@@ -238,11 +193,16 @@ describe("VerticalSliceDriver surface coverage", () => {
 		const { bus, lanes, driver } = await newHarness();
 		cleanups.push(() => driver.shutdown());
 
-		const lane = await createLane(lanes, "idempotent");
+		const lane = await createLane(lanes, "idempotent", WORKSPACE);
 		const first = await driver.waitForLane(lane.lane_id, SPAWN_TIMEOUT_MS);
 		expect(first).not.toBeNull();
 
-		await republishLaneCreated(bus, lane.lane_id, `dup-${Date.now()}`);
+		await republishLaneCreated(
+			bus,
+			lane.lane_id,
+			`dup-${Date.now()}`,
+			WORKSPACE,
+		);
 		await driver.settle();
 
 		expect(driver.ptys.getByLane(lane.lane_id)).toHaveLength(1);
@@ -254,7 +214,7 @@ describe("VerticalSliceDriver surface coverage", () => {
 		const { bus, lanes, driver } = await newHarness();
 		cleanups.push(() => driver.shutdown());
 
-		const lane = await createLane(lanes, "teardown-closed");
+		const lane = await createLane(lanes, "teardown-closed", WORKSPACE);
 		const binding = await driver.waitForLane(lane.lane_id, SPAWN_TIMEOUT_MS);
 		expect(binding).not.toBeNull();
 
@@ -276,7 +236,7 @@ describe("VerticalSliceDriver surface coverage", () => {
 		const { bus, lanes, driver } = await newHarness();
 		cleanups.push(() => driver.shutdown());
 
-		const lane = await createLane(lanes, "teardown-cleaned");
+		const lane = await createLane(lanes, "teardown-cleaned", WORKSPACE);
 		const binding = await driver.waitForLane(lane.lane_id, SPAWN_TIMEOUT_MS);
 		expect(binding).not.toBeNull();
 
@@ -294,8 +254,8 @@ describe("VerticalSliceDriver surface coverage", () => {
 
 	it("shutdown() detaches and terminates every live PTY", async () => {
 		const { lanes, driver } = await newHarness();
-		const a = await createLane(lanes, "shutdown-a");
-		const b = await createLane(lanes, "shutdown-b");
+		const a = await createLane(lanes, "shutdown-a", WORKSPACE);
+		const b = await createLane(lanes, "shutdown-b", WORKSPACE);
 		await driver.waitForLane(a.lane_id, SPAWN_TIMEOUT_MS);
 		await driver.waitForLane(b.lane_id, SPAWN_TIMEOUT_MS);
 		expect(driver.laneIds().length).toBeGreaterThanOrEqual(2);
