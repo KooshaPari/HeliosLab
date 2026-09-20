@@ -12,6 +12,7 @@ import { METHODS } from "./protocol/methods.js";
 import type { LocalBusEnvelope } from "./protocol/types.js";
 import { normalizePayload, redactPayload } from "./redaction.js";
 import { handleRuntimeRequest } from "./runtime/ops.js";
+import { applyRecoveryFromCommand } from "./runtime/recovery_bookkeeping.js";
 import type { TerminalBuffer } from "./runtime/types.js";
 import { RedactionEngine } from "./secrets/redaction-engine.js";
 import { getDefaultRules } from "./secrets/redaction-rules.js";
@@ -192,57 +193,6 @@ export function createRuntime(options: RuntimeOptions = {}) {
 		});
 	}
 
-	function applyRecoveryFromCommand(
-		command: LocalBusEnvelope,
-		response: LocalBusEnvelope,
-	): void {
-		if (
-			response.type !== "response" ||
-			response.status !== "ok" ||
-			!command.method
-		) {
-			return;
-		}
-
-		const payload = normalizePayload(command.payload);
-		const result = normalizePayload(response.result);
-
-		recovery.apply(command.method, {
-			workspace_id: command.workspace_id,
-			lane_id:
-				command.lane_id ??
-				(typeof payload.lane_id === "string" ? payload.lane_id : undefined) ??
-				(typeof payload.id === "string" && command.method === "lane.create"
-					? payload.id
-					: undefined) ??
-				(typeof result.lane_id === "string" ? result.lane_id : undefined),
-			session_id:
-				command.session_id ??
-				(typeof payload.session_id === "string"
-					? payload.session_id
-					: undefined) ??
-				(typeof payload.id === "string" && command.method === "session.attach"
-					? payload.id
-					: undefined) ??
-				(typeof result.session_id === "string" ? result.session_id : undefined),
-			terminal_id:
-				command.terminal_id ??
-				(typeof payload.terminal_id === "string"
-					? payload.terminal_id
-					: undefined) ??
-				(typeof payload.id === "string" && command.method === "terminal.spawn"
-					? payload.id
-					: undefined) ??
-				(typeof result.terminal_id === "string"
-					? result.terminal_id
-					: undefined),
-			codex_session_id:
-				typeof payload.codex_session_id === "string"
-					? payload.codex_session_id
-					: undefined,
-		});
-	}
-
 	const terminalBuffers = new Map<string, TerminalBuffer>();
 	const terminalBufferCap = options.terminalBufferCapBytes ?? 1024;
 	let currentTerminalState: "idle" | "active" | "throttled" = "idle";
@@ -345,7 +295,7 @@ export function createRuntime(options: RuntimeOptions = {}) {
 				terminalRegistry.setState(terminalId, "active");
 			}
 			// Apply recovery bookkeeping for terminal state changes
-			applyRecoveryFromCommand(command, response);
+			applyRecoveryFromCommand(recovery, command, response);
 		}
 
 		if (command.method === "terminal.input" && response.status === "ok") {
@@ -360,7 +310,7 @@ export function createRuntime(options: RuntimeOptions = {}) {
 				);
 			}
 			// Apply recovery bookkeeping for terminal state changes
-			applyRecoveryFromCommand(command, response);
+			applyRecoveryFromCommand(recovery, command, response);
 		}
 
 		return response;
