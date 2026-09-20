@@ -9,7 +9,13 @@ const builtin = @import("builtin");
 
 const pool_mod = @import("pool.zig");
 const ring_mod = @import("ring.zig");
-const pty = @import("pty_unix.zig");
+
+/// Backend selection at comptime. Both files exist and typecheck on their own
+/// targets; importing the wrong one trips its @compileError guard.
+const pty = if (builtin.os.tag == .windows)
+    @import("pty_windows.zig")
+else
+    @import("pty_unix.zig");
 
 /// Maximum simultaneous PTYs. One slot per concurrent terminal session.
 pub const CAPACITY: usize = 1024;
@@ -90,7 +96,20 @@ pub export fn pty_pool_spawn(
         g_pool.release(handle) catch {};
         // Distinct codes so a failing runtime test names the exact step.
         // Collapsing these to a single ERR_SPAWN made the failure
-        // undiagnosable from the test output.
+        // undiagnosable from the test output. Each backend only maps its own
+        // error set; the comptime guard keeps the switch exhaustive per
+        // target without either backend seeing the other's members.
+        if (builtin.os.tag == .windows) {
+            return switch (e) {
+                error.PipeFailed => -10,
+                error.ConptyFailed => -11, // last_hresult carries the HRESULT
+                error.AttrUpdateFailed => -15,
+                error.AttrListInitFailed => -16,
+                error.ProcessFailed => -17, // last_errno carries GetLastError()
+                error.InvalidUtf8 => -18,
+                error.OutOfMemory => -19,
+            };
+        }
         return switch (e) {
             error.OpenptFailed => -10,
             error.GrantptFailed => -11,
@@ -119,6 +138,10 @@ pub export fn pty_pool_spawn(
     slot.rows = rows;
     slot.state = .running;
     slot.exit_code = -2;
+    if (builtin.os.tag == .windows) {
+        slot.fd_aux = @bitCast(@as(u32, @truncate(@intFromPtr(res.in_write))));
+        slot.hpcon_aux = @intCast(@intFromPtr(res.hpcon));
+    }
     return handle;
 }
 
@@ -184,7 +207,10 @@ pub export fn pty_pool_write(handle: i32, data: [*]const u8, len: u32) i32 {
     if (slot.fd < 0) return ERR_INVALID;
     if (len == 0) return 0;
 
-    const n = pty.writeIn(slot.fd, data[0..len]);
+    const n = if (builtin.os.tag == .windows)
+        pty.writeInAux(slot.fd_aux, data[0..len])
+    else
+        pty.writeIn(slot.fd, data[0..len]);
     if (n < 0) {
         slot.state = .errored;
         return ERR_IO;
@@ -200,7 +226,11 @@ pub export fn pty_pool_resize(handle: i32, cols: u16, rows: u16) i32 {
     const slot = g_pool.get(handle) catch |e| return mapError(e);
     if (slot.fd < 0) return ERR_INVALID;
 
-    if (!pty.resize(slot.fd, cols, rows)) return ERR_IO;
+    const ok = if (builtin.os.tag == .windows)
+        pty.resizeByHandle(slot.hpcon_aux, cols, rows)
+    else
+        pty.resize(slot.fd, cols, rows);
+    if (!ok) return ERR_IO;
     slot.cols = cols;
     slot.rows = rows;
     return 0;
@@ -246,6 +276,18 @@ pub export fn pty_pool_destroy(handle: i32) i32 {
         pty.terminate(slot.pid);
         _ = pty.reap(slot.pid);
     }
+    if (builtin.os.tag == .windows) {
+        // ClosePseudoConsole must run before the pipe handles close or the
+        // final output flush is lost (documented ConPTY teardown ordering).
+        if (slot.hpcon_aux != -1) {
+            pty.closeConpty(slot.hpcon_aux);
+            slot.hpcon_aux = -1;
+        }
+        if (slot.fd_aux >= 0) {
+            pty.closeFd(slot.fd_aux);
+            slot.fd_aux = -1;
+        }
+    }
     if (slot.fd >= 0) pty.closeFd(slot.fd);
 
     const idx: usize = pool_mod.slotIndex(handle);
@@ -279,6 +321,17 @@ pub export fn pty_pool_available() i32 {
 }
 
 /// Build metadata, so the bridge can assert it loaded a compatible library.
+/// Last spawn failure code from the backend (errno on Unix, GetLastError on
+/// Windows; on ConptyFailed the HRESULT is in last_hresult).
+pub export fn pty_pool_last_spawn_error() i32 {
+    return pty.last_errno;
+}
+
+/// HRESULT from the last failed ConPTY call (Windows only; 0 otherwise).
+pub export fn pty_pool_last_hresult() i32 {
+    return if (builtin.os.tag == .windows) pty.last_hresult else 0;
+}
+
 pub export fn pty_pool_abi_version() u32 {
     return 2;
 }
