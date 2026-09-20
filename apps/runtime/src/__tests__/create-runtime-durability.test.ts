@@ -133,4 +133,112 @@ describe("createRuntime durability wiring", () => {
 		await runtime.close();
 		expect(durability.isRunning()).toBe(false);
 	});
+
+	it("preserves the on-disk checkpoint across a simulated process restart", async () => {
+		const dataDir = await makeTempDataDir();
+
+		// First lifetime: register a lane + session, force a checkpoint,
+		// then tear the runtime down. This is what a graceful shutdown
+		// looks like — or, equivalently, what dies when the host process
+		// is killed.
+		const firstRuntime = createRuntime({ dataDir });
+		await firstRuntime.bus.request({
+			id: "cmd-lane-create-restart",
+			type: "command",
+			ts: new Date().toISOString(),
+			workspace_id: "ws-restart",
+			correlation_id: "corr-restart-lane",
+			method: "lane.create",
+			payload: { id: "lane-restart" },
+		});
+		await firstRuntime.bus.request({
+			id: "cmd-session-attach-restart",
+			type: "command",
+			ts: new Date().toISOString(),
+			workspace_id: "ws-restart",
+			lane_id: "lane-restart",
+			session_id: "session-restart",
+			correlation_id: "corr-restart-session",
+			method: "session.attach",
+			payload: {
+				id: "session-restart",
+				lane_id: "lane-restart",
+				codex_session_id: "codex-restart",
+			},
+		});
+
+		const firstDurability = await firstRuntime.getDurability();
+		await firstDurability.checkpointNow();
+		const firstCheckpoint = await firstDurability.readCheckpoint();
+		expect(firstCheckpoint).not.toBeNull();
+		expect((firstCheckpoint?.sessions ?? []).map((s) => s.sessionId)).toContain(
+			"session-restart",
+		);
+		await firstRuntime.close();
+
+		// The on-disk checkpoint file must exist before we bring up a
+		// second runtime — this is the "checkpoint survived the crash"
+		// invariant.
+		const checkpointPath = path.join(dataDir, "recovery", "checkpoint.json");
+		const persisted = JSON.parse(await fs.readFile(checkpointPath, "utf-8"));
+		expect(
+			persisted.sessions.map((s: { sessionId: string }) => s.sessionId),
+		).toContain("session-restart");
+		const persistedVersion = persisted.version;
+
+		// Second lifetime: a brand-new runtime pointing at the same
+		// dataDir. This is what the OS hands us after the previous
+		// process is reaped. Register a session in this runtime too so
+		// the snapshotter has something to record on the next checkpoint.
+		const secondRuntime = createRuntime({ dataDir });
+		await secondRuntime.bus.request({
+			id: "cmd-lane-create-restart-2",
+			type: "command",
+			ts: new Date().toISOString(),
+			workspace_id: "ws-restart",
+			correlation_id: "corr-restart-lane-2",
+			method: "lane.create",
+			payload: { id: "lane-restart-2" },
+		});
+		await secondRuntime.bus.request({
+			id: "cmd-session-attach-restart-2",
+			type: "command",
+			ts: new Date().toISOString(),
+			workspace_id: "ws-restart",
+			lane_id: "lane-restart-2",
+			session_id: "session-restart-2",
+			correlation_id: "corr-restart-session-2",
+			method: "session.attach",
+			payload: {
+				id: "session-restart-2",
+				lane_id: "lane-restart-2",
+				codex_session_id: "codex-restart-2",
+			},
+		});
+
+		const secondDurability = await secondRuntime.getDurability();
+
+		expect(secondDurability.getDataDir()).toBe(dataDir);
+
+		const restored = await secondDurability.readCheckpoint();
+		expect(restored).not.toBeNull();
+		const restoredSessionIds = (restored?.sessions ?? []).map(
+			(s) => s.sessionId,
+		);
+		expect(restoredSessionIds).toContain("session-restart");
+		// Version is stable across lifetimes; timestamp is not, because
+		// shutdown() triggers a final checkpoint with a fresh timestamp.
+		expect(restored?.version).toBe(persistedVersion);
+
+		// Second lifetime must also be able to write a fresh checkpoint
+		// on top of the restored one.
+		await secondDurability.checkpointNow();
+		const refreshed = await secondDurability.readCheckpoint();
+		expect(refreshed).not.toBeNull();
+		expect((refreshed?.sessions ?? []).map((s) => s.sessionId)).toContain(
+			"session-restart-2",
+		);
+
+		await secondRuntime.close();
+	});
 });
