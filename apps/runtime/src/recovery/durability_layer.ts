@@ -342,6 +342,23 @@ export class DurabilityLayer {
 		if (!this.started) return;
 		this.started = false;
 
+		// Drain any in-flight checkpoint trigger the scheduler kicked
+		// off (e.g. an activity-driven checkpoint) BEFORE we stop the
+		// periodic timer. Without this drain, `stop()` clears the
+		// interval but the half-written writer.write() promise that the
+		// trigger holds is never awaited, which keeps a write handle
+		// alive across test boundaries on Bun:test (and across restarts
+		// in production). The previous code only awaited the final
+		// checkpoint it started itself — any write that was already in
+		// flight from a prior `triggerNow()` was orphaned.
+		try {
+			await this.scheduler.waitForIdle();
+		} catch {
+			// waitForIdle just awaits the cached pendingTrigger; it
+			// cannot reject, but if the implementation ever changes,
+			// swallow the error so a graceful shutdown still completes.
+		}
+
 		// One last checkpoint so the on-disk state reflects the moment
 		// of graceful shutdown.
 		try {
