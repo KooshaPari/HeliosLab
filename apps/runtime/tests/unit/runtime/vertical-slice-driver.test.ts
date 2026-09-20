@@ -23,8 +23,8 @@ import type { LocalBusEnvelope } from "../../../src/protocol/types.js";
 import { PtyManager } from "../../../src/pty/index.js";
 import { RecordingRendererAdapter } from "../../../src/renderer/recording_adapter.js";
 import { StreamBindingManager } from "../../../src/renderer/stream_binding.js";
-import { LaneLifecycleService } from "../../../src/sessions/state_machine.js";
 import { VerticalSliceDriver } from "../../../src/runtime/vertical_slice_driver.js";
+import { LaneLifecycleService } from "../../../src/sessions/state_machine.js";
 
 const WORKSPACE = "ws-driver-coverage";
 const SPAWN_TIMEOUT_MS = 10_000;
@@ -129,7 +129,8 @@ async function republishLaneClosed(
 		correlation_id: correlationId,
 		topic,
 		payload: {
-			runtime_event: topic === "lane.closed" ? "lane.closed" : "lane.cleanup.completed",
+			runtime_event:
+				topic === "lane.closed" ? "lane.closed" : "lane.cleanup.completed",
 			lane_id: laneId,
 			state: "closed",
 		},
@@ -251,7 +252,12 @@ describe("VerticalSliceDriver surface coverage", () => {
 		const binding = await driver.waitForLane(lane.lane_id, SPAWN_TIMEOUT_MS);
 		expect(binding).not.toBeNull();
 
-		await republishLaneClosed(bus, lane.lane_id, "lane.closed", `close-${Date.now()}`);
+		await republishLaneClosed(
+			bus,
+			lane.lane_id,
+			"lane.closed",
+			`close-${Date.now()}`,
+		);
 		await driver.settle();
 
 		expect(driver.bindingForLane(lane.lane_id)).toBeUndefined();
@@ -268,7 +274,12 @@ describe("VerticalSliceDriver surface coverage", () => {
 		const binding = await driver.waitForLane(lane.lane_id, SPAWN_TIMEOUT_MS);
 		expect(binding).not.toBeNull();
 
-		await republishLaneClosed(bus, lane.lane_id, "lane.cleaned", `clean-${Date.now()}`);
+		await republishLaneClosed(
+			bus,
+			lane.lane_id,
+			"lane.cleaned",
+			`clean-${Date.now()}`,
+		);
 		await driver.settle();
 
 		expect(driver.bindingForLane(lane.lane_id)).toBeUndefined();
@@ -292,7 +303,12 @@ describe("VerticalSliceDriver surface coverage", () => {
 		const { bus, driver } = await newHarness();
 		cleanups.push(() => driver.shutdown());
 
-		await republishLaneClosed(bus, "lane-that-never-existed", "lane.closed", `unknown-${Date.now()}`);
+		await republishLaneClosed(
+			bus,
+			"lane-that-never-existed",
+			"lane.closed",
+			`unknown-${Date.now()}`,
+		);
 		await driver.settle();
 		expect(driver.errors).toHaveLength(0);
 		expect(driver.laneIds()).toHaveLength(0);

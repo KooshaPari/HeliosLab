@@ -9,11 +9,14 @@
  * (`bun test apps/runtime/tests --coverage`).
  */
 import { describe, expect, it } from "bun:test";
-import { InMemoryAuditSink } from "../../../src/audit/in-memory-audit-sink.js";
 import type { AuditEvent } from "../../../src/audit/event";
+import { InMemoryAuditSink } from "../../../src/audit/in-memory-audit-sink.js";
 import type { AuditRecord } from "../../../src/audit/sink-types";
 
-function makeEvent(topic: string, payload: Record<string, unknown> = {}): AuditEvent {
+function makeEvent(
+	topic: string,
+	payload: Record<string, unknown> = {},
+): AuditEvent {
 	return {
 		id: `evt-${Math.random().toString(36).slice(2, 8)}`,
 		type: "event",

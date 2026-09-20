@@ -17,10 +17,13 @@ import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 import { promises as fs } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { CheckpointReader, CheckpointWriter } from "../../../src/recovery/checkpoint.js";
 import type {
 	Checkpoint,
 	CheckpointSession,
+} from "../../../src/recovery/checkpoint.js";
+import {
+	CheckpointReader,
+	CheckpointWriter,
 } from "../../../src/recovery/checkpoint.js";
 import { CheckpointScheduler } from "../../../src/recovery/checkpoint-scheduler.js";
 

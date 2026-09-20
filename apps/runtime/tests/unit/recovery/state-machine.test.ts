@@ -94,7 +94,9 @@ describe("RecoveryStateMachine surface coverage", () => {
 			(envelope) => envelope.topic === "recovery.stage.changed",
 		);
 		expect(changes).toHaveLength(path.length);
-		expect(changes.at(-1)?.payload).toMatchObject({ current: RecoveryStage.LIVE });
+		expect(changes.at(-1)?.payload).toMatchObject({
+			current: RecoveryStage.LIVE,
+		});
 	});
 
 	it("rejects an illegal transition", async () => {

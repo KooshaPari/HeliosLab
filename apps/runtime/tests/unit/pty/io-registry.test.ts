@@ -11,16 +11,16 @@
  * (`bun test apps/runtime/tests --coverage`).
  */
 import { describe, expect, it } from "bun:test";
-import { InMemoryLocalBus } from "../../../src/protocol/bus.js";
 import type { LocalBus, LocalBusEnvelope } from "../../../src/protocol/bus.js";
-import { InvalidStateError, writeInput } from "../../../src/pty/io.js";
+import { InMemoryLocalBus } from "../../../src/protocol/bus.js";
 import type { ProcessMap } from "../../../src/pty/io.js";
+import { InvalidStateError, writeInput } from "../../../src/pty/io.js";
+import type { PtyRecord } from "../../../src/pty/registry.js";
 import {
 	DuplicatePtyError,
 	PtyRegistry,
 	RegistryCapacityError,
 } from "../../../src/pty/registry.js";
-import type { PtyRecord } from "../../../src/pty/registry.js";
 
 function makeRecord(state: PtyRecord["state"] = "active"): PtyRecord {
 	return {
@@ -42,13 +42,15 @@ describe("writeInput", () => {
 		const bus = new InMemoryLocalBus();
 		const record = makeRecord("active");
 		const processMap: ProcessMap = new Map([
-			[
-				record.ptyId,
-				{ stdin: { write: () => 5 } },
-			],
+			[record.ptyId, { stdin: { write: () => 5 } }],
 		]);
 
-		const result = writeInput(record, new Uint8Array([1, 2, 3, 4, 5]), processMap, bus);
+		const result = writeInput(
+			record,
+			new Uint8Array([1, 2, 3, 4, 5]),
+			processMap,
+			bus,
+		);
 		expect(result.bytesWritten).toBe(5);
 		expect(result.latencyMs).toBeGreaterThanOrEqual(0);
 	});
@@ -57,10 +59,7 @@ describe("writeInput", () => {
 		const bus = new InMemoryLocalBus();
 		const record = makeRecord("active");
 		const processMap: ProcessMap = new Map([
-			[
-				record.ptyId,
-				{ stdin: { write: () => -1 } },
-			],
+			[record.ptyId, { stdin: { write: () => -1 } }],
 		]);
 
 		const result = writeInput(record, new Uint8Array(0), processMap, bus);
@@ -128,7 +127,11 @@ describe("writeInput", () => {
 });
 
 describe("PtyRegistry surface coverage", () => {
-	const seed = (i: number, laneId = "lane-1", sessionId = "sess-1"): PtyRecord => ({
+	const seed = (
+		i: number,
+		laneId = "lane-1",
+		sessionId = "sess-1",
+	): PtyRecord => ({
 		ptyId: `pty-${i}`,
 		laneId,
 		sessionId,
