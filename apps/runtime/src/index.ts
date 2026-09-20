@@ -9,6 +9,9 @@ import { createBoundaryDispatcher } from "./protocol/boundary_adapter.js";
 import { InMemoryLocalBus } from "./protocol/bus.js";
 import { METHODS } from "./protocol/methods.js";
 import type { LocalBusEnvelope } from "./protocol/types.js";
+import type { CheckpointSession } from "./recovery/checkpoint.js";
+import { resolveDefaultDataDir } from "./recovery/data-dir.js";
+import { DurabilityLayer } from "./recovery/durability_layer.js";
 import { handleRuntimeRequest } from "./runtime/ops.js";
 import type { TerminalBuffer } from "./runtime/types.js";
 import { RedactionEngine } from "./secrets/redaction-engine.js";
@@ -62,6 +65,13 @@ export type RuntimeOptions = {
 		check(): Promise<{ ok: boolean; reason?: string | null }>;
 	};
 	terminalBufferCapBytes?: number;
+	/**
+	 * Explicit data directory for runtime durability artifacts
+	 * (checkpoint.json, crash history, audit pending log). When omitted,
+	 * the runtime resolves a default via `resolveDefaultDataDir()`,
+	 * which derives a per-workspace path under `~/.helios/data/`.
+	 */
+	dataDir?: string;
 };
 
 type RuntimeInstance = ReturnType<typeof createRuntime>;
@@ -153,6 +163,89 @@ export function createRuntime(options: RuntimeOptions = {}) {
 
 	const auditRecords: RuntimeAuditRecord[] = [];
 	let bootstrapResult: RecoveryBootstrapResult | null = null;
+
+	// Durability wiring is lazy: we resolve the data dir and instantiate
+	// the layer only once we know we actually want to record activity.
+	// This keeps the default `createRuntime()` call cheap when callers
+	// don't care about persistence.
+	let durability: DurabilityLayer | undefined;
+	const durabilitySubscribers: Array<() => void> = [];
+
+	function buildCheckpointSessions(): CheckpointSession[] {
+		const lanes = recovery.snapshot();
+		const laneById = new Map(lanes.lanes.map((lane) => [lane.lane_id, lane]));
+		const sessions: CheckpointSession[] = [];
+		for (const session of lanes.sessions) {
+			// A session without a lane mapping cannot be restored, so skip it.
+			if (!session.lane_id) continue;
+			const lane = laneById.get(session.lane_id);
+			const terminalId =
+				lane?.terminal_id ??
+				session.terminal_id ??
+				`pending-${session.session_id}`;
+			const terminal = terminalId
+				? terminalRegistry.get(terminalId)
+				: undefined;
+			sessions.push({
+				sessionId: session.session_id,
+				terminalId,
+				laneId: session.lane_id,
+				workingDirectory: process.cwd(),
+				environmentVariables: {},
+				scrollbackSnapshot: "",
+				zelijjSessionName: `codex-${session.codex_session_id ?? session.session_id}`,
+				shellCommand: "bash",
+			});
+			if (terminal) {
+				// Mark terminal as recently seen; no behavior change yet.
+				terminalRegistry.setState(terminal.terminal_id, terminal.state);
+			}
+		}
+		return sessions;
+	}
+
+	async function ensureDurability(): Promise<DurabilityLayer> {
+		if (durability) return durability;
+		const dataDir =
+			options.dataDir !== undefined && options.dataDir.length > 0
+				? options.dataDir
+				: await resolveDefaultDataDir();
+		durability = new DurabilityLayer({ dataDir });
+		durability.start(buildCheckpointSessions);
+		subscribeBusForActivity();
+		return durability;
+	}
+
+	function subscribeBusForActivity(): void {
+		const topics: ReadonlyArray<string> = [
+			"lane.created",
+			"lane.cleaned",
+			"session.attached",
+			"session.terminated",
+			"terminal.spawned",
+			"terminal.output",
+		];
+		for (const topic of topics) {
+			durabilitySubscribers.push(
+				bus.subscribe(topic, () => {
+					durability?.recordActivity();
+				}),
+			);
+		}
+	}
+
+	async function closeDurability(): Promise<void> {
+		for (const unsubscribe of durabilitySubscribers.splice(0)) {
+			try {
+				unsubscribe();
+			} catch (err) {
+				console.error("createRuntime.close: unsubscribe failed", err);
+			}
+		}
+		if (durability) {
+			await durability.shutdown();
+		}
+	}
 
 	if (options.recovery_metadata) {
 		bootstrapResult = recovery.bootstrap(options.recovery_metadata);
@@ -825,7 +918,28 @@ export function createRuntime(options: RuntimeOptions = {}) {
 		spawnTerminal,
 		inputTerminal,
 		resizeTerminal,
-		shutdown(): void {},
+		/**
+		 * Lazily construct (or return the existing) durability layer.
+		 * Callers that need direct access to `DurabilityLayer` for
+		 * `checkpointNow()` / `readCheckpoint()` can await this.
+		 */
+		async getDurability(): Promise<DurabilityLayer> {
+			return ensureDurability();
+		},
+		/**
+		 * Graceful shutdown: stops bus subscribers, then takes a final
+		 * checkpoint before tearing down the scheduler. Idempotent.
+		 */
+		async close(): Promise<void> {
+			await closeDurability();
+		},
+		shutdown(): void {
+			// Fire-and-forget: legacy synchronous hook. Prefer `close()`
+			// for new code; this remains for backward compatibility.
+			closeDurability().catch((err) => {
+				console.error("createRuntime.shutdown failed", err);
+			});
+		},
 	};
 }
 
