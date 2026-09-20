@@ -9,8 +9,10 @@ import { createBoundaryDispatcher } from "./protocol/boundary_adapter.js";
 import { InMemoryLocalBus } from "./protocol/bus.js";
 import { METHODS } from "./protocol/methods.js";
 import type { LocalBusEnvelope } from "./protocol/types.js";
+import { DurabilityLayer } from "./recovery/durability_layer.js";
 import { handleRuntimeRequest } from "./runtime/ops.js";
 import type { TerminalBuffer } from "./runtime/types.js";
+import { normalizePayload, redactPayload } from "./secrets/audit_redaction.js";
 import { RedactionEngine } from "./secrets/redaction-engine.js";
 import { getDefaultRules } from "./secrets/redaction-rules.js";
 import {
@@ -62,64 +64,14 @@ export type RuntimeOptions = {
 		check(): Promise<{ ok: boolean; reason?: string | null }>;
 	};
 	terminalBufferCapBytes?: number;
+	/** Root directory for durability (checkpoints, crash records, recovery state). */
+	dataDir?: string;
 };
 
 type RuntimeInstance = ReturnType<typeof createRuntime>;
 
 const _startTime = performance.now();
 const _METHOD_SET = new Set<string>(METHODS);
-
-function normalizePayload(value: unknown): Record<string, unknown> {
-	if (!value || typeof value !== "object" || Array.isArray(value)) {
-		return {};
-	}
-	return { ...(value as Record<string, unknown>) };
-}
-
-function redactStructuredValue(value: unknown, key?: string): unknown {
-	const normalizedKey = key?.toLowerCase() ?? "";
-	const shouldRedactKey =
-		normalizedKey.includes("api_key") ||
-		normalizedKey.includes("token") ||
-		normalizedKey.includes("secret") ||
-		normalizedKey.includes("password");
-
-	if (shouldRedactKey && typeof value === "string" && value.length > 0) {
-		return "[REDACTED]";
-	}
-
-	if (Array.isArray(value)) {
-		return value.map((item) => redactStructuredValue(item));
-	}
-
-	if (value && typeof value === "object") {
-		return Object.fromEntries(
-			Object.entries(value as Record<string, unknown>).map(
-				([entryKey, entryValue]) => [
-					entryKey,
-					redactStructuredValue(entryValue, entryKey),
-				],
-			),
-		);
-	}
-
-	return value;
-}
-
-function redactPayload(
-	engine: RedactionEngine,
-	payload: Record<string, unknown>,
-	correlationId: string,
-): Record<string, unknown> {
-	const structured = redactStructuredValue(payload) as Record<string, unknown>;
-	const serialized = JSON.stringify(structured);
-	const result = engine.redact(serialized, {
-		artifactId: `audit-${correlationId}`,
-		artifactType: "audit",
-		correlationId,
-	});
-	return JSON.parse(result.redacted) as Record<string, unknown>;
-}
 
 /** Returns the current health status of the runtime. */
 export function healthCheck(): HealthCheckResult {
@@ -150,6 +102,15 @@ export function createRuntime(options: RuntimeOptions = {}) {
 	const laneService = new LaneLifecycleService(bus);
 	const redactionEngine = new RedactionEngine();
 	redactionEngine.loadRules(getDefaultRules());
+
+	// --- Durability layer (optional) ---
+	let durability: DurabilityLayer | undefined;
+	if (options.dataDir) {
+		durability = new DurabilityLayer({
+			dataDir: options.dataDir,
+			bus: innerBus,
+		});
+	}
 
 	const auditRecords: RuntimeAuditRecord[] = [];
 	let bootstrapResult: RecoveryBootstrapResult | null = null;
@@ -825,7 +786,25 @@ export function createRuntime(options: RuntimeOptions = {}) {
 		spawnTerminal,
 		inputTerminal,
 		resizeTerminal,
-		shutdown(): void {},
+		shutdown(): void {
+			if (durability) {
+				durability.shutdown().catch((err) => {
+					console.error("[Runtime] Durability shutdown error:", err);
+				});
+			}
+		},
+		durability,
+		/**
+		 * Start the durability layer with a checkpoint snapshotter.
+		 * The snapshotter returns the current session list for checkpointing.
+		 * Only available if `dataDir` was provided in options.
+		 */
+		async startDurability(
+			snapshotter: () => import("./recovery/checkpoint.js").CheckpointSession[],
+		): Promise<void> {
+			if (!durability) return;
+			await durability.start(snapshotter);
+		},
 	};
 }
 

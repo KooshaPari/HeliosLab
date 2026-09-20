@@ -29,6 +29,9 @@ import type {
 
 export { CommandBusImpl, createBus } from "./command-bus.js";
 
+/** Handler invoked for every accepted event published on a subscribed topic. */
+type Subscriber = (evt: EventEnvelope) => void | Promise<void>;
+
 // ---------------------------------------------------------------------------
 // InMemoryLocalBus — protocol lifecycle implementation
 // ---------------------------------------------------------------------------
@@ -39,6 +42,7 @@ export class InMemoryLocalBus implements LocalBus {
 	private readonly metricsRecorder: MetricsRecorder = new MetricsRecorder();
 	private state: BusState = { session: "detached" };
 	private readonly lifecycleProgress: Map<string, Set<string>> = new Map();
+	private readonly subscribers = new Map<string, Set<Subscriber>>();
 	private rendererEngine: "ghostty" | "rio" = "ghostty";
 
 	getEvents(): LocalBusEnvelope[] {
@@ -130,6 +134,7 @@ export class InMemoryLocalBus implements LocalBus {
 
 				this.auditLog.push({ envelope: event, outcome: "accepted" });
 				this.eventLog.push(event);
+				await this.dispatch(event);
 				return;
 			}
 
@@ -190,6 +195,7 @@ export class InMemoryLocalBus implements LocalBus {
 		}
 		this.auditLog.push({ envelope: event, outcome: "accepted" });
 		this.eventLog.push(event);
+		await this.dispatch(event);
 	}
 
 	private getHandlerContext(): RequestHandlerContext {
@@ -280,10 +286,44 @@ export class InMemoryLocalBus implements LocalBus {
 	}
 
 	subscribe(
-		_topic: string,
-		_handler: (evt: EventEnvelope) => void | Promise<void>,
+		topic: string,
+		handler: (evt: EventEnvelope) => void | Promise<void>,
 	): () => void {
-		return () => {};
+		let handlers = this.subscribers.get(topic);
+		if (!handlers) {
+			handlers = new Set();
+			this.subscribers.set(topic, handlers);
+		}
+		handlers.add(handler);
+		return () => {
+			const current = this.subscribers.get(topic);
+			if (!current) return;
+			current.delete(handler);
+			if (current.size === 0) {
+				this.subscribers.delete(topic);
+			}
+		};
+	}
+
+	/**
+	 * Deliver an accepted event to every handler subscribed to its topic.
+	 *
+	 * Delivery is awaited so a publisher observes deterministic ordering, and
+	 * per-handler failures are swallowed so a failing subscriber cannot break
+	 * the lifecycle transition that published the event.
+	 */
+	private async dispatch(event: LocalBusEnvelope): Promise<void> {
+		const handlers = this.subscribers.get(event.topic ?? "");
+		if (!handlers || handlers.size === 0) return;
+		// Snapshot so a handler that unsubscribes mid-delivery does not affect
+		// the current fan-out.
+		for (const handler of [...handlers]) {
+			try {
+				await handler(event as EventEnvelope);
+			} catch {
+				// Subscriber isolation: a failing subscriber is not fatal.
+			}
+		}
 	}
 
 	destroy(): void {
