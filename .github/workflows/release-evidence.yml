@@ -1,0 +1,102 @@
+name: Release Evidence Gate
+
+# Validates that a release commit on `main` carries the four pieces of
+# evidence every release must publish:
+#   - Version consistency between VERSION, package.json, and Cargo.toml
+#   - release.yml completed successfully on this SHA
+#   - release.yml uploaded release artifacts containing SBOM + BUILD_MANIFEST
+#   - release-attestation.yml produced a SLSA provenance artifact
+#
+# Runs on the same trigger as release.yml (push to main) plus manual
+# workflow_dispatch. Posts a single "Release Evidence" check that branch
+# protection may require. The gate is post-merge by design: release
+# evidence (SBOM, BUILD_MANIFEST, SLSA provenance) is produced by
+# release.yml and release-attestation.yml, which themselves only fire on
+# push to main. Pre-merge validation cannot reach those artifacts.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      commit:
+        description: "Commit SHA to validate (defaults to HEAD)"
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+  checks: write
+
+jobs:
+  evidence:
+    name: Release Evidence
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, 'release:') || contains(github.event.head_commit.message, 'chore(release)')
+    steps:
+      - name: Resolve commit SHA
+        id: commit
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ inputs.commit }}" ]; then
+            echo "sha=${{ inputs.commit }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "sha=${{ github.sha }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.1.1
+        with:
+          fetch-depth: 0
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
+        with:
+          bun-version: '1.4.0'
+
+      - name: List release.yml artifacts on this SHA
+        id: list-artifacts
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const sha = '${{ steps.commit.outputs.sha }}';
+            const workflows = await github.paginate(github.rest.actions.listWorkflowRuns, {
+              ...context.repo, head_sha: sha, workflow_id: 'release.yml', event: 'push', per_page: 20
+            }).then(runs => runs.filter(r => r.head_sha === sha && r.event === 'push')
+              .sort((a, b) => b.id - a.id));
+            const releaseRun = workflows[0];
+            if (!releaseRun) {
+              core.info(`release.yml did not run on ${sha}; downstream checks will report skip.`);
+              core.setOutput('found', 'false');
+              return;
+            }
+            if (releaseRun.conclusion !== 'success') {
+              core.setFailed(`release.yml concluded ${releaseRun.conclusion} on ${sha}; evidence gate cannot proceed.`);
+              return;
+            }
+            const { data: artifacts } = await github.rest.actions.listWorkflowRunArtifacts({
+              ...context.repo, run_id: releaseRun.id
+            });
+            const fs = require('fs');
+            const out = artifacts.map(a => a.name).join('\n');
+            fs.writeFileSync('release-artifacts.txt', out);
+            core.info(`release.yml artifacts on ${sha}: ${artifacts.map(a => `${a.name} (${a.size_in_bytes} bytes)`).join(', ')}`);
+            core.setOutput('found', 'true');
+
+      - name: Validate release evidence
+        id: validate
+        env:
+          GITHUB_SHA: ${{ steps.commit.outputs.sha }}
+        run: |
+          bun run scripts/release-evidence-validate.ts \
+            --artifact-list release-artifacts.txt \
+            --commit "$GITHUB_SHA"
+
+      - name: Upload evidence report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: release-evidence-report
+          path: .gate-reports/release-evidence.json
+          if-no-files-found: warn
+          retention-days: 30

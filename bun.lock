@@ -33,7 +33,7 @@
         "@biomejs/biome": "2.5.11",
         "@playwright/test": "^1.48.0",
         "@types/bun": "^1.1.0",
-        "happy-dom": "^20.8.9",
+        "happy-dom": "20.14.5",
         "typescript": "^5.4.5",
       },
     },
