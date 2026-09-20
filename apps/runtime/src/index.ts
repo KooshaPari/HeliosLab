@@ -801,6 +801,13 @@ export function createRuntime(options: RuntimeOptions = {}) {
 		 */
 		getDurability: durabilityBundle.getDurability,
 		/**
+		 * Bind (or rebind) a checkpoint snapshotter to the lazily-built
+		 * durability layer. Slice-3 hook so external callers can drive
+		 * checkpoint snapshots from their own session registry without
+		 * relying on the in-process default snapshotter.
+		 */
+		startDurability: durabilityBundle.startDurability,
+		/**
 		 * Graceful shutdown: stops bus subscribers, then takes a final
 		 * checkpoint before tearing down the scheduler. Idempotent.
 		 */

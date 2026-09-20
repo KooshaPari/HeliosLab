@@ -3,17 +3,20 @@
  * `apps/runtime/src/index.ts` so the runtime entry stays under the
  * file-length no-growth baseline.
  *
- * The factory returns three closures plus a `getDurability` accessor
- * so the runtime can:
+ * The factory returns three closures plus a `getDurability` /
+ * `startDurability` accessor so the runtime can:
  * - lazily construct the {@link DurabilityLayer} on first request,
  * - subscribe the bus activity topics that bump the activity counter,
  * - shut everything down on `close()` and remain idempotent across
- *   repeated calls.
+ *   repeated calls,
+ * - forward a caller-supplied `snapshotter` to the freshly-built layer.
  *
- * Public API on the runtime does not change; only the implementation
- * location does.
+ * Public API on the runtime does not change beyond the new
+ * `startDurability` hook; only the implementation location and the
+ * `DurabilityLayer` options shape (now bus-driven) differ.
  */
 
+import type { LocalBus } from "./protocol/bus.js";
 import type { RecoveryRegistry } from "./sessions/registry.js";
 import type { TerminalRegistry } from "./sessions/terminal_registry.js";
 
@@ -33,14 +36,26 @@ const ACTIVITY_TOPICS: ReadonlyArray<string> = [
 ];
 
 export interface DurabilityContext {
-	bus: { subscribe: (topic: string, handler: () => void) => () => void };
+	bus: LocalBus;
 	recovery: RecoveryRegistry;
 	terminalRegistry: TerminalRegistry;
 	dataDir?: string;
 }
 
+export type Snapshotter = () => Array<{
+	sessionId: string;
+	terminalId: string;
+	laneId: string;
+	workingDirectory: string;
+	environmentVariables: Record<string, string>;
+	scrollbackSnapshot: string;
+	zelijjSessionName: string;
+	shellCommand: string;
+}>;
+
 export interface DurabilityBundle {
 	ensureDurability(): Promise<unknown>;
+	startDurability(snapshotter?: Snapshotter): Promise<void>;
 	subscribeBusForActivity(): void;
 	closeDurability(): Promise<void>;
 	getDurability(): Promise<unknown>;
@@ -60,25 +75,17 @@ export interface DurabilityBundle {
  */
 export function attachDurability(ctx: DurabilityContext): DurabilityBundle {
 	let durability: unknown | undefined;
+	let defaultSnapshotter: Snapshotter | undefined;
 	const durabilitySubscribers: Array<() => void> = [];
 
-	function buildCheckpointSessions() {
+	function buildCheckpointSessions(): ReturnType<Snapshotter> {
 		// The shape here matches the slice-2 wiring contract; the heavy
 		// `DurabilityLayer` is loaded lazily inside `ensureDurability`,
 		// so we keep the snapshot type structural rather than relying
 		// on a top-level import from `./recovery/checkpoint.js`.
 		const lanes = ctx.recovery.snapshot();
 		const laneById = new Map(lanes.lanes.map((lane) => [lane.lane_id, lane]));
-		const sessions: Array<{
-			sessionId: string;
-			terminalId: string;
-			laneId: string;
-			workingDirectory: string;
-			environmentVariables: Record<string, string>;
-			scrollbackSnapshot: string;
-			zelijjSessionName: string;
-			shellCommand: string;
-		}> = [];
+		const sessions: ReturnType<Snapshotter> = [];
 		for (const session of lanes.sessions) {
 			// A session without a lane mapping cannot be restored, so skip it.
 			if (!session.lane_id) continue;
@@ -120,11 +127,30 @@ export function attachDurability(ctx: DurabilityContext): DurabilityBundle {
 			ctx.dataDir !== undefined && ctx.dataDir.length > 0
 				? ctx.dataDir
 				: await resolveDefaultDataDir();
-		const layer = new DurabilityLayer({ dataDir });
-		layer.start(buildCheckpointSessions);
+		const layer = new DurabilityLayer({ dataDir, bus: ctx.bus });
+		// Preserve a caller-supplied snapshotter that `startDurability`
+		// may have captured earlier — only fall back to the lane-driven
+		// default when none was supplied.
+		defaultSnapshotter ??= buildCheckpointSessions;
+		await layer.start(defaultSnapshotter);
 		durability = layer;
 		subscribeBusForActivity();
 		return durability;
+	}
+
+	async function startDurability(snapshotter?: Snapshotter): Promise<void> {
+		// Ensure the layer exists (lazy), then forward the snapshotter.
+		// If the caller already supplied one and the layer was never
+		// `start`-ed, call `start` with the supplied snapshotter.
+		if (durability) {
+			const setter = (
+				durability as { setSnapshotter?: (s: Snapshotter) => void }
+			).setSnapshotter;
+			if (snapshotter && setter) setter(snapshotter);
+			return;
+		}
+		defaultSnapshotter = snapshotter ?? buildCheckpointSessions;
+		await ensureDurability();
 	}
 
 	function subscribeBusForActivity(): void {
@@ -158,6 +184,7 @@ export function attachDurability(ctx: DurabilityContext): DurabilityBundle {
 
 	return {
 		ensureDurability,
+		startDurability,
 		subscribeBusForActivity,
 		closeDurability,
 		getDurability,
