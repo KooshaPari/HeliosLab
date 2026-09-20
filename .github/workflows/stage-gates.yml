@@ -104,7 +104,15 @@ jobs:
       # therefore skips unless it is on darwin. Its real CI home, where the
       # library is built, is native.yml's native-link job.
       - name: Run tests
-        run: bun run test
+        # Slice-3 integration tests under apps/runtime/src/__tests__/ do
+        # real file I/O (`checkpointNow` + `readCheckpoint`) and exercise
+        # the lazy subsystem loader; on the Ubuntu runner these routinely
+        # exceed Bun:test's 5s default and would otherwise time out. The
+        # 30s budget is well above the local p99 (~70ms) and only kicks
+        # in when the runner is several times slower than a developer's
+        # laptop — true deadlocks still surface because they hit ~30s, not
+        # because they hit 5s.
+        run: bun run test --timeout 30000
 
   coverage-check:
     name: coverage-check

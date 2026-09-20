@@ -16,6 +16,14 @@ export class CheckpointScheduler {
 	private activityCounter = 0;
 	private lastWriteDurationMs = 0;
 	private pendingTrigger?: Promise<void>;
+	// Track SIGTERM/SIGINT listeners so `stop()` can detach them.
+	// Without this, every fresh `start()` accumulates another pair on
+	// `process`, which leaks into the next creator instance and across
+	// Bun:test test boundaries — exactly the situation that kept
+	// `unit-check` from draining between slice-3 integration tests on
+	// the slow Ubuntu CI runner.
+	private sigtermHandler?: () => void;
+	private sigintHandler?: () => void;
 
 	start(writer: CheckpointWriter, stateGetter: () => Checkpoint): void {
 		if (this.isRunning) return;
@@ -29,15 +37,27 @@ export class CheckpointScheduler {
 			this.onTimer();
 		}, this.currentInterval);
 
-		// Hook into shutdown signals
-		process.on("SIGTERM", () => this.handleShutdown());
-		process.on("SIGINT", () => this.handleShutdown());
+		// Hook into shutdown signals — store references so `stop()`
+		// can detach them. Re-binding the same instance across
+		// `start()` calls is idempotent because we early-return above.
+		this.sigtermHandler = () => this.handleShutdown();
+		this.sigintHandler = () => this.handleShutdown();
+		process.on("SIGTERM", this.sigtermHandler);
+		process.on("SIGINT", this.sigintHandler);
 	}
 
 	stop(): void {
 		if (this.timerInterval) {
 			clearInterval(this.timerInterval);
 			this.timerInterval = undefined;
+		}
+		if (this.sigtermHandler) {
+			process.off("SIGTERM", this.sigtermHandler);
+			this.sigtermHandler = undefined;
+		}
+		if (this.sigintHandler) {
+			process.off("SIGINT", this.sigintHandler);
+			this.sigintHandler = undefined;
 		}
 		this.isRunning = false;
 	}
