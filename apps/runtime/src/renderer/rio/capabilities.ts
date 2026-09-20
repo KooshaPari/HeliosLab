@@ -60,7 +60,11 @@ export class RioCapabilities {
 	 * Must return in < 50ms (p95).
 	 */
 	get(): RendererCapabilities {
-		return { ...this._capabilities };
+		return {
+			...this._capabilities,
+			maxDimensions: { ...this._capabilities.maxDimensions },
+			inputModes: [...this._capabilities.inputModes],
+		};
 	}
 
 	isDetected(): boolean {

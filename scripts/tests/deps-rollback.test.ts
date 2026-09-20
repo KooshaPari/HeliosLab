@@ -12,7 +12,10 @@ describe("Dependency Rollback Integration", () => {
 	beforeEach(() => {
 		// Ensure changelog exists (create if missing)
 		if (!existsSync(CHANGELOG_PATH)) {
-			writeFileSync(CHANGELOG_PATH, JSON.stringify({ entries: [] }, null, 2));
+			writeFileSync(
+				CHANGELOG_PATH,
+				`${JSON.stringify({ entries: [] }, null, "\t")}\n`,
+			);
 		}
 		// Ensure clean state
 		try {

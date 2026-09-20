@@ -5,11 +5,14 @@
  * the current test suite.
  */
 
+import { attachDurability } from "./durability_wiring.js";
 import { createBoundaryDispatcher } from "./protocol/boundary_adapter.js";
 import { InMemoryLocalBus } from "./protocol/bus.js";
 import { METHODS } from "./protocol/methods.js";
 import type { LocalBusEnvelope } from "./protocol/types.js";
+import { normalizePayload, redactPayload } from "./redaction.js";
 import { handleRuntimeRequest } from "./runtime/ops.js";
+import { applyRecoveryFromCommand } from "./runtime/recovery_bookkeeping.js";
 import type { TerminalBuffer } from "./runtime/types.js";
 import { RedactionEngine } from "./secrets/redaction-engine.js";
 import { getDefaultRules } from "./secrets/redaction-rules.js";
@@ -62,64 +65,27 @@ export type RuntimeOptions = {
 		check(): Promise<{ ok: boolean; reason?: string | null }>;
 	};
 	terminalBufferCapBytes?: number;
+	/**
+	 * Explicit data directory for runtime durability artifacts
+	 * (checkpoint.json, crash history, audit pending log). When omitted,
+	 * the runtime resolves a default via `resolveDefaultDataDir()`,
+	 * which derives a per-workspace path under `~/.helios/data/`.
+	 */
+	dataDir?: string;
+	/**
+	 * Whether `createRuntime()` should auto-start the durability layer
+	 * when `dataDir` is supplied. Defaults to `true` so a caller who
+	 * opts into persistence gets checkpoints without having to call
+	 * `runtime.startDurability()` themselves; opt out by passing
+	 * `autoStartDurability: false` to retain full manual control.
+	 */
+	autoStartDurability?: boolean;
 };
 
 type RuntimeInstance = ReturnType<typeof createRuntime>;
 
 const _startTime = performance.now();
 const _METHOD_SET = new Set<string>(METHODS);
-
-function normalizePayload(value: unknown): Record<string, unknown> {
-	if (!value || typeof value !== "object" || Array.isArray(value)) {
-		return {};
-	}
-	return { ...(value as Record<string, unknown>) };
-}
-
-function redactStructuredValue(value: unknown, key?: string): unknown {
-	const normalizedKey = key?.toLowerCase() ?? "";
-	const shouldRedactKey =
-		normalizedKey.includes("api_key") ||
-		normalizedKey.includes("token") ||
-		normalizedKey.includes("secret") ||
-		normalizedKey.includes("password");
-
-	if (shouldRedactKey && typeof value === "string" && value.length > 0) {
-		return "[REDACTED]";
-	}
-
-	if (Array.isArray(value)) {
-		return value.map((item) => redactStructuredValue(item));
-	}
-
-	if (value && typeof value === "object") {
-		return Object.fromEntries(
-			Object.entries(value as Record<string, unknown>).map(
-				([entryKey, entryValue]) => [
-					entryKey,
-					redactStructuredValue(entryValue, entryKey),
-				],
-			),
-		);
-	}
-
-	return value;
-}
-
-function redactPayload(
-	engine: RedactionEngine,
-	payload: Record<string, unknown>,
-	correlationId: string,
-): Record<string, unknown> {
-	const structured = redactStructuredValue(payload) as Record<string, unknown>;
-	const serialized = JSON.stringify(structured);
-	const result = engine.redact(serialized, {
-		artifactId: `audit-${correlationId}`,
-		artifactType: "audit",
-		correlationId,
-	});
-	return JSON.parse(result.redacted) as Record<string, unknown>;
-}
 
 /** Returns the current health status of the runtime. */
 export function healthCheck(): HealthCheckResult {
@@ -153,6 +119,39 @@ export function createRuntime(options: RuntimeOptions = {}) {
 
 	const auditRecords: RuntimeAuditRecord[] = [];
 	let bootstrapResult: RecoveryBootstrapResult | null = null;
+
+	// Durability wiring is lazy: the bundle resolves the data dir and
+	// instantiates the layer only once a caller asks. This keeps the
+	// default `createRuntime()` call cheap when callers don't care
+	// about persistence. The wiring lives in `./durability_wiring.ts`
+	// to keep `createRuntime`'s length under the no-growth baseline.
+	const durabilityBundle = attachDurability({
+		bus,
+		recovery,
+		terminalRegistry,
+		...(options.dataDir !== undefined ? { dataDir: options.dataDir } : {}),
+	});
+
+	// Auto-start the durability layer when persistence is opted into
+	// (`dataDir` is set) unless the caller explicitly disables it.
+	// Previously, ordinary lane/session activity never started the
+	// scheduler or installed activity subscriptions because callers
+	// had to invoke `runtime.startDurability()` themselves — supplying
+	// `dataDir` produced no checkpoint unless the caller remembered
+	// the hook. The auto-start fires-and-forgets so a slow filesystem
+	// cannot delay `createRuntime`'s return; failures are logged and
+	// surfaced through the existing close-time `console.error` path.
+	const hasDataDir =
+		typeof options.dataDir === "string" && options.dataDir.length > 0;
+	const autoStart = hasDataDir && options.autoStartDurability !== false;
+	if (autoStart) {
+		durabilityBundle.startDurability().catch((err) => {
+			console.error(
+				"createRuntime: auto-start durability failed; runtime continues without checkpoints",
+				err,
+			);
+		});
+	}
 
 	if (options.recovery_metadata) {
 		bootstrapResult = recovery.bootstrap(options.recovery_metadata);
@@ -191,57 +190,6 @@ export function createRuntime(options: RuntimeOptions = {}) {
 				envelope.correlation_id ?? envelope.id,
 			),
 			error: envelope.error ?? null,
-		});
-	}
-
-	function applyRecoveryFromCommand(
-		command: LocalBusEnvelope,
-		response: LocalBusEnvelope,
-	): void {
-		if (
-			response.type !== "response" ||
-			response.status !== "ok" ||
-			!command.method
-		) {
-			return;
-		}
-
-		const payload = normalizePayload(command.payload);
-		const result = normalizePayload(response.result);
-
-		recovery.apply(command.method, {
-			workspace_id: command.workspace_id,
-			lane_id:
-				command.lane_id ??
-				(typeof payload.lane_id === "string" ? payload.lane_id : undefined) ??
-				(typeof payload.id === "string" && command.method === "lane.create"
-					? payload.id
-					: undefined) ??
-				(typeof result.lane_id === "string" ? result.lane_id : undefined),
-			session_id:
-				command.session_id ??
-				(typeof payload.session_id === "string"
-					? payload.session_id
-					: undefined) ??
-				(typeof payload.id === "string" && command.method === "session.attach"
-					? payload.id
-					: undefined) ??
-				(typeof result.session_id === "string" ? result.session_id : undefined),
-			terminal_id:
-				command.terminal_id ??
-				(typeof payload.terminal_id === "string"
-					? payload.terminal_id
-					: undefined) ??
-				(typeof payload.id === "string" && command.method === "terminal.spawn"
-					? payload.id
-					: undefined) ??
-				(typeof result.terminal_id === "string"
-					? result.terminal_id
-					: undefined),
-			codex_session_id:
-				typeof payload.codex_session_id === "string"
-					? payload.codex_session_id
-					: undefined,
 		});
 	}
 
@@ -347,7 +295,7 @@ export function createRuntime(options: RuntimeOptions = {}) {
 				terminalRegistry.setState(terminalId, "active");
 			}
 			// Apply recovery bookkeeping for terminal state changes
-			applyRecoveryFromCommand(command, response);
+			applyRecoveryFromCommand(recovery, command, response);
 		}
 
 		if (command.method === "terminal.input" && response.status === "ok") {
@@ -362,7 +310,7 @@ export function createRuntime(options: RuntimeOptions = {}) {
 				);
 			}
 			// Apply recovery bookkeeping for terminal state changes
-			applyRecoveryFromCommand(command, response);
+			applyRecoveryFromCommand(recovery, command, response);
 		}
 
 		return response;
@@ -825,7 +773,31 @@ export function createRuntime(options: RuntimeOptions = {}) {
 		spawnTerminal,
 		inputTerminal,
 		resizeTerminal,
-		shutdown(): void {},
+		/**
+		 * Lazily construct (or return the existing) durability layer.
+		 * Callers that need direct access to `DurabilityLayer` for
+		 * `checkpointNow()` / `readCheckpoint()` can await this.
+		 */
+		getDurability: durabilityBundle.getDurability,
+		/**
+		 * Bind (or rebind) a checkpoint snapshotter to the lazily-built
+		 * durability layer. Slice-3 hook so external callers can drive
+		 * checkpoint snapshots from their own session registry without
+		 * relying on the in-process default snapshotter.
+		 */
+		startDurability: durabilityBundle.startDurability,
+		/**
+		 * Graceful shutdown: stops bus subscribers, then takes a final
+		 * checkpoint before tearing down the scheduler. Idempotent.
+		 */
+		close: durabilityBundle.closeDurability,
+		shutdown(): void {
+			// Fire-and-forget: legacy synchronous hook. Prefer `close()`
+			// for new code; this remains for backward compatibility.
+			durabilityBundle.closeDurability().catch((err) => {
+				console.error("createRuntime.shutdown failed", err);
+			});
+		},
 	};
 }
 

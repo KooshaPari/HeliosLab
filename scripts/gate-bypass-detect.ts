@@ -59,7 +59,12 @@ export function scanBypassDirectives(
 	];
 
 	function shouldExclude(filePath: string): boolean {
-		return exclude.some((pattern) => filePath.includes(pattern));
+		// Exclusion patterns are POSIX-style, but filePath carries backslashes on
+		// Windows. A raw includes() therefore failed to match ANY multi-segment
+		// pattern there, so this gate reported 30 findings on Windows against 3 in
+		// CI, including its own test file at scripts/tests/gate-bypass-detect.test.ts.
+		const normalized = filePath.replaceAll("\\", "/");
+		return exclude.some((pattern) => normalized.includes(pattern));
 	}
 
 	function scanDir(dir: string) {

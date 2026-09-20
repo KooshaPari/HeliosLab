@@ -1435,7 +1435,6 @@ console.log('Preload script loaded for:', window.location.href);
 					</div>
 				}
 			>
-				{/* @ts-ignore */}
 				<electrobun-webview
 					data-type="webslate"
 					masks=".webview-overlay"

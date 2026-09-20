@@ -24,7 +24,10 @@ import {
 	writeToTerminal,
 } from "../../../src/stores/terminal.store.ts";
 
-const canLoadNative = process.platform !== "win32";
+// See pty_session.test.ts: the PTY library is macOS-only by construction
+// (pty_unix.zig raises @compileError elsewhere), so "not Windows" was too
+// generous a proxy and made the live-PTY block below run on Linux and fail.
+const canLoadNative = process.platform === "darwin";
 
 beforeEach(() => {
 	closeAllTerminals();

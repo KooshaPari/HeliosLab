@@ -98,8 +98,29 @@ jobs:
         uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
       - name: Install dependencies
         run: bun install
+      # No native build here, and none is possible: packages/pty-pool/src/pty_unix.zig
+      # refuses to compile off macOS with an explicit @compileError, so the PTY
+      # library cannot exist on this ubuntu runner. packages/runtime-core/tests/unit/pty_live.test.ts
+      # therefore skips unless it is on darwin. Its real CI home, where the
+      # library is built, is native.yml's native-link job.
       - name: Run tests
-        run: bun run test
+        # Slice-3 integration tests under apps/runtime/src/__tests__/ do
+        # real file I/O (`checkpointNow` + `readCheckpoint`) and exercise
+        # the lazy subsystem loader; on the Ubuntu runner these routinely
+        # exceed Bun:test's 5s default and would otherwise time out. The
+        # 30s budget is well above the local p99 (~70ms) and only kicks
+        # in when the runner is several times slower than a developer's
+        # laptop — true deadlocks still surface because they hit ~30s, not
+        # because they hit 5s.
+        #
+        # `--isolate` gives each test file its own module/global
+        # registry. Without it, setInterval handles and `process.on`
+        # listeners from `apps/runtime/src/recovery/__tests__/*` (which
+        # exercise the real `DurabilityLayer` via `createRuntime`)
+        # leak into the next test file in the same Bun process and
+        # cause 30s hangs on the Ubuntu runner even though the same
+        # tests pass in well under a second in isolation.
+        run: bun run test --timeout 30000 --isolate
 
   coverage-check:
     name: coverage-check

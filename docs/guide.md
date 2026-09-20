@@ -9,7 +9,7 @@
 ## Install
 
 ```bash
-git clone https://github.com/<REDACTED>/heliosBench.git
+git clone https://github.com/KooshaPari/heliosBench.git
 cd heliosBench
 pip install -e .
 ```

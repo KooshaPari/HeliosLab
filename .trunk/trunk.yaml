@@ -8,10 +8,18 @@ version: 0.1
 
 plugins:
   sources:
+    # Trunk now requires `uri` on plugin sources. Without it the launcher reports
+    # "plugin must set `uri` and `ref` but `uri` was not set" as a high-severity
+    # trunk/config-error, and the Trunk Check job fails before linting anything.
     - id: trunk
+      uri: https://github.com/trunk-io/plugins
       ref: v1.2.2
-    - id: community
-      ref: main
+    # The `community` source was removed. This config declares no linters or
+    # tools at all, so nothing referenced a community plugin, and pointing
+    # community at trunk-io/plugins@main loaded tool definitions that collided
+    # with the trunk source, producing three more config errors: "[bazel-differ]
+    # Tool has both download and package defined" and the same for gt and shfmt.
+    # Restore it only alongside an actual community plugin reference.
 
 cli:
   version: 1.22.12

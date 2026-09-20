@@ -2,7 +2,7 @@ import { METHODS } from "../protocol/methods.js";
 import type { LocalBusEnvelope } from "../protocol/types.js";
 import type { RedactionEngine } from "../secrets/redaction-engine.js";
 import type { RecoveryRegistry } from "../sessions/registry.js";
-
+import { applyRecoveryFromCommand } from "./recovery_bookkeeping.js";
 import {
 	handleTerminalCommand,
 	type RuntimeTerminalContext,
@@ -106,56 +106,6 @@ function recordResponse(
 	});
 }
 
-function applyRecoveryFromCommand(
-	context: RuntimeOpsContext,
-	command: LocalBusEnvelope,
-	response: LocalBusEnvelope,
-): void {
-	if (
-		response.type !== "response" ||
-		response.status !== "ok" ||
-		!command.method
-	) {
-		return;
-	}
-
-	const payload = normalizePayload(command.payload);
-	const result = normalizePayload(response.result);
-
-	context.recovery.apply(command.method, {
-		workspace_id: command.workspace_id,
-		lane_id:
-			command.lane_id ??
-			(typeof payload.lane_id === "string" ? payload.lane_id : undefined) ??
-			(typeof payload.id === "string" && command.method === "lane.create"
-				? payload.id
-				: undefined) ??
-			(typeof result.lane_id === "string" ? result.lane_id : undefined),
-		session_id:
-			command.session_id ??
-			(typeof payload.session_id === "string"
-				? payload.session_id
-				: undefined) ??
-			(typeof payload.id === "string" && command.method === "session.attach"
-				? payload.id
-				: undefined) ??
-			(typeof result.session_id === "string" ? result.session_id : undefined),
-		terminal_id:
-			command.terminal_id ??
-			(typeof payload.terminal_id === "string"
-				? payload.terminal_id
-				: undefined) ??
-			(typeof payload.id === "string" && command.method === "terminal.spawn"
-				? payload.id
-				: undefined) ??
-			(typeof result.terminal_id === "string" ? result.terminal_id : undefined),
-		codex_session_id:
-			typeof payload.codex_session_id === "string"
-				? payload.codex_session_id
-				: undefined,
-	});
-}
-
 export async function handleRuntimeRequest(
 	context: RuntimeOpsContext,
 	command: LocalBusEnvelope,
@@ -237,7 +187,7 @@ export async function handleRuntimeRequest(
 		: context.bus.request(command));
 	response.correlation_id ??= command.correlation_id;
 	response.method ??= command.method;
-	applyRecoveryFromCommand(context, command, response);
+	applyRecoveryFromCommand(context.recovery, command, response);
 	recordResponse(context, response);
 	return response;
 }

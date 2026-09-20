@@ -308,22 +308,15 @@ async function checkTestCoverage(files: string[]): Promise<Finding[]> {
 	const sectionLine = sections.get(section) || 0;
 
 	for (const filePath of files) {
-		// Skip documentation/build configuration files that are not expected to have paired tests.
-		if (filePath.includes("/.vitepress/")) {
-			continue;
-		}
-
+		// POSIX-style patterns never matched Windows backslash paths.
+		const p = filePath.replaceAll("\\", "/");
+		// Skip documentation/build configuration files with no paired test expected.
+		if (p.includes("/.vitepress/")) continue;
 		// Only check source files, not test files
-		if (filePath.includes(".test.") || filePath.includes(".spec.")) {
-			continue;
-		}
-
+		if (p.includes(".test.") || p.includes(".spec.")) continue;
 		// Skip fixture files (they are test artifacts, not source code)
-		if (filePath.includes("/fixtures/") || filePath.includes("\\fixtures\\")) {
-			continue;
-		}
-
-		if (!filePath.includes("node_modules") && filePath.endsWith(".ts")) {
+		if (p.includes("/fixtures/")) continue;
+		if (!p.includes("node_modules") && p.endsWith(".ts")) {
 			const candidateTestPaths = getCandidateTestPaths(filePath);
 			let hasTestFile = false;
 

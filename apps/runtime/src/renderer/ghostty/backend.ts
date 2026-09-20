@@ -184,7 +184,7 @@ export class GhosttyBackend implements RendererAdapter {
 	// RendererAdapter implementation
 	// -------------------------------------------------------------------------
 
-	async init(config: RendererConfig): Promise<void> {
+	async init(_config: RendererConfig): Promise<void> {
 		if (
 			this._state !== "uninitialized" &&
 			this._state !== "stopped" &&
