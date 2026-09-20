@@ -277,6 +277,7 @@ describe("attachDurability race condition", () => {
 		const originalSubscribe = ctx.bus.subscribe.bind(ctx.bus);
 		(ctx.bus as unknown as { subscribe: typeof originalSubscribe }).subscribe =
 			(topic: string, handler: (e: unknown) => void | Promise<void>) => {
+				// biome-ignore lint/correctness/noUnusedVariables: capture to keep the subscription alive while still synthesising a throwing unsubscribe handle.
 				const unsub = originalSubscribe(topic, handler);
 				return () => {
 					throw new Error("synthetic unsubscribe failure");
