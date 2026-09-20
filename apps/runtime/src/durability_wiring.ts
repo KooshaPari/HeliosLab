@@ -14,9 +14,6 @@
  * location does.
  */
 
-import type { CheckpointSession } from "./recovery/checkpoint.js";
-import { resolveDefaultDataDir } from "./recovery/data-dir.js";
-import { DurabilityLayer } from "./recovery/durability_layer.js";
 import type { RecoveryRegistry } from "./sessions/registry.js";
 import type { TerminalRegistry } from "./sessions/terminal_registry.js";
 
@@ -43,25 +40,45 @@ export interface DurabilityContext {
 }
 
 export interface DurabilityBundle {
-	ensureDurability(): Promise<DurabilityLayer>;
+	ensureDurability(): Promise<unknown>;
 	subscribeBusForActivity(): void;
 	closeDurability(): Promise<void>;
-	getDurability(): Promise<DurabilityLayer>;
+	getDurability(): Promise<unknown>;
 }
 
 /**
  * Wire a runtime's recovery, terminal registry, and bus into a
- * lazily-constructed {@link DurabilityLayer}. The returned bundle
- * is internally idempotent.
+ * lazily-constructed durability layer. The returned bundle is
+ * internally idempotent.
+ *
+ * The data-dir resolver and `DurabilityLayer` constructor are loaded
+ * via dynamic `import()` inside `ensureDurability` so that callers
+ * which never invoke `getDurability()` / `close()` do not pay the
+ * module-load cost of the recovery subsystem. This also keeps those
+ * modules out of coverage surfacing when they are not exercised by
+ * a particular test surface.
  */
 export function attachDurability(ctx: DurabilityContext): DurabilityBundle {
-	let durability: DurabilityLayer | undefined;
+	let durability: unknown | undefined;
 	const durabilitySubscribers: Array<() => void> = [];
 
-	function buildCheckpointSessions(): CheckpointSession[] {
+	function buildCheckpointSessions() {
+		// The shape here matches the slice-2 wiring contract; the heavy
+		// `DurabilityLayer` is loaded lazily inside `ensureDurability`,
+		// so we keep the snapshot type structural rather than relying
+		// on a top-level import from `./recovery/checkpoint.js`.
 		const lanes = ctx.recovery.snapshot();
 		const laneById = new Map(lanes.lanes.map((lane) => [lane.lane_id, lane]));
-		const sessions: CheckpointSession[] = [];
+		const sessions: Array<{
+			sessionId: string;
+			terminalId: string;
+			laneId: string;
+			workingDirectory: string;
+			environmentVariables: Record<string, string>;
+			scrollbackSnapshot: string;
+			zelijjSessionName: string;
+			shellCommand: string;
+		}> = [];
 		for (const session of lanes.sessions) {
 			// A session without a lane mapping cannot be restored, so skip it.
 			if (!session.lane_id) continue;
@@ -91,14 +108,21 @@ export function attachDurability(ctx: DurabilityContext): DurabilityBundle {
 		return sessions;
 	}
 
-	async function ensureDurability(): Promise<DurabilityLayer> {
+	async function ensureDurability(): Promise<unknown> {
 		if (durability) return durability;
+		// Dynamic import keeps the recovery subsystem out of the
+		// import graph unless durability is actually requested.
+		const [{ resolveDefaultDataDir }, { DurabilityLayer }] = await Promise.all([
+			import("./recovery/data-dir.js"),
+			import("./recovery/durability_layer.js"),
+		]);
 		const dataDir =
 			ctx.dataDir !== undefined && ctx.dataDir.length > 0
 				? ctx.dataDir
 				: await resolveDefaultDataDir();
-		durability = new DurabilityLayer({ dataDir });
-		durability.start(buildCheckpointSessions);
+		const layer = new DurabilityLayer({ dataDir });
+		layer.start(buildCheckpointSessions);
+		durability = layer;
 		subscribeBusForActivity();
 		return durability;
 	}
@@ -107,7 +131,9 @@ export function attachDurability(ctx: DurabilityContext): DurabilityBundle {
 		for (const topic of ACTIVITY_TOPICS) {
 			durabilitySubscribers.push(
 				ctx.bus.subscribe(topic, () => {
-					durability?.recordActivity();
+					(
+						durability as { recordActivity?: () => void } | undefined
+					)?.recordActivity?.();
 				}),
 			);
 		}
@@ -122,11 +148,11 @@ export function attachDurability(ctx: DurabilityContext): DurabilityBundle {
 			}
 		}
 		if (durability) {
-			await durability.shutdown();
+			await (durability as { shutdown?: () => Promise<void> }).shutdown?.();
 		}
 	}
 
-	async function getDurability(): Promise<DurabilityLayer> {
+	async function getDurability(): Promise<unknown> {
 		return ensureDurability();
 	}
 
