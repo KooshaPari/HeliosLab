@@ -17,7 +17,7 @@
  * Lives under apps/runtime/tests/unit/ so it is picked up by the coverage gate
  * (`bun test apps/runtime/tests --coverage`).
  */
-import { afterEach, beforeEach, describe, expect, it } from "bun:test";
+import { afterEach, describe, expect, it } from "bun:test";
 import { InMemoryLocalBus } from "../../../src/protocol/bus.js";
 import type { LocalBusEnvelope } from "../../../src/protocol/types.js";
 import { PtyManager } from "../../../src/pty/index.js";

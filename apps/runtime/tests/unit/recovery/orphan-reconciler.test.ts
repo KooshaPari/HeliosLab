@@ -17,7 +17,7 @@ import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 import { promises as fs } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import type { LocalBus, LocalBusEnvelope } from "../../../src/protocol/bus.js";
+import type { LocalBusEnvelope } from "../../../src/protocol/bus.js";
 import { InMemoryLocalBus } from "../../../src/protocol/bus.js";
 import {
 	OrphanReconciler,
