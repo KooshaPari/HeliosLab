@@ -99,9 +99,8 @@ artefacts).
 
 ## What is enforced on `main` today
 
-A pull request against `main` is blocked at the branch-protection
-layer unless **every** check in `.github/required-checks.txt` is
-green:
+These five checks are the **declared** required set in
+`.github/required-checks.txt`:
 
 ```text
 ci.yml|ci / lint
@@ -114,6 +113,14 @@ cvp-evidence.yml|CVP Evidence
 Plus the repo's external providers (SonarCloud, Snyk, Semgrep, Infisical, …)
 that are evaluated in the PR quality gate before Mergify admits the
 PR to the merge queue.
+
+**They are not enforced by branch protection today.** As of `5dcfd385`
+the repo has no classic required status checks (`404 Required status
+checks not enabled`), no rulesets, and no branch rules. `ci / lint` and
+`ci / test` are the only two that must actually pass before merge;
+`Release Evidence` is `workflow_run`-triggered on `main` and therefore
+post-merge by design. Treat the list as documentation of intent, not
+as an enforced gate, and verify the two CI checks manually.
 
 The `verify-required-check-names` job pulls
 `.github/required-checks.txt` and asserts that every entry maps to
@@ -283,7 +290,13 @@ bun test scripts/tests/cvp-evidence-validate.test.ts
 # Static analysis (slices 3+4 shared)
 bun run scripts/gate-static-analysis.ts
 
-# Required-check hygiene (name manifest only; branch protection
-# enforces none of these, and Release Evidence is post-merge by design)
-grep -E '^[a-z-]+\.yml\|' .github/required-checks.txt
+# Required-check hygiene. Run the real guard: it resolves each
+# `workflow|job` entry against the workflow files, so a renamed or
+# deleted workflow or job fails. A bare grep of the manifest would
+# only prove the manifest is still readable.
+gh workflow run required-check-names-guard.yml --ref main
+# Locally, the same assertion can be reproduced with:
+#   gh workflow view required-check-names-guard.yml --yaml main
+# Note: branch protection enforces only `ci / lint` and `ci / test`
+# today, and `Release Evidence` is post-merge by design.
 ```
