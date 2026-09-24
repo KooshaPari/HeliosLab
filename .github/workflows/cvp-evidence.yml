@@ -9,6 +9,10 @@ name: CVP Evidence Gate
 # This gate does not run the harness; it inspects the committed
 # artifact so the same logic is fast enough to run on every PR.
 #
+# Checks: schema, overall-pass, per-check flags, threshold bounds, and
+# freshness (`generatedAt` within `--max-age-days`, default 90).
+# Pass `--max-age-days 0` to disable the freshness check.
+#
 # Triggered by:
 #   - `pull_request` against `main`: validates the JSON in the PR branch
 #   - `workflow_dispatch`: manual re-validation against the chosen ref
@@ -20,7 +24,7 @@ name: CVP Evidence Gate
 # When the JSON file is absent, every check returns `skip` and the gate
 # passes — the validator is opt-in until CVP evidence is committed.
 # Once the JSON is present, the gate enforces schema, overall-pass,
-# per-check flags, and threshold bounds.
+# per-check flags, threshold bounds, and freshness.
 on:
   pull_request:
     branches: [main]
@@ -67,10 +71,14 @@ jobs:
         id: validate
         env:
           GITHUB_SHA: ${{ steps.resolve-sha.outputs.sha }}
+          # Freshness window. Override via repository variables to
+          # disable (0) or tighten/loosen without a code change.
+          CVP_MAX_AGE_DAYS: ${{ vars.CVP_MAX_AGE_DAYS || '90' }}
         run: |
           bun run scripts/cvp-evidence-validate.ts \
             --file docs/cvp/cvp-1000.json \
-            --commit "$GITHUB_SHA"
+            --commit "$GITHUB_SHA" \
+            --max-age-days "$CVP_MAX_AGE_DAYS"
 
       - name: Upload evidence report
         if: always()

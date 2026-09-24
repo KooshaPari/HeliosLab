@@ -20,6 +20,7 @@ into `main`.
 | 3 | Release evidence gate | `wbs/release-evidence` | [#202](https://github.com/KooshaPari/HeliosLab/pull/202) | `27876400` | **merged** |
 | 4 | CVP evidence gate | `wbs/cvp` | [#203](https://github.com/KooshaPari/HeliosLab/pull/203) | `b66707a4` | **merged** |
 | 5 | WBS closeout + follow-up ladder | `wbs/closeout` | [#204](https://github.com/KooshaPari/HeliosLab/pull/204) | `83dc9b4f` | **merged** |
+| 6 | WBS follow-ups (F3 / F5 / F6 / F7) | `wbs/cvp-freshness`, … | (this slice) | (F3 ships first) | **in progress** |
 
 ---
 
@@ -67,13 +68,14 @@ in `.github/required-checks.txt`.
 
 Lands the 1000-concurrent-session Customer Validation Pack evidence
 (`docs/cvp/cvp-1000.json`) onto `main` and validates it on every PR.
-Validator runs four checks (schema `helios.cvp.v1`, `overallPass`,
+Validator runs five checks (schema `helios.cvp.v1`, `overallPass`,
 every `pass.*` flag, every measurement within its `thresholds.*`
-bound). 21 unit tests. The CVP harness, scaling regression suite,
-and scaling orchestrator stay on `wbs/terminal-slice` for now
-because they import `VerticalSliceDriver` and
-`RecordingRendererAdapter`, which are terminal-first deliverables
-not yet on `main`.
+bound, `generatedAt` freshness within `--max-age-days`). 27 unit
+tests. The CVP harness, scaling regression suite, and scaling
+orchestrator stay on `wbs/terminal-slice` for now because they
+import `VerticalSliceDriver` and `RecordingRendererAdapter`, which
+are terminal-first deliverables not yet on `main`. Freshness was
+added by F3 (slice 6); see the F-ladder status table below.
 
 **Required-check added:** `cvp-evidence.yml|CVP Evidence`
 in `.github/required-checks.txt`.
@@ -144,33 +146,70 @@ time, and each unblocks a different downstream consumer:
 
 ## What is NOT yet enforced
 
-These are explicit follow-ups, not latent bugs:
+These are explicit follow-ups, not latent bugs. They become slice 6
+work in F-order, starting with F3 because it is the smallest blast-
+radius PR and unblocks a meaningful invariant.
 
-1. **JSON freshness.** A passing 1000-lane run from 2026 is still
-   treated as evidence in 2027. Follow-up: gate on
-   `generatedAt` within N days of HEAD, or refresh `cvp-1000.json`
-   as part of the release flow.
-2. **Per-release JSON files.** Only `cvp-1000.json` is gated today.
-   Follow-up: per-release `cvp-<version>.json`, regenerated at
-   release time.
-3. **Terminal-first (`VerticalSliceDriver` + `RecordingRendererAdapter`).**
-   Today the CVP harness + scaling regression suite stay on
-   `wbs/terminal-slice`. Follow-up: terminal-slice lands on `main`,
-   then the harness/regression can come over.
-4. **Public `recovery.crash.detected` bus topic.** The wiring
-   internally subscribes to the watchdog's crash event and routes
-   it through crash-loop detection → safe mode, but does not yet
-   publish a public topic external consumers can listen on.
-5. **True fork/exec cross-process restart test.** Today simulated
-   via two `createRuntime({dataDir})` lifetimes in the same Node
-   process — strong enough for a CI gate, not strong enough for OS-
-   level crash semantics.
-6. **Snapshotter policy** (`maxSessionsPerCheckpoint`,
-   `scrollbackSnapshot` truncation).
-7. **SBOM generation inside `release.yml`.** The release-evidence
-   gate verifies SBOM presence, but `release.yml` does not yet
-   generate it; today the SBOM comes from the scheduled
-   `sbom-refresh` job. Follow-up: move generation inline.
+### F-ladder status
+
+| ID | Gap | Branch | PR | Commit on `main` | Status |
+|----|-----|--------|-----|------------------|--------|
+| F1 | Terminal-first cherry-pick (depends on F2 and a slice-1 follow-up planning slice) | — | — | — | deferred (its own planning slice) |
+| F2 | Parallel `durability` work landed alongside the cherry-pick | — | — | — | deferred (its own planning slice) |
+| F3 | CVP JSON `generatedAt` freshness gate | `wbs/cvp-freshness` | (this PR) | (this PR) | **shipped in this branch — pending merge** |
+| F4 | Per-release `cvp-<version>.json` artefacts + gate | — | — | — | blocked on F1 (harness needs the harness in release flow) |
+| F5 | Public `recovery.crash.detected` bus topic + contract test | — | — | — | pending (slice-2 follow-up) |
+| F6 | True fork/exec cross-process restart test (`Bun.spawn` subprocess) | — | — | — | pending (slice-2 follow-up) |
+| F7 | SBOM generation inside `release.yml` | — | — | — | pending (slice-3 follow-up) |
+
+### F3 — CVP freshness gate (this branch)
+
+The committed `docs/cvp/cvp-1000.json` carries a `generatedAt`
+timestamp. Today nothing gates on it — a passing run from 2026
+silently counts as evidence in 2027. F3 adds `checkFreshness` to the
+existing `cvp-evidence-validate.ts`:
+
+- `generatedAt` must be within `maxAgeDays` of "now" (default 90 days).
+- `--max-age-days 0` disables the check (returns `skip`).
+- Operationally overridden per-repo via the `CVP_MAX_AGE_DAYS` GitHub
+  Actions variable.
+- Six new unit tests cover: well-within pass, exact-boundary pass,
+  just-past-boundary fail, `maxAgeDays=0` skip, null-report skip,
+  bad-`generatedAt` fail.
+- `evaluateCvpReport` now returns 5 findings instead of 4. No new
+  required check is added — the existing `CVP Evidence` job already
+  fails on any non-pass, non-skip finding.
+
+### F5 — `recovery.crash.detected` public topic
+
+The slice-2 wiring internally subscribes to the watchdog's crash
+event and routes it through crash-loop detection → safe mode, but
+does not yet publish a public topic external consumers can listen on.
+Follow-up: surface `recovery.crash.detected` on the bus with a
+contract test asserting subscriber-receives-after-watchdog-detection.
+
+### F6 — fork/exec cross-process restart test
+
+Today the slice-2 cross-process restart coverage uses two
+`createRuntime({ dataDir })` lifetimes in the same Node process —
+strong enough for a CI gate, not strong enough for OS-level crash
+semantics. Follow-up: spawn the second lifetime via `Bun.spawn` so
+we lose the host V8 isolate and exercise fs lock recovery on cold
+reopen.
+
+### F7 — SBOM inside `release.yml`
+
+The slice-3 release-evidence gate verifies SBOM presence, but
+`release.yml` does not yet generate it; today the SBOM comes from the
+scheduled `sbom-refresh` job. Follow-up: move generation inline so
+the SBOM and the release commit are born from the same workflow run.
+
+### F1 / F2 / F4 — terminal-first landing
+
+Follow-up slice(s) — own planning slice required because they touch
+50+ commits on `origin/wbs/terminal-slice` and need to bring
+`RecordingRendererAdapter` + `VerticalSliceDriver` across in a
+single landing to avoid drift between the cherry-pick and the harness.
 
 ---
 
@@ -204,7 +243,11 @@ bun run scripts/release-evidence-validate.ts --file docs/release-evidence/releas
 bun test scripts/tests/release-evidence-validate.test.ts
 
 # Slice 4 gate
-bun run scripts/cvp-evidence-validate.ts
+bun run scripts/cvp-evidence-validate.ts \
+  --file docs/cvp/cvp-1000.json \
+  --max-age-days 90
+# Override via env-equivalent CLI: --max-age-days 0 disables freshness;
+# --max-age-days 30 tightens it; --now 2027-01-01 pins deterministic tests.
 bun test scripts/tests/cvp-evidence-validate.test.ts
 
 # Static analysis (slices 3+4 shared)

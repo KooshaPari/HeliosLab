@@ -12,6 +12,9 @@
  *   3. Per-check pass     — every `pass.*` flag is true.
  *   4. Threshold bounds   — every numeric measurement is within the
  *                           thresholds the harness itself computed.
+ *   5. Freshness          — `generatedAt` is within `--max-age-days`
+ *                           of "now" (default 90 days; pass
+ *                           `--max-age-days 0` to disable).
  *
  * Exits 0 if every check passes (or all skip), 1 otherwise. Output is a
  * structured machine-readable report written to
@@ -95,6 +98,26 @@ export const REPORT_PATH = ".gate-reports/cvp-evidence.json";
 export const DEFAULT_EVIDENCE_PATH = "docs/cvp/cvp-1000.json";
 export const EXPECTED_SCHEMA = "helios.cvp.v1";
 export const EXPECTED_COUNT = 1000;
+export const DEFAULT_MAX_AGE_DAYS = 90;
+export const MS_PER_DAY = 86_400_000;
+// Accept ISO-8601 timestamps with an explicit timezone: either a trailing
+// `Z` or a `±HH:MM` offset. Naive timestamps without a timezone are
+// rejected because their meaning depends on the runtime's local offset
+// and is therefore not reproducible across CI runners, dev laptops,
+// and prod.
+const ISO_TIMESTAMP_WITH_TZ =
+	/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})$/;
+
+/**
+ * Options that control the freshness check.
+ *
+ * `maxAgeDays === 0` disables the check (returns a `skip` finding).
+ * `now` is injectable so tests don't depend on wall-clock time.
+ */
+export interface FreshnessOptions {
+	maxAgeDays: number;
+	now?: number;
+}
 
 export const PASS_KEYS = [
 	"lanesBound",
@@ -256,6 +279,74 @@ export function checkThresholdBounds(report: CvpSchemaReport): CvpFinding {
 }
 
 /**
+ * Check 5: freshness. `generatedAt` must be within `maxAgeDays` of
+ * "now" so a passing 1000-lane run from 2026 is not treated as
+ * evidence in 2027. The check is `skip` when the gate is disabled
+ * (`maxAgeDays === 0`) or when no report is available.
+ *
+ * `now` is injectable so unit tests can pin time without touching
+ * the system clock; the CLI defaults to `Date.now()`.
+ */
+export function checkFreshness(
+	report: CvpSchemaReport | null,
+	opts: FreshnessOptions,
+): CvpFinding {
+	if (report === null) {
+		return {
+			check: "freshness",
+			status: "skip",
+			detail: "No CVP report available; freshness check skips.",
+		};
+	}
+	if (opts.maxAgeDays <= 0) {
+		return {
+			check: "freshness",
+			status: "skip",
+			detail: "Freshness gate disabled (--max-age-days 0).",
+		};
+	}
+	if (!ISO_TIMESTAMP_WITH_TZ.test(report.generatedAt)) {
+		return {
+			check: "freshness",
+			status: "fail",
+			detail: `generatedAt is not an ISO-8601 timestamp with an explicit timezone: ${JSON.stringify(report.generatedAt)}.`,
+		};
+	}
+	const generatedMs = Date.parse(report.generatedAt);
+	if (Number.isNaN(generatedMs)) {
+		return {
+			check: "freshness",
+			status: "fail",
+			detail: `generatedAt is not a valid ISO date: ${JSON.stringify(report.generatedAt)}.`,
+		};
+	}
+	const now = opts.now ?? Date.now();
+	const ageDays = (now - generatedMs) / MS_PER_DAY;
+	if (ageDays < 0) {
+		// Evidence dated in the future of "now" fails regardless of the
+		// limit — this catches runtimes with mismatched clocks (or hand-
+		// edited JSON claiming `generatedAt` tomorrow).
+		return {
+			check: "freshness",
+			status: "fail",
+			detail: `generatedAt=${report.generatedAt} is ${(-ageDays).toFixed(2)} days in the future of now; evidence cannot be dated after the present.`,
+		};
+	}
+	if (ageDays > opts.maxAgeDays) {
+		return {
+			check: "freshness",
+			status: "fail",
+			detail: `Evidence is ${ageDays.toFixed(2)} days old (generatedAt=${report.generatedAt}); limit is ${opts.maxAgeDays}.`,
+		};
+	}
+	return {
+		check: "freshness",
+		status: "pass",
+		detail: `Evidence is ${ageDays.toFixed(2)} days old (generatedAt=${report.generatedAt}); within the ${opts.maxAgeDays}-day limit.`,
+	};
+}
+
+/**
  * Run every check against the parsed report. Returns a structured
  * summary suitable for both CI consumption and human inspection. If the
  * file is missing or unparseable, every check returns `skip` — the
@@ -265,6 +356,7 @@ export function checkThresholdBounds(report: CvpSchemaReport): CvpFinding {
  */
 export function evaluateCvpReport(
 	report: CvpSchemaReport | null,
+	freshness: FreshnessOptions = { maxAgeDays: DEFAULT_MAX_AGE_DAYS },
 ): CvpFinding[] {
 	if (report === null) {
 		const skip = (check: string): CvpFinding => ({
@@ -277,6 +369,7 @@ export function evaluateCvpReport(
 			skip("overall-pass"),
 			skip("per-check-flags"),
 			skip("threshold-bounds"),
+			skip("freshness"),
 		];
 	}
 	return [
@@ -284,6 +377,7 @@ export function evaluateCvpReport(
 		checkOverallPass(report),
 		checkPerCheckFlags(report),
 		checkThresholdBounds(report),
+		checkFreshness(report, freshness),
 	];
 }
 
@@ -291,6 +385,10 @@ export function evaluateCvpReport(
  * CLI entry point. Reads the JSON at `--file` (or
  * `docs/cvp/cvp-1000.json`), evaluates every check, writes a structured
  * report, and exits non-zero if any check fails.
+ *
+ * `--max-age-days <N>` (default 90) controls the freshness check.
+ * `--max-age-days 0` disables the freshness check (returns `skip`).
+ * `--now <ISO>` pins "now" for deterministic runs.
  */
 function main(): void {
 	const argv = process.argv.slice(2);
@@ -298,9 +396,50 @@ function main(): void {
 	const commitSha =
 		flagValue(argv, "--commit") ?? process.env.GITHUB_SHA ?? "local";
 
+	// `--max-age-days <N>` is optional. When the flag is absent we fall
+	// back to DEFAULT_MAX_AGE_DAYS; when it is present its operand must
+	// be a non-negative integer (no decimals, no leading whitespace, no
+	// trailing garbage — `Number.parseInt("3.14", 10)` would silently
+	// return 3, which is why we re-validate the string itself).
+	const maxAgeDaysRaw = flagValue(argv, "--max-age-days");
+	let maxAgeDays = DEFAULT_MAX_AGE_DAYS;
+	if (maxAgeDaysRaw !== null) {
+		if (!/^(0|[1-9]\d*)$/.test(maxAgeDaysRaw)) {
+			console.error(
+				`--max-age-days must be a non-negative integer (got ${JSON.stringify(maxAgeDaysRaw)})`,
+			);
+			process.exit(2);
+		}
+		maxAgeDays = Number.parseInt(maxAgeDaysRaw, 10);
+	}
+
+	// `--now <ISO>` is optional. When the flag is absent we fall back to
+	// `Date.now()`; when it is present its operand must parse to a
+	// finite timestamp. We require an explicit timezone in the operand
+	// so unit tests that pin "now" cannot accidentally pin a naive local
+	// time that varies by host.
+	let now = Date.now();
+	const nowRaw = flagValue(argv, "--now");
+	if (nowRaw !== null) {
+		if (!ISO_TIMESTAMP_WITH_TZ.test(nowRaw)) {
+			console.error(
+				`--now must be an ISO-8601 timestamp with an explicit timezone (got ${JSON.stringify(nowRaw)})`,
+			);
+			process.exit(2);
+		}
+		const parsed = Date.parse(nowRaw);
+		if (!Number.isFinite(parsed)) {
+			console.error(
+				`--now parsed to a non-finite timestamp (got ${JSON.stringify(nowRaw)})`,
+			);
+			process.exit(2);
+		}
+		now = parsed;
+	}
+
 	const resolved = resolve(filePath);
 	const report = readCvpReport(resolved);
-	const findings = evaluateCvpReport(report);
+	const findings = evaluateCvpReport(report, { maxAgeDays, now });
 
 	const summary: CvpReport = {
 		gate: "cvp-evidence",
