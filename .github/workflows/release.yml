@@ -48,5 +48,38 @@ jobs:
           cargo publish --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
       
 
+  # F7: generate the SBOM inline so the SBOM and the release commit are born
+  # from the same workflow run, rather than arriving later from the scheduled
+  # sbom-refresh job. The Release Evidence Gate (scripts/release-evidence-validate.ts)
+  # accepts any of SBOM.cdx.json / SBOM.spdx.json / sbom.cdx.json / sbom.spdx.json
+  # by basename and downloads artifacts from this workflow's runs, so an artifact
+  # literally named sbom.spdx.json satisfies it.
+  #
+  # Scoped to the same condition as the release job on purpose: a non-release
+  # push to main currently produces a successful-but-empty "Release" run (the
+  # release job is skipped), and an always-on job here would silently start
+  # satisfying the evidence gate on commits that were never released.
+  sbom:
+    runs-on: ubuntu-24.04
+    if: contains(github.event.head_commit.message, 'release:') || contains(github.event.head_commit.message, 'chore(release)')
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      # `path` defaults to "." and Syft auto-detects every supported lockfile it
+      # finds, so this single invocation covers both dependency trees in this
+      # polyglot repo: Cargo.lock for the crate release.yml publishes, and
+      # bun.lock for the Node packages. Pinned to the same tag
+      # templates/stage-gates.yml already standardizes on, and the same
+      # artifact-name the evidence gate expects.
+      - name: Generate SBOM
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0
+        with:
+          path: .
+          format: spdx-json
+          artifact-name: sbom.spdx.json
+          # This pipeline publishes with `cargo publish`, not a GitHub Release,
+          # so there is no release to attach assets to.
+          upload-release-assets: false
+
   # NOTE: a `promote` job that called KooshaPari/phenotypeActions/promote was
   # removed. That repository does not exist, so the job could never run.
