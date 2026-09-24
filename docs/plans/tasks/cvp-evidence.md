@@ -1,6 +1,7 @@
 # CVP Evidence Gate (Slice 4 of 5)
 
 **Status:** Merged to `main` as commit `b66707a4` (PR [#203](https://github.com/KooshaPari/HeliosLab/pull/203)) — Slice 4 of 5.
+**Slice 6 progress:** F3 freshness gate landed on `wbs/cvp-freshness` and shipped as PR [#205](https://github.com/KooshaPari/HeliosLab/pull/205). Remaining follow-ups F1, F2, F4 tracked in [`docs/plans/WBS.md`](../WBS.md).
 **See also:** [`docs/plans/WBS.md`](../WBS.md).
 **Branch:** `wbs/cvp` (deleted post-merge).
 **Scope:** Land CVP evidence on main + add a CI gate that validates the committed JSON.
@@ -31,11 +32,11 @@ Two pieces:
 
 2. **CI gate** (new files):
 
-   - `scripts/cvp-evidence-validate.ts` (354 lines) — four checks
+   - `scripts/cvp-evidence-validate.ts` (~430 lines) — five checks
      against the committed JSON.
-   - `scripts/tests/cvp-evidence-validate.test.ts` (288 lines, 22
+   - `scripts/tests/cvp-evidence-validate.test.ts` (~350 lines, 27
      tests) — every check covered.
-   - `.github/workflows/cvp-evidence.yml` (82 lines) — runs on every
+   - `.github/workflows/cvp-evidence.yml` (~85 lines) — runs on every
      pull request targeting `main` and on `workflow_dispatch`.
    - `.github/required-checks.txt` — adds `cvp-evidence.yml|CVP Evidence`.
 
@@ -51,10 +52,14 @@ Two pieces:
 - `checkPerCheckFlags(report)` — every entry in `pass.*` is true.
 - `checkThresholdBounds(report)` — every measurement is within the
   thresholds the harness itself computed (`thresholds.*`).
-- `evaluateCvpReport(report)` — runs all four checks; returns findings.
+- `checkFreshness(report, opts)` — `generatedAt` is within
+  `maxAgeDays` of `now`; `maxAgeDays === 0` disables (returns `skip`).
+- `evaluateCvpReport(report, opts)` — runs all five checks; returns findings.
 - Constants: `EXPECTED_SCHEMA`, `EXPECTED_COUNT`, `PASS_KEYS`,
-  `DEFAULT_EVIDENCE_PATH`, `REPORT_PATH`.
-- CLI: `--file PATH`, `--commit SHA`.
+  `DEFAULT_EVIDENCE_PATH`, `REPORT_PATH`, `DEFAULT_MAX_AGE_DAYS = 90`,
+  `MS_PER_DAY`.
+- CLI: `--file PATH`, `--commit SHA`, `--max-age-days N`,
+  `--now ISO`.
 
 The CLI writes `.gate-reports/cvp-evidence.json` (machine-readable)
 and a human summary on stdout. Exits 0 iff every check is `pass` or
@@ -68,8 +73,13 @@ and a human summary on stdout. Exits 0 iff every check is `pass` or
 - `checkPerCheckFlags` (3 tests): pass, single-flag fail, all-flags fail.
 - `checkThresholdBounds` (6 tests): pass; per-check fails for
   lanesBound / spawn p99 / cleanup / memory / total.
-- `evaluateCvpReport` (3 tests): all-pass, fail-finding, all-skip on null.
-- `module exports` (1 test): constant stability.
+- `checkFreshness` (6 tests): well-within, exact-boundary pass,
+  just-past-boundary fail, `maxAgeDays=0` skip, null-report skip,
+  bad-`generatedAt` fail.
+- `evaluateCvpReport` (3 tests): all-pass (5/5), fail-finding (5
+  findings, ≥1 fail), all-skip on null (5/5).
+- `module exports` (1 test): constant stability
+  (`DEFAULT_MAX_AGE_DAYS === 90`, `MS_PER_DAY === 86_400_000`).
 
 ## How to verify locally
 
@@ -116,16 +126,14 @@ layer unless `cvp-evidence.yml|CVP Evidence` succeeds. With
 - Any of `pass.lanesBound`, `pass.totalDuration`, `pass.spawnLatency`,
   `pass.cleanupLatency`, `pass.memoryStability` is `false`.
 - Any measurement exceeds its `thresholds.*` bound (defence in depth).
+- `generatedAt` is more than 90 days old (override per-repo via the
+  `CVP_MAX_AGE_DAYS` variable; `0` disables the freshness check).
 
-When the JSON file is missing, the gate skips all four checks and
+When the JSON file is missing, the gate skips all five checks and
 exits 0.
 
 ## What is not yet enforced
 
-- **Freshness of the committed JSON.** A passing 1000-lane run from
-  2026 is still treated as evidence in 2027. A future slice should
-  either (a) gate on `generatedAt` being within N days of HEAD, or
-  (b) refresh the JSON as part of the release flow.
 - **Per-release JSON files.** Today only `cvp-1000.json` is gated.
   Once the harness is wired into the release pipeline, each release
   should publish its own `cvp-<version>.json` and the gate should
@@ -141,7 +149,6 @@ exits 0.
 
 - Refresh `docs/cvp/cvp-1000.json` on every release commit, scoped to
   the same SHA via a `workflow_run` follower pattern.
-- Add a freshness check (`generatedAt` within 30 days of `HEAD`).
 - Land `VerticalSliceDriver` + `RecordingRendererAdapter` (slice 1
   / slice 2 follow-ups) so the harness and scaling regression suite
   can come over too.
