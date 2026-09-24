@@ -104,6 +104,12 @@ async function loadConstitution(): Promise<string> {
 	}
 }
 
+// Test-support dirs holding fixtures or spawned helper entry points, never
+// source needing a paired test. A bare "tests/" is excluded: source lives there.
+function isTestTree(normalizedPath: string): boolean {
+	return /\/(fixtures|__fixtures__|__tests__)\//.test(normalizedPath);
+}
+
 /**
  * Extract section headings from constitution markdown.
  */
@@ -166,12 +172,6 @@ async function checkFileSizes(files: string[]): Promise<Finding[]> {
 	const sections = await loadConstitution().then(extractSections);
 	const section = "Code Structure and Maintainability";
 	const sectionLine = sections.get(section) || 0;
-	const _lockfileNames = new Set([
-		"bun.lock",
-		"package-lock.json",
-		"pnpm-lock.yaml",
-		"yarn.lock",
-	]);
 
 	for (const filePath of files) {
 		if (isLineLimitExempt(filePath)) {
@@ -314,8 +314,7 @@ async function checkTestCoverage(files: string[]): Promise<Finding[]> {
 		if (p.includes("/.vitepress/")) continue;
 		// Only check source files, not test files
 		if (p.includes(".test.") || p.includes(".spec.")) continue;
-		// Skip fixture files (they are test artifacts, not source code)
-		if (p.includes("/fixtures/")) continue;
+		if (isTestTree(p)) continue;
 		if (!p.includes("node_modules") && p.endsWith(".ts")) {
 			const candidateTestPaths = getCandidateTestPaths(filePath);
 			let hasTestFile = false;
