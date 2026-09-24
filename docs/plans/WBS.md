@@ -19,7 +19,7 @@ into `main`.
 | 2 | Runtime durability core | `wbs/durability-impl` | [#201](https://github.com/KooshaPari/HeliosLab/pull/201) | `186f51df` | **merged** |
 | 3 | Release evidence gate | `wbs/release-evidence` | [#202](https://github.com/KooshaPari/HeliosLab/pull/202) | `27876400` | **merged** |
 | 4 | CVP evidence gate | `wbs/cvp` | [#203](https://github.com/KooshaPari/HeliosLab/pull/203) | `b66707a4` | **merged** |
-| 5 | WBS closeout + follow-up ladder | `wbs/closeout` | [#TBD](.) | `TBD` | in flight |
+| 5 | WBS closeout + follow-up ladder | `wbs/closeout` | [#204](https://github.com/KooshaPari/HeliosLab/pull/204) | `83dc9b4f` | **merged** |
 
 ---
 
