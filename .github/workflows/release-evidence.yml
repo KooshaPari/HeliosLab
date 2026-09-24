@@ -175,16 +175,19 @@ jobs:
       - name: Extract downloaded artifacts
         if: steps.find-runs.outputs.release_found == 'true' || steps.find-runs.outputs.attestation_found == 'true'
         run: |
-          # Each downloaded artifact is a zip; extract every .zip under
-          # /tmp/release-evidence-artifacts/ so the validator can scan a
-          # flat tree of real files.
+          # Each downloaded artifact is a zip, written into its own
+          # subdirectory as "<downloadDir>/<artifact.name>/<artifact.name>.zip".
+          # A top-level "<downloadDir>/*.zip" glob matches nothing in that
+          # layout, so the validator only ever saw ".zip" container names and
+          # sbom-present failed even when the artifact existed. Walk the whole
+          # tree instead and unpack each archive beside itself.
           set -e
-          for zip in /tmp/release-evidence-artifacts/*.zip; do
-            [ -e "$zip" ] || continue
-            dir="$(dirname "$zip")/$(basename "$zip" .zip)"
-            mkdir -p "$dir"
-            unzip -o -q "$zip" -d "$dir"
-          done
+          find /tmp/release-evidence-artifacts -type f -name '*.zip' -print0 |
+            while IFS= read -r -d '' zip; do
+              out="$(dirname "$zip")/$(basename "$zip" .zip)"
+              mkdir -p "$out"
+              unzip -o -q "$zip" -d "$out"
+            done
 
       - name: Validate release evidence
         id: validate
