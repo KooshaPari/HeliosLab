@@ -20,7 +20,7 @@ into `main`.
 | 3 | Release evidence gate | `wbs/release-evidence` | [#202](https://github.com/KooshaPari/HeliosLab/pull/202) | `27876400` | **merged** |
 | 4 | CVP evidence gate | `wbs/cvp` | [#203](https://github.com/KooshaPari/HeliosLab/pull/203) | `b66707a4` | **merged** |
 | 5 | WBS closeout + follow-up ladder | `wbs/closeout` | [#204](https://github.com/KooshaPari/HeliosLab/pull/204) | `83dc9b4f` | **merged** |
-| 6 | WBS follow-ups (F3 / F5 / F6 / F7) | `wbs/cvp-freshness`, … | (this slice) | (F3 ships first) | **in progress** |
+| 6 | WBS follow-ups (F3 / F5 / F6 / F7) | `wbs/cvp-freshness`, … | [#205](https://github.com/KooshaPari/HeliosLab/pull/205) (F3) | `e5e631f5` (F3) | F3 **merged**; F5 / F6 / F7 pending |
 
 ---
 
@@ -70,7 +70,7 @@ Lands the 1000-concurrent-session Customer Validation Pack evidence
 (`docs/cvp/cvp-1000.json`) onto `main` and validates it on every PR.
 Validator runs five checks (schema `helios.cvp.v1`, `overallPass`,
 every `pass.*` flag, every measurement within its `thresholds.*`
-bound, `generatedAt` freshness within `--max-age-days`). 27 unit
+bound, `generatedAt` freshness within `--max-age-days`). 31 unit
 tests. The CVP harness, scaling regression suite, and scaling
 orchestrator stay on `wbs/terminal-slice` for now because they
 import `VerticalSliceDriver` and `RecordingRendererAdapter`, which
@@ -156,13 +156,13 @@ radius PR and unblocks a meaningful invariant.
 |----|-----|--------|-----|------------------|--------|
 | F1 | Terminal-first cherry-pick (depends on F2 and a slice-1 follow-up planning slice) | — | — | — | deferred (its own planning slice) |
 | F2 | Parallel `durability` work landed alongside the cherry-pick | — | — | — | deferred (its own planning slice) |
-| F3 | CVP JSON `generatedAt` freshness gate | `wbs/cvp-freshness` | (this PR) | (this PR) | **shipped in this branch — pending merge** |
+| F3 | CVP JSON `generatedAt` freshness gate | `wbs/cvp-freshness` | [#205](https://github.com/KooshaPari/HeliosLab/pull/205) | `e5e631f5` | **merged** |
 | F4 | Per-release `cvp-<version>.json` artefacts + gate | — | — | — | blocked on F1 (harness needs the harness in release flow) |
 | F5 | Public `recovery.crash.detected` bus topic + contract test | — | — | — | pending (slice-2 follow-up) |
 | F6 | True fork/exec cross-process restart test (`Bun.spawn` subprocess) | — | — | — | pending (slice-2 follow-up) |
 | F7 | SBOM generation inside `release.yml` | — | — | — | pending (slice-3 follow-up) |
 
-### F3 — CVP freshness gate (this branch)
+### F3 — CVP freshness gate ([#205](https://github.com/KooshaPari/HeliosLab/pull/205), merged `e5e631f5`)
 
 The committed `docs/cvp/cvp-1000.json` carries a `generatedAt`
 timestamp. Today nothing gates on it — a passing run from 2026
@@ -173,9 +173,13 @@ existing `cvp-evidence-validate.ts`:
 - `--max-age-days 0` disables the check (returns `skip`).
 - Operationally overridden per-repo via the `CVP_MAX_AGE_DAYS` GitHub
   Actions variable.
-- Six new unit tests cover: well-within pass, exact-boundary pass,
-  just-past-boundary fail, `maxAgeDays=0` skip, null-report skip,
-  bad-`generatedAt` fail.
+- **Strictness (post-CodeRabbit hardening):** `generatedAt` must carry
+  an explicit timezone (`Z` or `±HH:MM`); future-dated evidence is
+  rejected as "N days in the future of now"; `--max-age-days` and
+  `--now` reject decimal / negative / unparseable operands with exit 2.
+- 31 unit tests (was 27 — six new for `checkFreshness` and four new
+  for the strictness paths). Mutation-tested each CLI rejection path
+  with explicit exit-code capture.
 - `evaluateCvpReport` now returns 5 findings instead of 4. No new
   required check is added — the existing `CVP Evidence` job already
   fails on any non-pass, non-skip finding.
@@ -221,14 +225,17 @@ These are not slice work but were noticed while running slices 1-4:
   has its `Required Checks Bridge` failing because slice 3 and slice
   4 added required-checks (`Release Evidence`, `CVP Evidence`) that
   #199's branch does not carry. The fix is a rebase of #199 onto
-  `main` (now at slice 4); see the slice-5 plan doc for the
+  `main` (now at slice 6 / F3); see the slice-5 plan doc for the
   recommended path.
 - **SonarCloud** flips `FAILURE` on a few PRs even when the
-  underlying scan is green — observed on slices 2, 3, and 4. The
-  failure is a tab-vs-space formatting drift in SonarCloud's
-  expectations, not a real bug. Has not blocked any merge because
-  the PR's other green checks dominate; worth filing once SonarCloud
-  is on the supported-vendors list.
+  underlying scan is green — observed on slices 2, 3, 4, and the F3
+  re-review. The failure is a tab-vs-space formatting drift in
+  SonarCloud's expectations, not a real bug. Has not blocked any
+  merge because the PR's other green checks dominate; worth filing
+  once SonarCloud is on the supported-vendors list.
+- **Sonar token missing** in the runner environment used by the
+  dedicated `sonar` job — fails with `Require Sonar token`. Same
+  not-required status as the SonarCloud drift above.
 
 ---
 
