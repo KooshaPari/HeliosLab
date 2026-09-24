@@ -315,18 +315,37 @@ async function recoverFromCorruptPrimary(
 			);
 		}
 
+		// Read the backup's checksum BEFORE tampering, so the comparison below
+		// is against the file the reader could actually have fallen back to.
+		const backupPath = `${checkpointPath}.backup`;
+		const backupBefore = await Bun.file(backupPath).json();
+		const backupChecksumBefore = (backupBefore as Record<string, unknown>)
+			.checksum;
+
 		// The decoy never appears in what was restored, even though it is
 		// sitting in the primary file on disk. That is the observable proof
 		// the primary was rejected on its checksum and the backup was used.
 		const restoredIncludesDecoy = restoredSessionIds.includes(decoySessionId);
 		const primaryRejected = !restoredIncludesDecoy;
 
+		// Derive this from the bytes rather than asserting it. If the reader
+		// had accepted the tampered primary, restored.sessions[0].sessionId
+		// would be the decoy and the checksum would be the "deadbeef" filler.
+		// Comparing the restored checksum against the on-disk backup's proves
+		// the content came from the backup, so a hard-coded `true` here could
+		// never make this assertion pass for the wrong reason.
+		const restoredChecksum = (restored as Record<string, unknown>).checksum;
+		const recoveredViaBackup =
+			typeof restoredChecksum === "string" &&
+			restoredChecksum === backupChecksumBefore &&
+			restoredChecksum !== "deadbeef".repeat(8);
+
 		result = {
 			mode: "recover-corrupt",
 			ok: true,
 			pid: process.pid,
 			restoredSessionIds,
-			recoveredViaBackup: true,
+			recoveredViaBackup,
 			primaryRejected,
 		};
 

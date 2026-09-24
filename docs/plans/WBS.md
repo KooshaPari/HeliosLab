@@ -241,9 +241,10 @@ appear when the OS reaps a process and hands a cold process the same
 - The first lifetime calls `process.exit(0)` **without** `runtime.close()`,
   so nothing flushes a final checkpoint or cleans up. A stale `.tmp` is
   left behind on purpose to reproduce the debris a real crash leaves.
-- Each test asserts the three pids are distinct, so a future refactor
-  back to in-process lifetimes fails loudly rather than silently losing
-  the coverage this slice exists to provide.
+- Both recovery tests assert that every pid involved is distinct, so a
+  future refactor back to in-process lifetimes fails loudly rather than
+  silently losing the coverage this slice exists to provide. The two
+  failure-path tests assert exit codes and error payloads instead.
 - Backup fallback is covered directly: two seed processes create a
   `.backup`, then a third cold process reads a primary whose checksum is
   wrong and whose session list has been swapped for a decoy. Getting the

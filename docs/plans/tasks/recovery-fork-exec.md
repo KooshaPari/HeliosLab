@@ -57,9 +57,11 @@ in its `catch` block and `verifyChecksum()` is never reached, so neutering
 the checksum check would go unnoticed. Swapping the session list makes
 "did the reader actually reject the primary?" observable from outside.
 
-Every test asserts the pids involved are distinct from each other and from
-the test process. If this ever regresses to in-process lifetimes, the
-assertion fails instead of the coverage silently evaporating.
+Both recovery tests assert that the pids involved are distinct from each
+other and from the test process. If the first ever regresses to in-process
+lifetimes, the assertion fails instead of the coverage silently evaporating.
+The two failure-path tests deliberately assert no pids: they are checking
+exit codes and error payloads, not process identity.
 
 ## Verification
 

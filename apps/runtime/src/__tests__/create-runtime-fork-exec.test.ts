@@ -120,8 +120,13 @@ describe("cross-process durability restart (F6)", () => {
 		// The cold process saw the first process's session.
 		expect(recover.result.restoredSessionIds).toContain(sessionId);
 
-		// And it could write a fresh checkpoint on top, which means
-		// stale-temp cleanup ran in a real second process.
+		// And it could write a fresh checkpoint on top. Note that the
+		// staleTempCleaned flag and the file's absence are NOT evidence
+		// that cleanStaleTempFiles() ran: fs.writeFile truncates the same
+		// .tmp path and the subsequent rename removes it either way.
+		// Mutation M1 (cleanStaleTempFiles skipped) survives for exactly
+		// that reason. What this does prove is that a second, independent
+		// process could write on top of the first process's leftovers.
 		expect(recover.result.wroteFreshCheckpoint).toBe(true);
 		expect(recover.result.staleTempCleaned).toBe(true);
 		expect(await Bun.file(stalePath).exists()).toBe(false);

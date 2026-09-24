@@ -105,9 +105,11 @@ async function loadConstitution(): Promise<string> {
 }
 
 // Test-support dirs holding fixtures or spawned helper entry points, never
-// source needing a paired test. A bare "tests/" is excluded: source lives there.
+// source needing a paired test. Matches at the start of a path as well as
+// after a separator, so a repo-root-relative "__tests__/helpers/child.ts" is
+// still recognised. A bare "tests/" is excluded: source lives there.
 function isTestTree(normalizedPath: string): boolean {
-	return /\/(fixtures|__fixtures__|__tests__)\//.test(normalizedPath);
+	return /(?:^|\/)(fixtures|__fixtures__|__tests__)\//.test(normalizedPath);
 }
 
 /**
