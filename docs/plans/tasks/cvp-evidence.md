@@ -1,6 +1,8 @@
 # CVP Evidence Gate (Slice 4 of 5)
 
-**Status:** Landed on `wbs/cvp`, pending PR #203 to `main`.
+**Status:** Merged to `main` as commit `b66707a4` (PR [#203](https://github.com/KooshaPari/HeliosLab/pull/203)) — Slice 4 of 5.
+**See also:** [`docs/plans/WBS.md`](../WBS.md).
+**Branch:** `wbs/cvp` (deleted post-merge).
 **Scope:** Land CVP evidence on main + add a CI gate that validates the committed JSON.
 
 ---
