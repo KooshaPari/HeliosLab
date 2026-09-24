@@ -1,7 +1,9 @@
 # Release Evidence Plan
 
+**Status:** Merged to `main` as commit `27876400` (PR [#202](https://github.com/KooshaPari/HeliosLab/pull/202)) — Slice 3 of 5.
+**See also:** [`docs/plans/WBS.md`](../WBS.md).
+**Branch:** `wbs/release-evidence` (deleted post-merge).
 **Date:** 2026-09-20
-**Branch:** wbs/release-evidence
 **Goal:** Make every `release:` commit on `main` carry a complete evidence bundle
 that downstream consumers can verify, without requiring an out-of-band doc.
 
