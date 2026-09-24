@@ -29,6 +29,24 @@ import type {
 
 export { CommandBusImpl, createBus } from "./command-bus.js";
 
+/**
+ * Topic sentinel accepted by `subscribe()` to receive every published event.
+ * `BusAuditSubscriber` relies on it for its all-topics audit capture.
+ */
+const WILDCARD_TOPIC = "*";
+
+/**
+ * `EventEnvelope` does not declare `id`/`ts`, but every accepted envelope
+ * carries both and subscribers need them to correlate deliveries. This bus
+ * delivers them, matching `CommandBusImpl`, which passes the source envelope
+ * through untouched. Widening the shared interface is a separate API change and
+ * is tracked as a follow-up rather than folded into this slice.
+ */
+type DeliveredEventEnvelope = EventEnvelope & {
+	id?: string;
+	ts?: string;
+};
+
 // ---------------------------------------------------------------------------
 // InMemoryLocalBus — protocol lifecycle implementation
 // ---------------------------------------------------------------------------
@@ -40,6 +58,13 @@ export class InMemoryLocalBus implements LocalBus {
 	private state: BusState = { session: "detached" };
 	private readonly lifecycleProgress: Map<string, Set<string>> = new Map();
 	private rendererEngine: "ghostty" | "rio" = "ghostty";
+	private readonly subscribers = new Map<
+		string,
+		Array<{
+			handler: (evt: EventEnvelope) => void | Promise<void>;
+			removed: boolean;
+		}>
+	>();
 
 	getEvents(): LocalBusEnvelope[] {
 		return [...this.eventLog];
@@ -130,6 +155,7 @@ export class InMemoryLocalBus implements LocalBus {
 
 				this.auditLog.push({ envelope: event, outcome: "accepted" });
 				this.eventLog.push(event);
+				this.dispatchToSubscribers(_topic, event, sequencedEvent);
 				return;
 			}
 
@@ -190,6 +216,88 @@ export class InMemoryLocalBus implements LocalBus {
 		}
 		this.auditLog.push({ envelope: event, outcome: "accepted" });
 		this.eventLog.push(event);
+		this.dispatchToSubscribers(_topic, event, sequencedEvent);
+	}
+
+	/**
+	 * Fan an accepted event out to its topic subscribers.
+	 *
+	 * Contract:
+	 *  - Exact-topic subscribers and `"*"` (all-topics) subscribers both fire.
+	 *  - Handlers are snapshotted before iteration so unsubscribing during
+	 *    dispatch cannot skip or re-order the in-flight delivery (FR-010).
+	 *  - Synchronous throws and rejected promises are swallowed (FR-009
+	 *    subscriber isolation).
+	 *  - Promise-returning handlers are NOT awaited. `Watchdog.handleCrash()`
+	 *    awaits `publish()` before it records the crash with the durability
+	 *    layer, so a subscriber whose promise never settles (stalled telemetry
+	 *    I/O, for example) must not be able to stall crash recovery. The
+	 *    handler is still invoked synchronously with the accepted envelope.
+	 *  - Each subscriber gets its own detached copy of the envelope, carrying
+	 *    the same `id` and `ts` as the accepted event. Consumers can correlate
+	 *    and order deliveries without re-reading `getEvents()`, and cannot
+	 *    mutate the retained event/audit log through a shared `payload`
+	 *    reference.
+	 *
+	 * `timestamp` is intentionally not forwarded: `LocalBusEnvelope` types it
+	 * as epoch milliseconds, but `validateEnvelope` only accepts an ISO-8601
+	 * string for that field, so no accepted event can carry a numeric one.
+	 */
+	private dispatchToSubscribers(
+		topic: string | undefined,
+		event: LocalBusEnvelope,
+		sequencedEvent: LocalBusEnvelopeWithSequence,
+	): void {
+		if (!topic) return;
+
+		const exact = this.subscribers.get(topic);
+		const wildcard = this.subscribers.get(WILDCARD_TOPIC);
+		if (!exact && !wildcard) return;
+
+		const baseEnvelope: DeliveredEventEnvelope = {
+			id: event.id,
+			type: "event",
+			topic,
+			...(event.ts !== undefined && { ts: event.ts }),
+			...(event.correlation_id !== undefined && {
+				correlation_id: event.correlation_id,
+			}),
+			...(sequencedEvent.sequence !== undefined && {
+				sequence: sequencedEvent.sequence,
+			}),
+			...(event.payload !== undefined && { payload: event.payload }),
+			...(event.workspace_id !== undefined && {
+				workspace_id: event.workspace_id,
+			}),
+			...(event.lane_id !== undefined && { lane_id: event.lane_id }),
+			...(event.session_id !== undefined && { session_id: event.session_id }),
+			...(event.terminal_id !== undefined && {
+				terminal_id: event.terminal_id,
+			}),
+		};
+
+		const snapshot: Array<(evt: EventEnvelope) => void | Promise<void>> = [
+			...(exact ?? []).map((entry) => entry.handler),
+			...(wildcard ?? []).map((entry) => entry.handler),
+		];
+
+		for (const handler of snapshot) {
+			try {
+				// Hand each subscriber its own copy: a consumer that mutates
+				// `payload` must not be able to rewrite what later subscribers
+				// see, nor what `getEvents()`/`getAuditRecords()` retain.
+				const result = handler(structuredClone(baseEnvelope));
+				if (result && typeof (result as Promise<void>).then === "function") {
+					// Attach a rejection sink so an async failure stays isolated,
+					// but deliberately do not await: see the contract above.
+					void (result as Promise<void>).catch(() => {
+						// FR-009: async subscriber failures are isolated.
+					});
+				}
+			} catch {
+				// FR-009: synchronous subscriber failures are isolated.
+			}
+		}
 	}
 
 	private getHandlerContext(): RequestHandlerContext {
@@ -280,14 +388,34 @@ export class InMemoryLocalBus implements LocalBus {
 	}
 
 	subscribe(
-		_topic: string,
-		_handler: (evt: EventEnvelope) => void | Promise<void>,
+		topic: string,
+		handler: (evt: EventEnvelope) => void | Promise<void>,
 	): () => void {
-		return () => {};
+		let list = this.subscribers.get(topic);
+		if (!list) {
+			list = [];
+			this.subscribers.set(topic, list);
+		}
+		const entry = { handler, removed: false };
+		list.push(entry);
+		return () => {
+			entry.removed = true;
+			const current = this.subscribers.get(topic);
+			if (current) {
+				const idx = current.indexOf(entry);
+				if (idx !== -1) {
+					current.splice(idx, 1);
+				}
+				if (current.length === 0) {
+					this.subscribers.delete(topic);
+				}
+			}
+		};
 	}
 
 	destroy(): void {
 		// Stub for interface compliance
+		this.subscribers.clear();
 	}
 
 	getActiveCorrelationId(): string | undefined {
