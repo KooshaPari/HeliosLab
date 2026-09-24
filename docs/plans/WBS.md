@@ -158,7 +158,7 @@ radius PR and unblocks a meaningful invariant.
 | F2 | Parallel `durability` work landed alongside the cherry-pick | — | — | — | deferred (its own planning slice) |
 | F3 | CVP JSON `generatedAt` freshness gate | `wbs/cvp-freshness` | [#205](https://github.com/KooshaPari/HeliosLab/pull/205) | `e5e631f5` | **merged** |
 | F4 | Per-release `cvp-<version>.json` artefacts + gate | — | — | — | blocked on F1 (harness needs the harness in release flow) |
-| F5 | Public `recovery.crash.detected` bus topic + contract test | — | — | — | pending (slice-2 follow-up) |
+| F5 | Public `recovery.crash.detected` bus topic + contract test | `wbs/recovery-crash-topic` | (this PR) | (this PR) | **shipped in this branch — pending merge** |
 | F6 | True fork/exec cross-process restart test (`Bun.spawn` subprocess) | — | — | — | pending (slice-2 follow-up) |
 | F7 | SBOM generation inside `release.yml` | — | — | — | pending (slice-3 follow-up) |
 
@@ -189,8 +189,31 @@ existing `cvp-evidence-validate.ts`:
 The slice-2 wiring internally subscribes to the watchdog's crash
 event and routes it through crash-loop detection → safe mode, but
 does not yet publish a public topic external consumers can listen on.
-Follow-up: surface `recovery.crash.detected` on the bus with a
-contract test asserting subscriber-receives-after-watchdog-detection.
+**Shipped on `wbs/recovery-crash-topic`.** The problem was deeper than
+missing plumbing: `InMemoryLocalBus.subscribe()` — the bus the runtime
+actually hands to `DurabilityLayer` — was a stub that never invoked
+handlers, so the topic reached the event log but no external consumer
+could observe it. `CommandBusImpl` already had a real implementation.
+
+- `subscribe()` is a real registry with a working unsubscribe handle and
+  `"*"` all-topics support (`BusAuditSubscriber` already assumed `"*"`
+  and silently got nothing).
+- `publish()` dispatches to subscribers on **both** the lifecycle-start
+  branch and the main branch. The start branch used to `return` early, so
+  subscribers silently missed operation starts while still receiving the
+  matching terminal events.
+- Handlers are invoked but **never awaited**. `Watchdog.handleCrash()`
+  awaits `publish()` before recording the crash with the durability layer,
+  so a subscriber whose promise never settles would stall crash recovery.
+- Each subscriber gets a `structuredClone` of the envelope carrying `id`
+  and `ts`, so a consumer cannot mutate the retained audit trail.
+- Contract tests: 9 in `emitter.test.ts` (bus dispatch) plus 9 in
+  `recovery-bus-topic.test.ts` (end-to-end crash topic). 11 mutations of
+  the dispatch logic were applied and all 11 were caught by a failing
+  test.
+
+See `docs/plans/tasks/recovery-crash-detected.md` for the full contract
+table, the mutation matrix, and the review-thread resolutions.
 
 ### F6 — fork/exec cross-process restart test
 
