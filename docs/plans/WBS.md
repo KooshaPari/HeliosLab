@@ -166,7 +166,7 @@ radius PR and unblocks a meaningful invariant.
 | F3 | CVP JSON `generatedAt` freshness gate | `wbs/cvp-freshness` | [#205](https://github.com/KooshaPari/HeliosLab/pull/205) | `e5e631f5` | **merged** |
 | F4 | Per-release `cvp-<version>.json` artefacts + gate | — | — | — | blocked on F1 (harness needs the harness in release flow) |
 | F5 | Public `recovery.crash.detected` bus topic + contract test | `wbs/recovery-crash-topic` | [#207](https://github.com/KooshaPari/HeliosLab/pull/207) | `5dcfd385` | **merged** |
-| F6 | True fork/exec cross-process restart test (`Bun.spawn` subprocess) | — | — | — | pending (slice-2 follow-up) |
+| F6 | True fork/exec cross-process restart test (`Bun.spawn` subprocess) | `wbs/f6-fork-exec` | [#209](https://github.com/KooshaPari/HeliosLab/pull/209) | (pending merge) | **shipped in this branch — pending merge** |
 | F7 | SBOM generation inside `release.yml` | — | — | — | pending (slice-3 follow-up) |
 
 ### F3 — CVP freshness gate ([#205](https://github.com/KooshaPari/HeliosLab/pull/205), merged `e5e631f5`)
@@ -224,12 +224,46 @@ table, the mutation matrix, and the review-thread resolutions.
 
 ### F6 — fork/exec cross-process restart test
 
-Today the slice-2 cross-process restart coverage uses two
-`createRuntime({ dataDir })` lifetimes in the same Node process —
-strong enough for a CI gate, not strong enough for OS-level crash
-semantics. Follow-up: spawn the second lifetime via `Bun.spawn` so
-we lose the host V8 isolate and exercise fs lock recovery on cold
-reopen.
+The slice-2 cross-process restart coverage used two
+`createRuntime({ dataDir })` lifetimes in the same process. That is
+strong enough for a CI gate, but it shares the V8 isolate, the module
+registry, and every cached import, so it cannot catch bugs that only
+appear when the OS reaps a process and hands a cold process the same
+`dataDir`. F6 adds that missing layer.
+
+- `apps/runtime/src/__tests__/create-runtime-fork-exec.test.ts` (new) —
+  drives the subprocesses with `Bun.spawnSync`, the pattern already used
+  elsewhere in the repo for real subprocess tests.
+- `apps/runtime/src/__tests__/helpers/fork-exec-helper.ts` (new) — the
+  spawned entry point. Modes: `seed`, `recover`, `recover-corrupt`.
+  Every mode prints exactly one JSON object on stdout so the parent never
+  parses logs.
+- The first lifetime calls `process.exit(0)` **without** `runtime.close()`,
+  so nothing flushes a final checkpoint or cleans up. A stale `.tmp` is
+  left behind on purpose to reproduce the debris a real crash leaves.
+- Both recovery tests assert that every pid involved is distinct, so a
+  future refactor back to in-process lifetimes fails loudly rather than
+  silently losing the coverage this slice exists to provide. The two
+  failure-path tests assert exit codes and error payloads instead.
+- Backup fallback is covered directly: two seed processes create a
+  `.backup`, then a third cold process reads a primary whose checksum is
+  wrong and whose session list has been swapped for a decoy. Getting the
+  real session back proves the primary was rejected on integrity grounds.
+
+4 tests, 35 assertions. Mutation-tested against
+`apps/runtime/src/recovery/checkpoint.ts`: **6 of 8 mutations caught**
+(atomic-write removal, checksum removal, backup removal, backup-fallback
+removal, `verifyChecksum` neutered, `read()` disabled). The 2 survivors
+are honest gaps, not harness noise:
+
+- Removing `cleanStaleTempFiles()` is unobservable because `fs.writeFile`
+  truncates the same `.tmp` path and the rename removes it either way.
+  The method is redundant on the happy path.
+- Removing the `fsync` cannot be caught without a power-cut simulation,
+  which is out of scope for a test suite.
+
+Both are recorded rather than papered over with a test that would pass
+for the wrong reason.
 
 ### F7 — SBOM inside `release.yml`
 
