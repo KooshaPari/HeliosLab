@@ -1,6 +1,8 @@
 # F5 — Public `recovery.crash.detected` bus topic + contract test
 
-**Branch:** `wbs/recovery-crash-topic`
+**Branch:** `wbs/recovery-crash-topic` (deleted on merge)
+**PR:** [#207](https://github.com/KooshaPari/HeliosLab/pull/207)
+**Merged:** `5dcfd385` on 2026-09-24
 **Worktree:** `C:\Users\koosh\agents\sandbox\f5-recovery-topic`
 **Slice:** 6 (WBS follow-up ladder), F5 (slice-2 follow-up)
 **Traces to:** F5 in `docs/plans/WBS.md`
@@ -107,7 +109,7 @@ string for that field, so no accepted event can carry a numeric one.
 | `apps/runtime/src/protocol/bus/emitter.ts` | `subscribe()` stub → real handler registry with `"*"` support. `publish()` dispatches to subscribers via the new `dispatchToSubscribers()` on both the start-topic branch and the main branch. Handlers are not awaited, errors are isolated, and each gets a detached envelope carrying `id`/`ts`. `destroy()` clears the registry. |
 | `apps/runtime/src/protocol/bus/emitter.test.ts` | **New.** 9 tests pinning the bus-level dispatch contract. Also satisfies the `Constitution Compliance Validation` "Test Coverage" rule, which requires a colocated or mirrored test for each changed `.ts` source file. |
 | `apps/runtime/src/recovery/__tests__/recovery-bus-topic.test.ts` | 8 tests plus a 9th asserting bus-subscriber-before-internal-handler ordering. |
-| `docs/plans/WBS.md` | F5 row updated from `pending` → `shipped in this branch — pending merge`. |
+| `docs/plans/WBS.md` | F5 row updated from `pending` → `merged` ([#207](https://github.com/KooshaPari/HeliosLab/pull/207), `5dcfd385`). |
 | `docs/plans/tasks/recovery-crash-detected.md` | This file. |
 
 ## Files **not** touched

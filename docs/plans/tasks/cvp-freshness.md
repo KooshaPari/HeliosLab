@@ -184,7 +184,8 @@ intentionally exits 1 to prove the gate works.
 ## Follow-ups after F3
 
 - F4 — per-release `cvp-<version>.json` + gate (blocked on F1).
-- F5 — public `recovery.crash.detected` bus topic + contract test.
+- F5 — public `recovery.crash.detected` bus topic + contract test
+  (**merged**, [#207](https://github.com/KooshaPari/HeliosLab/pull/207) `5dcfd385`).
 - F6 — true fork/exec cross-process restart test.
 - F7 — SBOM generation inside `release.yml`.
 - F1/F2 — terminal-first cherry-pick planning slice.

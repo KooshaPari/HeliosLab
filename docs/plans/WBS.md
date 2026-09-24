@@ -20,7 +20,7 @@ into `main`.
 | 3 | Release evidence gate | `wbs/release-evidence` | [#202](https://github.com/KooshaPari/HeliosLab/pull/202) | `27876400` | **merged** |
 | 4 | CVP evidence gate | `wbs/cvp` | [#203](https://github.com/KooshaPari/HeliosLab/pull/203) | `b66707a4` | **merged** |
 | 5 | WBS closeout + follow-up ladder | `wbs/closeout` | [#204](https://github.com/KooshaPari/HeliosLab/pull/204) | `83dc9b4f` | **merged** |
-| 6 | WBS follow-ups (F3 / F5 / F6 / F7) | `wbs/cvp-freshness`, … | [#205](https://github.com/KooshaPari/HeliosLab/pull/205) (F3) | `e5e631f5` (F3) | F3 **merged**; F5 / F6 / F7 pending |
+| 6 | WBS follow-ups (F3 / F5 / F6 / F7) | `wbs/cvp-freshness`, `wbs/recovery-crash-topic`, … | [#205](https://github.com/KooshaPari/HeliosLab/pull/205) (F3), [#206](https://github.com/KooshaPari/HeliosLab/pull/206) (F3 doc), [#207](https://github.com/KooshaPari/HeliosLab/pull/207) (F5) | `e5e631f5` (F3), `5dcfd385` (F5) | F3 + F5 **merged**; F6 / F7 pending |
 
 ---
 
@@ -99,9 +99,8 @@ artefacts).
 
 ## What is enforced on `main` today
 
-A pull request against `main` is blocked at the branch-protection
-layer unless **every** check in `.github/required-checks.txt` is
-green:
+These five checks are the **declared** required set in
+`.github/required-checks.txt`:
 
 ```text
 ci.yml|ci / lint
@@ -114,6 +113,14 @@ cvp-evidence.yml|CVP Evidence
 Plus the repo's external providers (SonarCloud, Snyk, Semgrep, Infisical, …)
 that are evaluated in the PR quality gate before Mergify admits the
 PR to the merge queue.
+
+**They are not enforced by branch protection today.** As of `5dcfd385`
+the repo has no classic required status checks (`404 Required status
+checks not enabled`), no rulesets, and no branch rules. `ci / lint` and
+`ci / test` are the only two that must actually pass before merge;
+`Release Evidence` is `workflow_run`-triggered on `main` and therefore
+post-merge by design. Treat the list as documentation of intent, not
+as an enforced gate, and verify the two CI checks manually.
 
 The `verify-required-check-names` job pulls
 `.github/required-checks.txt` and asserts that every entry maps to
@@ -158,7 +165,7 @@ radius PR and unblocks a meaningful invariant.
 | F2 | Parallel `durability` work landed alongside the cherry-pick | — | — | — | deferred (its own planning slice) |
 | F3 | CVP JSON `generatedAt` freshness gate | `wbs/cvp-freshness` | [#205](https://github.com/KooshaPari/HeliosLab/pull/205) | `e5e631f5` | **merged** |
 | F4 | Per-release `cvp-<version>.json` artefacts + gate | — | — | — | blocked on F1 (harness needs the harness in release flow) |
-| F5 | Public `recovery.crash.detected` bus topic + contract test | `wbs/recovery-crash-topic` | (this PR) | (this PR) | **shipped in this branch — pending merge** |
+| F5 | Public `recovery.crash.detected` bus topic + contract test | `wbs/recovery-crash-topic` | [#207](https://github.com/KooshaPari/HeliosLab/pull/207) | `5dcfd385` | **merged** |
 | F6 | True fork/exec cross-process restart test (`Bun.spawn` subprocess) | — | — | — | pending (slice-2 follow-up) |
 | F7 | SBOM generation inside `release.yml` | — | — | — | pending (slice-3 follow-up) |
 
@@ -184,12 +191,12 @@ existing `cvp-evidence-validate.ts`:
   required check is added — the existing `CVP Evidence` job already
   fails on any non-pass, non-skip finding.
 
-### F5 — `recovery.crash.detected` public topic
+### F5 — `recovery.crash.detected` public topic ([#207](https://github.com/KooshaPari/HeliosLab/pull/207), merged `5dcfd385`)
 
 The slice-2 wiring internally subscribes to the watchdog's crash
 event and routes it through crash-loop detection → safe mode, but
 does not yet publish a public topic external consumers can listen on.
-**Shipped on `wbs/recovery-crash-topic`.** The problem was deeper than
+**Merged as `5dcfd385`.** The problem was deeper than
 missing plumbing: `InMemoryLocalBus.subscribe()` — the bus the runtime
 actually hands to `DurabilityLayer` — was a stub that never invoked
 handlers, so the topic reached the event log but no external consumer
@@ -283,6 +290,13 @@ bun test scripts/tests/cvp-evidence-validate.test.ts
 # Static analysis (slices 3+4 shared)
 bun run scripts/gate-static-analysis.ts
 
-# Required-check hygiene
-bun run scripts/gate-required-check-names.ts
+# Required-check hygiene. Run the real guard: it resolves each
+# `workflow|job` entry against the workflow files, so a renamed or
+# deleted workflow or job fails. A bare grep of the manifest would
+# only prove the manifest is still readable.
+gh workflow run required-check-names-guard.yml --ref main
+# Locally, the same assertion can be reproduced with:
+#   gh workflow view required-check-names-guard.yml --yaml main
+# Note: branch protection enforces only `ci / lint` and `ci / test`
+# today, and `Release Evidence` is post-merge by design.
 ```
