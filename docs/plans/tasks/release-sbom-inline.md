@@ -102,6 +102,8 @@ one.
 | File | Change |
 |---|---|
 | `.github/workflows/release.yml` | New conditionally-gated `sbom` job |
+| `.github/workflows/release-evidence.yml` | Extract nested artifact archives so the evidence gate can actually see them |
+| `scripts/tests/release-evidence-extract.test.ts` | Regression coverage for the download layout and extraction step |
 | `docs/plans/WBS.md` | F-ladder row and F7 section updated with the scope decision and measured scan result |
 
 ## How to verify locally
@@ -119,3 +121,35 @@ syft dir:. -o spdx-json=out.json
 # then assert pkg:npm and pkg:cargo both appear under
 # packages[].externalRefs[referenceType=purl].referenceLocator
 ```
+
+## Follow-up: the evidence step never unpacked the artifacts
+
+Emitting the SBOM was necessary but not sufficient. The download steps in
+`release-evidence.yml` write each artifact to
+`<downloadDir>/<artifact.name>/<artifact.name>.zip`, while the extraction
+step globbed only `<downloadDir>/*.zip`. That pattern matches nothing in
+that layout, so nothing was ever unpacked and `checkArtifactPresence` only
+ever saw `.zip` container names. A release run could produce a perfectly
+good `sbom.spdx.json` and still fail `sbom-present`, so the gate was
+vacuous rather than protective.
+
+The step now walks the whole tree with
+`find <dir> -type f -name '*.zip'` and unpacks each archive beside itself.
+
+The earlier verification missed this because it called
+`checkArtifactPresence` directly against a hand-built directory. It never
+exercised the download layout or the extraction step, which is precisely
+the seam where the bug lived. `scripts/tests/release-evidence-extract.test.ts`
+now covers it, including:
+
+- the positive case, where the recursive walk yields `sbom-present: pass`;
+- a negative control running the **original** top-level-only traversal over
+  the same fixture, which must still fail, proving the fixture reproduces
+  the real download layout;
+- no-SBOM and near-miss-name controls, which must still fail;
+- a check that every archive is unpacked, not only the first;
+- a Windows-only case that runs the verbatim workflow bash under Git bash
+  with GNU `find` first on `PATH`. Windows ships a `find.exe` that shadows
+  GNU `find`, which otherwise produces a misleading local failure. The
+  GitHub runner is Ubuntu, where `find` is GNU `find`.
+
