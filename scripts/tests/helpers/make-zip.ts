@@ -14,7 +14,7 @@ const CRC_TABLE = (() => {
 	return table;
 })();
 
-function crc32(buf) {
+function crc32(buf: Uint8Array): number {
 	let c = 0xffffffff;
 	for (let i = 0; i < buf.length; i++)
 		c = CRC_TABLE[(c ^ buf[i]) & 0xff] ^ (c >>> 8);
@@ -25,10 +25,12 @@ function crc32(buf) {
  * Build a ZIP archive from `entries` (filename -> string | Uint8Array).
  * Returns the archive bytes.
  */
-export function makeZip(entries) {
+export function makeZip(
+	entries: Record<string, string | Uint8Array>,
+): Uint8Array {
 	const encoder = new TextEncoder();
-	const locals = [];
-	const centrals = [];
+	const locals: Uint8Array[] = [];
+	const centrals: Uint8Array[] = [];
 	let offset = 0;
 
 	for (const [name, value] of Object.entries(entries)) {

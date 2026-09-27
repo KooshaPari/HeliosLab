@@ -71,7 +71,7 @@ jobs:
           fi
 
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.1.1
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 0
           ref: ${{ steps.resolve-sha.outputs.sha || steps.resolve-sha-dispatch.outputs.sha }}
@@ -181,7 +181,7 @@ jobs:
           # layout, so the validator only ever saw ".zip" container names and
           # sbom-present failed even when the artifact existed. Walk the whole
           # tree instead and unpack each archive beside itself.
-          set -e
+          set -eo pipefail
           find /tmp/release-evidence-artifacts -type f -name '*.zip' -print0 |
             while IFS= read -r -d '' zip; do
               out="$(dirname "$zip")/$(basename "$zip" .zip)"

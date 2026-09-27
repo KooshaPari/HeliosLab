@@ -43,14 +43,20 @@ from neighbouring workflows:
 - `actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11` (v4.1.1)
 - `anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610` (v0)
 
-This matters: the SHA that appears on the existing `release.yml`
-checkout line, `11bd71901bbe5b1630ceaa73d27597364c9af683`, **does not
-exist** (API returns `422 No commit found`). The real v4.1.1 is the
-`b4ffde65...` above. A draft of this branch initially copied the bad
-SHA from `release-evidence.yml` and was caught only because the pins
-were checked rather than trusted. This is the same class of bug as the
-`setup-bun` pin that broke the release-evidence gate on every main SHA
-before F5's doc follow-up fixed it.
+This matters: the two workflows do not agree on which checkout
+they pin. `release.yml` line 26 and `release-evidence.yml` line 74
+both use `11bd71901bbe5b1630ceea73d27597364c9af683`, which the
+API resolves to commit `Prepare 4.2.2 Release (#1953)`, i.e.
+**v4.2.2**, while the `b4ffde65...` above is v4.1.1. Both
+annotations previously read `# v4.1.1`, so the tree was pinning v4.2.2
+while claiming v4.1.1. The annotations are now corrected to
+`# v4.2.2`; the pins are left as they are, since v4.2.2 is the
+newer of the two and both resolve. A draft of this branch
+initially copied a pin between the two workflows and was caught
+only because the pins were checked against the API rather than
+trusted. That is the same class of bug as the `setup-bun` pin that
+broke the release-evidence gate on every main SHA before F5's
+doc follow-up fixed it.
 
 **The artifact name satisfies the gate.** The real
 `checkArtifactPresence` was run against five artifact trees, including
