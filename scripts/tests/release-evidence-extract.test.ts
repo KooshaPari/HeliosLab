@@ -1,7 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { execFileSync } from "node:child_process";
 import {
-	appendFileSync,
 	existsSync,
 	mkdirSync,
 	mkdtempSync,
@@ -402,7 +401,7 @@ describe("release-evidence workflow extraction step", () => {
 		if (result === null) {
 			// Git's bash is absent on this Windows box; the POSIX path above
 			// still covers CI. Skip rather than pass vacuously.
-			console.warn("skipping: Git bash not found at " + gitBash);
+			console.warn(`skipping: Git bash not found at ${gitBash}`);
 			return;
 		}
 		expect(sbomStatus(downloadDir)).toBe("pass");
