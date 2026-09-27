@@ -43,18 +43,17 @@ from neighbouring workflows:
 - `actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11` (v4.1.1)
 - `anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610` (v0)
 
-This matters: the two workflows do not agree on which checkout
-they pin. `release.yml` line 26 and `release-evidence.yml` line 74
-both use `11bd71901bbe5b1630ceea73d27597364c9af683`, which the
-API resolves to commit `Prepare 4.2.2 Release (#1953)`, i.e.
-**v4.2.2**, while the `b4ffde65...` above is v4.1.1. Both
-annotations previously read `# v4.1.1`, so the tree was pinning v4.2.2
-while claiming v4.1.1. Every `# v4.1.1` annotation on that SHA has now
-been corrected to `# v4.2.2` repo-wide: 13 lines across 11 workflow
-files, bringing all 19 pins of this SHA to one reading. The pins
-themselves are left alone, since v4.2.2 is the newer of the two and both
-resolve. A draft of this branch
-initially copied a pin between the two workflows and was caught
+This matters: `actions/checkout` is pinned in 19 places across 14 workflow
+files, and every one of them pins the same SHA
+`11bd71901bbe5b1630ceaa73d27597364c9af683`, which the API
+resolves to commit `Prepare 4.2.2 Release (#1953)`, i.e. **v4.2.2**.
+At the base commit `ce6cbadc`, 15 of those 19 lines across 10 files
+were annotated `# v4.1.1` and only 4 across 4 files read
+`# v4.2.2`, so the tree was largely pinning v4.2.2 while claiming
+v4.1.1. All 15 are now annotated `# v4.2.2`, so the 19 pins read
+consistently. The pins themselves are untouched: same SHA, corrected
+label, and v4.2.2 is the newer of the two candidates. A draft of this
+branch initially copied a pin between the two workflows and was caught
 only because the pins were checked against the API rather than
 trusted. That is the same class of bug as the `setup-bun` pin that
 broke the release-evidence gate on every main SHA before F5's

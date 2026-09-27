@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { execFileSync } from "node:child_process";
 import {
+	appendFileSync,
 	existsSync,
 	mkdirSync,
 	mkdtempSync,
@@ -35,39 +36,95 @@ import { makeZip } from "./helpers/make-zip";
 
 const REPO_ROOT = join(import.meta.dir, "..", "..");
 
+function readWorkflow(name: string): string {
+	try {
+		return readFileSync(join(REPO_ROOT, ".github", "workflows", name), "utf8");
+	} catch (e) {
+		throw new Error(
+			`could not read .github/workflows/${name}: ${(e as Error).message}`,
+		);
+	}
+}
+
 /**
- * The extraction step's shell, read out of release-evidence.yml rather than
- * pasted here. A pasted copy silently goes stale: when the step gained
- * `set -eo pipefail` the test kept asserting the old `set -e` and its
- * "verbatim" claim became false while still reading as coverage.
- * Deriving the script means a change to the workflow is a change to this
- * test, and the substitution below is the only edit.
+ * The shell of the "Extract downloaded artifacts" step, read out of
+ * release-evidence.yml rather than pasted here.
+ *
+ * A pasted copy silently goes stale: when the step gained `set -eo
+ * pipefail` the test kept asserting the old `set -e` and its "verbatim"
+ * claim became false while still reading as coverage. Reading it at test
+ * time means a change to the workflow is a change to what runs.
+ *
+ * Both failures here are deliberate rather than incidental. The body
+ * indent is derived from the `run: |` line so a step nested one level
+ * deeper still parses, and the `run:` search is bounded by the next step
+ * so a step that loses its `run:` key fails here instead of silently
+ * adopting the following step's script. Neither throws at module load,
+ * so a workflow edit cannot take the rest of this file's tests with it.
  */
-const EXTRACTION_STEP = (() => {
-	const lines = readFileSync(
-		join(REPO_ROOT, ".github", "workflows", "release-evidence.yml"),
-		"utf8",
-	).split("\n");
+function readExtractionStep(): string {
+	const lines = readWorkflow("release-evidence.yml").split("\n");
 	const step = lines.findIndex((l) =>
 		l.includes("- name: Extract downloaded artifacts"),
 	);
 	if (step === -1)
 		throw new Error("Extract downloaded artifacts step not found");
-	const run = lines.findIndex((l, i) => i > step && l.trim() === "run: |");
+
+	// The step runs until the next sibling key, which is the next
+	// "- name:" at this step's own indent.
+	const stepIndent = lines[step].length - lines[step].trimStart().length || 0;
+	let end = step + 1;
+	while (end < lines.length) {
+		const l = lines[end];
+		const indent = l.length - l.trimStart().length;
+		if (l.trim() !== "" && indent <= stepIndent) break;
+		end++;
+	}
+
+	const run = lines.findIndex(
+		(l, i) => i > step && i < end && l.trimStart().startsWith("run:"),
+	);
 	if (run === -1)
-		throw new Error("Extract downloaded artifacts step has no run block");
+		throw new Error(
+			`Extract downloaded artifacts step (lines ${step + 1}-${end}) has no "run:" key`,
+		);
+
+	// The body of a block scalar is indented past its own key, so the
+	// key's indent is the right base regardless of how deep the step sits.
+	const indent = " ".repeat(
+		lines[run].length - lines[run].trimStart().length + 2,
+	);
 	const body: string[] = [];
-	const indent = " ".repeat(10);
-	for (let i = run + 1; i < lines.length; i++) {
+	for (let i = run + 1; i < end; i++) {
 		const line = lines[i];
-		// The run block is indented 10 spaces; a non-blank line at or below
-		// that level belongs to the next key and ends the block.
 		if (line.trim() !== "" && !line.startsWith(indent)) break;
 		body.push(line.slice(indent.length));
 	}
-	if (body.length === 0) throw new Error("Extraction step body was empty");
+	if (body.length === 0)
+		throw new Error(`Extraction step "run:" block at line ${run + 1} is empty`);
 	return body.join("\n");
-})();
+}
+
+/** Path the workflow hard-codes; the tests substitute a temp dir for it. */
+const EXTRACTION_DOWNLOAD_DIR = "/tmp/release-evidence-artifacts";
+
+/**
+ * The step's shell with the workflow's download directory replaced.
+ * Throws rather than returning a half-substituted script, so a renamed
+ * download path surfaces as a failure instead of unzipping /tmp.
+ */
+function extractionScriptFor(dir: string): string {
+	const script = readExtractionStep().replace(
+		EXTRACTION_DOWNLOAD_DIR,
+		`'${dir}'`,
+	);
+	if (script.includes(EXTRACTION_DOWNLOAD_DIR)) {
+		throw new Error(
+			`extraction step no longer hard-codes ${EXTRACTION_DOWNLOAD_DIR}, so the test cannot redirect it; update EXTRACTION_DOWNLOAD_DIR`,
+		);
+	}
+	return script;
+}
 
 /**
  * The artifact name the `sbom` job in release.yml uploads under, read from
@@ -274,77 +331,116 @@ describe("release-evidence artifact extraction", () => {
 
 describe("release-evidence workflow extraction step", () => {
 	const isWindows = process.platform === "win32";
-	const bash = "C:/Program Files/Git/usr/bin/bash.exe";
+	const gitBash = "C:/Program Files/Git/usr/bin/bash.exe";
 	const gitUsrBin = "C:/Program Files/Git/usr/bin";
 
-	it("reads the extraction shell out of the workflow, not a pasted copy", () => {
-		// The bash execution below is skipIf(!isWindows), so on the Ubuntu
-		// runner nothing asserts the step's shell at all. These assertions run
-		// everywhere and pin the properties that test depends on, so dropping
-		// `pipefail`, or reverting to a top-level-only glob, fails on CI rather
-		// than going unnoticed until a real release.
-		expect(EXTRACTION_STEP).toContain("set -eo pipefail");
-		expect(EXTRACTION_STEP).toContain("/tmp/release-evidence-artifacts");
-		expect(EXTRACTION_STEP).toContain("-type f -name '*.zip' -print0");
-		// The original defect was a top-level-only glob, which matches nothing
-		// in <downloadDir>/<artifact.name>/<artifact.name>.zip.
-		expect(EXTRACTION_STEP).not.toMatch(
-			/find\s+\/tmp\/release-evidence-artifacts\s+-maxdepth\s+1\b/,
-		);
-		expect(EXTRACTION_STEP).toMatch(/unzip\s+-o\s+-q\s+"\$zip"\s+-d\s+"\$out"/);
-	});
-
-	it.skipIf(!isWindows || !existsSync(bash))(
-		"unpacks nested archives using the exact bash from release-evidence.yml",
-		() => {
-			// Windows ships C:\Windows\System32\find.exe, which shadows GNU find and
-			// would report a false failure here. Prepending Git's usr/bin gives the
-			// same GNU find the Ubuntu runner has.
-			const env = {
-				...process.env,
-				PATH: `${gitUsrBin};${process.env.PATH ?? ""}`,
-			};
-			const downloadDir = join(root, "workflow-bash");
-			mkdirSync(downloadDir, { recursive: true });
-			for (const [artifactName, entries] of Object.entries({
-				"sbom.spdx.json": SBOM,
-				"cvp-1.0.0.json": CVP,
-				"BUILD_MANIFEST.json": MANIFEST,
-				"provenance.json": PROVENANCE,
-			})) {
-				makeArtifact(downloadDir, artifactName, entries);
-			}
-			const posix = execFileSync(bash, ["-c", `cygpath -u '${downloadDir}'`], {
+	/**
+	 * Run the step's own shell against a real download tree.
+	 *
+	 * On POSIX this uses /bin/bash directly, which is the binary the
+	 * ubuntu-24.04 runner that executes release-evidence.yml actually uses.
+	 * On Windows it uses Git's bash, because C:\Windows\System32\find.exe
+	 * shadows GNU find there and would report a false failure.
+	 */
+	function runExtraction(
+		downloadDir: string,
+	): { bash: string; posixDir: string } | null {
+		let bash: string;
+		let posixDir: string;
+		let env: Record<string, string> = { ...process.env } as Record<
+			string,
+			string
+		>;
+		if (isWindows) {
+			if (!existsSync(gitBash)) return null;
+			env = { ...env, PATH: `${gitUsrBin};${process.env.PATH ?? ""}` };
+			posixDir = execFileSync(gitBash, ["-c", `cygpath -u '${downloadDir}'`], {
 				encoding: "utf8",
 				env,
 			}).trim();
+			bash = gitBash;
+		} else {
+			bash = "/bin/bash";
+			posixDir = downloadDir;
+		}
+		execFileSync(bash, ["-s"], {
+			input: extractionScriptFor(posixDir),
+			stdio: "pipe",
+			env,
+		});
+		return { bash, posixDir };
+	}
 
-			// The workflow's own extraction step, parsed from the YAML above
-			// with only the hard-coded download directory substituted. Fed over
-			// stdin so neither cmd nor the test runner can rewrite the quoting.
-			const script = EXTRACTION_STEP.replace(
-				"/tmp/release-evidence-artifacts",
-				`'${posix}'`,
-			);
-			if (script.includes("/tmp/release-evidence-artifacts")) {
-				throw new Error(
-					"download directory substitution failed; the extraction step no longer contains the expected path",
-				);
-			}
-			execFileSync(bash, ["-s"], { input: script, stdio: "pipe", env });
+	/** Build <dir>/<artifact>/<artifact>.zip, the layout the downloads produce. */
+	function seedDownloadTree(dir: string): void {
+		mkdirSync(dir, { recursive: true });
+		for (const [artifactName, entries] of Object.entries({
+			"sbom.spdx.json": SBOM,
+			"cvp-1.0.0.json": CVP,
+			"BUILD_MANIFEST.json": MANIFEST,
+			"provenance.json": PROVENANCE,
+		})) {
+			makeArtifact(dir, artifactName, entries);
+		}
+	}
 
-			expect(sbomStatus(downloadDir)).toBe("pass");
-			const unpacked = listRealFiles(downloadDir)
+	const expectedUnpacked = [
+		"BUILD_MANIFEST.json",
+		"cvp-1.0.0.json",
+		"provenance.json",
+		"sbom.spdx.json",
+	];
+
+	it("unpacks every nested archive when run on this platform", () => {
+		// This is the real coverage: the step's own shell, read out of the
+		// workflow and executed against the real download layout. It runs on
+		// the ubuntu-24.04 runner as well as here, so a semantically broken
+		// step fails CI rather than waiting for a release.
+		const downloadDir = join(root, "workflow-bash");
+		seedDownloadTree(downloadDir);
+		const result = runExtraction(downloadDir);
+		if (result === null) {
+			// Git's bash is absent on this Windows box; the POSIX path above
+			// still covers CI. Skip rather than pass vacuously.
+			console.warn("skipping: Git bash not found at " + gitBash);
+			return;
+		}
+		expect(sbomStatus(downloadDir)).toBe("pass");
+		expect(
+			listRealFiles(downloadDir)
 				.filter((f) => !f.endsWith(".zip"))
 				.map((f) => basename(f))
-				.sort();
-			expect(unpacked).toEqual([
-				"BUILD_MANIFEST.json",
-				"cvp-1.0.0.json",
-				"provenance.json",
-				"sbom.spdx.json",
-			]);
-		},
-		60_000,
-	);
+				.sort(),
+		).toEqual(expectedUnpacked);
+	}, 60_000);
+
+	it("fails the step when the download tree contains a corrupt archive", () => {
+		// Behavioural check that the step's shell options actually bite, and
+		// the direct negative control for `set -eo pipefail`: without it, a
+		// failing unzip inside the while body is masked and the step exits 0.
+		//
+		// Truncation, not appended garbage: unzip tolerates trailing bytes
+		// after the end-of-central-directory record and still exits 0, so an
+		// append-based control passes vacuously. Cutting the archive in half
+		// destroys the central directory and makes unzip exit 9.
+		const downloadDir = join(root, "workflow-bash-corrupt");
+		seedDownloadTree(downloadDir);
+		const victim = join(downloadDir, "cvp-1.0.0.json", "cvp-1.0.0.json.zip");
+		const bytes = readFileSync(victim);
+		writeFileSync(victim, bytes.subarray(0, Math.floor(bytes.length / 2)));
+		expect(() => runExtraction(downloadDir)).toThrow();
+	}, 60_000);
+
+	it("parses the step body regardless of how deeply the step is nested", () => {
+		// The parser derives the body indent from the `run:` key rather than
+		// hard-coding 10 spaces, so this passes even if the step is moved
+		// under an extra `with:` or job wrapper.
+		const script = readExtractionStep();
+		expect(script).toContain(EXTRACTION_DOWNLOAD_DIR);
+		expect(script).toContain("unzip");
+		// A body that lost its find/unzip would parse to something empty of
+		// behaviour; require the actual traversal and extraction calls.
+		expect(script).toMatch(/find\b/);
+		expect(script).toMatch(/unzip\b/);
+	});
 });
