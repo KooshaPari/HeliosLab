@@ -166,8 +166,8 @@ radius PR and unblocks a meaningful invariant.
 | F3 | CVP JSON `generatedAt` freshness gate | `wbs/cvp-freshness` | [#205](https://github.com/KooshaPari/HeliosLab/pull/205) | `e5e631f5` | **merged** |
 | F4 | Per-release `cvp-<version>.json` artefacts + gate | — | — | — | blocked on F1 (harness needs the harness in release flow) |
 | F5 | Public `recovery.crash.detected` bus topic + contract test | `wbs/recovery-crash-topic` | [#207](https://github.com/KooshaPari/HeliosLab/pull/207) | `5dcfd385` | **merged** |
-| F6 | True fork/exec cross-process restart test (`Bun.spawn` subprocess) | `wbs/f6-fork-exec` | [#209](https://github.com/KooshaPari/HeliosLab/pull/209) | (pending merge) | **shipped in this branch — pending merge** |
-| F7 | SBOM generation inside `release.yml` | — | — | — | pending (slice-3 follow-up) |
+| F6 | True fork/exec cross-process restart test (`Bun.spawn` subprocess) | `wbs/f6-fork-exec` | [#209](https://github.com/KooshaPari/HeliosLab/pull/209) | `ce6cbadc` | **merged** |
+| F7 | SBOM generation inside `release.yml` | `wbs/f7-sbom` | [#210](https://github.com/KooshaPari/HeliosLab/pull/210) | (pending merge) | **shipped in this branch — pending merge** |
 
 ### F3 — CVP freshness gate ([#205](https://github.com/KooshaPari/HeliosLab/pull/205), merged `e5e631f5`)
 
@@ -268,9 +268,32 @@ for the wrong reason.
 ### F7 — SBOM inside `release.yml`
 
 The slice-3 release-evidence gate verifies SBOM presence, but
-`release.yml` does not yet generate it; today the SBOM comes from the
-scheduled `sbom-refresh` job. Follow-up: move generation inline so
-the SBOM and the release commit are born from the same workflow run.
+`release.yml` did not generate it; the SBOM came only from the
+scheduled `sbom-refresh` job. This branch adds an `sbom` job to
+`release.yml` so the SBOM and the release commit are born from the
+same workflow run.
+
+**Scope decision: both dependency trees, one invocation.** The
+narrow reading is "SBOM for the crate we publish", since `release.yml`
+is a Rust-only pipeline (`cargo build` / `cargo publish`). But the
+repo is polyglot (`Cargo.lock` and `bun.lock` both present), and the
+gate only matches an SBOM by *filename*, so a narrow SBOM would have
+satisfied the gate while leaving the Node tree undescribed. Rather
+than install two generators, `anchore/sbom-action` scans `path: .`
+and Syft auto-detects every lockfile it finds.
+
+Verified against a real scan of this repository (Syft 1.52.0,
+SPDX-2.3): **1489 packages**, comprising 999 `pkg:npm`, 182 `pkg:cargo`,
+175 `pkg:github`, 52 `pkg:pypi`, and 8 `pkg:golang`, with the
+first-party crate present. So the claim above is measured, not assumed.
+
+The job is gated on the **same `if` condition as the `release` job**.
+That is deliberate: a non-release push to `main` currently produces a
+successful-but-empty "Release" run because the release job is skipped,
+and an always-on SBOM job would silently start satisfying the evidence
+gate on commits that were never released.
+
+`sbom-refresh.yml` is left in place for the non-release cadence.
 
 ### F1 / F2 / F4 — terminal-first landing
 
