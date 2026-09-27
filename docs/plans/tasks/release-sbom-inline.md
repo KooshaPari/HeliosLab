@@ -49,9 +49,11 @@ both use `11bd71901bbe5b1630ceea73d27597364c9af683`, which the
 API resolves to commit `Prepare 4.2.2 Release (#1953)`, i.e.
 **v4.2.2**, while the `b4ffde65...` above is v4.1.1. Both
 annotations previously read `# v4.1.1`, so the tree was pinning v4.2.2
-while claiming v4.1.1. The annotations are now corrected to
-`# v4.2.2`; the pins are left as they are, since v4.2.2 is the
-newer of the two and both resolve. A draft of this branch
+while claiming v4.1.1. Every `# v4.1.1` annotation on that SHA has now
+been corrected to `# v4.2.2` repo-wide: 13 lines across 11 workflow
+files, bringing all 19 pins of this SHA to one reading. The pins
+themselves are left alone, since v4.2.2 is the newer of the two and both
+resolve. A draft of this branch
 initially copied a pin between the two workflows and was caught
 only because the pins were checked against the API rather than
 trusted. That is the same class of bug as the `setup-bun` pin that

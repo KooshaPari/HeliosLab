@@ -6,6 +6,16 @@
 //
 // Store-only (no deflate) is valid ZIP and keeps this dependency-free;
 // `unzip -o -q` reads it exactly as it reads a deflated archive.
+//
+// Intentionally outside `tsc` coverage: the root tsconfig includes only
+// apps/*/src and packages/*/src, so `bun run typecheck` never loads this
+// file, and `bun test` transpiles without checking types. The annotations
+// below are therefore checked by hand, via
+//   tsc --noEmit --strict --skipLibCheck --target es2022 \
+//       --module esnext --moduleResolution bundler scripts/tests/helpers/make-zip.ts
+// which is clean, and which reports TS7006 on both functions if the
+// parameter types are removed. Do not assume CI will catch a regression
+// here.
 const CRC_TABLE = (() => {
 	const table = new Int32Array(256);
 	for (let n = 0; n < 256; n++) {

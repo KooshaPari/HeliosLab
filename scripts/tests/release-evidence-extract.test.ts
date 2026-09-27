@@ -33,6 +33,42 @@ import { makeZip } from "./helpers/make-zip";
  * so the test stays meaningful if either side is edited.
  */
 
+const REPO_ROOT = join(import.meta.dir, "..", "..");
+
+/**
+ * The extraction step's shell, read out of release-evidence.yml rather than
+ * pasted here. A pasted copy silently goes stale: when the step gained
+ * `set -eo pipefail` the test kept asserting the old `set -e` and its
+ * "verbatim" claim became false while still reading as coverage.
+ * Deriving the script means a change to the workflow is a change to this
+ * test, and the substitution below is the only edit.
+ */
+const EXTRACTION_STEP = (() => {
+	const lines = readFileSync(
+		join(REPO_ROOT, ".github", "workflows", "release-evidence.yml"),
+		"utf8",
+	).split("\n");
+	const step = lines.findIndex((l) =>
+		l.includes("- name: Extract downloaded artifacts"),
+	);
+	if (step === -1)
+		throw new Error("Extract downloaded artifacts step not found");
+	const run = lines.findIndex((l, i) => i > step && l.trim() === "run: |");
+	if (run === -1)
+		throw new Error("Extract downloaded artifacts step has no run block");
+	const body: string[] = [];
+	const indent = " ".repeat(10);
+	for (let i = run + 1; i < lines.length; i++) {
+		const line = lines[i];
+		// The run block is indented 10 spaces; a non-blank line at or below
+		// that level belongs to the next key and ends the block.
+		if (line.trim() !== "" && !line.startsWith(indent)) break;
+		body.push(line.slice(indent.length));
+	}
+	if (body.length === 0) throw new Error("Extraction step body was empty");
+	return body.join("\n");
+})();
+
 /**
  * The artifact name the `sbom` job in release.yml uploads under, read from
  * that workflow rather than hard-coded, so renaming it there fails the sync
@@ -40,7 +76,7 @@ import { makeZip } from "./helpers/make-zip";
  */
 const RELEASED_SBOM_ARTIFACT = (() => {
 	const workflow = readFileSync(
-		join(import.meta.dir, "..", "..", ".github", "workflows", "release.yml"),
+		join(REPO_ROOT, ".github", "workflows", "release.yml"),
 		"utf8",
 	);
 	const match = workflow.match(/^\s*artifact-name:\s*(\S+)\s*$/m);
@@ -241,6 +277,23 @@ describe("release-evidence workflow extraction step", () => {
 	const bash = "C:/Program Files/Git/usr/bin/bash.exe";
 	const gitUsrBin = "C:/Program Files/Git/usr/bin";
 
+	it("reads the extraction shell out of the workflow, not a pasted copy", () => {
+		// The bash execution below is skipIf(!isWindows), so on the Ubuntu
+		// runner nothing asserts the step's shell at all. These assertions run
+		// everywhere and pin the properties that test depends on, so dropping
+		// `pipefail`, or reverting to a top-level-only glob, fails on CI rather
+		// than going unnoticed until a real release.
+		expect(EXTRACTION_STEP).toContain("set -eo pipefail");
+		expect(EXTRACTION_STEP).toContain("/tmp/release-evidence-artifacts");
+		expect(EXTRACTION_STEP).toContain("-type f -name '*.zip' -print0");
+		// The original defect was a top-level-only glob, which matches nothing
+		// in <downloadDir>/<artifact.name>/<artifact.name>.zip.
+		expect(EXTRACTION_STEP).not.toMatch(
+			/find\s+\/tmp\/release-evidence-artifacts\s+-maxdepth\s+1\b/,
+		);
+		expect(EXTRACTION_STEP).toMatch(/unzip\s+-o\s+-q\s+"\$zip"\s+-d\s+"\$out"/);
+	});
+
 	it.skipIf(!isWindows || !existsSync(bash))(
 		"unpacks nested archives using the exact bash from release-evidence.yml",
 		() => {
@@ -266,17 +319,18 @@ describe("release-evidence workflow extraction step", () => {
 				env,
 			}).trim();
 
-			// Verbatim from the "Extract downloaded artifacts" step, with the
-			// download directory substituted. Fed over stdin so neither cmd nor the
-			// test runner can rewrite the quoting.
-			const script = `set -e
-find '${posix}' -type f -name '*.zip' -print0 |
-  while IFS= read -r -d '' zip; do
-    out="$(dirname "$zip")/$(basename "$zip" .zip)"
-    mkdir -p "$out"
-    unzip -o -q "$zip" -d "$out"
-  done
-`;
+			// The workflow's own extraction step, parsed from the YAML above
+			// with only the hard-coded download directory substituted. Fed over
+			// stdin so neither cmd nor the test runner can rewrite the quoting.
+			const script = EXTRACTION_STEP.replace(
+				"/tmp/release-evidence-artifacts",
+				`'${posix}'`,
+			);
+			if (script.includes("/tmp/release-evidence-artifacts")) {
+				throw new Error(
+					"download directory substitution failed; the extraction step no longer contains the expected path",
+				);
+			}
 			execFileSync(bash, ["-s"], { input: script, stdio: "pipe", env });
 
 			expect(sbomStatus(downloadDir)).toBe("pass");
