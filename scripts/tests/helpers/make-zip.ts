@@ -1,6 +1,8 @@
 // Minimal store-only ZIP writer, so the test builds a real zip on every
-// platform without depending on a `zip` binary or on `tar -a`, which
-// produces a TAR on Linux (bsdtar only honours -a for zip on Windows).
+// platform without depending on a `zip` binary or on `tar -a`. GNU tar on
+// the Linux runners ignores `-a` for a `.zip` suffix and writes a TAR,
+// while bsdtar on macOS and Windows honours it and writes a real ZIP, so
+// the old fixture passed locally and failed in CI.
 //
 // Store-only (no deflate) is valid ZIP and keeps this dependency-free;
 // `unzip -o -q` reads it exactly as it reads a deflated archive.

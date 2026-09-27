@@ -138,9 +138,19 @@ that layout, so nothing was ever unpacked and `checkArtifactPresence` only
 ever saw `.zip` container names. A release run could produce a perfectly
 good `sbom.spdx.json` and still fail `sbom-present`. The gate was therefore
 broken rather than protective, and specifically a false-negative one: it
-failed closed on every run, including runs that shipped a correct SBOM, so
-it would have blocked every release rather than letting a bad one through.
-The same blind spot hid `BUILD_MANIFEST` and the CVP artefacts.
+failed closed on every run, including runs that shipped a correct SBOM.
+The same blind spot hid `BUILD_MANIFEST` and the SLSA provenance
+(`.intoto.jsonl`) files, since `checkArtifactPresence` reads the
+downloaded tree for exactly those three things. CVP is unaffected:
+`scripts/cvp-evidence-validate.ts` reads a pre-existing report from
+`.gate-reports/cvp-evidence.json` and never touches the download
+directory.
+
+Because the gate triggers on `workflow_run` for `main`, it is post-merge
+by design and cannot stop a release from shipping. The real consequence
+was a red `Release Evidence` check on every post-merge run, leaving
+published-but-unevidenced releases behind, rather than releases being
+blocked outright.
 
 The step now walks the whole tree with
 `find <dir> -type f -name '*.zip'` and unpacks each archive beside itself.
