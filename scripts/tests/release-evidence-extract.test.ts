@@ -5,12 +5,17 @@ import {
 	mkdirSync,
 	mkdtempSync,
 	readdirSync,
+	readFileSync,
 	rmSync,
 	writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, dirname, join } from "node:path";
-import { checkArtifactPresence } from "../release-evidence-validate";
+import {
+	checkArtifactPresence,
+	SBOM_NAMES,
+} from "../release-evidence-validate";
+import { makeZip } from "./helpers/make-zip";
 
 /**
  * Regression coverage for the release-evidence artifact layout.
@@ -28,9 +33,26 @@ import { checkArtifactPresence } from "../release-evidence-validate";
  * so the test stays meaningful if either side is edited.
  */
 
-const SBOM_NAMES = ["sbom.spdx.json"];
+/**
+ * The artifact name the `sbom` job in release.yml uploads under, read from
+ * that workflow rather than hard-coded, so renaming it there fails the sync
+ * test below instead of silently voiding the evidence gate.
+ */
+const RELEASED_SBOM_ARTIFACT = (() => {
+	const workflow = readFileSync(
+		join(import.meta.dir, "..", "..", ".github", "workflows", "release.yml"),
+		"utf8",
+	);
+	const match = workflow.match(/^\s*artifact-name:\s*(\S+)\s*$/m);
+	if (!match) {
+		throw new Error(
+			"no artifact-name: entry found in .github/workflows/release.yml",
+		);
+	}
+	return match[1];
+})();
+
 let root: string;
-let seq = 0;
 
 /** Build <downloadDir>/<artifactName>/<artifactName>.zip containing `entries`. */
 function makeArtifact(
@@ -38,25 +60,24 @@ function makeArtifact(
 	artifactName: string,
 	entries: Record<string, string>,
 ) {
-	const stage = mkdtempSync(join(root, `stage-${seq++}-`));
-	for (const [name, body] of Object.entries(entries)) {
-		writeFileSync(join(stage, name), body);
-	}
 	const artifactDir = join(downloadDir, artifactName);
 	mkdirSync(artifactDir, { recursive: true });
-	execFileSync(
-		"tar",
-		[
-			"-a",
-			"-c",
-			"-f",
-			join(artifactDir, `${artifactName}.zip`),
-			"-C",
-			stage,
-			".",
-		],
-		{ stdio: "ignore" },
-	);
+	// A real ZIP, not a tar renamed to .zip. `tar -a` only produces a zip on
+	// Windows; on Linux bsdtar ignores -a for this case and emits a tar, which
+	// unzip then rejects. The writer keeps the fixture identical everywhere.
+	writeFileSync(join(artifactDir, `${artifactName}.zip`), makeZip(entries));
+}
+
+/** Run unzip, surfacing its stderr on failure instead of swallowing it. */
+function unzipInto(zip: string, dest: string) {
+	try {
+		execFileSync("unzip", ["-o", "-q", zip, "-d", dest], { stdio: "pipe" });
+	} catch (err) {
+		const e = err as { stderr?: Buffer; message?: string };
+		throw new Error(
+			`unzip failed for ${zip}: ${e.stderr?.toString().trim() || e.message}`,
+		);
+	}
 }
 
 /** The original workflow traversal: only top-level *.zip. */
@@ -66,7 +87,7 @@ function extractTopLevelOnly(downloadDir: string) {
 		const zip = join(downloadDir, name);
 		const dest = join(downloadDir, basename(zip, ".zip"));
 		mkdirSync(dest, { recursive: true });
-		execFileSync("unzip", ["-o", "-q", zip, "-d", dest], { stdio: "ignore" });
+		unzipInto(zip, dest);
 	}
 }
 
@@ -84,7 +105,7 @@ function extractRecursive(downloadDir: string) {
 	for (const zip of zips) {
 		const dest = join(dirname(zip), basename(zip, ".zip"));
 		mkdirSync(dest, { recursive: true });
-		execFileSync("unzip", ["-o", "-q", zip, "-d", dest], { stdio: "ignore" });
+		unzipInto(zip, dest);
 	}
 }
 
@@ -206,10 +227,12 @@ describe("release-evidence artifact extraction", () => {
 		]);
 	});
 
-	it("keeps SBOM_NAMES in sync with the artifact this workflow emits", () => {
-		// The job in release.yml uploads with artifact-name: sbom.spdx.json, so a
-		// rename there must break this test rather than silently void the gate.
-		expect(SBOM_NAMES).toContain("sbom.spdx.json");
+	it("keeps the validator's accepted SBOM names in sync with release.yml", () => {
+		// The sbom job in release.yml uploads under RELEASED_SBOM_ARTIFACT, read
+		// from that workflow at load time. If the name is renamed there or
+		// dropped from the validator, the gate would pass vacuously, so require
+		// the producer's name to be one the gate actually accepts.
+		expect(SBOM_NAMES).toContain(RELEASED_SBOM_ARTIFACT);
 	});
 });
 
