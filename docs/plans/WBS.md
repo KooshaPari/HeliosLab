@@ -167,7 +167,7 @@ radius PR and unblocks a meaningful invariant.
 | F4 | Per-release `cvp-<version>.json` artefacts + gate | — | — | — | blocked on F1 (harness needs the harness in release flow) |
 | F5 | Public `recovery.crash.detected` bus topic + contract test | `wbs/recovery-crash-topic` | [#207](https://github.com/KooshaPari/HeliosLab/pull/207) | `5dcfd385` | **merged** |
 | F6 | True fork/exec cross-process restart test (`Bun.spawn` subprocess) | `wbs/f6-fork-exec` | [#209](https://github.com/KooshaPari/HeliosLab/pull/209) | `ce6cbadc` | **merged** |
-| F7 | SBOM generation inside `release.yml` | `wbs/f7-sbom` | [#210](https://github.com/KooshaPari/HeliosLab/pull/210) | (pending merge) | **shipped in this branch — pending merge** |
+| F7 | SBOM generation inside `release.yml` | `wbs/f7-sbom` | [#210](https://github.com/KooshaPari/HeliosLab/pull/210) | `5164e5b6` | **merged** |
 
 ### F3 — CVP freshness gate ([#205](https://github.com/KooshaPari/HeliosLab/pull/205), merged `e5e631f5`)
 
@@ -265,7 +265,7 @@ are honest gaps, not harness noise:
 Both are recorded rather than papered over with a test that would pass
 for the wrong reason.
 
-### F7 — SBOM inside `release.yml`
+### F7 — SBOM inside `release.yml` ([#210](https://github.com/KooshaPari/HeliosLab/pull/210), merged `5164e5b6`)
 
 The slice-3 release-evidence gate verifies SBOM presence, but
 `release.yml` did not generate it; the SBOM came only from the
