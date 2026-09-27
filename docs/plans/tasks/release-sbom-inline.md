@@ -130,8 +130,11 @@ Emitting the SBOM was necessary but not sufficient. The download steps in
 step globbed only `<downloadDir>/*.zip`. That pattern matches nothing in
 that layout, so nothing was ever unpacked and `checkArtifactPresence` only
 ever saw `.zip` container names. A release run could produce a perfectly
-good `sbom.spdx.json` and still fail `sbom-present`, so the gate was
-vacuous rather than protective.
+good `sbom.spdx.json` and still fail `sbom-present`. The gate was therefore
+broken rather than protective, and specifically a false-negative one: it
+failed closed on every run, including runs that shipped a correct SBOM, so
+it would have blocked every release rather than letting a bad one through.
+The same blind spot hid `BUILD_MANIFEST` and the CVP artefacts.
 
 The step now walks the whole tree with
 `find <dir> -type f -name '*.zip'` and unpacks each archive beside itself.
