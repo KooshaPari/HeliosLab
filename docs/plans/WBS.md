@@ -158,6 +158,38 @@ documentation of intent and verify the checks manually; closing this gap
 means enabling `required_status_checks` for the entries that can
 meaningfully gate a merge.
 
+### The Self-Merge Gate is a third, separate surface
+
+`.github/workflows/self-merge-gate.yml` gates merging *without* branch
+protection. It requires all three of:
+
+```text
+Quality Gates Pipeline           -> quality-gates
+Constitution Compliance Validation -> compliance-check
+CodeRabbit                        -> coderabbit-review
+```
+
+plus at least one approving review, plus the PR author being the
+merger. When any of those fail it comments
+`Self-merge is blocked due to missing requirements` and leaves the
+merge button disabled.
+
+This is why the row count above is not the whole story, and it is worth
+being precise about what it is and is not:
+
+- It is **not** server-side enforcement. It works by posting a comment
+  and toggling a button, so it constrains the UI, not the API.
+- An `--admin` merge ignores it completely. That is the mechanism
+  behind #210: the gate was unsatisfied, the comment said so, and the
+  merge went through anyway.
+
+So the accurate summary is: two GitHub-side surfaces enforce nothing,
+and one workflow-side surface enforces a narrower set than
+`.github/required-checks.txt` declares, and can be bypassed by anyone
+using `--admin`. The Self-Merge Gate's set is also not a superset of
+the declared five: it names `Quality Gates Pipeline`, which is not one
+of the five entries, and it omits `ci / lint` and `ci / test`.
+
 The `verify-required-check-names` job pulls
 `.github/required-checks.txt` and asserts that every entry maps to
 a real workflow job on `main`, so an entry like `release-evidence.yml|Release Evidence`
