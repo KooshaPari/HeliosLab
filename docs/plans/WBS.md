@@ -114,13 +114,34 @@ Plus the repo's external providers (SonarCloud, Snyk, Semgrep, Infisical, …)
 that are evaluated in the PR quality gate before Mergify admits the
 PR to the merge queue.
 
-**They are not enforced by branch protection today.** As of `5dcfd385`
-the repo has no classic required status checks (`404 Required status
-checks not enabled`), no rulesets, and no branch rules. `ci / lint` and
-`ci / test` are the only two that must actually pass before merge;
-`Release Evidence` is `workflow_run`-triggered on `main` and therefore
-post-merge by design. Treat the list as documentation of intent, not
-as an enforced gate, and verify the two CI checks manually.
+**They are not enforced by branch protection today.** Re-verified on
+`64929e54` via `GET /branches/main/protection`: the response has no
+`required_status_checks` and no `required_pull_request_reviews` key at
+all, and `GET /branches/main/protection/required_status_checks` returns
+`404 Required status checks not enabled`. There are no rulesets and no
+branch rules. **Zero** of the five checks above are enforced, including
+`ci / lint` and `ci / test`; the earlier claim that those two "must
+actually pass before merge" was wrong. `Release Evidence` is
+`workflow_run`-triggered on `main` and therefore post-merge by design.
+
+What branch protection *does* enforce today:
+
+| Setting | State |
+|---|---|
+| `enforce_admins` | enabled |
+| `required_conversation_resolution` | enabled |
+| `required_linear_history` | enabled |
+| `allow_force_pushes` / `allow_deletions` | disabled |
+| `required_status_checks` | **not enabled** |
+| `required_pull_request_reviews` | **not enabled** |
+
+Because admin enforcement and conversation resolution are on but status
+checks are not, a red required check cannot block an `--admin` merge.
+That is exactly how #210 merged with four required checks failing, and
+why #211 had to repair it afterwards. Treat the list above as
+documentation of intent and verify the checks manually; closing this gap
+means enabling `required_status_checks` for the entries that can
+meaningfully gate a merge.
 
 The `verify-required-check-names` job pulls
 `.github/required-checks.txt` and asserts that every entry maps to
