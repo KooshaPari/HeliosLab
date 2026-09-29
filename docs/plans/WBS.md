@@ -115,25 +115,40 @@ that are evaluated in the PR quality gate before Mergify admits the
 PR to the merge queue.
 
 **They are not enforced by branch protection today.** Re-verified on
-`64929e54` via `GET /branches/main/protection`: the response has no
-`required_status_checks` and no `required_pull_request_reviews` key at
-all, and `GET /branches/main/protection/required_status_checks` returns
-`404 Required status checks not enabled`. There are no rulesets and no
-branch rules. **Zero** of the five checks above are enforced, including
-`ci / lint` and `ci / test`; the earlier claim that those two "must
-actually pass before merge" was wrong. `Release Evidence` is
-`workflow_run`-triggered on `main` and therefore post-merge by design.
+`64929e54` against three separate surfaces, because classic protection
+alone would not have been enough to conclude this:
 
-What branch protection *does* enforce today:
+| Surface | Endpoint | Result |
+|---|---|---|
+| Classic protection | `GET /branches/main/protection` | no `required_status_checks`, no `required_pull_request_reviews` key |
+| Classic required checks | `GET /branches/main/protection/required_status_checks` | `404 Required status checks not enabled` |
+| Repository rulesets | `GET /repos/KooshaPari/HeliosLab/rulesets` | `[]`, zero rulesets |
+
+The third row matters: a ruleset enforces its own required checks
+independently of the classic protection object, so classic protection
+showing nothing would not by itself prove the absence of enforcement.
+Both non-classic surfaces were checked before claiming zero.
+
+**Zero** of the five checks above are enforced, including `ci / lint`
+and `ci / test`; the earlier claim that those two "must actually pass
+before merge" was wrong. `Release Evidence` is `workflow_run`-triggered
+on `main` and therefore post-merge by design.
+
+What classic protection *does* configure today:
 
 | Setting | State |
 |---|---|
 | `enforce_admins` | enabled |
 | `required_conversation_resolution` | enabled |
 | `required_linear_history` | enabled |
-| `allow_force_pushes` / `allow_deletions` | disabled |
-| `required_status_checks` | **not enabled** |
-| `required_pull_request_reviews` | **not enabled** |
+| `allow_force_pushes` | `{ enabled: false }` — deliberately off |
+| `allow_deletions` | `{ enabled: false }` — deliberately off |
+| `required_status_checks` | key absent — nothing configured |
+| `required_pull_request_reviews` | key absent — nothing configured |
+
+The last two rows are not the same as the two above them. "Disabled"
+is a policy decision that is in force; "absent" means no configuration
+exists at all, which is a gap rather than a choice.
 
 Because admin enforcement and conversation resolution are on but status
 checks are not, a red required check cannot block an `--admin` merge.

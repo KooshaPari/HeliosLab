@@ -35,6 +35,11 @@ describe("Watchdog", () => {
 	// the flake on "should detect heartbeat timeout when no heartbeat
 	// received" on busy runners. Stub the liveness probe so the test states
 	// the pid is dead rather than hoping it is.
+	//
+	// `isProcessRunning` is a bare `catch { return false }`, so any throw
+	// means "not running". That includes EPERM, where the process does exist
+	// but belongs to another user. Modelling only ESRCH here would hide that
+	// gap, so `stubPidNotSignallable` throws without a code on purpose.
 	function stubPidDead(): void {
 		vi.spyOn(process, "kill").mockImplementation(() => {
 			throw Object.assign(new Error("ESRCH"), { code: "ESRCH" });
@@ -42,7 +47,15 @@ describe("Watchdog", () => {
 	}
 
 	function stubPidAlive(): void {
-		vi.spyOn(process, "kill").mockImplementation(() => true as never);
+		vi.spyOn(process, "kill").mockImplementation(() => true);
+	}
+
+	// EPERM: the pid exists but we may not signal it. The bare catch in
+	// isProcessRunning reports this as "not running".
+	function stubPidNotSignallable(): void {
+		vi.spyOn(process, "kill").mockImplementation(() => {
+			throw Object.assign(new Error("EPERM"), { code: "EPERM" });
+		});
 	}
 
 	it("should detect heartbeat timeout when no heartbeat received", async () => {
@@ -71,6 +84,23 @@ describe("Watchdog", () => {
 
 		expect(crashEvents.length).toBe(1);
 		expect(crashEvents[0].reason).toBe(CrashReason.UNRESPONSIVE);
+	});
+
+	it("should treat an unsignallable pid as HEARTBEAT_TIMEOUT", async () => {
+		// Documents current behaviour: isProcessRunning uses a bare catch, so
+		// EPERM (process exists, owned by another user) reads as not running.
+		// If that is ever tightened, this test is the thing that should fail
+		// and prompt a decision, rather than the gap going unnoticed.
+		stubPidNotSignallable();
+		const crashEvents: CrashEvent[] = [];
+		watchdog.onCrashDetected((event) => crashEvents.push(event));
+
+		watchdog.registerProcess("test-proc", 1234, 2000);
+		vi.advanceTimersByTime(4100);
+		await watchdog.waitForIdle();
+
+		expect(crashEvents.length).toBe(1);
+		expect(crashEvents[0].reason).toBe(CrashReason.HEARTBEAT_TIMEOUT);
 	});
 
 	it("should reset timeout on heartbeat", async () => {
