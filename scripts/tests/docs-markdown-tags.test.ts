@@ -21,8 +21,20 @@ import MarkdownIt from "markdown-it";
  * positives on legitimate constructs: multi-line double-backtick spans, theme
  * components, autolinks, TypeScript generics, and components that close on a
  * later line. Reproducing markdown-it badly is worse than useless, because a
- * guard that cries wolf gets disabled. Over all of docs/ the real pipeline
- * takes well under a second, so there is no reason to approximate it.
+ * guard that cries wolf gets disabled. Over all of docs/ the real pipeline is
+ * cheap enough to run for real: ~420ms of markdown-it rendering plus ~755ms of
+ * Vue parsing cold, and ~235ms once both are warm, across 233 files and about
+ * 1.1MB of markdown. That is the floor this guard pays, and the reason it does
+ * not need to be made cleverer.
+ *
+ * Those figures are also why this file sets an explicit timeout. The scan is
+ * the only test in the suite that touches all 233 documents, so under
+ * full-suite load on a busy runner it has been measured at 10.7s against the
+ * 5s default, while alone it takes ~1.1s. A default-budget test that only
+ * fails when the machine is loaded trains people to ignore it, so the budget is
+ * stated here instead. `stage-gates.yml` already runs the suite at 30s for the
+ * same reason, but `ci.yml` runs it at the 5s default, and that job is the one
+ * people actually read.
  */
 
 const DOCS_ROOT = join(process.cwd(), "docs");
@@ -82,13 +94,22 @@ function scanDocs(): string[] {
 }
 
 describe("docs build has no unclosed tag in bare prose", () => {
+	// 30s to match `stage-gates.yml`, which already budgets the whole suite at
+	// that. Measured 10.7s under full-suite load, ~1.1s alone, so this is roughly
+	// 3x the worst observed case rather than a number picked to make it green.
+	const SCAN_TIMEOUT_MS = 30000;
+
 	it("finds markdown files to scan", () => {
 		expect(walk(DOCS_ROOT).length).toBeGreaterThan(100);
 	});
 
-	it("reports no file that would break the vitepress build", () => {
-		expect(scanDocs().join("\n")).toBe("");
-	});
+	it(
+		"reports no file that would break the vitepress build",
+		() => {
+			expect(scanDocs().join("\n")).toBe("");
+		},
+		SCAN_TIMEOUT_MS,
+	);
 });
 
 describe("the guard actually catches the failure it exists for", () => {
