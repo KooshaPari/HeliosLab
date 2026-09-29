@@ -1,7 +1,11 @@
 # =============================================================================
 # OpenSSF Scorecard — Automated security best practices check
 # =============================================================================
-# Runs weekly + on main to track supply chain security posture
+# Runs on main, weekly, and on PRs so a pin change is provable BEFORE merge.
+# Previously the only triggers were push-to-main, schedule, and
+# branch_protection_rule, so this workflow could never report on a PR. That made
+# a dependency-pin fix here structurally unverifiable in review: the change could
+# only be judged after it landed on main. See the note on the pin below.
 # Free for public repos, adds security badge
 # =============================================================================
 
@@ -9,6 +13,10 @@ name: OpenSSF Scorecard
 
 on:
   branch_protection_rule:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/scorecard.yml'
   schedule:
     - cron: '25 4 * * 1'  # Weekly Monday 4:25 UTC
   push:
@@ -34,7 +42,20 @@ jobs:
           persist-credentials: false
 
       - name: Run Scorecard
-        uses: ossf/scorecard-action@62b2cac7ed8198b15735ed49ab1e5cf35480ba46  # v2.4.0
+        # v2.4.0 was the last release published to gcr.io. That registry now
+        # denies pulls for this project ("This API method requires billing to
+        # be enabled"), so the action could not start: 281 runs, 0 successes.
+        # v2.4.4 is the current release and is published to ghcr.io.
+        #
+        # Verified anonymously against the registries rather than assumed:
+        #   gcr.io/ossf/scorecard-action:v2.4.0  -> 401 no valid credential
+        #   gcr.io/ossf/scorecard-action:v2.4.1  -> 401 (also gcr-only, also dead)
+        #   ghcr.io/ossf/scorecard-action:v2.4.0  -> 404 (never moved to ghcr)
+        #   ghcr.io/ossf/scorecard-action:v2.4.4  -> 200, manifest served
+        # So this is the registry move itself, not a transient outage or a
+        # rate limit. Do not "fix" this by reverting to a gcr.io tag: every
+        # gcr.io-served version of this action is now unreachable.
+        uses: ossf/scorecard-action@2d1146689b8cda280b9bc96326124645441f03bc  # v2.4.4
         with:
           results_file: results.sarif
           results_format: sarif
