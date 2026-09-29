@@ -27,7 +27,39 @@ describe("Watchdog", () => {
 		await fs.rm(tempDir, { recursive: true, force: true }).catch(() => {});
 	});
 
+	// Watchdog decides between HEARTBEAT_TIMEOUT and UNRESPONSIVE by asking
+	// the OS whether the pid is alive (`process.kill(pid, 0)`). A hard-coded
+	// pid therefore makes the expected reason depend on host state: any
+	// machine or CI runner that happens to own that pid reports
+	// UNRESPONSIVE instead, and the assertion below fails. This has been
+	// the flake on "should detect heartbeat timeout when no heartbeat
+	// received" on busy runners. Stub the liveness probe so the test states
+	// the pid is dead rather than hoping it is.
+	//
+	// `isProcessRunning` is a bare `catch { return false }`, so any throw
+	// means "not running". That includes EPERM, where the process does exist
+	// but belongs to another user. Modelling only ESRCH here would hide that
+	// gap, so `stubPidNotSignallable` throws without a code on purpose.
+	function stubPidDead(): void {
+		vi.spyOn(process, "kill").mockImplementation(() => {
+			throw Object.assign(new Error("ESRCH"), { code: "ESRCH" });
+		});
+	}
+
+	function stubPidAlive(): void {
+		vi.spyOn(process, "kill").mockImplementation(() => true);
+	}
+
+	// EPERM: the pid exists but we may not signal it. The bare catch in
+	// isProcessRunning reports this as "not running".
+	function stubPidNotSignallable(): void {
+		vi.spyOn(process, "kill").mockImplementation(() => {
+			throw Object.assign(new Error("EPERM"), { code: "EPERM" });
+		});
+	}
+
 	it("should detect heartbeat timeout when no heartbeat received", async () => {
+		stubPidDead();
 		const crashEvents: CrashEvent[] = [];
 		watchdog.onCrashDetected((event) => crashEvents.push(event));
 
@@ -39,6 +71,36 @@ describe("Watchdog", () => {
 		expect(crashEvents[0].reason).toBe(CrashReason.HEARTBEAT_TIMEOUT);
 		expect(crashEvents[0].name).toBe("test-proc");
 		expect(crashEvents[0].pid).toBe(1234);
+	});
+
+	it("should report UNRESPONSIVE when the process is still alive", async () => {
+		stubPidAlive();
+		const crashEvents: CrashEvent[] = [];
+		watchdog.onCrashDetected((event) => crashEvents.push(event));
+
+		watchdog.registerProcess("test-proc", 1234, 2000);
+		vi.advanceTimersByTime(4100);
+		await watchdog.waitForIdle();
+
+		expect(crashEvents.length).toBe(1);
+		expect(crashEvents[0].reason).toBe(CrashReason.UNRESPONSIVE);
+	});
+
+	it("should treat an unsignallable pid as HEARTBEAT_TIMEOUT", async () => {
+		// Documents current behaviour: isProcessRunning uses a bare catch, so
+		// EPERM (process exists, owned by another user) reads as not running.
+		// If that is ever tightened, this test is the thing that should fail
+		// and prompt a decision, rather than the gap going unnoticed.
+		stubPidNotSignallable();
+		const crashEvents: CrashEvent[] = [];
+		watchdog.onCrashDetected((event) => crashEvents.push(event));
+
+		watchdog.registerProcess("test-proc", 1234, 2000);
+		vi.advanceTimersByTime(4100);
+		await watchdog.waitForIdle();
+
+		expect(crashEvents.length).toBe(1);
+		expect(crashEvents[0].reason).toBe(CrashReason.HEARTBEAT_TIMEOUT);
 	});
 
 	it("should reset timeout on heartbeat", async () => {
