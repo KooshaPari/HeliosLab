@@ -27,5 +27,16 @@ jobs:
           test -x .github/hooks/security-guard.sh
 
       - name: Run security guard hook
+        env:
+          # Same reason as security-guard.yml: HEAD is main on `push: main`, so
+          # no-commit-to-branch fails every run.
+          #
+          # This is a developer-workflow guard, not a content check, so nothing
+          # security-relevant is skipped by excluding it. That is separate from
+          # the fact that this workflow currently runs no content hooks at all:
+          # `pre-commit run` with no file arguments reads the STAGED index, which
+          # actions/checkout leaves empty, so every other hook reports
+          # "(no files to check)". See the note in security-guard.yml.
+          SKIP: no-commit-to-branch
         run: |
           .github/hooks/pre-commit

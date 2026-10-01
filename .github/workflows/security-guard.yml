@@ -22,3 +22,16 @@ jobs:
         uses: pre-commit/action@2c7b3805fd2a0fd8c1884dcaebf91fc102a13ecd
         with:
           extra_args: --hook-stage pre-commit --config .pre-commit-config.yaml --show-diff-on-failure
+        env:
+          # no-commit-to-branch fails whenever HEAD is main/master, and this
+          # workflow checks out the pushed branch, so on `push: main` it failed
+          # on every run. It is a developer-workflow guard with no meaning in CI.
+          # Skipping it here keeps it active for local `pre-commit install`.
+          #
+          # NOTE: this workflow still checks no content. `pre-commit run` with no
+          # file arguments reads the STAGED index, and actions/checkout leaves
+          # that empty, so all 18 content hooks report "(no files to check)" and
+          # zero hooks execute. Passing `--all-files` is the separate change that
+          # would make this workflow meaningful, and it is deliberately not
+          # bundled here.
+          SKIP: no-commit-to-branch
