@@ -2,9 +2,9 @@ name: TruffleHog Secrets Scan
 
 on:
   push:
-    branches: [main]
+    branches: [main, fix/restore-org]
   pull_request:
-    branches: [main]
+    branches: [main, fix/restore-org]
   merge_group:
     types: [checks_requested]
 
