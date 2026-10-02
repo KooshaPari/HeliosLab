@@ -53,10 +53,29 @@ repos:
 
   # ── JavaScript/TypeScript (biome = fast lint+format) ──
   - repo: https://github.com/biomejs/pre-commit
-    rev: v2.0.0
+    rev: v2.5.11
     hooks:
+      # Two independent bugs, both verified by running the hook.
+      #
+      # 1. `args: [--write]` was a duplicate. The upstream entry is already
+      #    `biome check --write ...`, so this appended a SECOND --write and biome
+      #    rejected it: "argument `--write` cannot be used multiple times in this
+      #    context". The hook could never pass, on any file.
+      #
+      # 2. rev v2.0.0 ships biome CLI 2.0.0, which refuses this repo's biome.json:
+      #    "The configuration schema version does not match the CLI version 2.0.0"
+      #    because biome.json declares $schema 2.5.11. It also rejected
+      #    linter.rules.suspicious.useIterableCallbackReturn as unknown.
+      #    rev v2.5.11 matches the declared schema and the hook passes.
+      #
+      # 3. `--error-on-warnings` restores gate parity with the repo's own lint
+      #    script (`package.json`: `biome check --error-on-warnings .`), which
+      #    the hook previously did not match. Verified: 936 files checked, 0
+      #    warnings, 0 fixes applied. Without it the hook is strictly laxer than
+      #    `bun run lint`, so a warning would slip through the hook but still
+      #    fail the lint script.
       - id: biome-check
-        args: [--write]
+        args: [--error-on-warnings]
 
   # ── Go ──
   - repo: https://github.com/golangci/golangci-lint
