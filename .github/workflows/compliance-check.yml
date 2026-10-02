@@ -3,9 +3,7 @@ name: Compliance Check
 on:
   pull_request:
     types: [opened, synchronize, reopened]
-  # TEMP DEBUG: branches filter removed 2026-10-02 22:02 to test if filter is the issue
-  # branches: [main, fix/restore-org]
-  workflow_dispatch: null
+    branches: [main, fix/restore-org]
 
 permissions:
   contents: read
