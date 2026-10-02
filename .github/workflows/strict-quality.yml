@@ -2,9 +2,9 @@ name: Strict Quality Gate
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, fix/restore-org]
   push:
-    branches: [main]
+    branches: [main, fix/restore-org]
 
 permissions:
   contents: read
