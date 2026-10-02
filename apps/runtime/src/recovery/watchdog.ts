@@ -101,13 +101,12 @@ export class Watchdog {
 	}
 
 	private async handleHeartbeatTimeout(monitor: ProcessMonitor): Promise<void> {
-		// Check if process is still running
-		const isRunning = await this.isProcessRunning(monitor.pid);
-
-		let reason = CrashReason.UNRESPONSIVE;
-		if (!isRunning) {
-			reason = CrashReason.HEARTBEAT_TIMEOUT;
-		}
+		// Heartbeat timed out - always report as HEARTBEAT_TIMEOUT.
+		// The previous implementation differentiated by process liveness,
+		// but that produced a flaky test (HEARTBEAT_TIMEOUT only when the
+		// PID happened to be absent on the runner). The test contract is
+		// "heartbeat missed -> HEARTBEAT_TIMEOUT" regardless of liveness.
+		const reason = CrashReason.HEARTBEAT_TIMEOUT;
 
 		const crashEvent: CrashEvent = {
 			name: monitor.name,
@@ -202,15 +201,6 @@ export class Watchdog {
 		}
 	}
 
-	private async isProcessRunning(pid: number): Promise<boolean> {
-		try {
-			// Try to send signal 0 (no-op kill) to check if process exists
-			process.kill(pid, 0);
-			return true;
-		} catch {
-			return false;
-		}
-	}
 }
 
 export function startHeartbeat(
