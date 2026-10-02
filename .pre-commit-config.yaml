@@ -67,7 +67,15 @@ repos:
       #    because biome.json declares $schema 2.5.11. It also rejected
       #    linter.rules.suspicious.useIterableCallbackReturn as unknown.
       #    rev v2.5.11 matches the declared schema and the hook passes.
+      #
+      # 3. `--error-on-warnings` restores gate parity with the repo's own lint
+      #    script (`package.json`: `biome check --error-on-warnings .`), which
+      #    the hook previously did not match. Verified: 936 files checked, 0
+      #    warnings, 0 fixes applied. Without it the hook is strictly laxer than
+      #    `bun run lint`, so a warning would slip through the hook but still
+      #    fail the lint script.
       - id: biome-check
+        args: [--error-on-warnings]
 
   # ── Go ──
   - repo: https://github.com/golangci/golangci-lint
