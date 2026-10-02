@@ -8,6 +8,7 @@
 // FR-MVP-011 (persist conversations/state), FR-MVP-013 (persist lane/session)
 
 import { describe, expect, test } from "bun:test";
+import { posix, win32 } from "node:path";
 import { createInMemoryStore } from "../../../src/workspace/store.js";
 import {
 	closeWorkspace,
@@ -63,6 +64,103 @@ describe("createWorkspace", () => {
 		const ws = createWorkspace({ name: longName, rootPath: "/tmp" });
 		expect(ws.name).toBe(longName);
 	});
+});
+
+// Issue #228 — createWorkspace rejected every native Windows path because the
+// guard was `rootPath.startsWith("/")`. Windows users could not create a
+// workspace at all. These cases pin the fixed behaviour on both platforms, so
+// the suite is meaningful on Linux CI and on a Windows developer machine.
+describe("createWorkspace root path portability (#228)", () => {
+	// [input, expected stored rootPath].
+	//
+	// These are literal expected values, not a re-assertion of the guard's own
+	// predicate. A table that re-checks `isAbsolute(input)` only proves
+	// normalization did not destroy the path shape; it still passes if the guard
+	// becomes too strict or too lax in ways that change which inputs reach
+	// normalization at all. This table pins the exact stored string.
+	const exact: [string, string][] = [
+		// POSIX: trailing slash stripped, root preserved.
+		["/tmp/test", "/tmp/test"],
+		["/tmp/test/", "/tmp/test"],
+		["/", "/"],
+		["//", "/"],
+		// A backslash is ordinary filename data on POSIX, so it is preserved
+		// rather than treated as a separator. `/srv/weird\` can be a real
+		// directory whose last byte is `\`; stripping it would silently point
+		// the workspace at a different location.
+		["/srv/weird\\", "/srv/weird\\"],
+		// Windows drive paths: both separator styles, either case of drive letter.
+		["C:\\tmp\\test", "C:\\tmp\\test"],
+		["C:\\tmp\\test\\", "C:\\tmp\\test"],
+		["C:/tmp/test", "C:/tmp/test"],
+		["C:/tmp/test/", "C:/tmp/test"],
+		["c:/tmp/test", "c:/tmp/test"],
+		["C:\\Users\\dev\\repo", "C:\\Users\\dev\\repo"],
+		// Drive roots keep their separator. `C:` is drive-relative and names a
+		// different place entirely, so stripping the root is a correctness bug.
+		["C:\\", "C:\\"],
+		["C:/", "C:/"],
+		["c:\\", "c:\\"],
+		// UNC shares: the share root includes its trailing separator in
+		// `win32.parse`, so `\\server\share\` is preserved like `C:\` is. Both
+		// spellings open the same share, and each is independently absolute.
+		["\\\\server\\share", "\\\\server\\share"],
+		["\\\\server\\share\\", "\\\\server\\share\\"],
+		["\\\\server\\share\\dir", "\\\\server\\share\\dir"],
+		["\\\\server\\share\\dir\\", "\\\\server\\share\\dir"],
+		// Extended-length roots keep their separator for the same reason as a
+		// drive root. Windows documents that `\\?\` cannot be combined with a
+		// relative path, so `\\?\C:` is not usable after normalization.
+		["\\\\?\\C:\\", "\\\\?\\C:\\"],
+		["\\\\?\\C:\\dir", "\\\\?\\C:\\dir"],
+		["\\\\?\\C:\\dir\\", "\\\\?\\C:\\dir"],
+		["\\\\?\\UNC\\server\\share\\", "\\\\?\\UNC\\server\\share"],
+		// Device namespace roots behave identically.
+		["\\\\.\\C:\\", "\\\\.\\C:\\"],
+		["\\\\.\\C:\\dir\\", "\\\\.\\C:\\dir"],
+	];
+
+	for (const [input, expected] of exact) {
+		test(`normalizes ${JSON.stringify(input)} to ${JSON.stringify(expected)}`, () => {
+			expect(createWorkspace({ name: "N", rootPath: input }).rootPath).toBe(
+				expected,
+			);
+		});
+	}
+
+	// Every accepted root must remain absolute under both flavours, whatever the
+	// host, so the table above stays honest if the guard is later changed.
+	for (const rootPath of exact.map(([input]) => input)) {
+		test(`${JSON.stringify(rootPath)} stays absolute after normalization`, () => {
+			const ws = createWorkspace({ name: "A", rootPath });
+			expect(
+				posix.isAbsolute(ws.rootPath) || win32.isAbsolute(ws.rootPath),
+			).toBe(true);
+		});
+	}
+
+	// Paths that are absolute on neither platform stay rejected. `C:tmp` means
+	// "tmp relative to the current directory on drive C", which is the one
+	// Windows-shaped input that is genuinely not an absolute location.
+	//
+	// Note what is deliberately absent: `//server/share` and a lone leading `\`
+	// are both absolute (`//` is a POSIX root, `\` is drive-rooted on Windows),
+	// so they belong in the table above, not in this list.
+	for (const rootPath of [
+		"C:tmp",
+		"C:",
+		"relative/path",
+		"",
+		" ",
+		"./abs",
+		"../up",
+	]) {
+		test(`still rejects relative ${JSON.stringify(rootPath)}`, () => {
+			expect(() => createWorkspace({ name: "R", rootPath })).toThrow(
+				"must be absolute",
+			);
+		});
+	}
 });
 
 describe("state transitions", () => {
