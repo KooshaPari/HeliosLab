@@ -94,8 +94,11 @@ function cleanup(): void {
 
 describe("Worktree helpers", () => {
 	test("computeWorktreePath joins correctly", () => {
+		// Derive the expectation with path.join rather than hardcoding the POSIX
+		// spelling. On Windows path.join yields a backslash, so the literal could
+		// never match there; CI runs only on Linux, where it passed by coincidence.
 		expect(computeWorktreePath("/repo", "lane_1")).toBe(
-			"/repo/.helios-worktrees/lane_1",
+			path.join("/repo", ".helios-worktrees", "lane_1"),
 		);
 	});
 
