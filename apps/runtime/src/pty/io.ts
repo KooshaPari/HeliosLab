@@ -30,11 +30,21 @@ export class InvalidStateError extends Error {
 /** Writable states that accept input. */
 const WRITABLE_STATES: ReadonlySet<PtyState> = new Set(["active", "throttled"]);
 
-/** Map of ptyId -> Subprocess for tracking live processes. */
-export type ProcessMap = Map<
-	string,
-	{ readonly stdin: { write(data: Uint8Array | string): number } }
->;
+/**
+ * Handle to a live PTY subprocess.
+ *
+ * `stdin` is required because input always flows to the child. `stdout` and
+ * `stderr` are optional: they are only present when the process was spawned
+ * with piped output, and write-only handles remain valid for tests.
+ */
+export interface PtyProcessHandle {
+	readonly stdin: { write(data: Uint8Array | string): number };
+	readonly stdout?: ReadableStream<Uint8Array>;
+	readonly stderr?: ReadableStream<Uint8Array>;
+}
+
+/** Map of ptyId -> live process handle for tracking spawned processes. */
+export type ProcessMap = Map<string, PtyProcessHandle>;
 
 /** Result of a write operation including latency. */
 export interface WriteResult {

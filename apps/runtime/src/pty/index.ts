@@ -27,6 +27,7 @@ export { IdleMonitor, type IdleMonitorConfig } from "./idle_monitor.js";
 export {
 	InvalidStateError,
 	type ProcessMap,
+	type PtyProcessHandle,
 	type WriteResult,
 	writeInput,
 } from "./io.js";
@@ -74,6 +75,7 @@ import {
 } from "./idle_monitor.js";
 import {
 	type ProcessMap as _ProcessMap,
+	type PtyProcessHandle as _PtyProcessHandle,
 	writeInput as _writeInput,
 } from "./io.js";
 import type {
@@ -159,10 +161,10 @@ export class PtyManager {
 		const lifecycle = new _PtyLifecycle(record.ptyId, "active");
 		this.lifecycles.set(record.ptyId, lifecycle);
 
-		// Store process handle for I/O.
-		// Note: We need to re-spawn to get the handle. In practice the spawn
-		// function should return the subprocess. For now, store a stub.
-		// The real process is tracked via the record's pid.
+		// Store the live process handle so writeInput can reach the child's
+		// stdin and the stream binding layer can reach its stdout. Without
+		// this the spawned process is unreachable.
+		this.processes.set(record.ptyId, result.process);
 
 		const correlation = {
 			ptyId: record.ptyId,
@@ -201,13 +203,22 @@ export class PtyManager {
 
 	/**
 	 * Register a subprocess handle for a PTY (for I/O operations).
-	 * Must be called after spawn if writeInput is needed.
+	 *
+	 * {@link spawn} registers the handle automatically. This explicit setter
+	 * exists for tests and for re-attaching a handle after a restore.
 	 */
-	registerProcess(
-		ptyId: string,
-		proc: { readonly stdin: { write(data: Uint8Array | string): number } },
-	): void {
+	registerProcess(ptyId: string, proc: _PtyProcessHandle): void {
 		this.processes.set(ptyId, proc);
+	}
+
+	/**
+	 * Look up the live process handle for a PTY.
+	 *
+	 * @param ptyId - The PTY ID.
+	 * @returns The handle, or `undefined` if the PTY has no registered process.
+	 */
+	getProcess(ptyId: string): _PtyProcessHandle | undefined {
+		return this.processes.get(ptyId);
 	}
 
 	/**
