@@ -3,8 +3,8 @@ name: Compliance Check
 on:
   pull_request:
     types: [opened, synchronize, reopened]
-    branches: [main, fix/restore-org]
-  # TEMP DEBUG: workflow_dispatch added 2026-10-02 22:01 to test trigger
+  # TEMP DEBUG: branches filter removed 2026-10-02 22:02 to test if filter is the issue
+  # branches: [main, fix/restore-org]
   workflow_dispatch: null
 
 permissions:
