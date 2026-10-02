@@ -72,10 +72,14 @@ function normalizeRootPath(rootPath: string): string {
 	const separators = usePosix ? POSIX_SEPARATORS : WIN32_SEPARATORS;
 	if (rootPath.length <= root.length) return rootPath;
 	let end = rootPath.length;
-	while (end > root.length && separators.includes(rootPath[end - 1])) {
+	// `root` is never empty for an absolute path, so the loop floor keeps `end` at
+	// least 1 and the slice can never start before the root. `?? ""` is required by
+	// `noUncheckedIndexedAccess`, and is inert: the floor guarantees the index is
+	// in range, and "" is not a separator so it would stop the loop anyway.
+	while (end > root.length && separators.includes(rootPath[end - 1] ?? "")) {
 		end--;
 	}
-	return end === 0 ? rootPath : rootPath.slice(0, end);
+	return rootPath.slice(0, end);
 }
 
 /** Bus publish function signature */
