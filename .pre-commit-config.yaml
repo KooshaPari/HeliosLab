@@ -53,10 +53,21 @@ repos:
 
   # ── JavaScript/TypeScript (biome = fast lint+format) ──
   - repo: https://github.com/biomejs/pre-commit
-    rev: v2.0.0
+    rev: v2.5.11
     hooks:
+      # Two independent bugs, both verified by running the hook.
+      #
+      # 1. `args: [--write]` was a duplicate. The upstream entry is already
+      #    `biome check --write ...`, so this appended a SECOND --write and biome
+      #    rejected it: "argument `--write` cannot be used multiple times in this
+      #    context". The hook could never pass, on any file.
+      #
+      # 2. rev v2.0.0 ships biome CLI 2.0.0, which refuses this repo's biome.json:
+      #    "The configuration schema version does not match the CLI version 2.0.0"
+      #    because biome.json declares $schema 2.5.11. It also rejected
+      #    linter.rules.suspicious.useIterableCallbackReturn as unknown.
+      #    rev v2.5.11 matches the declared schema and the hook passes.
       - id: biome-check
-        args: [--write]
 
   # ── Go ──
   - repo: https://github.com/golangci/golangci-lint
