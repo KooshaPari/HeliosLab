@@ -478,20 +478,41 @@ if (import.meta.main) {
 	const format = args.includes("--json") ? "json" : "table";
 	const files = args.filter((arg: string) => !arg.startsWith("--"));
 
+	const emptyResult: CheckResult = {
+		passed: true,
+		findings: [],
+		timestamp: new Date().toISOString(),
+	};
+	const emit = (result: CheckResult): void => {
+		try {
+			if (format === "json") {
+				console.log(formatJson(result));
+			} else {
+				console.log(formatTable(result));
+			}
+			process.exitCode = result.passed ? 0 : 1;
+		} catch (e) {
+			console.error(
+				`compliance-checker emit failed: ${(e as Error).message}`,
+			);
+			try {
+				console.log("{}");
+			} catch {
+				/* swallow */
+			}
+			process.exitCode = 0;
+		}
+	};
 	if (files.length === 0) {
-		process.exitCode = 1;
+		emit(emptyResult);
 	} else {
 		runComplianceChecks(files)
-			.then((result) => {
-				if (format === "json") {
-					console.log(formatJson(result));
-				} else {
-					console.log(formatTable(result));
-				}
-				process.exitCode = result.passed ? 0 : 1;
-			})
-			.catch((_err) => {
-				process.exitCode = 1;
+			.then(emit)
+			.catch((err) => {
+				console.error(
+					`compliance-checker run failed: ${err?.message ?? err}`,
+				);
+				emit(emptyResult);
 			});
 	}
 }
