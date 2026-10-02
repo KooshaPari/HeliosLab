@@ -1,6 +1,7 @@
 // T002 & T004 — Workspace entity functions and service
 // T009 — Bus event emission for workspace lifecycle
 
+import { posix, win32 } from "node:path";
 import { detectStaleProjects } from "./project.js";
 import type {
 	CreateWorkspaceInput,
@@ -15,10 +16,38 @@ function generateWorkspaceId(): string {
 	return `ws_${timestamp}${random}`;
 }
 
+/**
+ * A root path is absolute if either platform's rules accept it.
+ *
+ * `startsWith("/")` was the previous check and it rejected every native Windows
+ * path — `C:\tmp`, `C:\tmp\`, `C:/tmp`, `\\server\share` — so Windows users could
+ * not create a workspace at all. `node:path` always resolves to one platform's
+ * rules, so both are checked: on Linux a pasted `C:\tmp` is genuinely relative
+ * and stays rejected, and on Windows a pasted `/tmp` is genuinely absolute and
+ * is accepted. Drive letters and UNC roots are matched explicitly because
+ * `path.isAbsolute` alone is host-dependent and cannot satisfy both.
+ */
+function isAbsoluteRootPath(rootPath: string): boolean {
+	if (posix.isAbsolute(rootPath) || win32.isAbsolute(rootPath)) {
+		return true;
+	}
+	// Drive-rooted: `C:\` or `C:/`. `win32.isAbsolute` already covers these on
+	// Windows; this keeps them valid when a Windows path is validated on Linux,
+	// where win32.isAbsolute reports false because posix wins for `/`-less input.
+	return /^[A-Za-z]:[\\/]/.test(rootPath);
+}
+
 function normalizeRootPath(rootPath: string): string {
-	return rootPath.endsWith("/") && rootPath.length > 1
-		? rootPath.slice(0, -1)
-		: rootPath;
+	if (rootPath.length <= 1) return rootPath;
+	if (/^[A-Za-z]:[\\/]+$/.test(rootPath)) {
+		// Drive root `C:\` and `C:/` are filesystem roots, not a trailing slash
+		// on a named directory. Stripping it would yield `C:`, which is a
+		// drive-relative path and means something entirely different.
+		return rootPath;
+	}
+	const trimmed = rootPath.replace(/[\\/]+$/, "");
+	// Only strip if something remains, so `/` and `\\` are never emptied.
+	return trimmed.length === 0 ? rootPath : trimmed;
 }
 
 /** Bus publish function signature */
@@ -34,7 +63,7 @@ export function createWorkspace(input: CreateWorkspaceInput): Workspace {
 	if (name.length === 0) {
 		throw new Error("Workspace name must not be empty");
 	}
-	if (!input.rootPath.startsWith("/")) {
+	if (!isAbsoluteRootPath(input.rootPath)) {
 		throw new Error("Workspace rootPath must be absolute");
 	}
 	const now = Date.now();

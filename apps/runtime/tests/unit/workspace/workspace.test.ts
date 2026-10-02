@@ -8,6 +8,7 @@
 // FR-MVP-011 (persist conversations/state), FR-MVP-013 (persist lane/session)
 
 import { describe, expect, test } from "bun:test";
+import { posix, win32 } from "node:path";
 import { createInMemoryStore } from "../../../src/workspace/store.js";
 import {
 	closeWorkspace,
@@ -63,6 +64,82 @@ describe("createWorkspace", () => {
 		const ws = createWorkspace({ name: longName, rootPath: "/tmp" });
 		expect(ws.name).toBe(longName);
 	});
+});
+
+// Issue #228 — createWorkspace rejected every native Windows path because the
+// guard was `rootPath.startsWith("/")`. Windows users could not create a
+// workspace at all. These cases pin the fixed behaviour on both platforms, so
+// the suite is meaningful on Linux CI and on a Windows developer machine.
+describe("createWorkspace root path portability (#228)", () => {
+	// Paths that are absolute on Windows. Accepted regardless of host platform,
+	// so a Windows workspace can be created from a Linux-run test.
+	const windowsAbsolute = [
+		"C:\\tmp\\test",
+		"C:\\tmp\\test\\",
+		"C:/tmp/test",
+		"C:/tmp/test/",
+		"c:/tmp/test",
+		"C:\\Users\\dev\\repo",
+		"\\\\server\\share",
+		"\\\\server\\share\\dir",
+	];
+	for (const rootPath of windowsAbsolute) {
+		test(`accepts ${JSON.stringify(rootPath)}`, () => {
+			const ws = createWorkspace({ name: "Win", rootPath });
+			expect(ws.rootPath.length).toBeGreaterThan(0);
+			// Whatever normalization happened, the result must still be absolute.
+			expect(
+				win32.isAbsolute(ws.rootPath) || posix.isAbsolute(ws.rootPath),
+			).toBe(true);
+		});
+	}
+
+	// Drive roots are filesystem roots, not trailing slashes on a directory.
+	// `C:\` must never normalize to `C:`, which is drive-relative.
+	for (const rootPath of ["C:\\", "C:/"]) {
+		test(`preserves drive root ${JSON.stringify(rootPath)}`, () => {
+			const ws = createWorkspace({ name: "Win", rootPath });
+			expect(ws.rootPath).toBe(rootPath);
+			expect(ws.rootPath).not.toBe(rootPath.slice(0, -1));
+			expect(win32.isAbsolute(ws.rootPath)).toBe(true);
+		});
+	}
+
+	test("strips a trailing separator from a named Windows directory", () => {
+		expect(
+			createWorkspace({ name: "W", rootPath: "C:\\tmp\\test\\" }).rootPath,
+		).toBe("C:\\tmp\\test");
+		expect(
+			createWorkspace({ name: "W", rootPath: "C:/tmp/test/" }).rootPath,
+		).toBe("C:/tmp/test");
+	});
+
+	test("still accepts POSIX roots unchanged", () => {
+		expect(createWorkspace({ name: "P", rootPath: "/tmp/test" }).rootPath).toBe(
+			"/tmp/test",
+		);
+		expect(
+			createWorkspace({ name: "P", rootPath: "/tmp/test/" }).rootPath,
+		).toBe("/tmp/test");
+		expect(createWorkspace({ name: "P", rootPath: "/" }).rootPath).toBe("/");
+	});
+
+	// Drive-relative paths must stay rejected: `C:tmp` means "tmp relative to the
+	// current directory on drive C", not an absolute location.
+	for (const rootPath of [
+		"C:tmp",
+		"C:",
+		"relative/path",
+		"",
+		"./abs",
+		"../up",
+	]) {
+		test(`still rejects relative ${JSON.stringify(rootPath)}`, () => {
+			expect(() => createWorkspace({ name: "R", rootPath })).toThrow(
+				"must be absolute",
+			);
+		});
+	}
 });
 
 describe("state transitions", () => {
