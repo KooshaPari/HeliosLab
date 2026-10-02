@@ -4,6 +4,8 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
     branches: [main, fix/restore-org]
+  # TEMP DEBUG: workflow_dispatch added 2026-10-02 22:01 to test trigger
+  workflow_dispatch: null
 
 permissions:
   contents: read
