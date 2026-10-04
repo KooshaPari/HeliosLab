@@ -232,6 +232,8 @@ const PTY_SYMBOLS: Symbols = {
 	pty_pool_live_count: { args: [], returns: FFIType.i32 },
 	pty_pool_available: { args: [], returns: FFIType.i32 },
 	pty_pool_abi_version: { args: [], returns: FFIType.u32 },
+	pty_pool_last_spawn_error: { args: [], returns: FFIType.i32 },
+	pty_pool_last_hresult: { args: [], returns: FFIType.i32 },
 };
 
 let ptyLib: Library | null | undefined;

@@ -1,0 +1,5 @@
+Re-trigger compliance check after workflow fix in base.
+
+The base branch fix/restore-org now uses fs.readFileSync instead of
+${{ steps.results.outputs.findings }} interpolation, which was breaking
+on escaped quotes in finding descriptions.
