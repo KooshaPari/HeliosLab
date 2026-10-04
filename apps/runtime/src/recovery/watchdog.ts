@@ -200,7 +200,6 @@ export class Watchdog {
 			console.error("Failed to write crash record:", err);
 		}
 	}
-
 }
 
 export function startHeartbeat(
