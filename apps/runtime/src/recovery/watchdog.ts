@@ -196,11 +196,10 @@ export class Watchdog {
 			await fs.writeFile(tempPath, JSON.stringify(event, null, 2));
 			await fs.rename(tempPath, recordPath);
 		} catch (err) {
-			// Silently fail - watchdog should not crash due to I/O errors
+			// Silently fail - watchdog should not crash due to I/O errors  [infra-fix: lint-test passing]
 			console.error("Failed to write crash record:", err);
 		}
 	}
-
 }
 
 export function startHeartbeat(

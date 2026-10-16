@@ -21,8 +21,8 @@ pub fn build(b: *std.Build) void {
     const test_step = b.step("test", "Run portable core unit tests");
     test_step.dependOn(&run_core_tests.step);
 
-    // The shared library is POSIX-only. Building it for Windows is a mistake,
-    // so fail loudly rather than producing something that cannot work.
+    // The shared library builds on every target: ConPTY on Windows, POSIX
+    // PTY on macOS/Linux, selected by main.zig at comptime.
     const lib = b.addLibrary(.{
         .name = "helios-pty",
         .root_module = b.createModule(.{
@@ -36,15 +36,8 @@ pub fn build(b: *std.Build) void {
     lib.linker_allow_shlib_undefined = false;
 
     const install_lib = b.addInstallArtifact(lib, .{});
-    const lib_step = b.step("lib", "Build the PTY pool shared library (POSIX only)");
+    const lib_step = b.step("lib", "Build the PTY pool shared library");
     lib_step.dependOn(&install_lib.step);
-
-    if (target.result.os.tag == .windows) {
-        lib_step.dependOn(&b.addFail(
-            "helios-pty targets macOS and Linux; Windows has no POSIX PTY. " ++
-                "Use -Dtarget=aarch64-macos to cross-compile.",
-        ).step);
-    }
 
     // `zig build` with no arguments builds the library when the target is
     // supported, and the portable tests otherwise.
