@@ -12,6 +12,7 @@ export default defineConfig({
 			{ text: "Operations", link: "/operations/" },
 			{ text: "Demo", link: "/demo/" },
 			{ text: "Traceability", link: "/traceability/" },
+			{ text: "Compete", link: "/compete/" },
 		],
 		sidebar: {
 			"/journeys/": [
