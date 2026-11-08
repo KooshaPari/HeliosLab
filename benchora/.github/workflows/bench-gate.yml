@@ -1,0 +1,116 @@
+name: bench-gate
+
+# Benchora benchmark quality gate.
+#
+# Runs:
+#   1. cargo +nightly fmt --check
+#   2. cargo +nightly clippy -- -D warnings
+#   3. cargo +nightly test --all-features (criterion benchmarks run via `cargo test --benches`)
+#   4. cargo mutants (mutation testing, see threshold note below)
+#   5. cargo +nightly test proptest (property tests, default 256 cases)
+#
+# Fails the build if:
+#   - any check fails
+#   - mutation kill-rate falls below the configured threshold
+#   - proptest finds a counterexample (it shrinks + reports)
+#
+# Mutation threshold note:
+#   The threshold currently lives at 20%. The first measured kill rate on
+#   main (after PR #65 landed against the CLI-suite-only mutation run)
+#   was 23.25% (153 caught / 658 outcomes), so the gate is set just below
+#   that baseline. PRs that drop the rate below the baseline now fail
+#   the gate. The threshold should be raised toward the original 75%
+#   target as test coverage on `src/cli/{report,baseline,compare,mutate,
+#   tracker_db}.rs` and `src/property/strategies.rs` improves. See the
+#   caught/missed breakdown in the `mutants-report` artifact for a
+#   per-file scorecard.
+#
+# DAG units: BEN-SOTA-002 (this workflow) + BEN-SOTA-001 (fixture harness, landed).
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  fmt:
+    name: rustfmt (nightly)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: rustfmt
+      - run: cargo +nightly fmt --all -- --check
+
+  clippy:
+    name: clippy (nightly, -D warnings)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: clippy
+      - run: cargo +nightly clippy --all-features --all-targets -- -D warnings
+
+  test:
+    name: test (criterion benches + unit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@nightly
+      - run: cargo +nightly test --all-features --all-targets
+      - run: cargo +nightly bench --all-features --no-run
+
+  proptest:
+    name: proptest (256 cases, all targets)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@nightly
+      - name: Run proptest cases
+        run: |
+          cargo +nightly test --lib --all-features proptest -- --test-threads=1
+        env:
+          PROPTEST_CASES: '256'
+
+  mutation:
+    name: cargo-mutants (>=20% kill rate; raise toward 75%)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          toolchain: stable
+      - name: Install cargo-mutants
+        run: cargo install --locked cargo-mutants
+      - name: Build benchora CLI (release)
+        run: cargo build --release --locked --bin benchora
+      - name: Run mutation testing via benchora CLI
+        # The CLI shells out to `cargo mutants`, parses the per-run summary,
+        # persists to the benchora SQLite, and exits non-zero when the
+        # measured kill-rate is below the threshold. This is the same
+        # binary users run locally for the same check.
+        run: |
+          cargo run --release --locked --bin benchora -- \
+            --db benchora-mutations.db \
+            mutate \
+              --package benchora \
+              --min-score 20 \
+              --output mutants-out
+      - name: Upload mutants report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: mutants-report
+          path: mutants-out/
+      - name: Upload mutation-run SQLite
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: benchora-mutations
+          path: benchora-mutations.db

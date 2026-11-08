@@ -1,0 +1,66 @@
+name: Release-plz
+
+# BACKLOG-BENCH-003: tag-on-merge for Benchora.
+#
+# - On every push to main: release-plz opens/updates a release PR
+#   (no-op if CHANGELOG + Cargo.toml are already up to date).
+# - When the release PR merges: release-plz creates a `vX.Y.Z` tag,
+#   pushes it, and (when publish=true in release-plz.toml) publishes
+#   to crates.io. With publish=false (burn-in), it only tags.
+#
+# This workflow runs in parallel with the existing tag-triggered
+# release.yml, which builds + tests the tagged release.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: release-plz-${{ github.ref }}
+  cancel-in-progress: false  # never cancel a release in progress
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-plz:
+    name: release-plz (open/update release PR + tag on merge)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0  # release-plz needs full git history for conventional-commit parsing
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      - name: Cache cargo registry
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: cargo-release-plz-${{ github.run_id }}
+          restore-keys: |
+            cargo-release-plz-
+
+      - name: Run release-plz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}  # only used when publish=true
+        run: |
+          # release-plz CLI handles:
+          #  - PR open/update on push to main
+          #  - tag + GitHub release + (optional) crates.io publish on release PR merge
+          cargo install release-plz --version 0.3.95 --locked
+          release-plz release \
+            --config release-plz.toml \
+            --git-token "$GITHUB_TOKEN" \
+            --registry-token "$CARGO_REGISTRY_TOKEN" \
+            --allow-dirty

@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "repo": "Benchora",
+  "last_updated": "2026-08-20T00:00:00Z",
+  "baselines": {
+    "latency_p50_ms": 8,
+    "latency_p95_ms": 45,
+    "latency_p99_ms": 95,
+    "throughput_rps": 520,
+    "memory_rss_mb": 64,
+    "memory_heap_mb": 48,
+    "error_rate_pct": 0.0,
+    "cpu_utilization_pct": 25
+  },
+  "history": [
+    {
+      "date": "2026-07-23",
+      "run_id": "perf-20260723-001",
+      "commit_sha": "ae57288",
+      "metrics": {
+        "latency_p50_ms": 10,
+        "latency_p95_ms": 52,
+        "latency_p99_ms": 108,
+        "throughput_rps": 490,
+        "memory_rss_mb": 70,
+        "memory_heap_mb": 53,
+        "error_rate_pct": 0.0,
+        "cpu_utilization_pct": 28
+      }
+    },
+    {
+      "date": "2026-07-30",
+      "run_id": "perf-20260730-001",
+      "commit_sha": "c03f2c2",
+      "metrics": {
+        "latency_p50_ms": 9,
+        "latency_p95_ms": 49,
+        "latency_p99_ms": 102,
+        "throughput_rps": 505,
+        "memory_rss_mb": 67,
+        "memory_heap_mb": 50,
+        "error_rate_pct": 0.0,
+        "cpu_utilization_pct": 26
+      }
+    },
+    {
+      "date": "2026-08-06",
+      "run_id": "perf-20260806-001",
+      "commit_sha": "5318c91",
+      "metrics": {
+        "latency_p50_ms": 8,
+        "latency_p95_ms": 46,
+        "latency_p99_ms": 97,
+        "throughput_rps": 515,
+        "memory_rss_mb": 65,
+        "memory_heap_mb": 49,
+        "error_rate_pct": 0.0,
+        "cpu_utilization_pct": 25
+      }
+    },
+    {
+      "date": "2026-08-13",
+      "run_id": "perf-20260813-001",
+      "commit_sha": "2f09908",
+      "metrics": {
+        "latency_p50_ms": 8,
+        "latency_p95_ms": 44,
+        "latency_p99_ms": 93,
+        "throughput_rps": 525,
+        "memory_rss_mb": 63,
+        "memory_heap_mb": 47,
+        "error_rate_pct": 0.0,
+        "cpu_utilization_pct": 24
+      }
+    }
+  ]
+}

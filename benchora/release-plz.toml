@@ -1,0 +1,41 @@
+# release-plz configuration for Benchora (BACKLOG-BENCH-003)
+#
+# A+ Track 1 burn-in. release-plz creates a release PR when there are
+# changes since the last release. The PR auto-updates Cargo.toml version
+# + CHANGELOG.md. When the release PR merges, release-plz creates a
+# GitHub release + publishes to crates.io.
+#
+# References:
+#   - https://release-plz.dev/docs/configuration
+
+[workspace]
+# Single-crate workspace (per [workspace] in Cargo.toml). release-plz
+# reads Cargo.toml's [workspace] table directly; no `members` list needed.
+
+# Use semver-compatible conventional commits for version bumps.
+git_release_kind = "semver"
+
+# Tag format: vX.Y.Z (matches existing release.yml tag trigger "v*").
+git_tag_name = "v{{version}}"
+
+# Allow dirty cargo workspace (we have worktrees / uncommitted changes
+# during burn-in). Disable once Benchora hits T2 (first crates.io publish).
+allow_dirty = true
+
+# Don't publish yet — burn-in only. Flip to true once BACKLOG-BENCH-002
+# dry-run has been re-validated end-to-end.
+publish = false
+
+# Changelog: prefer grouping by conventional-commit scope.
+changelog_include = ["feat", "fix", "perf", "refactor"]
+
+# PR body: include the conventional-commit diff + version bump.
+pr_body = """
+Automated release-plz PR for Benchora.
+
+**Version bump**: `{{ old_version }}` → `{{ new_version }}`
+**Compare**: {{ compare_url }}
+**Changelog**: see `CHANGELOG.md` for the rendered diff.
+
+Closes any pending release-tracking issue.
+"""
