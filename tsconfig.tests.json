@@ -1,0 +1,21 @@
+{
+	"extends": "./tsconfig.json",
+	"compilerOptions": {
+		"noEmit": true,
+		"types": ["bun-types", "bun-types/test-globals", "node"]
+	},
+	"include": [
+		"apps/*/src/**/*.ts",
+		"apps/*/src/**/*.tsx",
+		"apps/*/tests/**/*.ts",
+		"apps/*/tests/**/*.tsx",
+		"packages/*/src/**/*.ts",
+		"packages/*/src/**/*.tsx",
+		"packages/*/tests/**/*.ts",
+		"packages/*/tests/**/*.tsx",
+		"tests/**/*.ts",
+		"tests/**/*.tsx",
+		"scripts/tests/**/*.ts"
+	],
+	"exclude": ["node_modules", "dist", "coverage", ".worktrees"]
+}
