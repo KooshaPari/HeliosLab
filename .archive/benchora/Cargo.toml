@@ -1,0 +1,61 @@
+[package]
+name = "benchora"
+version = "0.2.1"
+edition = "2021"
+description = "Modern benchmarking + xDD testing framework for Rust"
+license = "MIT"
+repository = "https://github.com/KooshaPari/Benchora"
+homepage = "https://github.com/KooshaPari/Benchora"
+readme = "README.md"
+keywords = ["benchmark", "criterion", "xdd", "mutation", "cli"]
+categories = ["development-tools", "development-tools::profiling"]
+# Not yet published to crates.io — CHANGELOG [0.2.0] is ready (T1).
+# First publish is T2: tag v0.2.0, then cargo publish --locked.
+
+[lib]
+name = "phenotype_xdd_lib"
+path = "src/lib.rs"
+
+[[bin]]
+name = "benchora"
+path = "src/bin/benchora.rs"
+
+[dependencies]
+criterion = "0.8"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+serde_yaml = "0.9"
+proptest = "1.0"
+clap = { version = "4.0", features = ["derive", "env"] }
+rusqlite = { version = "0.40", features = ["bundled"] }
+thiserror = "2.0"
+sha2 = "0.11"
+
+[dev-dependencies]
+tempfile = "3.0"
+assert_cmd = "2.0"
+predicates = "3.0"
+
+[[bench]]
+name = "my_benchmark"
+harness = false
+
+[[bench]]
+name = "phenotype_xdd_lib_bench"
+harness = false
+
+[[bench]]
+name = "niah_comparator"
+harness = false
+
+[[example]]
+name = "basic_usage"
+path = "examples/basic_usage.rs"
+
+[workspace.package]
+edition = "2021"
+rust-version = "1.75"
+license = "MIT"
+
+[workspace]
+members = ["."] # Benchora is currently single-crate; expand to members list when crates are extracted

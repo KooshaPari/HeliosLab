@@ -1,0 +1,26 @@
+{
+  "name": "benchora-docs",
+  "version": "0.1.0",
+  "private": true,
+  "description": "VitePress site for Benchora (published via GitHub Pages).",
+  "type": "module",
+  "scripts": {
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs",
+    "format": "prettier --check \"docs/**/*.md\" \"docs/.vitepress/**/*.mjs\"",
+    "format:fix": "prettier --write \"docs/**/*.md\" \"docs/.vitepress/**/*.mjs\"",
+    "lint": "prettier --check \"docs/**/*.md\" \"docs/.vitepress/**/*.mjs\"",
+    "typecheck": "echo \"no TS sources\" && exit 0",
+    "test": "vitepress build docs",
+    "build": "vitepress build docs"
+  },
+  "devDependencies": {
+    "prettier": "3.6.2",
+    "vitepress": "^1.6.4"
+  },
+  "overrides": {
+    "vite": "^6.4.3",
+    "esbuild": "^0.25.0"
+  }
+}
