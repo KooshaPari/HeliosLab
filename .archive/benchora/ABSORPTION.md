@@ -30,5 +30,5 @@ removing them would change behaviour in a repo that has no tests for them.
 
 ## What this does not do
 
-- It does not build Benchora. `benchora/Cargo.toml` is not part of any HeliosLab workspace.
+- It does not build Benchora. `.archive/benchora/Cargo.toml` is not part of any HeliosLab workspace.
 - It does not restore the upstream repo. If Benchora becomes live, it should get a real repo again.
