@@ -90,9 +90,11 @@ jobs:
       # because no native library is loaded during it, and would have thrown at
       # runtime on every string-returning call.
       #
-      # The repo baseline has ~1000 pre-existing typecheck errors, so this runs
-      # the project's own typecheck and fails only on errors inside the paths
-      # this work owns. Verified to exit 1 on a planted error.
+      # Fails only on errors inside the paths this work owns. The unit test
+      # checks that those paths are ones tsc can actually emit.
+      - name: Typecheck gate unit tests
+        run: bun test tools/typecheck-owned.test.ts
+
       - name: Typecheck the native integration surface
         run: bun tools/typecheck-owned.ts
 
